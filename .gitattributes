@@ -1,0 +1,4 @@
+* text=auto !eol
+*.sh text eol=lf
+*.bat text eol=crlf
+/sireum text eol=lf

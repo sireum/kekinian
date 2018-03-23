@@ -1,0 +1,12 @@
+[submodule "runtime"]
+	path = runtime
+	url = https://github.com/sireum/runtime
+[submodule "slang"]
+	path = slang
+	url = https://github.com/sireum/slang
+[submodule "tools"]
+	path = tools
+	url = https://github.com/sireum/tools
+[submodule "cli"]
+	path = cli
+	url = https://github.com/sireum/cli
