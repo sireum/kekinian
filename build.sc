@@ -87,23 +87,21 @@ object cli extends Cli.Module {
 }
 
 def regenSlang() = T.command {
-  val out = cli.assembly()
+  val out = pwd / 'out / 'cli / 'assembly / 'dest / "out.jar"
   val astPackagePath = pwd / 'slang / 'ast / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / 'ast
   val slangPackagePath = pwd / 'slang / 'tipe / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang
-  log(%%(out.path, 'tools, 'transgen, "-l", pwd / "license.txt", "-m", "immutable,mutable",
+  log(%%(out, 'tools, 'transgen, "-l", pwd / "license.txt", "-m", "immutable,mutable",
     astPackagePath / "AST.scala")(astPackagePath))
-  log(%%(out.path, 'tools, 'sergen, "-p", "org.sireum.lang.tipe", "-l", pwd / "license.txt",
+  log(%%(out, 'tools, 'sergen, "-p", "org.sireum.lang.tipe", "-l", pwd / "license.txt",
     "-m", "json,msgpack", slangPackagePath / 'symbol / "Info.scala", astPackagePath / "AST.scala")(
     slangPackagePath / 'tipe))
-  cli.assembly()
 }
 
 def regenCli() = T.command {
-  val out = cli.assembly()
+  val out = pwd / 'out / 'cli / 'assembly / 'dest / "out.jar"
   val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum
-  log(%%(out.path, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
+  log(%%(out, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
     sireumPackagePath / "cli.sc")(sireumPackagePath))
-  cli.assembly()
 }
 
 private def log(r: CommandResult)(implicit ctx: mill.util.Ctx.Log): Unit = {
