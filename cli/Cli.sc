@@ -29,7 +29,7 @@ import org.sireum.mill.SireumModule._
 
 trait Module extends JvmOnly {
 
-  final override def crossDeps = Seq(frontEndObject, toolsObject)
+  final override def crossDeps = Seq(alirObject, toolsObject)
 
   final override def ivyDeps = Agg(ivy"com.lihaoyi::ammonite-ops:$ammoniteOpsVersion")
 
@@ -45,7 +45,7 @@ trait Module extends JvmOnly {
     ivy"org.sireum::scalac-plugin:$scalacPluginVersion"
   )
 
-  def frontEndObject: CrossJvmJs
+  def alirObject: CrossJvmJs
 
   def toolsObject: CrossJvmJs
 
