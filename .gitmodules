@@ -10,3 +10,6 @@
 [submodule "cli"]
 	path = cli
 	url = https://github.com/sireum/cli
+[submodule "alir"]
+	path = alir
+	url = https://github.com/sireum/alir

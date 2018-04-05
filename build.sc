@@ -28,6 +28,7 @@ import ammonite.ops._
 import $file.runtime.Runtime
 import $file.slang.Slang
 import $file.tools.Tools
+import $file.alir.Alir
 import $file.cli.Cli
 
 object runtime extends mill.Module {
@@ -73,6 +74,12 @@ object slang extends mill.Module {
 
 }
 
+object alir extends Alir.Module {
+
+  final override def frontEndObject = slang.frontend
+
+}
+
 object tools extends Tools.Module {
 
   final override def frontEndObject = slang.frontend
@@ -81,9 +88,10 @@ object tools extends Tools.Module {
 
 object cli extends Cli.Module {
 
-  final override def frontEndObject = slang.frontend
+  final override def alirObject = alir
 
   final override def toolsObject = tools
+
 }
 
 def regenSlang() = T.command {
