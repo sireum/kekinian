@@ -409,7 +409,7 @@ object SlangTipe {
             startTime()
           }
 
-          PostTipeAttrChecker.checkProgram(p2, reporter)
+          PostTipeAttrChecker.checkProgram(p2._2, reporter)
 
           if (reporter.hasIssue) {
             reporter.printMessages()
