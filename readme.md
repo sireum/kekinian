@@ -1,5 +1,7 @@
 # Sireum: A High-Assurance Software Development Platform
 
+[![Build Status](https://travis-ci.org/sireum/kekinian.svg?branch=master)](https://travis-ci.org/sireum/kekinian)
+
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
 core components are being built using the Sireum Programming Language (Slang).
 
@@ -21,3 +23,11 @@ itself (and analyses on top of it) are written using Slang.
 
 Slang programs run on the JVM (Java 8+), and in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation).
+
+## Testing
+
+To test:
+
+```bash
+./test.sh
+```
