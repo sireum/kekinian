@@ -30,8 +30,7 @@ import java.io.{File, FileWriter}
 import org.sireum.message.Reporter
 import org.sireum.tools.{CliGenJvm, SerializerGen, SerializerGenJvm, TransformerGenJvm}
 
-object Sireum extends App {
-
+object Sireum extends scala.App {
 
   Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String):_ *), 0) match {
     case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o)
