@@ -1,9 +1,10 @@
 #!/bin/bash -e
+export SCRIPT_HOME=$( cd "$( dirname "$0" )" &> /dev/null && pwd )
 rm -fR mill-standalone out
 curl -Lo mill-standalone http://files.sireum.org/mill-standalone
 chmod +x mill-standalone
 git submodule update --init --recursive --remote
-./mill-standalone -i all \
+$SCRIPT_HOME/mill-standalone -i all \
   cli.tests.compile \
   cli.assembly \
   runtime.library.shared.tests.test \
