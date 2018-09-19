@@ -34,9 +34,9 @@ import org.sireum._
 
 object Cli {
 
-  @datatype trait SireumOption
+  @datatype trait SireumTopOption
 
-  @datatype class HelpOption extends SireumOption
+  @datatype class HelpOption extends SireumTopOption
 
   @datatype class SlangTipeOption(
     help: String,
@@ -48,7 +48,7 @@ object Cli {
     save: Option[String],
     load: Option[String],
     gzip: B
-  ) extends SireumOption
+  ) extends SireumTopOption
 
   @datatype class CligenOption(
     help: String,
@@ -58,7 +58,7 @@ object Cli {
     width: ISZ[Z],
     license: Option[String],
     outputDir: Option[String]
-  ) extends SireumOption
+  ) extends SireumTopOption
 
   @enum object SerializerMode {
     'Json
@@ -73,7 +73,7 @@ object Cli {
     name: Option[String],
     license: Option[String],
     outputDir: Option[String]
-  ) extends SireumOption
+  ) extends SireumTopOption
 
   @enum object TransformerMode {
     'Immutable
@@ -87,14 +87,14 @@ object Cli {
     name: Option[String],
     license: Option[String],
     outputDir: Option[String]
-  ) extends SireumOption
+  ) extends SireumTopOption
 }
 
 import Cli._
 
 @record class Cli(pathSep: C) {
 
-  def parseSireum(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseSireum(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Sireum: A High-Assurance Software Development Platform
@@ -114,7 +114,7 @@ import Cli._
     }
   }
 
-  def parseSlang(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""The Sireum Language (Slang) Toolbox
@@ -131,7 +131,7 @@ import Cli._
     }
   }
 
-  def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Slang Type Checker
           |
@@ -223,7 +223,7 @@ import Cli._
     return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, save, load, gzip))
   }
 
-  def parseTools(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Sireum Utility Tools
@@ -244,7 +244,7 @@ import Cli._
     }
   }
 
-  def parseCligen(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum CLI Generator
           |
@@ -354,7 +354,7 @@ import Cli._
     return Some(r)
   }
 
-  def parseSergen(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseSergen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum De/Serializer Generator
           |
@@ -464,7 +464,7 @@ import Cli._
     return Some(r)
   }
 
-  def parseTransgen(args: ISZ[String], i: Z): Option[SireumOption] = {
+  def parseTransgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Transformer Generator
           |
