@@ -56,15 +56,27 @@ object SlangTipe {
   val LoadingError: Int = -10
 
   def run(o: SlangTipeOption): Int = {
+
     def readFile(f: File): (Option[String], String) = {
       val file = f.getCanonicalFile.getAbsoluteFile
       (Some(file.toURI.toASCIIString), read ! ammonite.ops.Path(file))
     }
+
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
       println(o.help)
       println()
       println("Please either specify sourcepath or Slang files as arguments")
       return 0
+    }
+
+    if (o.load.nonEmpty && o.noRuntime) {
+      eprintln("Have to use built-in runtime together with loading type information from file")
+      return InvalidMode
+    }
+
+    if (o.noRuntime && o.sourcepath.isEmpty) {
+      eprintln("Please specify sourcepath when not using built-in runtime")
+      return InvalidMode
     }
 
     if (o.force.nonEmpty && !o.outline) {
@@ -151,14 +163,16 @@ object SlangTipe {
           collectFiles(file)
         }
       } else if (f.isFile) {
-        if (f.getName.endsWith(".scala")) {
-          var isSlang = F
-          for (firstLine <- Files.lines(f.toPath, StandardCharsets.UTF_8).limit(1).iterator.asScala) {
-            isSlang = firstLine
-              .replaceAllLiterally(" ", "")
-              .replaceAllLiterally("\t", "")
-              .replaceAllLiterally("\r", "")
-              .contains("#Sireum")
+        var isSlang = f.getName.endsWith(".slang")
+        if (f.getName.endsWith(".scala") || isSlang) {
+          if (!isSlang) {
+            for (firstLine <- Files.lines(f.toPath, StandardCharsets.UTF_8).limit(1).iterator.asScala) {
+              isSlang = firstLine
+                .replaceAllLiterally(" ", "")
+                .replaceAllLiterally("\t", "")
+                .replaceAllLiterally("\r", "")
+                .contains("#Sireum")
+            }
           }
           if (isSlang) {
             sources = sources :+ readFile(f)
@@ -204,34 +218,40 @@ object SlangTipe {
           toIS(Files.readAllBytes(loadFile.toPath))
         }
         CustomMessagePack.toTypeHierarchy(data) match {
-          case Either.Left(thl) => thl
+          case Either.Left(thl) =>
+            stopTime()
+            thl
           case Either.Right(errorMsg) =>
             eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
             return LoadingError
         }
       case _ =>
-        if (o.verbose) {
-          println()
-          println(
-            s"Parsing, resolving, ${if (o.outline) "and type outlining" else "type outlining, and type checking"} Slang library files ..."
-          )
-          startTime()
-        }
-
-        val (thl, rep) = if (o.outline) {
-          val p = FrontEnd.libraryReporter
-          (p._1.typeHierarchy, p._2)
+        if (o.noRuntime) {
+          TypeHierarchy(HashMap.empty, HashMap.empty, Poset.empty, HashMap.empty)
         } else {
-          val p = FrontEnd.checkedLibraryReporter
-          (p._1.typeHierarchy, p._2)
+          if (o.verbose) {
+            println()
+            println(
+              s"Parsing, resolving, ${if (o.outline) "and type outlining" else "type outlining, and type checking"} Slang library files ..."
+            )
+            startTime()
+          }
+
+          val (thl, rep) = if (o.outline) {
+            val p = FrontEnd.libraryReporter
+            (p._1.typeHierarchy, p._2)
+          } else {
+            val p = FrontEnd.checkedLibraryReporter
+            (p._1.typeHierarchy, p._2)
+          }
+          if (rep.hasIssue) {
+            rep.printMessages()
+            return InvalidLibrary
+          }
+          stopTime()
+          thl
         }
-        if (rep.hasIssue) {
-          rep.printMessages()
-          return InvalidLibrary
-        }
-        thl
     }
-    stopTime()
 
     val reporter = Reporter.create
 

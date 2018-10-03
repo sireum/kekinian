@@ -45,6 +45,7 @@ object Cli {
     outline: B,
     force: ISZ[String],
     verbose: B,
+    noRuntime: B,
     save: Option[String],
     load: Option[String],
     gzip: B
@@ -146,6 +147,8 @@ import Cli._
           |                           to force full type checking on when type outlining
           |                           is enabled (expects a string separated by ",")
           |    --verbose            Enable verbose mode
+          |-r, --no-runtime         Do not use built-in runtime (use runtime in
+          |                           sourcepath)
           |-h, --help               Display this information
           |
           |Persistence Options:
@@ -158,6 +161,7 @@ import Cli._
     var outline: B = false
     var force: ISZ[String] = ISZ[String]()
     var verbose: B = false
+    var noRuntime: B = false
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
     var gzip: B = true
@@ -193,6 +197,12 @@ import Cli._
              case Some(v) => verbose = v
              case _ => return None()
            }
+         } else if (arg == "-r" || arg == "--no-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!noRuntime) }
+           o match {
+             case Some(v) => noRuntime = v
+             case _ => return None()
+           }
          } else if (arg == "--save") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -220,7 +230,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, save, load, gzip))
+    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, save, load, gzip))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
