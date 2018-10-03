@@ -32,14 +32,14 @@ import org.sireum.tools.{CliGenJvm, SerializerGen, SerializerGenJvm, Transformer
 
 object Sireum extends scala.App {
 
-  Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String):_ *), 0) match {
+  System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String):_ *), 0) match {
     case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o)
     case Some(o: Cli.CligenOption) => cliGen(o)
     case Some(o: Cli.SergenOption) => serGen(o)
     case Some(o: Cli.TransgenOption) => transGen(o)
     case Some(_: Cli.HelpOption) => 0
     case _ => -1
-  }
+  })
 
   def cliGen(o: Cli.CligenOption): Int =
     try {
