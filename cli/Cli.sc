@@ -45,9 +45,9 @@ trait Module extends JvmOnly {
     ivy"org.sireum::scalac-plugin:$scalacPluginVersion"
   )
 
-  def alirObject: CrossJvmJs
+  def alirObject: CrossJvmJsPublish
 
-  def toolsObject: CrossJvmJs
+  def toolsObject: CrossJvmJsPublish
 
   final override def mainClass = Some("org.sireum.Sireum")
 }
