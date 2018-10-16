@@ -35,63 +35,53 @@ object runtime extends mill.Module {
 
   object macros extends Runtime.Module.Macros
 
-  object library extends Runtime.Module.Library {
+  object test extends Runtime.Module.Test {
+    override def macrosObject = macros
+  }
 
-    final override def macrosObject = macros
+  trait testProvider extends Runtime.Module.TestProvider {
+    override def testObject = test
+  }
 
+  object library extends Runtime.Module.Library with testProvider {
+    override def macrosObject = macros
   }
 
 }
 
 object slang extends mill.Module {
 
-  object ast extends Slang.Module.Ast {
-
+  object ast extends Slang.Module.Ast with runtime.testProvider {
     final override def libraryObject = runtime.library
-
   }
 
-  object parser extends Slang.Module.Parser {
-
+  object parser extends Slang.Module.Parser with runtime.testProvider {
     final override def astObject = ast
-
   }
 
-
-  object tipe extends Slang.Module.Tipe {
-
+  object tipe extends Slang.Module.Tipe with runtime.testProvider {
     final override def astObject = ast
-
+    final override def testObject = runtime.test
   }
 
-  object frontend extends Slang.Module.FrontEnd {
-
+  object frontend extends Slang.Module.FrontEnd with runtime.testProvider {
     final override def parserObject = parser
-
     final override def tipeObject = tipe
-
   }
 
 }
 
-object alir extends Alir.Module {
-
+object alir extends Alir.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
-
 }
 
-object tools extends Tools.Module {
-
+object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
-
 }
 
 object cli extends Cli.Module {
-
   final override def alirObject = alir
-
   final override def toolsObject = tools
-
 }
 
 def regenSlang() = T.command {
