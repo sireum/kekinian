@@ -29,9 +29,18 @@ import org.sireum.mill.SireumModule._
 
 trait Module extends JvmOnly {
 
-  final override def crossDeps = Seq(alirObject, toolsObject)
+  final override def crossDeps =
+    if (isSourceDep) Seq(alirObject, toolsObject)
+    else Seq()
 
-  final override def ivyDeps = Agg(ivy"com.lihaoyi::ammonite-ops:$ammoniteOpsVersion")
+  final override def ivyDeps = {
+    val ds = Seq(ivy"com.lihaoyi::ammonite-ops:$ammoniteOpsVersion")
+    if (isSourceDep) Agg(ds: _*)
+    else Agg(ds ++ Seq(
+      jpLatest(isCross = false, "sireum", "alir"),
+      jpLatest(isCross = false, "sireum", "tools"),
+    ): _*)
+  }
 
   final override def deps = Seq()
 
