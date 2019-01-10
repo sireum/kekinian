@@ -2,7 +2,7 @@
 export SCRIPT_HOME=$( cd "$( dirname "$0" )" &> /dev/null && pwd )
 cd ${SCRIPT_HOME}
 rm -fR mill-standalone out
-curl -Lo mill-standalone http://files.sireum.org/mill-standalone
+curl -c /dev/null -Lo mill-standalone http://files.sireum.org/mill-standalone
 chmod +x mill-standalone
 git submodule update --init --recursive --remote
 ./mill-standalone cli.assembly
