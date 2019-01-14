@@ -34,7 +34,7 @@ trait Module extends JvmOnly {
     else Seq()
 
   final override def ivyDeps = {
-    val ds = Seq(ivy"com.lihaoyi::ammonite-ops:$ammoniteOpsVersion")
+    val ds = Seq(ivy"com.lihaoyi::os-lib:$osLibVersion")
     if (isSourceDep) Agg(ds: _*)
     else Agg(ds ++ Seq(
       jpLatest(isCross = false, "sireum", "alir"),

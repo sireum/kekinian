@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2018, Robby, Kansas State University
+ Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import org.sireum.lang.symbol._
 import org.sireum.lang.tipe._
 import org.sireum.message._
 import org.sireum.Cli._
-import ammonite.ops._
 
 import scala.collection.JavaConverters._
 
@@ -59,7 +58,7 @@ object SlangTipe {
 
     def readFile(f: File): (Option[String], String) = {
       val file = f.getCanonicalFile.getAbsoluteFile
-      (Some(file.toURI.toASCIIString), read ! ammonite.ops.Path(file))
+      (Some(file.toURI.toASCIIString), os.read(os.Path(file)))
     }
 
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
