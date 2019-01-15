@@ -23,7 +23,7 @@ cache:
   - bin\scala -> bin\prelude.sh
 
 install:
-  - bash -lc "pacman --noconfirm -S unzip"
+  - bash -lc "pacman --noconfirm -S zip unzip"
   - git submodule update --init --recursive
   - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/prelude.sh"
 

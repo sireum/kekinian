@@ -5,7 +5,7 @@ services:
 build:
   pre_ci:
   pre_ci_boot:
-    image_name: sireum/v3
+    image_name: sireum/kekinian
     image_tag: latest
     pull: true
     options: "-e HOME=/root"
