@@ -36,3 +36,5 @@ if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=linux
   fi
 fi
+export JAVA_HOME=${SIREUM_HOME}/bin/${PLATFORM}/java
+export PATH=${JAVA_HOME}/bin:${PATH}

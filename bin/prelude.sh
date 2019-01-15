@@ -28,9 +28,9 @@ for COMMAND in ${COMMANDS}; do
 	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
 done
 SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
-cd ${SIREUM_HOME}/bin
 : ${ZULU_VERSION:=11.2.3-jdk11.0.1}
 : ${SCALA_VERSION=2.12.8}
+cd ${SIREUM_HOME}/bin
 source platform.sh
 if [[ "${PLATFORM}" = "win"  ]]; then
   ZULU_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${ZULU_VERSION}-win_x64.zip
@@ -43,6 +43,8 @@ else
   >&2 echo "Sireum does not support: $(uname)."
   exit 1
 fi
+mkdir -p ${PLATFORM}
+cd ${PLATFORM}
 ZULU_DROP="${ZULU_DROP_URL##*/}"
 ZULU_DIR="${ZULU_DROP%.*}"
 if [[ ${ZULU_DIR} == *.tar ]]; then
@@ -81,6 +83,7 @@ if [[ ! -d "java" ]] || [[ "${ZULU_UPDATE}" = "true" ]]; then
     exit 1
   fi
 fi
+cd ${SIREUM_HOME}/bin
 SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
 SCALA_DROP="${SCALA_DROP_URL##*/}"
 grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
@@ -112,6 +115,4 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
     exit 1
   fi
 fi
-export JAVA_HOME=${SIREUM_HOME}/bin/java
-export PATH=${JAVA_HOME}/bin:${PATH}
 ${SIREUM_HOME}/bin/mill/build-standalone.sh

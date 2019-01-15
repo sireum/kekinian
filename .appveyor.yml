@@ -19,7 +19,7 @@ environment:
   PATH: 'C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%'
 
 cache:
-  - bin\java -> bin\prelude.sh
+  - bin\win\java -> bin\prelude.sh
   - bin\scala -> bin\prelude.sh
 
 install:

@@ -27,8 +27,8 @@ export SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 git submodule update --init --recursive --remote
 bin/prelude.sh
-bin/mill/mill-standalone cli.assembly
 source bin/platform.sh
+bin/mill/mill-standalone cli.assembly
 cp out/cli/assembly/dest/out.jar bin/sireum
 if [[ ${PLATFORM} = "win" ]]; then
   if [[ ! -e bin/sireum.bat ]]; then

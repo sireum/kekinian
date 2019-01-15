@@ -22,7 +22,7 @@ build:
   push:
   cache: true
   cache_dir_list:
-    - $SHIPPABLE_BUILD_DIR/bin/java
+    - $SHIPPABLE_BUILD_DIR/bin/linux/java
     - $SHIPPABLE_BUILD_DIR/bin/scala
 
 integrations:
