@@ -4,13 +4,9 @@ image: Visual Studio 2017
 
 init:
   - cmd: git config --global core.autocrlf true
+  - cmd: git config --global core.symlinks true
 
 clone_folder: c:\sireum
-
-before_build:
-  - cmd: git config core.symlinks true
-  - cmd: git reset --hard
-  - cmd: git submodule update -q --init --recursive
 
 environment:
   matrix:
@@ -28,6 +24,7 @@ cache:
 
 install:
   - bash -lc "pacman --noconfirm -S unzip"
+  - git submodule update --init --recursive
   - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/prelude.sh"
 
 build_script:
