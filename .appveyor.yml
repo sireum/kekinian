@@ -1,0 +1,34 @@
+version: 1.0.{build}
+
+image: Visual Studio 2017
+
+init:
+  - cmd: git config --global core.autocrlf true
+
+clone_folder: c:\sireum
+
+before_build:
+  - cmd: git config core.symlinks true
+  - cmd: git reset --hard
+  - cmd: git submodule update -q --init --recursive
+
+environment:
+  matrix:
+  - COMPILER: msys2
+    PLATFORM: x64
+    MSYS2_ARCH: x86_64
+    MSYS2_DIR: msys64
+    MSYSTEM: MINGW64
+    BIT: 64
+  PATH: 'C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%'
+
+cache:
+  - bin\java -> bin\prelude.sh
+  - bin\scala -> bin\prelude.sh
+
+install:
+  - bash -lc "pacman --noconfirm -S unzip"
+  - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/prelude.sh"
+
+build_script:
+  - bash -lc "SIREUM_SOURCE_BUILD=true $APPVEYOR_BUILD_FOLDER/bin/test.sh"

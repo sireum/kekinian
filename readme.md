@@ -29,5 +29,5 @@ Slang programs run on the JVM (Java 8+), and in the browser or Node.js
 To test:
 
 ```bash
-./test.sh
+bin/test.sh
 ```

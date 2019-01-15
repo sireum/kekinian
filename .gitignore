@@ -6,3 +6,7 @@ Scratch.sc
 scratch.scala
 scratch.sc
 mill-standalone
+/bin/java
+/bin/scala
+/bin/sireum
+/bin/sireum.bat

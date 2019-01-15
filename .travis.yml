@@ -1,8 +1,19 @@
-language: java
+language: objective-c
 
-jdk:
-  - oraclejdk11
+os: osx
+
+osx_image: xcode10.1
+
+cache:
+  directories:
+    - bin/java
+    - bin/scala
+
+install:
+  - bin/prelude.sh
 
 script:
+  - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
+  - unset JVM_OPTS
   - export SIREUM_SOURCE_BUILD=true
-  - ./test.sh
+  - bin/test.sh
