@@ -9,11 +9,7 @@ cache:
     - bin/java
     - bin/scala
 
-install:
-  - bin/prelude.sh
-
 script:
   - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
   - unset JVM_OPTS
-  - export SIREUM_SOURCE_BUILD=true
-  - bin/test.sh
+  - SIREUM_SOURCE_BUILD=true bin/test.sh

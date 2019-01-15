@@ -25,18 +25,14 @@
 #
 export SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
-bin/build.sh
+git submodule update --init --recursive --remote
+bin/prelude.sh
+bin/mill/mill-standalone cli.assembly
 source bin/platform.sh
+cp out/cli/assembly/dest/out.jar bin/sireum
 if [[ ${PLATFORM} = "win" ]]; then
-  bin/sireum slang tipe --verbose -r -s "runtime/library;slang;tools;alir;cli"
-else
-  bin/sireum slang tipe --verbose -r -s runtime/library:slang:tools:alir:cli
+  if [[ ! -e bin/sireum.bat ]]; then
+    cd bin
+    ln -s sireum sireum.bat
+  fi
 fi
-bin/mill/mill-standalone all \
-  cli.tests.compile \
-  runtime.library.shared.tests.test \
-  runtime.library.jvm.tests.test \
-  slang.parser.shared.tests.test \
-  slang.frontend.shared.tests.test \
-  tools.jvm.tests.test \
-  alir.shared.tests.test
