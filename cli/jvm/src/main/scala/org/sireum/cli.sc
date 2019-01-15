@@ -6,7 +6,7 @@ Group(
   description = "",
   header =
     st"""Sireum: A High-Assurance Software Development Platform
-        |(c) 2018, SAnToS Laboratory, Kansas State University""".render,
+        |(c) 2019, SAnToS Laboratory, Kansas State University""".render,
   unlisted = F,
   subs = ISZ(org.sireum.lang.cli.group, org.sireum.tools.cli.group)
 )

@@ -2,7 +2,7 @@
 // @formatter:off
 
 /*
- Copyright (c) 2018, Robby, Kansas State University
+ Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -99,7 +99,7 @@ import Cli._
     if (i >= args.size) {
       println(
         st"""Sireum: A High-Assurance Software Development Platform
-            |(c) 2018, SAnToS Laboratory, Kansas State University
+            |(c) 2019, SAnToS Laboratory, Kansas State University
             |
             |Available modes:
             |slang                    Slang toolbox
