@@ -54,7 +54,7 @@ object SlangTipe {
   val SavingError: Int = -9
   val LoadingError: Int = -10
 
-  def run(o: SlangTipeOption): Int = {
+  def run(o: SlangTipeOption, reporter: Reporter): Int = {
 
     def readFile(f: File): (Option[String], String) = {
       val file = f.getCanonicalFile.getAbsoluteFile
@@ -251,8 +251,6 @@ object SlangTipe {
           thl
         }
     }
-
-    val reporter = Reporter.create
 
     if (o.verbose) {
       println()
