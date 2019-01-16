@@ -25,6 +25,7 @@
 
 package org.sireum.cli
 
+import org.sireum._
 import org.sireum.Cli._
 import org.sireum.Sireum._
 import org.sireum.eprintln
@@ -46,13 +47,14 @@ object SlangRunner {
     }
     val scala = scalaHome / 'bin / (if (isWin) "scala.bat" else 'scala)
     for (arg <- o.args) {
-      val script = os.pwd / os.RelPath(arg.value)
-      os.proc(scala, "-cp", sireumJar, s"-Xplugin:$scalacPluginJar", "-Xscript", "Slang",
-        "-Xfatal-warnings", script).call(
+      val script = os.Path(path2fileOpt("Slang script", Some(arg.value), checkExist = T).get)
+      val p = os.proc(scala, "-bootclasspath", sireumJar, s"-Xplugin:$scalacPluginJar", "-Xscript", 'Slang, script)
+      p.call(
         cwd = os.pwd,
-        env = Map(
-          "JAVA_HOME" -> javaHome.toString,
-          "PATH" -> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"),
+        env = _root_.scala.Predef.Map[Predef.String, Predef.String](
+          "JAVA_HOME" ~> javaHome.toString,
+          "SCALA_HOME" ~> scalaHome.toString,
+          "PATH" ~> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"),
         stdin = os.Inherit,
         stdout = os.Inherit,
         stderr = os.Inherit,

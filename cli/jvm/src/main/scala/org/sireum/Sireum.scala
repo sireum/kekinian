@@ -168,6 +168,14 @@ object Sireum extends scala.App {
         -1
     }
 
+  def path2File(path: Predef.String): File = {
+    if (scala.util.Properties.isWin && path.startsWith("/cygdrive/")) {
+      val p = path.substring("/cygdrive/".length)
+      val ps = p.split('/')
+      new File(p.head + ":\\" + (for (i <- 1 until ps.length) yield ps(i)).mkString("\\"))
+    } else new File(path)
+  }
+
   def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): Seq[File] = {
     var r = Vector[File]()
     for (p <- paths) {
@@ -180,7 +188,7 @@ object Sireum extends scala.App {
     path.size match {
       case z"0" => scala.None
       case z"1" =>
-        val f = new File(path(0).value)
+        val f = path2File(path(0).value)
         if (checkExist && !f.exists) error(s"File ${path(0)} does not exist.")
         return scala.Some(f.getCanonicalFile.getAbsoluteFile)
       case _ =>
@@ -190,7 +198,7 @@ object Sireum extends scala.App {
 
   def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): scala.Option[File] = {
     if (path.isEmpty) return scala.None
-    val f = new File(path.get.value)
+    val f = path2File(path.get.value)
     if (checkExist && !f.exists) error(s"File '$path' does not exist.")
     return scala.Some(f.getCanonicalFile.getAbsoluteFile)
   }
@@ -217,8 +225,7 @@ object Sireum extends scala.App {
       val cp = System.getProperty("java.class.path").split(java.io.File.pathSeparatorChar)
       if (cp.length == 1) {
         val path = os.Path(new java.io.File(cp.head).getCanonicalPath) / os.up / os.up
-        println(path)
-        if (os.exists(path / 'bin / platform / 'java) &&
+        if (os.exists(path / 'bin / platform / 'java) && os.exists(path / 'bin / "sireum.jar") &&
           os.exists(path / 'bin / 'scala) && os.exists(path / 'lib)) scala.Some(path)
         else scala.None
       } else scala.None
@@ -229,5 +236,5 @@ object Sireum extends scala.App {
   lazy val scalaHome: os.Path = homeOpt.get / 'bin / 'scala
   lazy val scalacPluginJar: os.Path =
     os.list(homeOpt.get / 'lib).find(p => p.last.startsWith("scalac-plugin-")).get
-  lazy val sireumJar: os.Path = homeOpt.get / 'bin / (if (isWin) "sireum.bat" else 'sireum)
+  lazy val sireumJar: os.Path = homeOpt.get / 'bin / "sireum.jar"
 }
