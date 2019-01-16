@@ -115,4 +115,26 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
     exit 1
   fi
 fi
+mkdir -p ${SIREUM_HOME}/lib
+cd ${SIREUM_HOME}/lib
+SCALAC_PLUGIN_VER=$(grep "^org.sireum.version.scalac-plugin=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-)
+SCALA_MAJ_VER=${SCALA_VERSION%.*}
+SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
+  if [[ -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
+    echo "Using ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ... "
+    cp ${SIREUM_CACHE}/${SCALA_DROP} .
+    echo
+  else
+    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
+    rm -f scalac-plugin-*.jar
+    curl -JLo ${SCALAC_PLUGIN_DROP} https://oss.sonatype.org/service/local/repositories/releases/content/org/sireum/scalac-plugin_${SCALA_MAJ_VER}/${SCALAC_PLUGIN_VER}/scalac-plugin_${SCALA_MAJ_VER}-${SCALAC_PLUGIN_VER}.jar
+    echo
+    if [[ ! -z ${SIREUM_CACHE} ]]; then
+      echo "Copying to ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ..."
+      cp ${SCALAC_PLUGIN_DROP} ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP}
+      echo
+    fi
+  fi
+fi
 ${SIREUM_HOME}/bin/mill/build-standalone.sh
