@@ -38,6 +38,11 @@ object Cli {
 
   @datatype class HelpOption extends SireumTopOption
 
+  @datatype class SlangRunOption(
+    help: String,
+    args: ISZ[String]
+  ) extends SireumTopOption
+
   @datatype class SlangTipeOption(
     help: String,
     args: ISZ[String],
@@ -121,15 +126,46 @@ import Cli._
         st"""The Sireum Language (Slang) Toolbox
             |
             |Available modes:
+            |run                      Slang script runner
             |tipe                     Slang type checker""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("slang", args, i, ISZ("tipe"))
+    val opt = select("slang", args, i, ISZ("run", "tipe"))
     opt match {
+      case Some(string"run") => parseSlangRun(args, i + 1)
       case Some(string"tipe") => parseSlangTipe(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSlangRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Script Runner
+          |
+          |Usage: <slang-file>+
+          |
+          |Available Options:
+          |-h, --help               Display this information""".render
+
+    val j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SlangRunOption(help, parseArguments(args, j)))
   }
 
   def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

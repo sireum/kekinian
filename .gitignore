@@ -12,3 +12,4 @@ mill-standalone
 /bin/scala
 /bin/sireum
 /bin/sireum.bat
+/lib
