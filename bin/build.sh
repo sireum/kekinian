@@ -29,12 +29,4 @@ git submodule update --init --recursive --remote
 bin/prelude.sh
 source bin/platform.sh
 bin/mill/mill-standalone cli.assembly
-if [[ ${PLATFORM} = "win" ]]; then
-  cp out/cli/assembly/dest/out.jar bin/sireum.bat
-  if [[ ! -e bin/sireum ]]; then
-    cd bin
-    ln -s sireum.bat sireum
-  fi
-else
-  cp out/cli/assembly/dest/out.jar bin/sireum
-fi
+cp out/cli/assembly/dest/out.jar bin/sireum.jar
