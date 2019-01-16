@@ -105,7 +105,7 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
     fi
   fi
   rm -fR scala
-  unzip -oq ${SCALA_DROP}
+  jar xf ${SCALA_DROP}
   rm ${SCALA_DROP}
   mv scala-${SCALA_VERSION} scala
   if [[ -d "scala/bin" ]]; then
