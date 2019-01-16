@@ -33,7 +33,8 @@ import org.sireum.tools.{CliGenJvm, SerializerGen, SerializerGenJvm, Transformer
 object Sireum extends scala.App {
 
   System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String):_ *), 0) match {
-    case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o)
+    case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create)
+    case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o)
     case Some(o: Cli.CligenOption) => cliGen(o)
     case Some(o: Cli.SergenOption) => serGen(o)
     case Some(o: Cli.TransgenOption) => transGen(o)
@@ -197,4 +198,36 @@ object Sireum extends scala.App {
   def error(msg: Predef.String): Nothing = {
     throw new RuntimeException(msg)
   }
+
+  lazy val isWin: Boolean = scala.util.Properties.isWin
+
+  lazy val platform: Predef.String =
+    if (isWin) "win"
+    else if (scala.util.Properties.isMac) "mac"
+    else if (scala.util.Properties.isLinux) "linux"
+    else "unsupported"
+
+  lazy val homeOpt: scala.Option[os.Path] = {
+    var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => os.Path(new File(envVar).getCanonicalPath))
+    if (r.isEmpty) {
+      r = scala.Option(System.getProperty("org.sireum.home")).map(p => os.Path(new File(p).getCanonicalPath))
+    }
+    if (r.nonEmpty) r
+    else {
+      val cp = System.getProperty("java.class.path").split(java.io.File.pathSeparatorChar)
+      if (cp.length == 1) {
+        val path = os.Path(new java.io.File(cp.head).getCanonicalPath) / os.up / os.up
+        println(path)
+        if (os.exists(path / 'bin / platform / 'java) &&
+          os.exists(path / 'bin / 'scala) && os.exists(path / 'lib)) scala.Some(path)
+        else scala.None
+      } else scala.None
+    }
+  }
+
+  lazy val javaHome: os.Path = homeOpt.get / 'bin / platform / 'java
+  lazy val scalaHome: os.Path = homeOpt.get / 'bin / 'scala
+  lazy val scalacPluginJar: os.Path =
+    os.list(homeOpt.get / 'lib).find(p => p.last.startsWith("scalac-plugin-")).get
+  lazy val sireumJar: os.Path = homeOpt.get / 'bin / (if (isWin) "sireum.bat" else 'sireum)
 }
