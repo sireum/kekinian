@@ -110,6 +110,7 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
   mv scala-${SCALA_VERSION} scala
   if [[ -d "scala/bin" ]]; then
     echo "${SCALA_VERSION}" > scala/VER
+    chmod +x scala/bin/*
   else
     >&2 echo "Could not install Scala ${SCALA_VERSION}."
     exit 1
