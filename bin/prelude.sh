@@ -28,8 +28,13 @@ for COMMAND in ${COMMANDS}; do
 	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
 done
 SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
-: ${ZULU_VERSION:=11.2.3-jdk11.0.1}
-: ${SCALA_VERSION=2.12.8}
+getVersion() {
+  grep "^org.sireum.version.$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
+}
+: ${ZULU_VERSION:=$(getVersion "zulu")}
+: ${SCALA_VERSION=$(getVersion "scala")}
+SCALA_MAJ_VER=${SCALA_VERSION%.*}
+SCALAC_PLUGIN_VER=$(getVersion "scalac-plugin")
 cd ${SIREUM_HOME}/bin
 source platform.sh
 if [[ "${PLATFORM}" = "win"  ]]; then
@@ -118,9 +123,8 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
 fi
 mkdir -p ${SIREUM_HOME}/lib
 cd ${SIREUM_HOME}/lib
-SCALAC_PLUGIN_VER=$(grep "^org.sireum.version.scalac-plugin=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-)
-SCALA_MAJ_VER=${SCALA_VERSION%.*}
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+SCALAC_PLUGIN_DROP_URL=https://oss.sonatype.org/service/local/repositories/releases/content/org/sireum/scalac-plugin_${SCALA_MAJ_VER}/${SCALAC_PLUGIN_VER}/scalac-plugin_${SCALA_MAJ_VER}-${SCALAC_PLUGIN_VER}.jar
 if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
   if [[ -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
     echo "Using ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ... "
@@ -129,7 +133,7 @@ if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
   else
     echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
     rm -f scalac-plugin-*.jar
-    curl -JLo ${SCALAC_PLUGIN_DROP} https://oss.sonatype.org/service/local/repositories/releases/content/org/sireum/scalac-plugin_${SCALA_MAJ_VER}/${SCALAC_PLUGIN_VER}/scalac-plugin_${SCALA_MAJ_VER}-${SCALAC_PLUGIN_VER}.jar
+    curl -JLo ${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
     echo
     if [[ ! -z ${SIREUM_CACHE} ]]; then
       echo "Copying to ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ..."
