@@ -28,4 +28,4 @@ cd ${SIREUM_HOME}
 git submodule update --init --recursive --remote
 bin/prelude.sh
 source bin/platform.sh
-bin/mill/mill-standalone assembly
+bin/mill/mill-standalone build

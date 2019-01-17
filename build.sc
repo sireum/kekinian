@@ -84,6 +84,10 @@ object cli extends Cli.Module {
   final override def toolsObject = tools
 }
 
+def build() = T.command {
+  assembly(cli.assembly())
+}
+
 def regenSlang() = T.command {
   val out = cli.assembly().path
   val astPackagePath = pwd / 'slang / 'ast / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / 'ast
@@ -93,17 +97,19 @@ def regenSlang() = T.command {
   log(%%('java, "-jar", out, 'tools, 'sergen, "-p", "org.sireum.lang.tipe", "-l", pwd / "license.txt",
     "-m", "json,msgpack", slangPackagePath / 'symbol / "Info.scala", astPackagePath / "AST.scala")(
     slangPackagePath / 'tipe))
+  assembly(cli.assembly())
 }
 
 def regenCli() = T.command {
   val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum
   log(%%('java, "-jar", cli.assembly().path, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
     sireumPackagePath / "cli.sc")(sireumPackagePath))
+  assembly(cli.assembly())
 }
 
-def assembly() = T.command {
+private def assembly(pr: PathRef): Unit = {
   val jar = os.pwd / 'bin / "sireum.jar"
-  os.copy(cli.assembly().path, jar, replaceExisting = true, copyAttributes = true)
+  os.copy(pr.path, jar, replaceExisting = true, copyAttributes = true)
 }
 
 private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
