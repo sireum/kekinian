@@ -49,8 +49,10 @@ object SlangRunner {
     for (arg <- o.args) {
       val script = os.Path(path2fileOpt("Slang script", Some(arg.value), checkExist = T).get)
       var command =
-        Vector[os.Shellable](scala, "-bootclasspath", sireumJar, s"-Xplugin:$scalacPluginJar", "-Xscript", 'Slang)
+        Vector[os.Shellable](scala, "-bootclasspath", sireumJar, s"-Xplugin:$scalacPluginJar",
+          "-Xscript", '$lang$cript, "-unchecked", "-feature")
       if (o.transformed) command :+= ("-Xprint:sireum" : os.Shellable)
+      if (o.server) command :+= ("-nc" : os.Shellable)
       command :+= (script : os.Shellable)
       os.proc(command: _*).call(
         cwd = os.pwd,
