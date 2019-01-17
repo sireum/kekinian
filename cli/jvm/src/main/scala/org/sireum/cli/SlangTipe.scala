@@ -139,8 +139,8 @@ object SlangTipe {
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (!f.getName.endsWith(".slang")) {
-        eprintln(s"Can only accept .slang files as arguments")
+      } else if (!f.getName.endsWith(".slang") && !f.getName.endsWith(".sc") && !f.getName.endsWith(".logika")) {
+        eprintln(s"Can only accept .sc or .slang files as arguments")
         return InvalidFile
       }
       slangFiles = slangFiles :+ (arg, readFile(f))
@@ -411,7 +411,7 @@ object SlangTipe {
         startTime()
       }
 
-      Parser.parseTopUnit(slangFile._2._2, F, T, F, slangFile._2._1, reporter) match {
+      Parser.parseTopUnit[TopUnit](slangFile._2._2, F, T, F, slangFile._2._1, reporter) match {
         case Some(p: TopUnit.Program) =>
           val p2 = FrontEnd.checkWorksheet(thOpt, p, reporter)
           if (reporter.hasIssue) {
