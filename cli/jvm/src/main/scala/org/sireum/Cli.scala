@@ -40,7 +40,8 @@ object Cli {
 
   @datatype class SlangRunOption(
     help: String,
-    args: ISZ[String]
+    args: ISZ[String],
+    transformed: B
   ) extends SireumTopOption
 
   @datatype class SlangTipeOption(
@@ -146,9 +147,11 @@ import Cli._
           |Usage: <slang-file>+
           |
           |Available Options:
+          |-t, --transformed        Show Scala transformed tree
           |-h, --help               Display this information""".render
 
-    val j = i
+    var transformed: B = false
+    var j = i
     var isOption = T
     while (j < args.size && isOption) {
       val arg = args(j)
@@ -156,16 +159,22 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else {
+        } else if (arg == "-t" || arg == "--transformed") {
+           val o: Option[B] = { j = j - 1; Some(!transformed) }
+           o match {
+             case Some(v) => transformed = v
+             case _ => return None()
+           }
+         } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
         }
-
+        j = j + 2
       } else {
         isOption = F
       }
     }
-    return Some(SlangRunOption(help, parseArguments(args, j)))
+    return Some(SlangRunOption(help, parseArguments(args, j), transformed))
   }
 
   def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

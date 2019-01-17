@@ -48,8 +48,11 @@ object SlangRunner {
     val scala = scalaHome / 'bin / (if (isWin) "scala.bat" else 'scala)
     for (arg <- o.args) {
       val script = os.Path(path2fileOpt("Slang script", Some(arg.value), checkExist = T).get)
-      val p = os.proc(scala, "-bootclasspath", sireumJar, s"-Xplugin:$scalacPluginJar", "-Xscript", 'Slang, script)
-      p.call(
+      var command =
+        Vector[os.Shellable](scala, "-bootclasspath", sireumJar, s"-Xplugin:$scalacPluginJar", "-Xscript", 'Slang)
+      if (o.transformed) command :+= ("-Xprint:sireum" : os.Shellable)
+      command :+= (script : os.Shellable)
+      os.proc(command: _*).call(
         cwd = os.pwd,
         env = _root_.scala.Predef.Map[Predef.String, Predef.String](
           "JAVA_HOME" ~> javaHome.toString,
