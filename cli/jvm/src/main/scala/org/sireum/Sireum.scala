@@ -222,9 +222,11 @@ object Sireum extends scala.App {
     }
     if (r.nonEmpty) r
     else {
-      val cp = System.getProperty("java.class.path").split(java.io.File.pathSeparatorChar)
-      if (cp.length == 1) {
-        val path = os.Path(new java.io.File(cp.head).getCanonicalPath) / os.up / os.up
+      val uri = getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toASCIIString
+      val i = uri.indexOf(".jar")
+      if (i >= 0) {
+        val path = os.Path(new java.io.File(new java.net.URI(uri.substring(0,
+          uri.lastIndexOf('/', i)))).getCanonicalPath) / os.up
         if (os.exists(path / 'bin / platform / 'java) && os.exists(path / 'bin / "sireum.jar") &&
           os.exists(path / 'bin / 'scala) && os.exists(path / 'lib)) scala.Some(path)
         else scala.None
