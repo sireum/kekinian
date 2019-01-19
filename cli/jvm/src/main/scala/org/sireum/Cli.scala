@@ -41,6 +41,8 @@ object Cli {
   @datatype class SlangRunOption(
     help: String,
     args: ISZ[String],
+    input: Option[String],
+    output: Option[String],
     server: B,
     transformed: B
   ) extends SireumTopOption
@@ -66,6 +68,19 @@ object Cli {
     width: ISZ[Z],
     license: Option[String],
     outputDir: Option[String]
+  ) extends SireumTopOption
+
+  @enum object IveMode {
+    'Idea
+    'Mill
+  }
+
+  @datatype class IvegenOption(
+    help: String,
+    args: ISZ[String],
+    jdk: Option[String],
+    mode: IveMode.Type,
+    name: Option[String]
   ) extends SireumTopOption
 
   @enum object SerializerMode {
@@ -109,7 +124,7 @@ import Cli._
             |(c) 2019, SAnToS Laboratory, Kansas State University
             |
             |Available modes:
-            |slang                    Slang toolbox
+            |slang                    Slang tools
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
@@ -125,11 +140,11 @@ import Cli._
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""The Sireum Language (Slang) Toolbox
+        st"""The Sireum Language (Slang) Tools
             |
             |Available modes:
-            |run                      Slang script runner
-            |tipe                     Slang type checker""".render
+            |run                      Script runner
+            |tipe                     Type checker""".render
       )
       return Some(HelpOption())
     }
@@ -148,10 +163,15 @@ import Cli._
           |Usage: <slang-file>+
           |
           |Available Options:
-          |-s, --server             Disable Scala compile server
+          |-i, --input              Input file for stdin (default: <slang-file>.txt, if
+          |                           any) (expects a path)
+          |-o, --output             Output file for stdin & stderr (expects a path)
+          |-s, --no-server          Disable Scala compile server
           |-t, --transformed        Show Scala transformed tree
           |-h, --help               Display this information""".render
 
+    var input: Option[String] = None[String]()
+    var output: Option[String] = None[String]()
     var server: B = false
     var transformed: B = false
     var j = i
@@ -162,7 +182,19 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-s" || arg == "--server") {
+        } else if (arg == "-i" || arg == "--input") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => input = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--no-server") {
            val o: Option[B] = { j = j - 1; Some(!server) }
            o match {
              case Some(v) => server = v
@@ -183,7 +215,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangRunOption(help, parseArguments(args, j), server, transformed))
+    return Some(SlangRunOption(help, parseArguments(args, j), input, output, server, transformed))
   }
 
   def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -294,14 +326,16 @@ import Cli._
             |
             |Available modes:
             |cligen                   Command-line interface (CLI) generator
+            |ivegen                   Sireum IVE project generator
             |sergen                   De/Serializer generator
             |transgen                 Transformer (visitor/rewriter) generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("cligen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("cligen", "ivegen", "sergen", "transgen"))
     opt match {
       case Some(string"cligen") => parseCligen(args, i + 1)
+      case Some(string"ivegen") => parseIvegen(args, i + 1)
       case Some(string"sergen") => parseSergen(args, i + 1)
       case Some(string"transgen") => parseTransgen(args, i + 1)
       case _ => return None()
@@ -318,7 +352,7 @@ import Cli._
           |-p, --package            Package name for the CLI processor (expects a string
           |                           separated by "."; default is "cli")
           |-n, --name               Type simple name for the CLI @record class processor
-          |                           (expects a string)
+          |                           (expects a string; default is "Cli")
           |-w, --width              First (key) column (default: 25) and second column
           |                           (default: 55) max width (expects an int-list
           |                           separated by ',')
@@ -381,6 +415,80 @@ import Cli._
       }
     }
     return Some(CligenOption(help, parseArguments(args, j), packageName, name, width, license, outputDir))
+  }
+
+  def parseIveModeH(arg: String): Option[IveMode.Type] = {
+    arg.native match {
+      case "idea" => return Some(IveMode.Idea)
+      case "mill" => return Some(IveMode.Mill)
+      case s =>
+        eprintln(s"Expecting one of the following: { idea, mill }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseIveMode(args: ISZ[String], i: Z): Option[IveMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { idea, mill }, but none found.")
+      return None()
+    }
+    val r = parseIveModeH(args(i))
+    return r
+  }
+
+  def parseIvegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum IVE Project Generator
+          |
+          |Usage: <option>* <project-parent-directory>
+          |
+          |Available Options:
+          |-j, --jdk                JDK name (expects a string; default is "Java")
+          |-m, --mode               Project format (use idea for Slang script project and
+          |                           mill for full Slang development) (expects one of {
+          |                           idea, mill }; default: idea)
+          |-n, --name               Project name (expects a string; default is "hello")
+          |-h, --help               Display this information""".render
+
+    var jdk: Option[String] = Some("Java")
+    var mode: IveMode.Type = IveMode.Idea
+    var name: Option[String] = Some("hello")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-j" || arg == "--jdk") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => jdk = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[IveMode.Type] = parseIveMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(IvegenOption(help, parseArguments(args, j), jdk, mode, name))
   }
 
   def parseSerializerModeH(arg: String): Option[SerializerMode.Type] = {
