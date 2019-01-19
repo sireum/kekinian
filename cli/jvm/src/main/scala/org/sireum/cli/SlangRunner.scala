@@ -33,6 +33,7 @@ import org.sireum.eprintln
 object SlangRunner {
 
   val HomeNotFound: Int = -1
+  val InvalidOutput: Int = -2
 
   def run(o: SlangRunOption): Int = {
     if (o.args.isEmpty) {
@@ -40,31 +41,69 @@ object SlangRunner {
       println()
       return 0
     }
-    if (homeOpt.isEmpty) {
-      eprintln("Could not detect Sireum's home!")
-      eprintln("Please either specify SIREUM_HOME env var or org.sireum.home property in JAVA_OPTS env var.")
-      return HomeNotFound
-    }
-    val scala = scalaHome / 'bin / (if (isWin) "scala.bat" else 'scala)
+    if (!homeFound) return HomeNotFound
+    val scalaExe = scalaHome / 'bin / (if (isWin) "scala.bat" else 'scala)
+    val inputOpt = path2fileOpt("input", o.input, T)
+    val (stdout: os.ProcessOutput, stderr: os.ProcessOutput) =
+      path2fileOpt("output", o.output, F) match {
+        case scala.Some(f) =>
+          val p = os.Path(f.getCanonicalFile)
+          if (os.isDir(p)) {
+            eprintln(s"Output $p cannot be a directory")
+            eprintln()
+            return InvalidOutput
+          } else {
+            val d = p / os.up
+            if (!os.exists(d)) {
+              os.makeDir.all(d)
+            }
+            if (!os.exists(d)) {
+              eprintln(s"Could not create parent directory of $p")
+              eprintln()
+              return InvalidOutput
+            } else (p, p)
+          }
+        case _ => (os.Inherit, os.Inherit)
+      }
     for (arg <- o.args) {
       val script = os.Path(path2fileOpt("Slang script", Some(arg.value), checkExist = T).get)
       var command =
-        Vector[os.Shellable](scala, "-bootclasspath", sireumJar, s"-Xplugin:$scalacPluginJar",
-          "-Xscript", '$lang$cript, "-unchecked", "-feature")
-      if (o.transformed) command :+= ("-Xprint:sireum" : os.Shellable)
-      if (o.server) command :+= ("-nc" : os.Shellable)
-      command :+= (script : os.Shellable)
-      os.proc(command: _*).call(
-        cwd = os.pwd,
-        env = _root_.scala.Predef.Map[Predef.String, Predef.String](
-          "JAVA_HOME" ~> javaHome.toString,
-          "SCALA_HOME" ~> scalaHome.toString,
-          "PATH" ~> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"),
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit,
-        check = false
-      )
+        Vector[os.Shellable](
+          scalaExe,
+          "-bootclasspath",
+          sireumJar,
+          s"-Xplugin:$scalacPluginJar",
+          "-Xscript",
+          '$lang$cript,
+          "-unchecked",
+          "-feature"
+        )
+      if (o.transformed) command :+= ("-Xprint:sireum": os.Shellable)
+      if (o.server) command :+= ("-nc": os.Shellable)
+      command :+= (script: os.Shellable)
+      val stdin: os.ProcessInput = inputOpt match {
+        case scala.Some(f) => os.Path(f.getCanonicalFile)
+        case _ =>
+          val p = script / os.up / s"${script.last}.txt"
+          if (os.exists(p)) p else os.Inherit
+      }
+      val r = os.proc(command: _*)
+        .call(
+          cwd = os.pwd,
+          env = _root_.scala.Predef.Map[Predef.String, Predef.String](
+            "JAVA_HOME" ~> javaHome.toString,
+            "SCALA_HOME" ~> scalaHome.toString,
+            "PATH" ~> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"
+          ),
+          stdin = stdin,
+          stdout = stdout,
+          stderr = stderr,
+          check = false
+        )
+      if (r.exitCode != 0) {
+        eprintln(s"Error encountered when running $script")
+        return r.exitCode
+      }
     }
     0
   }
