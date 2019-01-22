@@ -32,7 +32,7 @@ if [[ ${PLATFORM} = "win" ]]; then
 else
   bin/sireum slang tipe --verbose -r -s runtime/library:slang:tools:alir:cli
 fi
-bin/mill/mill-standalone all \
+bin/mill-build/mill-standalone all \
   cli.tests.compile \
   runtime.library.shared.tests.test \
   runtime.library.jvm.tests.test \

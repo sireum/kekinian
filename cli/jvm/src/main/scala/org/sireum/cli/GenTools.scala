@@ -100,7 +100,7 @@ object GenTools {
       }
       if (o.mode == Cli.IveMode.Mill)
         os.proc(
-            homeOpt.get / 'bin / 'mill / (if (isWin) "mill.bat" else "mill"),
+            homeOpt.get / 'bin / (if (isWin) "mill.bat" else "mill"),
             'all,
             s"$name.compile",
             "mill.scalalib.GenIdea/idea"
