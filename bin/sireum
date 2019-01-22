@@ -1,5 +1,7 @@
-#!/bin/sh
-SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
+#!/bin/bash -e
+SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRIPT/$(basename "$0")
+while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
+export SIREUM_HOME=$(dirname "$SIREUM_SCRIPT")
 classpath() {
   case $(uname -s) in
     CYGWIN*) echo "$(cygpath -C OEM -w -a ${SIREUM_HOME})\\bin\\sireum.jar";;
