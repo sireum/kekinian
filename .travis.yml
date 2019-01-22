@@ -9,6 +9,11 @@ cache:
     - bin/mac/java
     - bin/scala
 
+addons:
+  homebrew:
+    packages:
+      - p7zip
+
 script:
   - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
   - unset JVM_OPTS

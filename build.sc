@@ -30,6 +30,7 @@ import $file.slang.Slang
 import $file.tools.Tools
 import $file.alir.Alir
 import $file.cli.Cli
+import $file.distro
 
 object runtime extends mill.Module {
 
@@ -105,6 +106,22 @@ def regenCli() = T.command {
   val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum
   log(%%('java, "-jar", out, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
     sireumPackagePath / "cli.sc")(sireumPackagePath))
+}
+
+def IVE(platform: String = {
+  import scala.util.{Properties => ps}
+  if (ps.isMac) "mac"
+  else if (ps.isLinux) "linux"
+  else if (ps.isWin) "win"
+  else throw new UnsupportedOperationException("Unsupported platform")
+}, isDev: Boolean = true) = T.command {
+  distro.setupIve(platform, isDev)
+}
+
+def Distro(isDev: Boolean = true) = T.command {
+  distro.setupIve("win", isDev)
+  distro.setupIve("linux", isDev)
+  distro.setupIve("mac", isDev)
 }
 
 private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {

@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-COMMANDS="git zip unzip curl"
+COMMANDS="git curl 7z"
 for COMMAND in ${COMMANDS}; do
 	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
 done
@@ -31,6 +31,8 @@ SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 getVersion() {
   grep "^org.sireum.version.$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
 }
+: ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
+mkdir -p ${SIREUM_CACHE}
 : ${ZULU_VERSION:=$(getVersion "zulu")}
 : ${SCALA_VERSION=$(getVersion "scala")}
 SCALA_MAJ_VER=${SCALA_VERSION%.*}
@@ -57,28 +59,16 @@ if [[ ${ZULU_DIR} == *.tar ]]; then
 fi
 grep -q ${ZULU_VERSION} java/VER &> /dev/null && ZULU_UPDATE=false || ZULU_UPDATE=true
 if [[ ! -d "java" ]] || [[ "${ZULU_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${ZULU_DROP} ]]; then
-    if [[ -f ${SIREUM_CACHE}/${ZULU_DROP} ]]; then
-      echo "Using ${SIREUM_CACHE}/${ZULU_DROP} ... "
-      ln -s ${SIREUM_CACHE}/${ZULU_DROP}
-      echo
-    else
+  if [[ ! -f ${SIREUM_CACHE}/${ZULU_DROP} ]]; then
       echo "Please wait while downloading Zulu JDK ${ZULU_VERSION} ..."
-      curl -qJLo ${ZULU_DROP} ${ZULU_DROP_URL}
+      curl -JLso ${SIREUM_CACHE}/${ZULU_DROP} ${ZULU_DROP_URL}
       echo
-      if [[ ! -z ${SIREUM_CACHE} ]]; then
-        echo "Copying to ${SIREUM_CACHE}/${ZULU_DROP} ..."
-        cp ${ZULU_DROP} ${SIREUM_CACHE}/${ZULU_DROP}
-        echo
-      fi
-    fi
   fi
-  if [[ ${ZULU_DROP} == *.zip ]]; then
-    unzip -oq ${ZULU_DROP}
+  if [[ ${ZULU_DROP} == *.tar.gz ]]; then
+    7z x -so ${SIREUM_CACHE}/${ZULU_DROP} | 7z x -y -si -ttar > /dev/null
   else
-    tar xf ${ZULU_DROP}
+    7z x -y ${SIREUM_CACHE}/${ZULU_DROP} > /dev/null
   fi
-  rm ${ZULU_DROP}
   rm -fR java
   mv ${ZULU_DIR} java
   if [[ -d "java/bin" ]]; then
@@ -93,25 +83,13 @@ SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCA
 SCALA_DROP="${SCALA_DROP_URL##*/}"
 grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
 if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SCALA_DROP} ]]; then
-    if [[ -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
-      echo "Using ${SIREUM_CACHE}/${SCALA_DROP} ... "
-      ln -s ${SIREUM_CACHE}/${SCALA_DROP}
-      echo
-    else
-      echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
-      curl -qJLo ${SCALA_DROP} ${SCALA_DROP_URL}
-      echo
-      if [[ ! -z ${SIREUM_CACHE} ]]; then
-        echo "Copying to ${SIREUM_CACHE}/${SCALA_DROP} ..."
-        cp ${SCALA_DROP} ${SIREUM_CACHE}/${SCALA_DROP}
-        echo
-      fi
-    fi
+  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
+    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
+    curl -JLso ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
+    echo
   fi
+  7z x -y ${SIREUM_CACHE}/${SCALA_DROP} > /dev/null
   rm -fR scala
-  jar xf ${SCALA_DROP}
-  rm ${SCALA_DROP}
   mv scala-${SCALA_VERSION} scala
   if [[ -d "scala/bin" ]]; then
     echo "${SCALA_VERSION}" > scala/VER
@@ -125,21 +103,12 @@ mkdir -p ${SIREUM_HOME}/lib
 cd ${SIREUM_HOME}/lib
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
 SCALAC_PLUGIN_DROP_URL=https://oss.sonatype.org/service/local/repositories/releases/content/org/sireum/scalac-plugin_${SCALA_MAJ_VER}/${SCALAC_PLUGIN_VER}/scalac-plugin_${SCALA_MAJ_VER}-${SCALAC_PLUGIN_VER}.jar
-if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
-  if [[ -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
-    echo "Using ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ... "
-    cp ${SIREUM_CACHE}/${SCALA_DROP} .
-    echo
-  else
-    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-    rm -f scalac-plugin-*.jar
-    curl -JLo ${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
-    echo
-    if [[ ! -z ${SIREUM_CACHE} ]]; then
-      echo "Copying to ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ..."
-      cp ${SCALAC_PLUGIN_DROP} ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP}
-      echo
-    fi
-  fi
+if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
+  echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
+  curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
+  echo
 fi
-${SIREUM_HOME}/bin/mill/build-standalone.sh
+rm -f scalac-plugin-*.jar
+cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
+cd ..
+bin/mill-build/build-standalone.sh
