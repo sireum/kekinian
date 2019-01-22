@@ -1,0 +1,8 @@
+FROM ubuntu:18.04
+MAINTAINER Robby <robby@k-state.edu>
+RUN apt-get update && \
+    apt-get install -y wget git p7zip zip unzip libgomp1 xz-utils build-essential automake cmake aspcud curl python \
+                       locales bc libc6-dev libgmp-dev libsodium-dev nano && \
+    locale-gen en_US en_US.UTF-8 && \
+    dpkg-reconfigure locales && \
+    rm -rf /var/lib/apt/lists/*
