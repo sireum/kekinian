@@ -72,6 +72,7 @@ if [[ ! -d "java" ]] || [[ "${ZULU_UPDATE}" = "true" ]]; then
   rm -fR java
   mv ${ZULU_DIR} java
   if [[ -d "java/bin" ]]; then
+    chmod +x java/bin/*
     echo "${ZULU_VERSION}" > java/VER
   else
     >&2 echo "Could not install Zulu JDK ${ZULU_VERSION}."
