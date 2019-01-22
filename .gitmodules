@@ -10,6 +10,6 @@
 [submodule "alir"]
 	path = alir
 	url = https://github.com/sireum/alir
-[submodule "bin/mill"]
-	path = bin/mill
+[submodule "bin/mill-build"]
+	path = bin/mill-build
 	url = https://github.com/sireum/mill-build
