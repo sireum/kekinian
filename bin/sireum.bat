@@ -1,3 +1,3 @@
 @echo off
-java %JAVA_OPTS% -cp "%~dp0sireum.jar" org.sireum.Sireum %*
+java %JAVA_OPTS% -jar "%~dp0sireum.jar" %*
 exit /B %errorlevel%
