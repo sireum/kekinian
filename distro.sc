@@ -13,7 +13,9 @@ object distro {
   val delPlugins = Seq("android", "gradle", "Groovy", "Kotlin")
   val pluginPrefix = "org.sireum.version.plugin."
   val properties = org.sireum.mill.SireumModule.properties
-  val ignoredIcons = Set("idea.icns", "idea-dev.icns", "idea.png", "idea-dev.png", "idea-dev.ico")
+  val ignoredIcons = Set(
+    "idea.icns", "idea-dev.icns", "idea.png", "idea-dev.png", "idea.svg", "idea-dev.svg", "idea-dev.ico",
+    "idea-ce.svg", "idea-ce-eap.svg")
   val ideaExtMap = Map(
     "mac" -> ".dmg",
     "win" -> ".exe",
@@ -186,7 +188,9 @@ class distro(platform: String, isDev: Boolean) {
         "idea_community_about.png",
         "idea_community_about@2x.png",
         "idea_community_logo.png",
-        "idea_community_logo@2x.png"
+        "idea_community_logo@2x.png",
+        "idea-ce.svg",
+        "idea-ce-eap.svg"
       )(pwd / 'resources / 'distro / 'images / 'dev)
     else
       %%(
@@ -195,7 +199,9 @@ class distro(platform: String, isDev: Boolean) {
         "idea_community_about.png",
         "idea_community_about@2x.png",
         "idea_community_logo.png",
-        "idea_community_logo@2x.png"
+        "idea_community_logo@2x.png",
+        "idea-ce.svg",
+        "idea-ce-eap.svg"
       )(pwd / 'resources / 'distro / 'images / 'release)
     println("done!")
   }
@@ -218,8 +224,13 @@ class distro(platform: String, isDev: Boolean) {
         if (isDev) (ideaDir / 'bin, "idea-dev.ico", "idea.ico")
         else (ideaDir / 'bin, "idea.ico", "idea.ico")
       case "linux" =>
-        if (isDev) (ideaDir / 'bin, "idea-dev.png", "idea.png")
-        else (ideaDir / 'bin, "idea.png", "idea.png")
+        if (isDev) {
+          os.copy.over(iconsPath / "idea-dev.svg", ideaDir / 'bin / "idea.svg")
+          (ideaDir / 'bin, "idea-dev.png", "idea.png")
+        } else {
+          os.copy.over(iconsPath / "idea.svg", ideaDir / 'bin / "idea.svg")
+          (ideaDir / 'bin, "idea.png", "idea.png")
+        }
     }
     print(s"Replacing icon $dirPath/$filename ... ")
     os.copy.over(iconsPath / srcFilename, dirPath / filename)
@@ -310,10 +321,7 @@ class distro(platform: String, isDev: Boolean) {
 
   def setupLinux(ideaDrop: Path): Unit = {
     val ideaDirParent = ideaDir / os.up
-    %%("7z", 'x, "-y", ideaDrop)(ideaDirParent)
-    val ideaTar = ideaDirParent / ideaDrop.last.substring(0, ideaDrop.last.lastIndexOf('.'))
-    %%("7z", 'x, "-y", ideaTar)(ideaDirParent)
-    os.remove(ideaTar)
+    %%('tar, 'xfz, ideaDrop)(ideaDirParent)
     os.move(os.list(ideaDirParent).find(p => p.last.startsWith("idea-IC-")).get, ideaDir)
     println("done!")
     deletePlugins()
