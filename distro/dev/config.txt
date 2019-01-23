@@ -1,0 +1,4 @@
+;!@Install@!UTF-8!
+Title="Sireum-dev Installation"
+RunProgram="setup.bat"
+;!@InstallEnd@!

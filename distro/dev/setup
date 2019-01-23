@@ -1,0 +1,5 @@
+#!/bin/bash
+read -p "Enter the directory where Sireum-dev should be installed under [Press Enter for ~/Applications]: " INSTALL_PATH
+INSTALL_PATH=${INSTALL_PATH:-~/Applications}
+mv Sireum-dev ${INSTALL_PATH}/
+rm -- "$0"

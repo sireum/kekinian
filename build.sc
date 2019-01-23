@@ -114,14 +114,19 @@ def IVE(platform: String = {
   else if (ps.isLinux) "linux"
   else if (ps.isWin) "win"
   else throw new UnsupportedOperationException("Unsupported platform")
-}, isDev: Boolean = true) = T.command {
-  distro.setupIve(platform, isDev)
+}, isDev: Boolean = true, setupConfig: Boolean = true) = T.command {
+  build()()
+  println(s"Using cache at ${distro.distro.cacheDir}")
+  distro.build(platform, isDev, setupConfig = setupConfig, sfx = false)
 }
 
 def Distro(isDev: Boolean = true) = T.command {
-  distro.setupIve("win", isDev)
-  distro.setupIve("linux", isDev)
-  distro.setupIve("mac", isDev)
+  build()()
+  println(s"Using cache at ${distro.distro.cacheDir}")
+  for (platform <- Seq("win", "linux", "mac")) {
+    %('bin / "prelude.sh", PLATFORM = platform)(pwd)
+    distro.build(platform, isDev, setupConfig = false, sfx = true)
+  }
 }
 
 private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
