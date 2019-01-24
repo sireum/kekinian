@@ -117,15 +117,14 @@ def IVE(platform: String = {
 }, isDev: Boolean = true, setupConfig: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
-  distro.build(platform, isDev, setupConfig = setupConfig, sfx = false)
+  distro.build(platform, isDev, setupConfig = setupConfig, sfx = false, clone = false)
 }
 
-def Distro(isDev: Boolean = true) = T.command {
+def Distro(isDev: Boolean = true, clone: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   for (platform <- Seq("win", "linux", "mac")) {
-    %('bin / "prelude.sh", PLATFORM = platform)(pwd)
-    distro.build(platform, isDev, setupConfig = false, sfx = true)
+    distro.build(platform, isDev, setupConfig = false, sfx = true, clone = clone)
   }
 }
 

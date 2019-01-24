@@ -108,7 +108,7 @@ object distro {
 
   }
 
-class distro(platform: String, isDev: Boolean) {
+class distro(platform: String, isDev: Boolean, setupConfig: Boolean, sfx: Boolean, clone: Boolean) {
 
     import distro._
 
@@ -346,7 +346,7 @@ class distro(platform: String, isDev: Boolean) {
       println("done!")
     }
 
-    def build(config: Boolean, sfx: Boolean): Unit = {
+    def build(): Unit = {
       println(s"Setting up Sireum$devSuffix IVE ${platform}64 in $ideaDir ...")
       val url =
         s"https://download.jetbrains.com/idea/ideaIC-$ideaVer${ideaExtMap(platform)}"
@@ -371,7 +371,7 @@ class distro(platform: String, isDev: Boolean) {
       val link = (pwd / 'bin / "sireum.jar").relativeTo(sireumJar / os.up)
       os.remove.all(sireumJar)
       mkLink(sireumJar, link)
-      if (config) {
+      if (setupConfig) {
         val configOptions = os.home / s".SireumIVE$devSuffix" / 'config / 'options
         os.makeDir.all(configOptions)
         os.write.over(configOptions / "jdk.table.xml", jdkTable)
@@ -468,32 +468,45 @@ class distro(platform: String, isDev: Boolean) {
       val r = pwd / 'distro / s"$platform$devSuffix$sfxSuffix"
       os.remove.all(r)
       print(s"Packaging $r ... ")
-      val parent = pwd / os.up
-      val oldPwd = pwd
-      val distroDir = parent / s"Sireum$devSuffix"
       val distro7z = s"$platform.7z"
       val distro = s"$platform.sfx"
-      val setups = os.list(pwd / 'distro / (if (isDev) 'dev else 'release))
-      val sfx = distroDir / 'distro / s"$platform$devSuffix$sfxSuffix"
-      for (p <- setups) os.copy(p, parent / p.last)
+      val setupDir = pwd / 'distro / (if (isDev) 'dev else 'release)
+      val setups = os.list(setupDir)
+      val shouldClone = clone || scala.util.Properties.isWin
+      val oldPwd = pwd
+      val (repoDir, distroDir) = if (shouldClone) {
+        val dir = setupDir / s"Sireum$devSuffix"
+        for (rp <- distroMap(platform) if rp.ups == 0) {
+          os.makeDir.all(dir / rp / os.up)
+          os.copy(oldPwd / rp, dir / rp)
+        }
+        (oldPwd, dir)
+      } else {
+        val dir = oldPwd / os.up / s"Sireum$devSuffix"
+        for (p <- setups) os.copy(p, oldPwd / os.up / p.last)
+        os.move(oldPwd, dir)
+        (dir, dir)
+      }
       try {
-        os.move(oldPwd, distroDir)
+        val sfx = repoDir / 'distro / s"$platform$devSuffix$sfxSuffix"
         val cmd = Seq[os.Shellable]("7z", 'a, distro7z) ++
           distroMap(platform).map(rp => RelPath(distroDir.last) / rp: os.Shellable)
-        os.proc(cmd: _*).call(cwd = parent)
+        os.proc(cmd: _*).call(cwd = distroDir / os.up)
         platform match {
-          case "mac" =>
-            merge(sfx, distroDir / 'bin / 'mac / "7z.sfx", parent / distro7z)
-          case "linux" =>
-            merge(sfx, distroDir / 'bin / 'linux / "7z.sfx", parent / distro7z)
           case "win" =>
-            merge(sfx, distroDir / 'bin / 'win / "7z.sfx", parent / "config.txt", parent / distro7z)
+            merge(sfx, repoDir / 'bin / 'win / "7z.sfx",
+              distroDir / os.up / "config.txt", distroDir / os.up / distro7z)
+          case _ =>
+            merge(sfx, repoDir / 'bin / platform / "7z.sfx", distroDir / os.up / distro7z)
         }
-        os.remove(parent / distro7z)
+        os.remove(distroDir / os.up / distro7z)
         println("done!")
       } finally {
-        os.move(distroDir, oldPwd)
-        for (p <- setups) os.remove.all(parent / p.last)
+        if (shouldClone) os.remove.all(distroDir)
+        else {
+          os.move(distroDir, oldPwd)
+          for (p <- setups) os.remove.all(distroDir / os.up / p.last)
+        }
       }
     }
 
@@ -678,8 +691,8 @@ class distro(platform: String, isDev: Boolean) {
 
   }
 
-def build(platform: String, isDev: Boolean, setupConfig: Boolean, sfx: Boolean): Unit = {
+def build(platform: String, isDev: Boolean, setupConfig: Boolean, sfx: Boolean, clone: Boolean): Unit = {
     import distro._
     os.makeDir.all(pluginsCacheDir)
-    new distro(platform, isDev).build(setupConfig, sfx)
+    new distro(platform, isDev, setupConfig, sfx, clone).build()
   }
