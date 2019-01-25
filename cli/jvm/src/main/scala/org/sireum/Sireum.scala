@@ -116,8 +116,14 @@ object Sireum extends scala.App {
   lazy val scalaHome: os.Path = homeOpt.get / 'bin / 'scala
   lazy val scalacPluginJar: os.Path = homeOpt.get / 'lib / s"scalac-plugin-$scalacPluginVer.jar"
   lazy val sireumJar: os.Path = homeOpt.get / 'bin / "sireum.jar"
+  lazy val ideaDir: os.Path =
+    if (platform == "mac") os.list(homeOpt.get / 'bin / platform / 'idea).find(_.last.endsWith(".app")).get /
+      'Contents
+    else homeOpt.get / 'bin / platform / 'idea
+  lazy val ideaLibDir: os.Path= ideaDir / 'lib
+  lazy val ideaPluginsDir: os.Path= ideaDir / 'plugins
 
-  lazy val (scalaVer, scalacPluginVer) = {
+  lazy val (zuluVer, scalaVer, scalacPluginVer) = {
     val p = new java.util.Properties
     p.load(new java.io.StringReader(
     org.sireum.$internal.RC
@@ -126,7 +132,8 @@ object Sireum extends scala.App {
       }
       .head
       ._2))
-    (String(p.get("org.sireum.version.scala").toString),
+    (String(p.get("org.sireum.version.zulu").toString),
+      String(p.get("org.sireum.version.scala").toString),
       String(p.get("org.sireum.version.scalac-plugin").toString))
   }
 

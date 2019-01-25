@@ -108,17 +108,17 @@ def regenCli() = T.command {
     sireumPackagePath / "cli.sc")(sireumPackagePath))
 }
 
-def IVE(platform: String = currPlatform, isDev: Boolean = true, setupConfig: Boolean = true) = T.command {
+def IVE(platform: String = currPlatform, isDev: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
-  distro.build(platform, isDev, setupConfig = setupConfig, sfx = false, clone = false)
+  distro.build(platform, isDev, sfx = false, clone = false)
 }
 
 def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   for (platform <- platforms.split(',')) {
-    distro.build(platform.trim, isDev, setupConfig = false, sfx = true, clone = clone)
+    distro.build(platform.trim, isDev, sfx = true, clone = clone)
   }
 }
 

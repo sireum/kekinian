@@ -7,8 +7,8 @@ set /p INSTALL_PATH="Enter the directory path [Press Enter to use the default]: 
 echo Installing in %INSTALL_PATH% ...
 md %INSTALL_PATH% 1> nul 2>&1
 rd /S /Q %INSTALL_PATH%\Sireum 2>nul
-move %~dp0Sireum %INSTALL_PATH% 1> nul 2>&1
-if not exist %~dp0Sireum\ goto failed
+move %~dp0Sireum %INSTALL_PATH%\ 1> nul 2>&1
+if not exist %INSTALL_PATH%\Sireum\ goto failed
 :success
 echo Sireum IVE can now be launched by running %INSTALL_PATH%\Sireum\bin\win\idea\bin\idea64.exe
 echo Java Development Kit (JDK) is available at %INSTALL_PATH%\Sireum\bin\win\java
@@ -20,4 +20,4 @@ echo Installation failed
 :end
 echo Press any key to exit ...
 pause >nul
-(goto) 2>nul & del "%~f0"
+REM (goto) 2>nul & del "%~f0"

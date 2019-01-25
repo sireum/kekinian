@@ -1,4 +1,7 @@
 * text=auto !eol
+*.scala text eol=lf
+*.sc text eol=lf
 *.sh text eol=lf
+*.properties text eol=lf
 *.bat text eol=crlf
 /sireum text eol=lf
