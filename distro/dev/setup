@@ -1,22 +1,27 @@
 #!/bin/bash
 INSTALL_PATH=~/Applications
-read -t 5 -n 1 -p "Customize where Sireum-dev should be installed under (defauts to $INSTALL_PATH) [Y/N]? " CUSTOM
+read -t 5 -n 1 -p "Customize where Sireum-dev should be installed under (defaults to $INSTALL_PATH) [Y/N]? " CUSTOM
 echo ""
 case ${CUSTOM} in
   y|Y) read -p "Enter the directory path [Press Enter to use the default]: " INSTALL_PATH;;
   *)
 esac
 INSTALL_PATH=${INSTALL_PATH:-~/Applications}
+echo "Installing in ${INSTALL_PATH} ..."
 mkdir -p ${INSTALL_PATH}
 rm -fR ${INSTALL_PATH}/Sireum-dev
-mv Sireum-dev ${INSTALL_PATH}/
-if [[ "$(uname)" == "Darwin" ]]; then
-  echo "Sireum-dev IVE can now be launched by opening ${INSTALL_PATH}/Sireum-dev/bin/mac/idea/Sireum-dev.app"
-  echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/mac/java"
-elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-  echo "Sireum-dev IVE can now be launched by running ${INSTALL_PATH}/Sireum-dev/bin/linux/idea/bin/idea.sh"
-  echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/linux/java"
+mv Sireum-dev ${INSTALL_PATH}/ 2> /dev/null
+if [[ -d ${INSTALL_PATH}/Sireum-dev ]]; then
+  if [[ "$(uname)" == "Darwin" ]]; then
+    echo "Sireum-dev IVE can now be launched by opening ${INSTALL_PATH}/Sireum-dev/bin/mac/idea/Sireum-dev.app"
+    echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/mac/java"
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+    echo "Sireum-dev IVE can now be launched by running ${INSTALL_PATH}/Sireum-dev/bin/linux/idea/bin/idea.sh"
+    echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/linux/java"
+  fi
+  echo "Scala is available at ${INSTALL_PATH}/Sireum-dev/bin/scala"
+  echo "Mill can be found at ${INSTALL_PATH}/Sireum-dev/bin/mill"
+else
+  echo "Installation failed"
 fi
-echo "Scala is available at ${INSTALL_PATH}/Sireum-dev/bin/scala"
-echo "Mill can be found at ${INSTALL_PATH}/Sireum-dev/bin/mill"
 rm -- "$0"
