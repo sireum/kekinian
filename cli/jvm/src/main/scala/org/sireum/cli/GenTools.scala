@@ -76,10 +76,10 @@ object GenTools {
         return InvalidDir
       }
       val project = d / o.name.get.value
-      if (os.exists(project)) {
-        eprintln(s"Directory $project already exists")
+      if (os.exists(project) && o.mode == Cli.IveMode.Idea) {
+        eprintln(s"Cannot overwrite an existing $project directory in idea mode")
         return ProjectExists
-      } else os.makeDir(project)
+      } else os.makeDir.all(project)
 
       if (!homeFound) return HomeNotFound
       val home = if (isWin) homeOpt.get.toString.replaceAllLiterally("\\", "/") else homeOpt.get
@@ -92,20 +92,21 @@ object GenTools {
         if (o.mode == Cli.IveMode.Idea)
           IveGen.idea(isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
         else
-          IveGen.mill(name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+          IveGen.mill(os.exists(project / "build.sc"), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+
       for ((path, text) <- files.entries) {
         val p = project / os.RelPath(st"${(path, "/")}".render.value)
         os.makeDir.all(p / os.up)
         os.write.over(p, text.render.value)
       }
+      val mill = if (isWin) "mill.bat" else "mill"
       if (o.mode == Cli.IveMode.Mill)
-        os.proc(
-            homeOpt.get / 'bin / (if (isWin) "mill.bat" else "mill"),
-            'all,
-            s"$name.compile",
-            "mill.scalalib.GenIdea/idea"
-          )
-          .call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
+        if (o.millPath)
+          os.proc(mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea").
+            call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
+        else
+          os.proc(homeOpt.get / 'bin / mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea").
+            call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
       println(s"Generated Sireum IVE project at $project")
       0
     }
