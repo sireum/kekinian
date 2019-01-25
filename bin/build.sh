@@ -28,6 +28,7 @@ cd ${SIREUM_HOME}
 git submodule update --init --recursive --remote
 bin/prelude.sh
 source bin/platform.sh
+bin/mill-build/build-standalone.sh
 bin/mill-build/mill-standalone build
 cp bin/mill-build/mill-standalone bin/mill.bat
 echo '#!/bin/sh' > bin/mill

@@ -114,5 +114,3 @@ if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
   rm -f scalac-plugin-*.jar
   cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
 fi
-cd ${SIREUM_HOME}
-bin/mill-build/build-standalone.sh
