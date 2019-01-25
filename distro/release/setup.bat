@@ -8,5 +8,5 @@ echo Java Development Kit (JDK) is available at %INSTALL_PATH%\Sireum\bin\win\ja
 echo Scala is available at %INSTALL_PATH%\Sireum\bin\scala
 echo Mill can be found at %INSTALL_PATH%\Sireum\bin\mill.bat
 echo Press any key to exit ...
-pause
+pause >nul
 (goto) 2>nul & del "%~f0"
