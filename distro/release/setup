@@ -1,14 +1,14 @@
 #!/bin/bash
-read -p "Enter the directory where  should be installed under [Press Enter for ~/Applications]: " INSTALL_PATH
+read -p "Enter the directory where Sireum should be installed under [Press Enter for ~/Applications]: " INSTALL_PATH
 INSTALL_PATH=${INSTALL_PATH:-~/Applications}
 mv Sireum ${INSTALL_PATH}/
 if [[ "$(uname)" == "Darwin" ]]; then
-  echo "Sireum IVE can now be launched by opening ${INSTALL_PATH}\Sireum\bin\mac\idea\Sireum.app"
-  echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}\Sireum\bin\mac\java"
+  echo "Sireum IVE can now be launched by opening ${INSTALL_PATH}/Sireum/bin/mac/idea/Sireum.app"
+  echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum/bin/mac/java"
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-  echo "Sireum IVE can now be launched by running %INSTALL_PATH%\Sireum\bin\linux\idea\bin\idea.sh"
-  echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}\Sireum\bin\linux\java"
+  echo "Sireum IVE can now be launched by running ${INSTALL_PATH}/Sireum/bin/linux/idea/bin/idea.sh"
+  echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum/bin/linux/java"
 fi
-echo "Scala is available at ${INSTALL_PATH}\Sireum\bin\scala"
-echo "Mill can be found at ${INSTALL_PATH}\Sireum\bin\mill"
+echo "Scala is available at ${INSTALL_PATH}/Sireum/bin/scala"
+echo "Mill can be found at ${INSTALL_PATH}/Sireum/bin/mill"
 rm -- "$0"

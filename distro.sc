@@ -66,8 +66,7 @@ object distro {
         RelPath(Vector("lib"), 0),
         RelPath(Vector("license.txt"), 0),
         RelPath(Vector("versions.properties"), 0),
-        RelPath(Vector("setup.bat"), 1),
-        RelPath(Vector("install.bat"), 1)
+        RelPath(Vector("setup.bat"), 1)
       ),
       "linux" -> Seq(
         RelPath(Vector("bin", "scala"), 0),
