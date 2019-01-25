@@ -63,6 +63,7 @@ object distro {
         RelPath(Vector("bin", "sireum.bat"), 0),
         RelPath(Vector("bin", "sireum.jar"), 0),
         RelPath(Vector("bin", "slang-run.bat"), 0),
+        RelPath(Vector("bin", "VER"), 0),
         RelPath(Vector("lib"), 0),
         RelPath(Vector("license.txt"), 0),
         RelPath(Vector("versions.properties"), 0),
@@ -76,6 +77,7 @@ object distro {
         RelPath(Vector("bin", "sireum"), 0),
         RelPath(Vector("bin", "sireum.jar"), 0),
         RelPath(Vector("bin", "slang-run.sh"), 0),
+        RelPath(Vector("bin", "VER"), 0),
         RelPath(Vector("lib"), 0),
         RelPath(Vector("license.txt"), 0),
         RelPath(Vector("versions.properties"), 0),
@@ -89,6 +91,7 @@ object distro {
         RelPath(Vector("bin", "sireum"), 0),
         RelPath(Vector("bin", "sireum.jar"), 0),
         RelPath(Vector("bin", "slang-run.sh"), 0),
+        RelPath(Vector("bin", "VER"), 0),
         RelPath(Vector("lib"), 0),
         RelPath(Vector("license.txt"), 0),
         RelPath(Vector("versions.properties"), 0),
@@ -122,7 +125,12 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     val libDir =
       if (platform == "mac") sireumAppDir / 'Contents / 'lib
       else ideaDir / 'lib
-    val version = %%('git, 'log, "-n", "1", "--pretty=format:%H")(pwd).out.lines.head.trim
+
+    val version = {
+      val v = %%('git, 'log, "-n", "1", "--pretty=format:%H")(pwd).out.lines.head.trim
+      os.write.over(pwd / 'bin / 'VER, v)
+      v
+    }
 
     val ideaVer = {
       val (devVer, ver) = devRelVer("org.sireum.version.idea")

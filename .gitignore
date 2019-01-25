@@ -17,6 +17,7 @@ mill-standalone
 /bin/mac/idea
 /bin/mill
 /bin/mill.bat
+/bin/VER
 /resources/rh
 /distro/*.sfx
 /distro/*.exe
