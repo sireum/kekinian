@@ -108,24 +108,26 @@ def regenCli() = T.command {
     sireumPackagePath / "cli.sc")(sireumPackagePath))
 }
 
-def IVE(platform: String = {
-  import scala.util.{Properties => ps}
-  if (ps.isMac) "mac"
-  else if (ps.isLinux) "linux"
-  else if (ps.isWin) "win"
-  else throw new UnsupportedOperationException("Unsupported platform")
-}, isDev: Boolean = true, setupConfig: Boolean = true) = T.command {
+def IVE(platform: String = currPlatform, isDev: Boolean = true, setupConfig: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   distro.build(platform, isDev, setupConfig = setupConfig, sfx = false, clone = false)
 }
 
-def Distro(isDev: Boolean = true, clone: Boolean = true) = T.command {
+def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
-  for (platform <- Seq("win", "linux", "mac")) {
-    distro.build(platform, isDev, setupConfig = false, sfx = true, clone = clone)
+  for (platform <- platforms.split(',')) {
+    distro.build(platform.trim, isDev, setupConfig = false, sfx = true, clone = clone)
   }
+}
+
+private def currPlatform: String = {
+  import scala.util.{Properties => ps}
+  if (ps.isMac) "mac"
+  else if (ps.isLinux) "linux"
+  else if (ps.isWin) "win"
+  else throw new UnsupportedOperationException("Unsupported platform")
 }
 
 private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
