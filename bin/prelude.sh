@@ -102,15 +102,17 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
   fi
 fi
 mkdir -p ${SIREUM_HOME}/lib
-cd ${SIREUM_HOME}/lib
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
 SCALAC_PLUGIN_DROP_URL=https://oss.sonatype.org/service/local/repositories/releases/content/org/sireum/scalac-plugin_${SCALA_MAJ_VER}/${SCALAC_PLUGIN_VER}/scalac-plugin_${SCALA_MAJ_VER}-${SCALAC_PLUGIN_VER}.jar
-if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
-  echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-  curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
-  echo
+if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
+  cd ${SIREUM_HOME}/lib
+  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
+    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
+    curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
+    echo
+  fi
+  rm -f scalac-plugin-*.jar
+  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
 fi
-rm -f scalac-plugin-*.jar
-cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
-cd ..
+cd ${SIREUM_HOME}
 bin/mill-build/build-standalone.sh
