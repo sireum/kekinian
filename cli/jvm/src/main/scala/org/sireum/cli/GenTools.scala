@@ -362,7 +362,9 @@ object GenTools {
              |</application>""".stripMargin
         }
 
-        val configOptions = os.home / s".SireumIVE$devSuffix" / 'config / 'options
+        val configOptions =
+          if (scala.util.Properties.isMac) os.home / 'Library/ 'Preferences / s"SireumIVE$devSuffix" / 'options
+          else os.home / s".SireumIVE$devSuffix" / 'config / 'options
         os.makeDir.all(configOptions)
         val jdkTableXml = configOptions / "jdk.table.xml"
         val applicationLibrariesXml = configOptions / "applicationLibraries.xml"

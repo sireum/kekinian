@@ -374,18 +374,12 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
 
     def setupMac(ideaDrop: Path): Unit = {
       val ideaDirParent = ideaDir / os.up
-      %%("7z", 'x, "-y", ideaDrop)(ideaDirParent)
-      os.move(ideaDirParent / "IntelliJ IDEA CE", ideaDir)
-      for (p <- os.list(ideaDir) if !p.last.endsWith(".app")) os.remove.all(p)
-      os.move(ideaDir / "IntelliJ IDEA CE.app", sireumAppDir)
-      val libjli = sireumAppDir / 'Contents / 'jdk / 'Contents / 'MacOS / "libjli.dylib"
-      os.remove(libjli)
-      mkLink(libjli, RelPath(new File("../Home/jre/lib/jli/libjli.dylib")))
-      if (!scala.util.Properties.isWin) {
-        os.perms.set(sireumAppDir / 'Contents / 'MacOS / 'idea, 0x755)
-        os.perms.set(sireumAppDir / 'Contents / 'bin / "format.sh", 0x755)
-        os.perms.set(sireumAppDir / 'Contents / 'bin / "inspect.sh", 0x755)
-      }
+      %%('hdiutil, 'attach, ideaDrop)(pwd)
+      val dirPath = os.list(os.root / 'Volumes).find(_.last.startsWith("IntelliJ")).get
+      val appPath = dirPath / os.list(dirPath).find(_.last.endsWith(".app")).get.last
+      os.makeDir.all(sireumAppDir / os.up)
+      %%('cp, "-R", appPath, sireumAppDir)(pwd)
+      %%("hdiutil", "eject", dirPath)(pwd)
       println("done!")
       deletePlugins()
       extractPlugins()

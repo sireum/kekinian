@@ -111,16 +111,19 @@ def regenCli() = T.command {
 def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
-  for (platform <- platforms.split(','))
+  for (platform <- platforms.split(',')) {
+    require((platform == "mac") == scala.util.Properties.isMac, "Cannot setup macOS IVE on non-mac")
     distro.build(platform.trim, isDev, sfx = false, clone = false)
+  }
 }
 
 def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   for (platform <- platforms.split(',')) {
+    require((platform == "mac") == scala.util.Properties.isMac, "Cannot build macOS distro on non-mac")
     val shouldClone = platform match {
-      case "mac" => require(!scala.util.Properties.isWin, "Cannot build mac distro on Windows"); false
+      case "mac" => false
       case _ => if (scala.util.Properties.isWin) true else clone
     }
     distro.build(platform.trim, isDev, sfx = true, clone = shouldClone)
