@@ -2,15 +2,10 @@
 SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRIPT/$(basename "$0")
 while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
 export SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
-cygclasspath() {
-  echo "$(cygpath -C OEM -w -a ${SIREUM_HOME})\\bin\\sireum.jar"
-}
-classpath() {
-  case $(uname -s) in
-    CYGWIN*) echo $(cygclasspath);;
-    MSYS*) echo $(cygclasspath);;
-    MINGW*) echo $(cygclasspath);;
-    *) echo "${SIREUM_HOME}/bin/sireum.jar"
-  esac
-}
-exec java ${JAVA_OPTS} -jar "$( classpath $0 )" $*
+if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
+  export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
+  SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
+else
+  SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
+fi
+exec java ${JAVA_OPTS} -jar "${SIREUM_JAR}" $*
