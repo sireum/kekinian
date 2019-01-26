@@ -366,7 +366,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
 
     def deletePlugins(): Unit = {
       for (p <- delPlugins) {
-        print(s"Removing plugin $p ... ")
+        print(s"Removing $p plugin ... ")
         os.remove.all(pluginsDir / p)
         println("done!")
       }
@@ -408,6 +408,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       patchVMOptions(ideaDir / 'bin / "idea64.vmoptions")
       os.remove(ideaDir / 'bin / "idea.vmoptions")
       os.move(ideaDir / 'bin / "idea.sh", ideaDir / 'bin / "IVE.sh")
+      mkLink(ideaDir / 'bin / "idea.sh", "IVE.sh")
     }
 
     def setupWin(ideaDrop: Path): Unit = {
@@ -460,12 +461,12 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         val dir = setupDir / s"Sireum$devSuffix"
         for (rp <- distroMap(platform) if rp.ups == 0) {
           os.makeDir.all(dir / rp / os.up)
-          os.copy(oldPwd / rp, dir / rp)
+          os.copy.over(oldPwd / rp, dir / rp)
         }
         (oldPwd, dir)
       } else {
         val dir = oldPwd / os.up / s"Sireum$devSuffix"
-        for (p <- setups) os.copy(p, oldPwd / os.up / p.last)
+        for (p <- setups) os.copy.over(p, oldPwd / os.up / p.last)
         os.move(oldPwd, dir)
         (dir, dir)
       }
