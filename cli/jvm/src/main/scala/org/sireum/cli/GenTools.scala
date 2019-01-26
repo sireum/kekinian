@@ -85,14 +85,12 @@ object GenTools {
       val home = if (isWin) homeOpt.get.toString.replaceAllLiterally("\\", "/") else homeOpt.get
 
       val devSuffixOpt = homeOpt.get.last match {
-        case "kekinian" | "Sireum-dev" => scala.Some("-dev")
+        case "Sireum-dev" | "kekinian" | "sireum-kekinian" => scala.Some("-dev")
         case "Sireum" => scala.Some("")
         case _ => scala.None
       }
 
-      def normalizePath(path: os.Path): Predef.String =
-        if (scala.util.Properties.isWin) path.toNIO.toString.replaceAllLiterally("\\", "/")
-        else path.toString
+      def normalizePath(path: os.Path): Predef.String = uriPathSep(path.toNIO.toString)
 
       for (devSuffix <- devSuffixOpt) {
         val scalaDir = normalizePath(scalaHome)
