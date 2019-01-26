@@ -325,8 +325,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
             require(entries.contains(f.last), s"File ${f.last} is not in $iconsJar.")
             f.last : os.Shellable
           }).toVector
-      val cmd: Seq[os.Shellable] = Seq[os.Shellable]("7z", 'a, iconsJar.toString) ++ entriesToUpdate
-      os.proc(cmd: _*).call(cwd = iconsPath, stderr = os.Inherit, stdout = os.Inherit, stdin = os.Inherit)
+      os.proc(Seq[os.Shellable]("7z", 'a, iconsJar) ++ entriesToUpdate: _*).call(cwd = iconsPath)
       println("done!")
     }
 
