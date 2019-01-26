@@ -21,4 +21,4 @@ echo Installation failed
 :end
 echo Press any key to exit ...
 pause >nul
-REM (goto) 2>nul & del "%~f0"
+(goto) 2>nul & del "%~f0"
