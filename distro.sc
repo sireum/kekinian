@@ -209,7 +209,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       if (isDev)
         %%(
           "7z",
-          'u,
+          'a,
           resourcesJar,
           "idea_community_about.png",
           "idea_community_about@2x.png",
@@ -221,7 +221,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       else
         %%(
           "7z",
-          'u,
+          'a,
           resourcesJar,
           "idea_community_about.png",
           "idea_community_about@2x.png",
@@ -283,8 +283,13 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       val iconsPath = pwd / 'resources / 'distro / 'icons
       val (dirPath, srcFilename, filename) = platform match {
         case "mac" =>
-          if (isDev) (sireumAppDir / 'Contents / 'Resources, "idea-dev.icns", "idea.icns")
-          else (sireumAppDir / 'Contents / 'Resources, "idea.icns", "idea.icns")
+          if (isDev) {
+            os.copy.over(iconsPath / "idea-dev.svg", sireumAppDir / 'Contents / 'bin / "idea.svg")
+            (sireumAppDir / 'Contents / 'Resources, "idea-dev.icns", "idea.icns")
+          } else {
+            os.copy.over(iconsPath / "idea.svg", sireumAppDir / 'Contents / 'bin / "idea.svg")
+            (sireumAppDir / 'Contents / 'Resources, "idea.icns", "idea.icns")
+          }
         case "win" =>
           if (isDev) (ideaDir / 'bin, "idea-dev.ico", "idea.ico")
           else (ideaDir / 'bin, "idea.ico", "idea.ico")
@@ -318,10 +323,10 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         (for (f <- os.list(iconsPath) if !ignoredIcons.contains(f.last))
           yield {
             require(entries.contains(f.last), s"File ${f.last} is not in $iconsJar.")
-            f.last
+            f.last : os.Shellable
           }).toVector
-      val cmd = "7z" +: "u" +: iconsJar.toString +: entriesToUpdate
-      Shellout.executeStream(iconsPath, Command(cmd, Map(), Shellout.executeStream))
+      val cmd: Seq[os.Shellable] = Seq[os.Shellable]("7z", 'a, iconsJar.toString) ++ entriesToUpdate
+      os.proc(cmd: _*).call(cwd = iconsPath, stderr = os.Inherit, stdout = os.Inherit, stdin = os.Inherit)
       println("done!")
     }
 

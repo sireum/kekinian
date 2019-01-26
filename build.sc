@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2018, Robby, Kansas State University
+ Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -119,7 +119,11 @@ def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boole
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   for (platform <- platforms.split(',')) {
-    distro.build(platform.trim, isDev, sfx = true, clone = clone)
+    val shouldClone = platform match {
+      case "mac" => require(!scala.util.Properties.isWin, "Cannot build mac distro on Windows"); false
+      case _ => if (scala.util.Properties.isWin) true else clone
+    }
+    distro.build(platform.trim, isDev, sfx = true, clone = shouldClone)
   }
 }
 
