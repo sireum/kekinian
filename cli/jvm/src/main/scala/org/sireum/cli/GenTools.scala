@@ -196,8 +196,8 @@ object GenTools {
              |            <root url="jrt://JAVA_HOME!/jdk.unsupported" type="simple" />
              |            <root url="jrt://JAVA_HOME!/jdk.unsupported.desktop" type="simple" />
              |            <root url="jrt://JAVA_HOME!/jdk.xml.dom" type="simple" />
-             |            <root url="jrt://JAVA_HOME!/jdk.zipfs" type="simple" />""".stripMargin.
-            replaceAllLiterally("JAVA_HOME", normalizePath(javaHome)),
+             |            <root url="jrt://JAVA_HOME!/jdk.zipfs" type="simple" />""".stripMargin
+            .replaceAllLiterally("JAVA_HOME", normalizePath(javaHome)),
           s"""            <root url="jar://JAVA_HOME/lib/src.zip!/java.se" type="simple" />
              |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.aot" type="simple" />
              |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jdi" type="simple" />
@@ -268,8 +268,8 @@ object GenTools {
              |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.unsupported.desktop" type="simple" />
              |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.vm.compiler" type="simple" />
              |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.scripting.nashorn.shell" type="simple" />
-             |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.vm.compiler.management" type="simple" />""".stripMargin.
-            replaceAllLiterally("JAVA_HOME", normalizePath(javaHome))
+             |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.vm.compiler.management" type="simple" />""".stripMargin
+            .replaceAllLiterally("JAVA_HOME", normalizePath(javaHome))
         )
 
         def jdkTable: Predef.String = {
@@ -392,13 +392,19 @@ object GenTools {
         os.write.over(p, text.render.value)
       }
       val mill = if (isWin) "mill.bat" else "mill"
-      if (o.mode == Cli.IveMode.Mill)
+      if (o.mode == Cli.IveMode.Mill) {
+        val platform = if (isWin) "win" else if (scala.util.Properties.isLinux) "linux" else "mac"
+        val javaBin = homeOpt.get / 'bin / platform / 'java / 'bin
+        val envVarMap =
+          scala.collection.immutable
+            .Map(("PATH", s"$javaBin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"))
         if (o.millPath)
           os.proc(mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
             .call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
         else
           os.proc(homeOpt.get / 'bin / mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
-            .call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
+            .call(cwd = project, env = envVarMap, stdout = os.Inherit, stderr = os.Inherit)
+      }
       println(s"Generated Sireum IVE project at $project")
       0
     }

@@ -28,6 +28,8 @@ if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=win
     case $(uname -s) in
       CYGWIN*) export CYGWIN=winsymlinks:nativestrict;;
+      MSYS*) export MSYS=winsymlinks:nativestrict;;
+      MINGW*) export MSYS=winsymlinks:nativestrict;;
       *)
     esac
   elif [[ "$(uname)" == "Darwin" ]]; then

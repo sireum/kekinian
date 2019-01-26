@@ -1,11 +1,18 @@
 #!/bin/bash -e
 SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRIPT/$(basename "$0")
 while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
-export SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
+SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
-  export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
+  SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
+  JAVA=${SIREUM_HOME}/bin/win/java/bin/java.exe
   SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
-else
+elif [[ "$(uname)" == "Darwin" ]]; then
+  JAVA=${SIREUM_HOME}/bin/mac/java/bin/java
   SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
+elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+  JAVA=${SIREUM_HOME}/bin/linux/java/bin/java
+  SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
+else
+  JAVA=java
 fi
-exec java ${JAVA_OPTS} -jar "${SIREUM_JAR}" $*
+exec ${JAVA} ${JAVA_OPTS} -jar "${SIREUM_JAR}" $*

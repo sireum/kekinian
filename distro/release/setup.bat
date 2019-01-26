@@ -9,7 +9,8 @@ md %INSTALL_PATH% 1> nul 2>&1
 rd /S /Q %INSTALL_PATH%\Sireum 2>nul
 move %~dp0Sireum %INSTALL_PATH%\ 1> nul 2>&1
 if not exist %INSTALL_PATH%\Sireum\ goto failed
-:success
+cd %INSTALL_PATH%\Sireum\bin\win\idea\plugins\sireum-kekinian-intellij\lib
+copy ..\..\..\..\..\sireum.jar sireum.jar >nul
 echo Sireum IVE can now be launched by running %INSTALL_PATH%\Sireum\bin\win\idea\bin\IVE.exe
 echo Java Development Kit (JDK) is available at %INSTALL_PATH%\Sireum\bin\win\java
 echo Scala is available at %INSTALL_PATH%\Sireum\bin\scala

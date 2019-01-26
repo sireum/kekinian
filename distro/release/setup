@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 INSTALL_PATH=~/Applications
 read -t 5 -n 1 -p "Customize where Sireum should be installed under (defaults to $INSTALL_PATH) [Y/N]? " CUSTOM
 echo ""

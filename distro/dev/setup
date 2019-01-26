@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 INSTALL_PATH=~/Applications
 read -t 5 -n 1 -p "Customize where Sireum-dev should be installed under (defaults to $INSTALL_PATH) [Y/N]? " CUSTOM
 echo ""
@@ -16,7 +16,7 @@ if [[ -d ${INSTALL_PATH}/Sireum-dev ]]; then
     echo "Sireum-dev IVE can now be launched by opening ${INSTALL_PATH}/Sireum-dev/bin/mac/idea/IVE.app"
     echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/mac/java"
   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-    echo "Sireum-dev IVE can now be launched by running ${INSTALL_PATH}/Sireum-dev/bin/linux/idea/IVE.sh"
+    echo "Sireum-dev IVE can now be launched by running ${INSTALL_PATH}/Sireum-dev/bin/linux/idea/bin/IVE.sh"
     echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/linux/java"
   fi
   echo "Scala is available at ${INSTALL_PATH}/Sireum-dev/bin/scala"
