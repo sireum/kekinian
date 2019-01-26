@@ -43,10 +43,16 @@ object Sireum extends scala.App {
   })
 
   def path2File(path: Predef.String): File = {
-    if (scala.util.Properties.isWin && path.startsWith("/cygdrive/")) {
-      val p = path.substring("/cygdrive/".length)
-      val ps = p.split('/')
-      new File(p.head + ":\\" + (for (i <- 1 until ps.length) yield ps(i)).mkString("\\"))
+    if (scala.util.Properties.isWin) {
+      if (path.startsWith("/cygdrive/")) {
+        val p = path.substring("/cygdrive/".length)
+        val ps = p.split('/')
+        new File(p.head + ":\\" + ps.tail.mkString("\\"))
+      } else if (path.startsWith("/")) {
+        val p = path.substring(1)
+        val ps = p.split('/')
+        new File(p.head + ":\\" + ps.tail.mkString("\\"))
+      } else new File(path)
     } else new File(path)
   }
 
