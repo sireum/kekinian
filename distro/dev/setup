@@ -13,10 +13,10 @@ rm -fR ${INSTALL_PATH}/Sireum-dev
 mv Sireum-dev ${INSTALL_PATH}/ 2> /dev/null
 if [[ -d ${INSTALL_PATH}/Sireum-dev ]]; then
   if [[ "$(uname)" == "Darwin" ]]; then
-    echo "Sireum-dev IVE can now be launched by opening ${INSTALL_PATH}/Sireum-dev/bin/mac/idea/Sireum-dev.app"
+    echo "Sireum-dev IVE can now be launched by opening ${INSTALL_PATH}/Sireum-dev/bin/mac/idea/IVE.app"
     echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/mac/java"
   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-    echo "Sireum-dev IVE can now be launched by running ${INSTALL_PATH}/Sireum-dev/bin/linux/idea/bin/idea.sh"
+    echo "Sireum-dev IVE can now be launched by running ${INSTALL_PATH}/Sireum-dev/bin/linux/idea/IVE.sh"
     echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum-dev/bin/linux/java"
   fi
   echo "Scala is available at ${INSTALL_PATH}/Sireum-dev/bin/scala"

@@ -116,7 +116,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
 
     val devSuffix = if (isDev) "-dev" else ""
     val ideaDir = os.pwd / 'bin / platform / 'idea
-    val sireumAppDir = ideaDir / s"Sireum$devSuffix.app"
+    val sireumAppDir = ideaDir / s"IVE.app"
 
     val pluginsDir =
       if (platform == "mac") sireumAppDir / 'Contents / 'plugins
@@ -238,29 +238,15 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       val rhDir = pwd / 'resources / 'rh
       os.makeDir.all(rhDir)
       if (!os.exists(rhDir / rhExe)) {
-        print("Downloading ResourceHacker ...")
+        print("Downloading ResourceHacker ... ")
         %%('curl, "-JLso", "rh.zip", "http://angusj.com/resourcehacker/resource_hacker.zip")(rhDir)
         %%("7z", 'x, "rh.zip", rhExe)(rhDir)
         println("done!")
       }
       val binDir = ideaDir / 'bin
-      val ideaExe = binDir / "idea.exe"
       val idea64Exe = binDir / "idea64.exe"
-      print(s"Patching $ideaExe and $idea64Exe ... ")
+      print(s"Patching $idea64Exe ... ")
       if (scala.util.Properties.isWin) {
-        %%(
-          rhDir / rhExe,
-          "-open",
-          s".\\${ideaExe.last}",
-          "-save",
-          s".\\${ideaExe.last}",
-          "-action",
-          'addoverwrite,
-          "-res",
-          ".\\idea.ico",
-          "-mask",
-          "ICONGROUP,2000,1033"
-        )(binDir)
         %%(
           rhDir / rhExe,
           "-open",
@@ -275,20 +261,6 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           "ICONGROUP,2000,1033"
         )(binDir)
       } else {
-        %%(
-          'wine,
-          rhDir / rhExe,
-          "-open",
-          s".\\${ideaExe.last}",
-          "-save",
-          s".\\${ideaExe.last}",
-          "-action",
-          'addoverwrite,
-          "-res",
-          ".\\idea.ico",
-          "-mask",
-          "ICONGROUP,2000,1033"
-        )(binDir)
         %%(
           'wine,
           rhDir / rhExe,
@@ -413,10 +385,10 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       println("done!")
       deletePlugins()
       extractPlugins()
+      patchIcon()
+      patchImages()
       patchIdeaProperties(sireumAppDir / 'Contents / "Info.plist")
       patchVMOptions(sireumAppDir / 'Contents / 'bin / "idea.vmoptions")
-      patchImages()
-      patchIcon()
     }
 
     def setupLinux(ideaDrop: Path): Unit = {
@@ -426,11 +398,12 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       println("done!")
       deletePlugins()
       extractPlugins()
-      patchIdeaProperties(ideaDir / 'bin / "idea.properties")
-      patchVMOptions(ideaDir / 'bin / "idea.vmoptions")
-      patchVMOptions(ideaDir / 'bin / "idea64.vmoptions")
-      patchImages()
       patchIcon()
+      patchImages()
+      patchIdeaProperties(ideaDir / 'bin / "idea.properties")
+      patchVMOptions(ideaDir / 'bin / "idea64.vmoptions")
+      os.remove(ideaDir / 'bin / "idea.vmoptions")
+      os.move(ideaDir / 'bin / "idea.sh", ideaDir / 'bin / "IVE.sh")
     }
 
     def setupWin(ideaDrop: Path): Unit = {
@@ -440,11 +413,14 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       println("done!")
       deletePlugins()
       extractPlugins()
-      patchIdeaProperties(ideaDir / 'bin / "idea.properties")
-      patchVMOptions(ideaDir / 'bin / "idea.exe.vmoptions")
-      patchVMOptions(ideaDir / 'bin / "idea64.exe.vmoptions")
-      patchImages()
       patchIcon()
+      patchImages()
+      patchIdeaProperties(ideaDir / 'bin / "idea.properties")
+      patchVMOptions(ideaDir / 'bin / "idea64.exe.vmoptions")
+      os.remove(ideaDir / 'bin / "idea.exe")
+      os.remove(ideaDir / 'bin / "idea.exe.vmoptions")
+      os.move(ideaDir / 'bin / "idea64.exe", ideaDir / 'bin / "IVE.exe")
+      os.move(ideaDir / 'bin / "idea64.exe.vmoptions", ideaDir / 'bin / "IVE.exe.vmoptions")
     }
 
     def merge(out: Path, ps: Path*): Unit = {
@@ -516,4 +492,4 @@ def build(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean): Unit 
     import distro._
     os.makeDir.all(pluginsCacheDir)
     new distro(platform, isDev, sfx, clone).build()
-  }
+}
