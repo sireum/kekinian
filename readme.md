@@ -8,7 +8,7 @@ Sireum Kekinian is the most recent evolution of the Sireum platform whose
 core components are being built using the Sireum Programming Language (Slang).
 
 Slang is an OO/FP programming language with contract and proof languages
-designed for formal analyses; it serves as the basis for the next generation
+designed for formal verification and analyses; that is, it serves as the basis for the next generation
 [Logika](http://logika.sireum.org) verifier and proof checker, as well as for other
 formal method-based analysis techniques.
 It is currently a subset of Scala 2.x with different memory models 
@@ -23,15 +23,16 @@ parser that uses [scalameta](http://scalameta.org),
 the runtime library and the Slang [codebase](https://github.com/sireum/slang) 
 itself (and analyses on top of it) are written using Slang.
 
-Slang programs run on the JVM (Java 8+), and in the browser or Node.js 
-(via [Scala.js](http://scala-js.org) Javascript translation).
+Slang programs run on the JVM (Java 8+), in the browser or Node.js 
+(via [Scala.js](http://scala-js.org) Javascript translation), and natively
+via compilation to C.
 
 ## Installing
 
 Sireum is available as pre-built binaries/installers or from source.
 The main advantage of using the source distribution is that updates
-can be done incrementally while the binary distribution requires re-installation.
-On the other hand, source distribution requires more setup.
+can be done incrementally while the binary distribution requires complete
+re-installation. On the other hand, source distribution requires more setup.
 
 ### Binary Distributions
 
@@ -40,20 +41,21 @@ Sireum binary distribution files are [7z](https://www.7-zip.org/7z.html)
 with command-line installers to (optionally) configure where Sireum should be 
 installed.
  
-Below are the installation instructions for 64-bit macOS, Linux, and Windows
-(or, one can simply download the distribution files and extract them using
-a `7z` unarchiver program).
+Below are the installation instructions for 64-bit (amd64) macOS, Linux, and 
+Windows (or, one can simply download the distribution files and extract them 
+using a program capable of uncompressing `7z` archive).
 
 * **macOS**: run the following command in a terminal:
 
   ```bash
-  (sd=sireum-dev-mac.sfx && curl -JLo $sd -c /dev/null http://mac.distro.sireum.org && chmod +x $sd && ./$sd)
+  (sd=sireum-dev-mac.sfx && curl -JLo $sd -c /dev/null http://mac.distro.sireum.org && chmod +x $sd && ./$sd; rm -fR setup Sireum-dev)
   ```
 
-* **Linux**: run the following command in a terminal:
+* **Linux**: download and run [sireum-dev-linux.sfx](http://linux.distro.sireum.org), 
+  run the following command in a terminal if you have curl installed:
 
   ```bash
-  (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && ./$sd)
+  (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && ./$sd; rm -fR setup Sireum-dev)
   ```
 
 * **Windows**: download and run [sireum-dev-win.exe](http://win.distro.sireum.org)
@@ -74,8 +76,8 @@ minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -Vm <instal
 
 * **macOS**: `7z` (p7zip from, e.g., [MacPorts](https://macports.org) or [Homebrew](https://brew.sh/))
 
-* **Linux**: `git` and `7z` (install from the Linux distribution package manager,
-  e.g., `apt install git p7zip-full` in Ubuntu 18.04 universe)
+* **Linux**: `curl`, `git`, and `7z` (install from the Linux distribution package manager,
+  e.g., `apt install curl git p7zip-full` in Ubuntu 18.04 universe)
 
 * **Windows**: [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development), `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)) and [7-Zip](https://7-zip.org)
 
@@ -105,7 +107,7 @@ To update later on, simply re-run the `setup.sh` script.
 
 ## Using Sireum IVE
 
-First, set the `SIREUM_HOME` env var is to the Sireum installation path.
+First, set the `SIREUM_HOME` env var to the Sireum installation path.
 
 ### Slang Script Example Project
 
@@ -125,7 +127,7 @@ and launch Sireum IVE:
   ```bash
   # Generates ./hello project directory with ./hello/src/script.sc
   ${SIREUM_HOME}/bin/sireum tools ivegen .
-  open ${SIREUM_HOME}/bin/linux/idea/bin/IVE.sh
+  ${SIREUM_HOME}/bin/linux/idea/bin/IVE.sh
   ```
 
 * **Windows**:
