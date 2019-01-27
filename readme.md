@@ -52,7 +52,7 @@ using a program capable of uncompressing `7z` archive).
   ```
 
 * **Linux**: download and run [sireum-dev-linux.sfx](http://linux.distro.sireum.org), 
-  run the following command in a terminal if you have curl installed:
+  or run the following command in a terminal if you have curl installed:
 
   ```bash
   (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && p=$(pwd) && cd /tmp && $p/$sd)
