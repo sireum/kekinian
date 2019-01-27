@@ -48,14 +48,14 @@ using a program capable of uncompressing `7z` archive).
 * **macOS**: run the following command in a terminal:
 
   ```bash
-  (sd=sireum-dev-mac.sfx && curl -JLo $sd -c /dev/null http://mac.distro.sireum.org && chmod +x $sd && ./$sd; rm -fR setup Sireum-dev)
+  (sd=sireum-dev-mac.sfx && curl -JLo $sd -c /dev/null http://mac.distro.sireum.org && chmod +x $sd && p=$(pwd) && cd /tmp && $p/$sd)
   ```
 
 * **Linux**: download and run [sireum-dev-linux.sfx](http://linux.distro.sireum.org), 
   run the following command in a terminal if you have curl installed:
 
   ```bash
-  (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && ./$sd; rm -fR setup Sireum-dev)
+  (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && p=$(pwd) && cd /tmp && $p/$sd)
   ```
 
 * **Windows**: download and run [sireum-dev-win.exe](http://win.distro.sireum.org)
