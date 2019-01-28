@@ -129,7 +129,7 @@ object Sireum extends scala.App {
   lazy val ideaLibDir: os.Path= ideaDir / 'lib
   lazy val ideaPluginsDir: os.Path= ideaDir / 'plugins
 
-  lazy val (zuluVer, scalaVer, scalacPluginVer) = {
+  lazy val (isDev, zuluVer, scalaVer, scalacPluginVer) = {
     val p = new java.util.Properties
     p.load(new java.io.StringReader(
     org.sireum.$internal.RC
@@ -138,7 +138,8 @@ object Sireum extends scala.App {
       }
       .head
       ._2))
-    (String(p.get("org.sireum.version.zulu").toString),
+    ("false" == p.get("org.sireum.version.dev"),
+      String(p.get("org.sireum.version.zulu").toString),
       String(p.get("org.sireum.version.scala").toString),
       String(p.get("org.sireum.version.scalac-plugin").toString))
   }
