@@ -4,4 +4,4 @@
 *.sh text eol=lf
 *.properties text eol=lf
 *.bat text eol=crlf
-/sireum text eol=lf
+/bin/sireum text eol=lf
