@@ -65,7 +65,6 @@ object GenTools {
     } else {
       val HomeNotFound = -1
       val InvalidDir = -2
-      val ProjectExists = -3
 
       val d = os.Path(path2fileOpt("project parent folder", Some(o.args(0)), F).get.getCanonicalFile)
       if (!os.exists(d)) {
@@ -76,10 +75,7 @@ object GenTools {
         return InvalidDir
       }
       val project = d / o.name.get.value
-      if (os.exists(project) && o.mode == Cli.IveMode.Idea) {
-        eprintln(s"Cannot overwrite an existing $project directory in idea mode")
-        return ProjectExists
-      } else os.makeDir.all(project)
+      os.makeDir.all(project)
 
       if (!homeFound) return HomeNotFound
       val home = if (isWin) homeOpt.get.toString.replaceAllLiterally("\\", "/") else homeOpt.get
@@ -378,7 +374,7 @@ object GenTools {
 
       val files =
         if (o.mode == Cli.IveMode.Idea)
-          IveGen.idea(isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+          IveGen.idea(os.exists(project / s"$name.iml"), isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
         else
           IveGen.mill(os.exists(project / "build.sc"), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
 
