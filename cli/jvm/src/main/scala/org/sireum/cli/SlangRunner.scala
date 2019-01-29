@@ -91,9 +91,9 @@ object SlangRunner {
         .call(
           cwd = os.pwd,
           env = _root_.scala.Predef.Map[Predef.String, Predef.String](
-            "JAVA_HOME" ~> javaHome.toString,
-            "SCALA_HOME" ~> scalaHome.toString,
-            "PATH" ~> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"
+            "JAVA_HOME" -> javaHome.toString,
+            "SCALA_HOME" -> scalaHome.toString,
+            "PATH" -> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"
           ),
           stdin = stdin,
           stdout = stdout,
