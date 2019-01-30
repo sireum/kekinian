@@ -35,7 +35,6 @@ getVersion() {
 mkdir -p ${SIREUM_CACHE}
 : ${ZULU_VERSION:=$(getVersion "zulu")}
 : ${SCALA_VERSION=$(getVersion "scala")}
-SCALA_MAJ_VER=${SCALA_VERSION%.*}
 SCALAC_PLUGIN_VER=$(getVersion "scalac-plugin")
 cd ${SIREUM_HOME}/bin
 source platform.sh
@@ -102,7 +101,7 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
   fi
 fi
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-SCALAC_PLUGIN_DROP_URL=https://oss.sonatype.org/service/local/repositories/releases/content/org/sireum/scalac-plugin_${SCALA_MAJ_VER}/${SCALAC_PLUGIN_VER}/scalac-plugin_${SCALA_MAJ_VER}-${SCALAC_PLUGIN_VER}.jar
+SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
 mkdir -p ${SIREUM_HOME}/lib
 cd ${SIREUM_HOME}/lib
 if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
