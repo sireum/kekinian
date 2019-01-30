@@ -130,6 +130,10 @@ def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boole
   }
 }
 
+def jitPack(owner: String, repo: String, hash: String, lib: String = "") = T.command {
+  org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib, hash)
+}
+
 private def currPlatform: String = {
   import scala.util.{Properties => ps}
   if (ps.isMac) "mac"
