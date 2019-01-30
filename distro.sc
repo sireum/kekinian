@@ -302,7 +302,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
             (ideaDir / 'bin, "idea.png", "idea.png")
           }
       }
-      print(s"Replacing icon $dirPath/$filename ... ")
+      print(s"Replacing icon ${dirPath / filename} ... ")
       os.copy.over(iconsPath / srcFilename, dirPath / filename)
       println("done!")
       if (platform == "win") patchExe()
