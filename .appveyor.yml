@@ -27,4 +27,4 @@ install:
   - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/prelude.sh"
 
 build_script:
-  - bash -lc "SIREUM_SOURCE_BUILD=true $APPVEYOR_BUILD_FOLDER/bin/test.sh"
+  - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/test.sh"

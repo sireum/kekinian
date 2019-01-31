@@ -17,4 +17,4 @@ addons:
 script:
   - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
   - unset JVM_OPTS
-  - SIREUM_SOURCE_BUILD=true bin/test.sh
+  - bin/test.sh
