@@ -91,21 +91,29 @@ def build() = T.command {
 }
 
 def regenSlang() = T.command {
-  val out = cli.assembly().path
-  val astPackagePath = pwd / 'slang / 'ast / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / 'ast
-  val slangPackagePath = pwd / 'slang / 'tipe / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang
-  log(%%('java, "-jar", out, 'tools, 'transgen, "-l", pwd / "license.txt", "-m", "immutable,mutable",
-    astPackagePath / "AST.scala")(astPackagePath))
-  log(%%('java, "-jar", out, 'tools, 'sergen, "-p", "org.sireum.lang.tipe", "-l", pwd / "license.txt",
-    "-m", "json,msgpack", slangPackagePath / 'symbol / "Info.scala", astPackagePath / "AST.scala")(
-    slangPackagePath / 'tipe))
+  val out = os.pwd / 'bin / "sireum.jar"
+  if (os.exists(out)) {
+    val astPackagePath = pwd / 'slang / 'ast / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / 'ast
+    val slangPackagePath = pwd / 'slang / 'tipe / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang
+    log(%%('java, "-jar", out, 'tools, 'transgen, "-l", pwd / "license.txt", "-m", "immutable,mutable",
+      astPackagePath / "AST.scala")(astPackagePath))
+    log(%%('java, "-jar", out, 'tools, 'sergen, "-p", "org.sireum.lang.tipe", "-l", pwd / "license.txt",
+      "-m", "json,msgpack", slangPackagePath / 'symbol / "Info.scala", astPackagePath / "AST.scala")(
+      slangPackagePath / 'tipe))
+  } else {
+    println(s"Please first run ${pwd / 'bin / "build.sh"}")
+  }
 }
 
 def regenCli() = T.command {
-  val out = cli.assembly().path
-  val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum
-  log(%%('java, "-jar", out, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
-    sireumPackagePath / "cli.sc")(sireumPackagePath))
+  val out = os.pwd / 'bin / "sireum.jar"
+  if (os.exists(out)) {
+    val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum
+    log(%%('java, "-jar", out, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
+      sireumPackagePath / "cli.sc")(sireumPackagePath))
+  } else {
+    println(s"Please first run ${pwd / 'bin / "build.sh"}")
+  }
 }
 
 def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
