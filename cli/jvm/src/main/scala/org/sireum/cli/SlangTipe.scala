@@ -315,7 +315,7 @@ object SlangTipe {
           case Some(info: TypeInfo.Sig) =>
             typeMap = typeMap + ids ~> info
             found = T
-          case Some(info: TypeInfo.AbstractDatatype) =>
+          case Some(info: TypeInfo.Adt) =>
             typeMap = typeMap + ids ~> info
             found = T
           case _ =>
