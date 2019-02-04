@@ -87,7 +87,6 @@ object SlangRunner {
           val p = script / os.up / s"${script.last}.txt"
           if (os.exists(p)) p else os.Inherit
       }
-      println(command)
       val r = os.proc(command: _*)
         .call(
           cwd = os.pwd,
