@@ -73,8 +73,8 @@ object SlangRunner {
           "-bootclasspath",
           sireumJar,
           s"-Xplugin:$scalacPluginJar",
-          "-Xscript",
-          '$lang$cript,
+          "-classpath",
+          script / os.up,
           "-unchecked",
           "-feature"
         )
@@ -87,6 +87,7 @@ object SlangRunner {
           val p = script / os.up / s"${script.last}.txt"
           if (os.exists(p)) p else os.Inherit
       }
+      println(command)
       val r = os.proc(command: _*)
         .call(
           cwd = os.pwd,
