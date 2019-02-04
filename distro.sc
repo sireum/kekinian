@@ -145,7 +145,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           val url =
             if (p.id.startsWith("sireum-")) {
               val repo = p.id.substring("sireum-".length)
-              s"https://github.com/sireum/$repo/releases/download/v.$ver/$repo.zip"
+              s"https://github.com/sireum/$repo/releases/download/$ver/$repo.zip"
             } else s"https://plugins.jetbrains.com/plugin/download?pr=idea&updateId=$ver"
           print(s"Downloading ${p.id} plugin from $url ... ")
           %%('curl, "-JLso", zip, url)(pluginsCacheDir)
