@@ -105,6 +105,7 @@ kekinian/bin/setup.sh
 
 To update later on, simply re-run the `setup.sh` script.
 
+
 ## Using Sireum IVE
 
 First, set the `SIREUM_HOME` env var to the Sireum installation path.
@@ -176,3 +177,30 @@ file for editing.  To run it, click on the green ► button near the definition 
 
 Note that `mill` (or `mill.bat` under Windows) is available under the `bin`
 directory of `SIREUM_HOME`.
+
+
+### Sireum Kekinian Development
+
+Sireum is best developed (browsed/edited) by using Sireum IVE itself. 
+To setup IVE for Sireum development, first run the following in 
+a `sh` terminal:
+
+```bash
+cd ${SIREUM_HOME} && bin/mill-build/mill-idea.sh
+```
+
+Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
+
+To have the codebase and its test suites recompiled upon changes, run:
+
+```bash
+cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
+```
+
+and to build its assembly:
+
+```bash
+cd ${SIREUM_HOME} && bin/mill build
+```
+
+
