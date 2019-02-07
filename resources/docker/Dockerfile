@@ -13,5 +13,5 @@ RUN dpkg --add-architecture i386 && \
     rm -rf /var/lib/apt/lists/* && \
     cd /opt && \
     git clone --recursive -b master https://github.com/sireum/kekinian.git sireum && \
-    SIREUM_SOURCE_BUILD=true $SIREUM_HOME/bin/test.sh && \
+    $SIREUM_HOME/bin/test.sh && \
     sireum

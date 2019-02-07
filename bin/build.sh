@@ -24,7 +24,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 export SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
-export SIREUM_SOURCE_BUILD=true
 cd ${SIREUM_HOME}
 git submodule update --init --recursive --remote
 bin/prelude.sh
