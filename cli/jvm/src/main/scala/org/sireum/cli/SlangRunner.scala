@@ -75,6 +75,8 @@ object SlangRunner {
           s"-Xplugin:$scalacPluginJar",
           "-classpath",
           script / os.up,
+          "-sourcepath",
+          script / os.up,
           "-unchecked",
           "-feature"
         )
