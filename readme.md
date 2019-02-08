@@ -186,7 +186,7 @@ To setup IVE for Sireum development, first run the following in
 a `sh` terminal:
 
 ```bash
-cd ${SIREUM_HOME} && bin/mill-build/mill-idea.sh
+${SIREUM_HOME}/bin/setup-dev.sh
 ```
 
 Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
