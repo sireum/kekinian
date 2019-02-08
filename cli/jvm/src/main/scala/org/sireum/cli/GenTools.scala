@@ -85,26 +85,30 @@ object GenTools {
       def normalizePath(path: os.Path): Predef.String = uriPathSep(path.toNIO.toString)
 
       val scalaDir = normalizePath(scalaHome)
+
       def applicationLib: Predef.String = {
+        def library(name: String): Predef.String =
+          s"""    <library name="$name" type="Scala">
+             |      <properties>
+             |        <compiler-classpath>
+             |          <root url="file://$scalaDir/lib/scala-compiler.jar" />
+             |          <root url="file://$scalaDir/lib/scala-library.jar" />
+             |          <root url="file://$scalaDir/lib/scala-reflect.jar" />
+             |        </compiler-classpath>
+             |      </properties>
+             |      <CLASSES>
+             |        <root url="jar://$scalaDir/lib/scala-library.jar!/" />
+             |        <root url="jar://$scalaDir/lib/scala-reflect.jar!/" />
+             |      </CLASSES>
+             |      <JAVADOC>
+             |        <root url="http://www.scala-lang.org/api/$scalaVer/" />
+             |      </JAVADOC>
+             |      <SOURCES />
+             |    </library>""".stripMargin
         s"""<application>
            |  <component name="libraryTable">
-           |    <library name="Scala" type="Scala">
-           |      <properties>
-           |        <compiler-classpath>
-           |          <root url="file://$scalaDir/lib/scala-compiler.jar" />
-           |          <root url="file://$scalaDir/lib/scala-library.jar" />
-           |          <root url="file://$scalaDir/lib/scala-reflect.jar" />
-           |        </compiler-classpath>
-           |      </properties>
-           |      <CLASSES>
-           |        <root url="jar://$scalaDir/lib/scala-library.jar!/" />
-           |        <root url="jar://$scalaDir/lib/scala-reflect.jar!/" />
-           |      </CLASSES>
-           |      <JAVADOC>
-           |        <root url="http://www.scala-lang.org/api/$scalaVer/" />
-           |      </JAVADOC>
-           |      <SOURCES />
-           |    </library>
+           |${library("Scala")}
+           |${library(s"scala-sdk-$scalaVer")}
            |    <library name="Sireum">
            |      <CLASSES>
            |        <root url="jar://${normalizePath(sireumJar)}!/" />
@@ -266,9 +270,11 @@ object GenTools {
       def jdkTable: Predef.String = {
         val (jdkClassPath, jdkSourcePath) = jdkPaths
         val ideaLibs = (for (p <- os.walk(ideaLibDir) if p.last.endsWith(".jar"))
-          yield s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
+          yield
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
         val ideaScalaLibs = (for (p <- os.walk(ideaPluginsDir / 'Scala / 'lib) if p.last.endsWith(".jar"))
-          yield s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
+          yield
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
         s"""<application>
            |  <component name="ProjectJdkTable">
            |    <jdk version="2">
@@ -353,29 +359,15 @@ object GenTools {
            |</application>""".stripMargin
       }
 
-      val configOptions =
-        if (scala.util.Properties.isMac) os.home / 'Library / 'Preferences / s"SireumIVE$devSuffix" / 'options
-        else os.home / s".SireumIVE$devSuffix" / 'config / 'options
-      os.makeDir.all(configOptions)
-      val jdkTableXml = configOptions / "jdk.table.xml"
-      val applicationLibrariesXml = configOptions / "applicationLibraries.xml"
-      if (!os.exists(jdkTableXml)) {
-        println(s"Generated $jdkTableXml")
-        os.write.over(jdkTableXml, jdkTable)
-      }
-      if (!os.exists(applicationLibrariesXml)) {
-        println(s"Generated $applicationLibrariesXml")
-        os.write.over(applicationLibrariesXml, applicationLib)
-      }
-
       val name = o.name.get
 
       val projectPath = project.toString
 
       val files =
-        if (o.mode == Cli.IveMode.Idea)
-          IveGen.idea(os.exists(project / s"$name.iml"), isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
-        else
+        if (o.mode == Cli.IveMode.Idea) {
+          for (p <- os.list(project) if p.last.endsWith(".iml")) os.remove.all(p)
+          IveGen.idea(os.exists(project), isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+        } else
           IveGen.mill(os.exists(project / "build.sc"), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
 
       for ((path, text) <- files.entries) {
@@ -389,12 +381,29 @@ object GenTools {
         val javaBin = homeOpt.get / 'bin / platform / 'java / 'bin
         val envVarMap =
           scala.collection.immutable.Map(("PATH", s"$javaBin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"))
-        if (o.millPath)
+        if (o.millPath) {
           os.proc(mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
             .call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
-        else
-          os.proc(homeOpt.get / 'bin / mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
+        } else {
+          var millPath = homeOpt.get / 'bin / "mill-build" / mill
+          if (!os.exists(millPath)) millPath = homeOpt.get / 'bin / mill
+          os.proc(millPath, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
             .call(cwd = project, env = envVarMap, stdout = os.Inherit, stderr = os.Inherit)
+        }
+      }
+      val configOptions =
+        if (scala.util.Properties.isMac) os.home / 'Library / 'Preferences / s"SireumIVE$devSuffix" / 'options
+        else os.home / s".SireumIVE$devSuffix" / 'config / 'options
+      os.makeDir.all(configOptions)
+      val jdkTableXml = configOptions / "jdk.table.xml"
+      val applicationLibrariesXml = configOptions / "applicationLibraries.xml"
+      if (o.force || !os.exists(jdkTableXml)) {
+        println(s"Generated $jdkTableXml")
+        os.write.over(jdkTableXml, jdkTable)
+      }
+      if (o.force || !os.exists(applicationLibrariesXml)) {
+        println(s"Generated $applicationLibrariesXml")
+        os.write.over(applicationLibrariesXml, applicationLib)
       }
       println(s"Generated Sireum IVE project at $project")
       0
