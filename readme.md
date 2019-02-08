@@ -52,7 +52,7 @@ using a program capable of uncompressing `7z` archive).
   ```
 
 * **Linux**: download and run [sireum-dev-linux.sfx](http://linux.distro.sireum.org), 
-  or run the following command in a terminal if you have curl installed:
+  or run the following command in a terminal if you have `curl` installed:
 
   ```bash
   (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && p=$(pwd) && cd /tmp && $p/$sd)
@@ -141,9 +141,20 @@ and launch Sireum IVE:
   
 Once Sireum IVE is running, open the `hello` directory as a project,
 then open the `script.sc` file for editing.
+(When asked to add `Ammonite` dependencies, choose `Ignore` for now; you can add
+the dependencies but it might take a while to download the packages.)
+
 To run the script, click on the green ► button at the top-left part of the editor
 (or click on the green ► button on the right side of "Run script.sc" at
 the top-right part of the window).
+
+#### Learning Slang
+
+If you would like to learn Slang quickly, you can read and use the IVE to experiment
+with several examples designed to highlight various Slang language features:
+
+https://github.com/sireum/slang-by-examples
+
 
 ### Slang App Example [Mill](https://www.lihaoyi.com/mill/) Project
 
