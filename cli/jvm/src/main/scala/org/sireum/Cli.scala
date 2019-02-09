@@ -45,7 +45,7 @@ object Cli {
     output: Option[String],
     server: B,
     transformed: B,
-    native: B
+    nativ: B
   ) extends SireumTopOption
 
   @datatype class SlangTipeOption(
@@ -178,7 +178,7 @@ import Cli._
     var output: Option[String] = None[String]()
     var server: B = false
     var transformed: B = false
-    var native: B = false
+    var nativ: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -212,9 +212,9 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-n" || arg == "--native") {
-           val o: Option[B] = { j = j - 1; Some(!native) }
+           val o: Option[B] = { j = j - 1; Some(!nativ) }
            o match {
-             case Some(v) => native = v
+             case Some(v) => nativ = v
              case _ => return None()
            }
          } else {
@@ -226,7 +226,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangRunOption(help, parseArguments(args, j), input, output, server, transformed, native))
+    return Some(SlangRunOption(help, parseArguments(args, j), input, output, server, transformed, nativ))
   }
 
   def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

@@ -44,7 +44,7 @@ object SlangRunner {
       return 0
     }
     if (!homeFound) return HomeNotFound
-    if (o.native && isWin) {
+    if (o.nativ && isWin) {
       eprintln("Native code generation is not currently available for Windows")
       return NativeUnavailable
     }
@@ -87,7 +87,7 @@ object SlangRunner {
           "-unchecked",
           "-feature"
         )
-      if (o.native) command :+= ("-save": os.Shellable)
+      if (o.nativ) command :+= ("-save": os.Shellable)
       if (o.transformed) command :+= ("-Xprint:sireum": os.Shellable)
       if (o.server) command :+= ("-nc": os.Shellable)
       command :+= (script.last: os.Shellable)
@@ -117,7 +117,7 @@ object SlangRunner {
           eprintln(s"Error encountered when running $script")
           return r.exitCode
         }
-        if (o.native) {
+        if (o.nativ) {
           val nativeName = s"${script.last}.native"
           val graal = os.proc(javaHome / 'bin / "native-image", "--no-server", "-cp", sireumJar, "-jar", jarFile.last, nativeName).
             call(cwd = wd, env = env, stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit, check = false)

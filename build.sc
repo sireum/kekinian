@@ -106,7 +106,6 @@ def regenSlang() = T.command {
 }
 
 def regenCli() = T.command {
-  build()()
   val out = os.pwd / 'bin / "sireum.jar"
   if (os.exists(out)) {
     val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum

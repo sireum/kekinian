@@ -39,15 +39,21 @@ cd ${SIREUM_HOME}/bin
 source platform.sh
 if [[ "${PLATFORM}" = "win"  ]]; then
   JAVA_NAME="Zulu JDK"
-  : ${JAVA_VERSION:=$(getVersion "zulu")}
+  if [[ -z ${JAVA_VERSION} ]]; then
+    JAVA_VERSION=$(getVersion "zulu")
+  fi
   JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 elif [[ "${PLATFORM}" = "mac"  ]]; then
   JAVA_NAME="GraalVM"
-  : ${JAVA_VERSION:=$(getVersion "graal")}
+  if [[ -z ${JAVA_VERSION} ]]; then
+    JAVA_VERSION=$(getVersion "graal")
+  fi
   JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
 elif [[ "${PLATFORM}" = "linux"  ]]; then
   JAVA_NAME="GraalVM"
-  : ${JAVA_VERSION:=$(getVersion "graal")}
+  if [[ -z ${JAVA_VERSION} ]]; then
+    JAVA_VERSION=$(getVersion "graal")
+  fi
   type -P xz &>/dev/null || { >&2 echo "xz command not found."; exit 1; }
   JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
 else
@@ -71,7 +77,12 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
     tar xf ${SIREUM_CACHE}/${JAVA_DROP}
     rm -fR java
-    mv graalvm-* java
+    if [[ "${PLATFORM}" == "mac" ]]; then
+      mv graalvm-ce-${JAVA_VERSION}/Contents/Home java
+      rm -fR graalvm-*
+    else 
+      mv graalvm-* java
+    fi
   else
     7z x -y ${SIREUM_CACHE}/${JAVA_DROP} > /dev/null
     rm -fR java
