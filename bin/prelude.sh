@@ -33,49 +33,54 @@ getVersion() {
 }
 : ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
 mkdir -p ${SIREUM_CACHE}
-: ${ZULU_VERSION:=$(getVersion "zulu")}
 : ${SCALA_VERSION=$(getVersion "scala")}
 SCALAC_PLUGIN_VER=$(getVersion "scalac-plugin")
 cd ${SIREUM_HOME}/bin
 source platform.sh
 if [[ "${PLATFORM}" = "win"  ]]; then
-  ZULU_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${ZULU_VERSION}-win_x64.zip
+  JAVA_NAME="Zulu JDK"
+  : ${JAVA_VERSION:=$(getVersion "zulu")}
+  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 elif [[ "${PLATFORM}" = "mac"  ]]; then
-  ZULU_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${ZULU_VERSION}-macosx_x64.zip
+  JAVA_NAME="GraalVM"
+  : ${JAVA_VERSION:=$(getVersion "graal")}
+  JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
 elif [[ "${PLATFORM}" = "linux"  ]]; then
+  JAVA_NAME="GraalVM"
+  : ${JAVA_VERSION:=$(getVersion "graal")}
   type -P xz &>/dev/null || { >&2 echo "xz command not found."; exit 1; }
-  ZULU_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${ZULU_VERSION}-linux_x64.tar.gz
+  JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
 else
   >&2 echo "Sireum does not support: $(uname)."
   exit 1
 fi
 mkdir -p ${PLATFORM}
 cd ${PLATFORM}
-ZULU_DROP="${ZULU_DROP_URL##*/}"
-ZULU_DIR="${ZULU_DROP%.*}"
-if [[ ${ZULU_DIR} == *.tar ]]; then
-  ZULU_DIR="${ZULU_DIR%.*}"
+JAVA_DROP="${JAVA_DROP_URL##*/}"
+JAVA_DIR="${JAVA_DROP%.*}"
+if [[ ${JAVA_DIR} == *.tar ]]; then
+  JAVA_DIR="${JAVA_DIR%.*}"
 fi
-grep -q ${ZULU_VERSION} java/VER &> /dev/null && ZULU_UPDATE=false || ZULU_UPDATE=true
-if [[ ! -d "java" ]] || [[ "${ZULU_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${ZULU_DROP} ]]; then
-      echo "Please wait while downloading Zulu JDK ${ZULU_VERSION} ..."
-      curl -JLso ${SIREUM_CACHE}/${ZULU_DROP} ${ZULU_DROP_URL}
+grep -q ${JAVA_VERSION} java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDATE=true
+if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${JAVA_DROP} ]]; then
+      echo "Please wait while downloading ${JAVA_NAME} ${JAVA_VERSION} ..."
+      curl -JLso ${SIREUM_CACHE}/${JAVA_DROP} ${JAVA_DROP_URL}
       echo
   fi
-  if [[ ${ZULU_DROP} == *.tar.gz ]]; then
-    7z x -so ${SIREUM_CACHE}/${ZULU_DROP} | 7z x -y -si -ttar > /dev/null
+  if [[ ${JAVA_DROP} == *.tar.gz ]]; then
+    tar xf ${SIREUM_CACHE}/${JAVA_DROP}
+    rm -fR java
+    mv graalvm-* java
   else
-    7z x -y ${SIREUM_CACHE}/${ZULU_DROP} > /dev/null
+    7z x -y ${SIREUM_CACHE}/${JAVA_DROP} > /dev/null
+    rm -fR java
+    mv ${JAVA_DIR} java
   fi
-  rm -fR java
-  mv ${ZULU_DIR} java
   if [[ -d "java/bin" ]]; then
-    chmod +x java/bin/*
-    chmod -fR u+w java
-    echo "${ZULU_VERSION}" > java/VER
+    echo "${JAVA_VERSION}" > java/VER
   else
-    >&2 echo "Could not install Zulu JDK ${ZULU_VERSION}."
+    >&2 echo "Could not install ${JAVA_NAME} ${JAVA_VERSION}."
     exit 1
   fi
 fi
