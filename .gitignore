@@ -11,6 +11,8 @@ mill-standalone
 /bin/linux/java
 /bin/scala
 /bin/sireum.jar
+/bin/mac/sireum*
+/bin/linux/sireum*
 /lib
 /bin/win/idea
 /bin/linux/idea

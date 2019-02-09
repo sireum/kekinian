@@ -44,7 +44,8 @@ object Cli {
     input: Option[String],
     output: Option[String],
     server: B,
-    transformed: B
+    transformed: B,
+    native: B
   ) extends SireumTopOption
 
   @datatype class SlangTipeOption(
@@ -170,12 +171,14 @@ import Cli._
           |-o, --output             Output file for stdin & stderr (expects a path)
           |-s, --no-server          Disable Scala compile server
           |-t, --transformed        Show Scala transformed tree
+          |-n, --native             Generate native executable
           |-h, --help               Display this information""".render
 
     var input: Option[String] = None[String]()
     var output: Option[String] = None[String]()
     var server: B = false
     var transformed: B = false
+    var native: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -208,6 +211,12 @@ import Cli._
              case Some(v) => transformed = v
              case _ => return None()
            }
+         } else if (arg == "-n" || arg == "--native") {
+           val o: Option[B] = { j = j - 1; Some(!native) }
+           o match {
+             case Some(v) => native = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -217,7 +226,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangRunOption(help, parseArguments(args, j), input, output, server, transformed))
+    return Some(SlangRunOption(help, parseArguments(args, j), input, output, server, transformed, native))
   }
 
   def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

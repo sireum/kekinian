@@ -34,7 +34,11 @@ object Sireum extends scala.App {
   System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
     case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create)
     case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o)
-    case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o)
+    case Some(o: Cli.CligenOption) =>
+      if ($internal.Macro.forNative) {
+        eprintln("CLI Generator is not available for native build")
+        -1
+      } else cli.GenTools.cliGen(o)
     case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o)
     case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o)
     case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o)
@@ -104,7 +108,7 @@ object Sireum extends scala.App {
       r = scala.Option(System.getProperty("org.sireum.home")).map(p => os.Path(new File(p).getCanonicalPath))
     }
     if (r.nonEmpty) r
-    else {
+    else try {
       val uri = getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toASCIIString
       val i = uri.indexOf(".jar")
       if (i >= 0) {
@@ -115,6 +119,8 @@ object Sireum extends scala.App {
           os.exists(path / 'bin / 'scala) && os.exists(path / 'lib)) scala.Some(path)
         else scala.None
       } else scala.None
+    } catch {
+      case _: Throwable => scala.None
     }
   }
 
@@ -126,20 +132,21 @@ object Sireum extends scala.App {
     if (platform == "mac") os.list(homeOpt.get / 'bin / platform / 'idea).find(_.last.endsWith(".app")).get /
       'Contents
     else homeOpt.get / 'bin / platform / 'idea
-  lazy val ideaLibDir: os.Path= ideaDir / 'lib
-  lazy val ideaPluginsDir: os.Path= ideaDir / 'plugins
+  lazy val ideaLibDir: os.Path = ideaDir / 'lib
+  lazy val ideaPluginsDir: os.Path = ideaDir / 'plugins
 
-  lazy val (isDev, zuluVer, scalaVer, scalacPluginVer) = {
+  lazy val (isDev, javaVer, scalaVer, scalacPluginVer) = {
     val p = new java.util.Properties
     p.load(new java.io.StringReader(
-    org.sireum.$internal.RC
-      .text(Seq("../../../../../../..")) { (p, _) =>
-        p == Seq("versions.properties")
-      }
-      .head
-      ._2))
+      org.sireum.$internal.RC
+        .text(Seq("../../../../../../..")) { (p, _) =>
+          p == Seq("versions.properties")
+        }
+        .head
+        ._2))
     ("false" == p.get("org.sireum.version.dev"),
-      String(p.get("org.sireum.version.zulu").toString),
+      if (isWin) String(s"Zulu ${p.get("org.sireum.version.zulu")}")
+      else String(s"GraalVM ${p.get("org.sireum.version.graal")}"),
       String(p.get("org.sireum.version.scala").toString),
       String(p.get("org.sireum.version.scalac-plugin").toString))
   }

@@ -120,155 +120,12 @@ object GenTools {
            |</application>""".stripMargin
       }
 
-      def jdkPaths: (String, String) = (
-        s"""            <root url="jrt://JAVA_HOME!/java.base" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.compiler" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.datatransfer" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.desktop" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.instrument" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.logging" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.management" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.management.rmi" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.naming" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.net.http" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.prefs" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.rmi" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.scripting" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.se" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.security.jgss" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.security.sasl" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.smartcardio" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.sql" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.sql.rowset" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.transaction.xa" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.xml" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/java.xml.crypto" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.accessibility" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.aot" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.attach" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.charsets" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.compiler" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.crypto.cryptoki" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.crypto.ec" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.crypto.mscapi" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.dynalink" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.editpad" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.hotspot.agent" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.httpserver" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.ed" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.jvmstat" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.le" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.opt" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.vm.ci" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.vm.compiler" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.internal.vm.compiler.management" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jartool" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.javadoc" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jcmd" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jconsole" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jdeps" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jdi" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jdwp.agent" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jfr" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jlink" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jshell" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jsobject" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.jstatd" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.localedata" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.management" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.management.agent" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.management.jfr" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.naming.dns" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.naming.rmi" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.net" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.pack" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.rmic" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.scripting.nashorn" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.scripting.nashorn.shell" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.sctp" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.security.auth" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.security.jgss" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.unsupported" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.unsupported.desktop" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.xml.dom" type="simple" />
-           |            <root url="jrt://JAVA_HOME!/jdk.zipfs" type="simple" />""".stripMargin
-          .replaceAllLiterally("JAVA_HOME", normalizePath(javaHome)),
-        s"""            <root url="jar://JAVA_HOME/lib/src.zip!/java.se" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.aot" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jdi" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jfr" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.net" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.rmi" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.sql" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.xml" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jcmd" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.pack" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.rmic" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.sctp" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.base" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jdeps" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jlink" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.zipfs" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.prefs" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.attach" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jshell" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jstatd" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.naming" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.editpad" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jartool" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.javadoc" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.xml.dom" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.desktop" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.logging" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.charsets" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.compiler" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.dynalink" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jconsole" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jsobject" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.compiler" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.net.http" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.crypto.ec" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.scripting" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.httpserver" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.jdwp.agent" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.localedata" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.management" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.naming.dns" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.naming.rmi" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.instrument" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.management" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.sql.rowset" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.xml.crypto" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.ed" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.le" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.unsupported" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.smartcardio" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.opt" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.datatransfer" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.accessibility" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.crypto.mscapi" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.hotspot.agent" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.security.auth" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.security.jgss" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.security.jgss" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.security.sasl" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.vm.ci" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.management.jfr" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.management.rmi" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/java.transaction.xa" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.crypto.cryptoki" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.jvmstat" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.management.agent" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.scripting.nashorn" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.unsupported.desktop" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.vm.compiler" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.scripting.nashorn.shell" type="simple" />
-           |            <root url="jar://JAVA_HOME/lib/src.zip!/jdk.internal.vm.compiler.management" type="simple" />""".stripMargin
-          .replaceAllLiterally("JAVA_HOME", normalizePath(javaHome))
-      )
-
       def jdkTable: Predef.String = {
-        val (jdkClassPath, jdkSourcePath) = jdkPaths
+        val (jdkClassPath, jdkSourcePath) = (
+          (for (p <- os.list(javaHome / 'jre / 'lib) if p.last.endsWith(".jar")) yield
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n"),
+          s"""            <root url="jar://${normalizePath(javaHome)}/src.zip" type="simple" />"""
+        )
         val ideaLibs = (for (p <- os.walk(ideaLibDir) if p.last.endsWith(".jar"))
           yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
@@ -280,7 +137,7 @@ object GenTools {
            |    <jdk version="2">
            |      <name value="Java" />
            |      <type value="JavaSDK" />
-           |      <version value="Zulu $zuluVer" />
+           |      <version value="$javaVer" />
            |      <homePath value="$javaHome" />
            |      <roots>
            |        <annotationsPath>
@@ -307,7 +164,7 @@ object GenTools {
            |    <jdk version="2">
            |      <name value="Sireum$devSuffix" />
            |      <type value="IDEA JDK" />
-           |      <version value="Zulu $zuluVer" />
+           |      <version value="$javaVer" />
            |      <homePath value="$ideaDir" />
            |      <roots>
            |        <annotationsPath>
@@ -332,7 +189,7 @@ object GenTools {
            |    <jdk version="2">
            |      <name value="Sireum$devSuffix (with Scala Plugin)" />
            |      <type value="IDEA JDK" />
-           |      <version value="Zulu $zuluVer" />
+           |      <version value="$javaVer" />
            |      <homePath value="$ideaDir" />
            |      <roots>
            |        <annotationsPath>

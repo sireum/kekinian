@@ -25,7 +25,7 @@ itself (and analyses on top of it) are written using Slang.
 
 Slang programs run on the JVM (Java 8+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
-via compilation to C.
+via [Graal](https://graalvm.org) and also via compilation to C.
 
 ## Installing
 
@@ -197,7 +197,7 @@ To setup IVE for Sireum development, first run the following in
 a `sh` terminal:
 
 ```bash
-${SIREUM_HOME}/bin/setup-dev.sh
+${SIREUM_HOME}/bin/setup-project.sh
 ```
 
 Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
@@ -211,7 +211,14 @@ cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
 and to build its assembly:
 
 ```bash
-cd ${SIREUM_HOME} && bin/mill build
+${SIREUM_HOME} && bin/mill build
 ```
 
+#### Sireum Native Executable
+
+To build native executable (currently only available under macOS or Linux):
+
+```bash
+${SIREUM_HOME}/build-native.sh
+```
 
