@@ -222,3 +222,16 @@ To build native executable (currently only available under macOS or Linux):
 ${SIREUM_HOME}/build-native.sh
 ```
 
+To run:
+
+* **macOS**:
+
+  ```bash
+  ${SIREUM_HOME}/bin/mac/sireum
+  ```
+  
+* **Linux**:
+
+  ```bash
+  ${SIREUM_HOME}/bin/linux/sireum
+  ```
