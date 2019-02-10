@@ -119,7 +119,10 @@ object SlangRunner {
         }
         if (o.nativ) {
           val nativeName = s"${script.last}.native"
-          val graal = os.proc(javaHome / 'bin / "native-image", "--no-server", "-cp", sireumJar, "-jar", jarFile.last, nativeName).
+          command = Vector(javaHome / 'bin / "native-image", "--no-server", "-cp", sireumJar, "-jar", jarFile.last)
+          if (!scala.util.Properties.isMac) command :+= ("--static" : os.Shellable)
+          command :+= (nativeName : os.Shellable)
+          val graal = os.proc(command: _*).
             call(cwd = wd, env = env, stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit, check = false)
           if (graal.exitCode == 0) {
             os.remove.all(wd / s"$nativeName.o")
