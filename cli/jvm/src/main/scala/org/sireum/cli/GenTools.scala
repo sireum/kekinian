@@ -243,7 +243,7 @@ object GenTools {
             .call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
         } else {
           var millPath = homeOpt.get / 'bin / "mill-build" / mill
-          if (!os.exists(millPath)) millPath = homeOpt.get / 'bin / mill
+          if (isWin || !os.exists(millPath)) millPath = homeOpt.get / 'bin / mill
           os.proc(millPath, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
             .call(cwd = project, env = envVarMap, stdout = os.Inherit, stderr = os.Inherit)
         }
