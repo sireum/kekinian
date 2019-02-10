@@ -26,7 +26,10 @@
 export SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 bin/build.sh
-bin/mill-build/build.sh
+source bin/platform.sh
+if [[ "${PLATFORM}" != "win" ]]; then
+  bin/mill-build/build.sh
+fi
 SIREUM_NAME=${PWD##*/}
 cd ..
 ${SIREUM_HOME}/bin/sireum tools ivegen -f -m mill -n ${SIREUM_NAME} .
