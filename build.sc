@@ -85,10 +85,25 @@ object cli extends Cli.Module {
   final override def toolsObject = tools
 }
 
+
 def build() = T.command {
   val jar = os.pwd / 'bin / "sireum.jar"
   os.copy(cli.assembly().path, jar, replaceExisting = true, copyAttributes = true)
 }
+
+
+def regenCliOpt() = T.command {
+  val out = os.pwd / 'bin / "sireum.jar"
+  if (os.exists(out)) {
+    val cliPackagePath = pwd / 'runtime / 'library / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'cli
+    log(%%('java, "-jar", out, 'tools, 'sergen, "-p", "org.sireum.cli", "-l", pwd / "license.txt",
+      "-m", "json", cliPackagePath / "CliOpt.scala")(
+      cliPackagePath))
+  } else {
+    println(s"Please first run ${pwd / 'bin / "build.sh"}")
+  }
+}
+
 
 def regenSlang() = T.command {
   val out = os.pwd / 'bin / "sireum.jar"
@@ -105,6 +120,7 @@ def regenSlang() = T.command {
   }
 }
 
+
 def regenCli() = T.command {
   val out = os.pwd / 'bin / "sireum.jar"
   if (os.exists(out)) {
@@ -116,6 +132,7 @@ def regenCli() = T.command {
   }
 }
 
+
 def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
@@ -124,6 +141,7 @@ def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
     distro.build(platform.trim, isDev, sfx = false, clone = false)
   }
 }
+
 
 def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boolean = true) = T.command {
   build()()
@@ -138,9 +156,11 @@ def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boole
   }
 }
 
+
 def jitPack(owner: String, repo: String, hash: String, lib: String = "") = T.command {
   org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib, hash)
 }
+
 
 private def currPlatform: String = {
   import scala.util.{Properties => ps}
