@@ -48,12 +48,28 @@ object GenTools {
         case z"2" => (o.width(0), o.width(1))
         case _ => (z"25", z"55")
       }
-      val out = CliGenJvm(lOpt, src, dest.toIO, o.packageName, o.name, first, second)
-      os.write.over(dest, out)
-      println(s"Wrote $dest")
-      0
+      val outTemp = os.temp(deleteOnExit = false)
+      val r = SlangRunner.run(Cli.SlangRunOption("",  ISZ(src.getCanonicalPath), None(),
+        Some(String(outTemp.toIO.getCanonicalPath)), F, F, F))
+      if (r != 0) {
+        eprintln(s"Could not run ${o.args(0)}")
+        return r
+      }
+      val configText = os.read(outTemp)
+      os.remove.all(outTemp)
+      JSON.toCliOpt(configText) match {
+        case Either.Left(config) =>
+          val out = CliGenJvm(lOpt, config, src, dest.toIO, o.packageName, o.name, first, second)
+          os.write.over(dest, out)
+          println(s"Wrote $dest")
+          0
+        case _ =>
+          eprintln(s"Invalid config produced by running ${o.args(0)}")
+          -1
+      }
     } catch {
       case e: Throwable =>
+        e.printStackTrace()
         eprintln(e.getMessage)
         -1
     }
@@ -124,7 +140,7 @@ object GenTools {
         val (jdkClassPath, jdkSourcePath) = (
           (for (p <- os.list(javaHome / 'jre / 'lib) if p.last.endsWith(".jar")) yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n"),
-          s"""            <root url="jar://${normalizePath(javaHome)}/src.zip" type="simple" />"""
+          s"""            <root url="jar://${normalizePath(javaHome)}/src.zip!/" type="simple" />"""
         )
         val ideaLibs = (for (p <- os.walk(ideaLibDir) if p.last.endsWith(".jar"))
           yield
@@ -185,6 +201,9 @@ object GenTools {
            |          </root>
            |        </sourcePath>
            |      </roots>
+           |      <additional sdk="Java">
+           |        <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
+           |      </additional>
            |    </jdk>
            |    <jdk version="2">
            |      <name value="Sireum$devSuffix (with Scala Plugin)" />
@@ -212,9 +231,14 @@ object GenTools {
            |        </sourcePath>
            |      </roots>
            |    </jdk>
+           |    <additional sdk="Java">
+           |      <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
+           |    </additional>
            |  </component>
            |</application>""".stripMargin
       }
+
+      os.makeDir.all(os.home / s".SireumIVE$devSuffix-sandbox")
 
       val name = o.name.get
 
@@ -227,11 +251,14 @@ object GenTools {
         } else
           IveGen.mill(os.exists(project / "build.sc"), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
 
-      for ((path, text) <- files.entries) {
-        val p = project / os.RelPath(st"${(path, "/")}".render.value)
-        os.makeDir.all(p / os.up)
-        os.write.over(p, text.render.value)
+      def writeFiles(): Unit = {
+        for ((path, text) <- files.entries) {
+          val p = project / os.RelPath(st"${(path, "/")}".render.value)
+          os.makeDir.all(p / os.up)
+          os.write.over(p, text.render.value)
+        }
       }
+      writeFiles()
       val mill = if (isWin) "mill.bat" else "mill"
       if (o.mode == Cli.IveMode.Mill) {
         val platform = if (isWin) "win" else if (scala.util.Properties.isLinux) "linux" else "mac"
@@ -247,6 +274,7 @@ object GenTools {
           os.proc(millPath, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
             .call(cwd = project, env = envVarMap, stdout = os.Inherit, stderr = os.Inherit)
         }
+        writeFiles()
       }
       val configOptions =
         if (scala.util.Properties.isMac) os.home / 'Library / 'Preferences / s"SireumIVE$devSuffix" / 'options

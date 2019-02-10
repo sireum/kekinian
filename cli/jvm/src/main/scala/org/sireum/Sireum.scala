@@ -34,11 +34,7 @@ object Sireum extends scala.App {
   System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
     case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create)
     case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o)
-    case Some(o: Cli.CligenOption) =>
-      if ($internal.Macro.forNative) {
-        eprintln("CLI Generator is not available for native build")
-        -1
-      } else cli.GenTools.cliGen(o)
+    case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o)
     case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o)
     case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o)
     case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o)
@@ -74,7 +70,7 @@ object Sireum extends scala.App {
       case z"1" =>
         val f = path2File(path(0).value)
         if (checkExist && !f.exists) error(s"File ${path(0)} does not exist.")
-        return scala.Some(f.getCanonicalFile.getAbsoluteFile)
+        return scala.Some(f.getCanonicalFile)
       case _ =>
         error(s"Expecting a path for $pathFor, but found multiple.")
     }
@@ -84,7 +80,7 @@ object Sireum extends scala.App {
     if (path.isEmpty) return scala.None
     val f = path2File(path.get.value)
     if (checkExist && !f.exists) error(s"File '$path' does not exist.")
-    return scala.Some(f.getCanonicalFile.getAbsoluteFile)
+    return scala.Some(f.getCanonicalFile)
   }
 
   def uriPathSep(s: Predef.String): Predef.String =
@@ -145,8 +141,8 @@ object Sireum extends scala.App {
         .head
         ._2))
     ("false" == p.get("org.sireum.version.dev"),
-      if (isWin) String(s"Zulu ${p.get("org.sireum.version.zulu")}")
-      else String(s"GraalVM ${p.get("org.sireum.version.graal")}"),
+      if (isWin) String(s"1.8-Zulu-${p.get("org.sireum.version.zulu")}")
+      else String(s"1.8-GraalVM-${p.get("org.sireum.version.graal")}"),
       String(p.get("org.sireum.version.scala").toString),
       String(p.get("org.sireum.version.scalac-plugin").toString))
   }
