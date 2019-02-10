@@ -50,7 +50,7 @@ object SlangRunner {
     }
     val scalaExe = scalaHome / 'bin / (if (isWin) "scala.bat" else 'scala)
     val inputOpt = path2fileOpt("input", o.input, T)
-    val (stdout: os.ProcessOutput, stderr: os.ProcessOutput) =
+    val (stdout, stderr) =
       path2fileOpt("output", o.output, F) match {
         case scala.Some(f) =>
           val p = os.Path(f.getCanonicalFile)
@@ -67,9 +67,9 @@ object SlangRunner {
               eprintln(s"Could not create parent directory of $p")
               eprintln()
               return InvalidOutput
-            } else (p, p)
+            } else (p: os.ProcessOutput, p: os.ProcessOutput)
           }
-        case _ => (os.Inherit, os.Inherit)
+        case _ => (os.Inherit: os.ProcessOutput, os.Inherit: os.ProcessOutput)
       }
     for (arg <- o.args) {
       val script = os.Path(path2fileOpt("Slang script", Some(arg.value), checkExist = T).get)
