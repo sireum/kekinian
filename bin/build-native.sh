@@ -34,9 +34,9 @@ elif [[ "${PLATFORM}" == "linux" ]]; then
 else
   FLAGS=
 fi
-cp -a cli/jvm/src/main/scala/org/sireum/Sireum.scala cli/jvm/src/main/scala/org/sireum/Sireum.scala.orig
-echo "" >> cli/jvm/src/main/scala/org/sireum/Sireum.scala
+cp -a runtime/macros/shared/src/main/scala/org/sireum/\$internal/Macro.scala runtime/macros/shared/src/main/scala/org/sireum/\$internal/Macro.scala.orig
+echo "" >> runtime/macros/shared/src/main/scala/org/sireum/\$internal/Macro.scala
 SIREUM_NATIVE=true bin/build.sh
 native-image ${FLAGS} --no-server -jar ${SIREUM_HOME}/bin/sireum.jar ${SIREUM_HOME}/bin/${PLATFORM}/sireum
 rm -fR ${SIREUM_HOME}/bin/${PLATFORM}/sireum.o
-mv cli/jvm/src/main/scala/org/sireum/Sireum.scala.orig cli/jvm/src/main/scala/org/sireum/Sireum.scala
+mv runtime/macros/shared/src/main/scala/org/sireum/\$internal/Macro.scala.orig runtime/macros/shared/src/main/scala/org/sireum/\$internal/Macro.scala
