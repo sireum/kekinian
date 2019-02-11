@@ -163,7 +163,7 @@ import Cli._
     val help =
       st"""Slang Script Runner
           |
-          |Usage: <slang-file>+
+          |Usage: <option>* <slang-file> <arg>*
           |
           |Available Options:
           |-i, --input              Input file for stdin (default: <slang-file>.txt, if
