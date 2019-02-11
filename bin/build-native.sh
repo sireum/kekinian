@@ -40,4 +40,3 @@ SIREUM_NATIVE=true bin/build.sh
 native-image ${FLAGS} --no-server -jar ${SIREUM_HOME}/bin/sireum.jar ${SIREUM_HOME}/bin/${PLATFORM}/sireum
 rm -fR ${SIREUM_HOME}/bin/${PLATFORM}/sireum.o
 mv cli/jvm/src/main/scala/org/sireum/Sireum.scala.orig cli/jvm/src/main/scala/org/sireum/Sireum.scala
-bin/build.sh
