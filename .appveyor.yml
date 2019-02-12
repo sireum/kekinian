@@ -19,12 +19,13 @@ environment:
   PATH: 'C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%'
 
 cache:
-  - bin\win\java -> bin\prelude.sh
-  - bin\scala -> bin\prelude.sh
+  - bin\win\java -> versions.properties
+  - bin\scala -> versions.properties
 
 install:
   - git submodule update --init --recursive
-  - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/prelude.sh"
+  - ps1: $PSVersionTable.PSVersion
+  - bin\prelude.cmd
 
 build_script:
   - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/test.sh"
