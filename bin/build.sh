@@ -29,7 +29,9 @@ git submodule update --init --recursive --remote
 bin/prelude.sh
 source bin/platform.sh
 bin/mill-build/build-standalone.sh
+bin/mill-build/mill-standalone toucheAll
 bin/mill-build/mill-standalone build
+bin/mill-build/mill-standalone toucheAll
 cp bin/mill-build/mill-standalone bin/mill.bat
 echo '#!/bin/sh' > bin/mill
 cat bin/mill.bat >> bin/mill

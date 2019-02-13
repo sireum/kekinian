@@ -85,6 +85,22 @@ object cli extends Cli.Module {
   final override def toolsObject = tools
 }
 
+val libFiles = os.pwd / 'runtime / 'library / 'shared / 'src / 'main / 'scala / 'org / 'sireum / "Library_Ext.scala"
+
+val slangFiles = os.pwd / 'slang / 'frontend / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / "$SlangFiles.scala"
+
+def toucheSlang() = T.command {
+  touche(slangFiles)
+}
+
+def toucheLib() = T.command {
+  touche(libFiles)
+}
+
+def toucheAll() = T.command {
+  touche(libFiles)
+  touche(slangFiles)
+}
 
 def build() = T.command {
   val jar = os.pwd / 'bin / "sireum.jar"
@@ -177,4 +193,14 @@ private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
   if (out.trim.nonEmpty) logger.info(out)
   if (err.trim.nonEmpty) logger.error(err)
   if (r.exitCode != 0) System.exit(r.exitCode)
+}
+
+private def touche(path: Path): Unit = {
+  val content = os.read(path)
+  val lineSep = System.lineSeparator
+  if (content.endsWith(lineSep)) {
+    os.write.over(path, content.trim)
+  } else {
+    os.write.over(path, content + lineSep)
+  }
 }
