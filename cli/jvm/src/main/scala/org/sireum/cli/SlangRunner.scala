@@ -84,7 +84,8 @@ object SlangRunner {
         "-sourcepath",
         wd,
         "-unchecked",
-        "-feature"
+        "-feature",
+        "-language:postfixOps"
       )
     if (o.nativ) command :+= ("-save": os.Shellable)
     if (o.transformed) command :+= ("-Xprint:sireum": os.Shellable)
