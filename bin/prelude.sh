@@ -48,7 +48,8 @@ elif [[ "${PLATFORM}" = "mac"  ]]; then
   if [[ -z ${JAVA_VERSION} ]]; then
     JAVA_VERSION=$(getVersion "zulu")
   fi
-  JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
+  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
+  #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
 elif [[ "${PLATFORM}" = "linux"  ]]; then
   JAVA_NAME="GraalVM"
   if [[ -z ${JAVA_VERSION} ]]; then
@@ -89,6 +90,8 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
     mv ${JAVA_DIR} java
   fi
   if [[ -d "java/bin" ]]; then
+    chmod +x java/bin/*
+    chmod -fR u+w java
     echo "${JAVA_VERSION}" > java/VER
   else
     >&2 echo "Could not install ${JAVA_NAME} ${JAVA_VERSION}."
