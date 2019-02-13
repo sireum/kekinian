@@ -238,6 +238,17 @@ object GenTools {
            |</application>""".stripMargin
       }
 
+      def fileTypes: Predef.String = {
+        s"""<application>
+           |  <component name="FileTypeManager" version="17">
+           |    <extensionMap>
+           |      <mapping ext="cmd" type="Scala" />
+           |      <removed_mapping ext="cmd" approved="true" type="PLAIN_TEXT" />
+           |    </extensionMap>
+           |  </component>
+           |</application>""".stripMargin
+      }
+
       os.makeDir.all(os.home / s".SireumIVE$devSuffix-sandbox")
 
       val name = o.name.get
@@ -282,6 +293,7 @@ object GenTools {
       os.makeDir.all(configOptions)
       val jdkTableXml = configOptions / "jdk.table.xml"
       val applicationLibrariesXml = configOptions / "applicationLibraries.xml"
+      val fileTypesXml = configOptions / "filetypes.xml"
       if (o.force || !os.exists(jdkTableXml)) {
         println(s"Generated $jdkTableXml")
         os.write.over(jdkTableXml, jdkTable)
@@ -289,6 +301,10 @@ object GenTools {
       if (o.force || !os.exists(applicationLibrariesXml)) {
         println(s"Generated $applicationLibrariesXml")
         os.write.over(applicationLibrariesXml, applicationLib)
+      }
+      if (o.force || !os.exists(fileTypesXml)) {
+        println(s"Generated $fileTypesXml")
+        os.write.over(fileTypesXml, fileTypes)
       }
       println(s"Generated Sireum IVE project at $project")
       0

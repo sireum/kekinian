@@ -139,8 +139,9 @@ object SlangTipe {
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (!f.getName.endsWith(".slang") && !f.getName.endsWith(".sc") && !f.getName.endsWith(".logika")) {
-        eprintln(s"Can only accept .sc or .slang files as arguments")
+      } else if (!f.getName.endsWith(".sc") && !f.getName.endsWith(".cmd") && !f.getName.endsWith(".slang") &&
+        !f.getName.endsWith(".logika")) {
+        eprintln(s"Can only accept .sc, .cmd, .slang, or .logika files as arguments")
         return InvalidFile
       }
       slangFiles = slangFiles :+ (arg, readFile(f))
