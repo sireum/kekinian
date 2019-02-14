@@ -30,7 +30,24 @@ New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
 
 $sireum_home = "$PSScriptRoot\.."
 
-$fileContents = Get-Content "$sireum_home\versions.properties"
+
+$sireum_jar = "$sireum_home\bin\sireum.jar"
+$sireum_bat = "$sireum_home\bin\sireum.bat"
+$versions_properties = "$sireum_home\versions.properties"
+if (!(Test-Path $sireum_jar)) {
+  "Please wait while downloading Sireum ..."
+  Invoke-WebRequest -Uri "http://files.sireum.org/sireum" -OutFile "$sireum_jar"
+  if (!(Test-Path $sireum_bat)) {
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum.bat" -OutFile "$sireum_bat"
+  }
+  if (!(Test-Path $versions_properties)) {
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties" -OutFile "$version_properties"
+  }
+  ""
+}
+
+
+$fileContents = Get-Content "$versions_properties"
 $properties = @{}
 foreach($line in $fileContents) {
   $words = $line.Split('=',2)
@@ -40,31 +57,47 @@ foreach($line in $fileContents) {
 }
 
 
-$java_version = $properties["org.sireum.version.zulu"]
-$java_ver_path = "$sireum_home\bin\win\java\VER"
-$java_update = $TRUE
-if (Test-Path "$java_ver_path") {
-  $java_ver = Get-Content "$java_ver_path"
-  if ($java_ver -Eq $java_version) {
-    $java_update = $FALSE
-  }
-}
-if ($java_update) {
-  $java_drop = "$cache_dir\zulu$java_version-win_x64.zip"
-  if (!(Test-Path "$java_drop")) {
-    "Please wait while downloading Zulu JDK $java_version ... "
-    $java_url = "http://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
-    Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
+$scalac_plugin_version = $properties["org.sireum.version.scalac-plugin"]
+New-Item -Type directory -Path "$sireum_home\lib" -Force | Out-Null
+$scalac_plugin_jar = "scalac-plugin-$scalac_plugin_version.jar"
+$scalac_plugin_drop = "$cache_dir\$scalac_plugin_jar"
+$scalac_plugin_lib = "$sireum_home\lib\$scalac_plugin_jar"
+if (!(Test-Path "$scalac_plugin_lib")) {
+  if (!(Test-Path "$scalac_plugin_drop")) {
+    "Please wait while downloading Slang scalac plugin $scalac_plugin_version ..."
+    $scalac_plugin_url = "https://jitpack.io/org/sireum/scalac-plugin/$scalac_plugin_version/$scalac_plugin_jar"
+    Invoke-WebRequest -Uri "$scalac_plugin_url" -OutFile "$scalac_plugin_drop"
     ""
   }
-  Expand-Archive "$java_drop" -DestinationPath "$sireum_home\bin\win"
-  if (Test-Path "$sireum_home\bin\win\java") {
-    Remove-Item -Path "$sireum_home\bin\win\java" -Recurse -Force
+  if (Test-Path "$sireum_home\lib\scalac-plugin-*.jar") {
+    Remove-Item -Path "$sireum_home\lib\scalac-plugin-*.jar" -Force
   }
-  Move "$sireum_home\bin\win\zulu$java_version-win_x64" "$sireum_home\bin\win\java"
-  "$java_version" | Set-Content "$java_ver_path"
+  Copy-Item -Path "$scalac_plugin_drop" -Destination "$scalac_plugin_lib" -Force
 }
 
+
+$scalac_plugin_version = $properties["org.sireum.version.scalac-plugin"]
+New-Item -Type directory -Path "$sireum_home\lib" -Force | Out-Null
+$scalac_plugin_jar = "scalac-plugin-$scalac_plugin_version.jar"
+$scalac_plugin_drop = "$cache_dir\$scalac_plugin_jar"
+$scalac_plugin_lib = "$sireum_home\lib\$scalac_plugin_jar"
+if (!(Test-Path "$scalac_plugin_lib")) {
+  if (!(Test-Path "$scalac_plugin_drop")) {
+    "Please wait while downloading Slang scalac plugin $scalac_plugin_version ..."
+    $scalac_plugin_url = "https://jitpack.io/org/sireum/scalac-plugin/$scalac_plugin_version/$scalac_plugin_jar"
+    Invoke-WebRequest -Uri "$scalac_plugin_url" -OutFile "$scalac_plugin_drop"
+    ""
+  }
+  if (Test-Path "$sireum_home\lib\scalac-plugin-*.jar") {
+    Remove-Item -Path "$sireum_home\lib\scalac-plugin-*.jar" -Force
+  }
+  Copy-Item -Path "$scalac_plugin_drop" -Destination "$scalac_plugin_lib" -Force
+}
+
+
+if ($Env:SIREUM_PROVIDED_SCALA) {
+  Exit
+}
 $scala_version = $properties["org.sireum.version.scala"]
 $scala_ver_path = "$sireum_home\bin\scala\VER"
 $scala_update = $TRUE
@@ -90,20 +123,31 @@ if ($scala_update) {
   "$scala_version" | Set-Content "$scala_ver_path"
 }
 
-$scalac_plugin_version = $properties["org.sireum.version.scalac-plugin"]
-New-Item -Type directory -Path "$sireum_home\lib" -Force | Out-Null
-$scalac_plugin_jar = "scalac-plugin-$scalac_plugin_version.jar"
-$scalac_plugin_drop = "$cache_dir\$scalac_plugin_jar"
-$scalac_plugin_lib = "$sireum_home\lib\$scalac_plugin_jar"
-if (!(Test-Path "$scalac_plugin_lib")) {
-  if (!(Test-Path "$scalac_plugin_drop")) {
-    "Please wait while downloading Slang scalac plugin $scalac_plugin_version ..."
-    $scalac_plugin_url = "https://jitpack.io/org/sireum/scalac-plugin/$scalac_plugin_version/$scalac_plugin_jar"
-    Invoke-WebRequest -Uri "$scalac_plugin_url" -OutFile "$scalac_plugin_drop"
+
+if ($Env:SIREUM_PROVIDED_JAVA) {
+  Exit
+}
+$java_version = $properties["org.sireum.version.zulu"]
+$java_ver_path = "$sireum_home\bin\win\java\VER"
+$java_update = $TRUE
+if (Test-Path "$java_ver_path") {
+  $java_ver = Get-Content "$java_ver_path"
+  if ($java_ver -Eq $java_version) {
+    $java_update = $FALSE
+  }
+}
+if ($java_update) {
+  $java_drop = "$cache_dir\zulu$java_version-win_x64.zip"
+  if (!(Test-Path "$java_drop")) {
+    "Please wait while downloading Zulu JDK $java_version ... "
+    $java_url = "http://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
+    Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
     ""
   }
-  if (Test-Path "$sireum_home\lib\scalac-plugin-*.jar") {
-    Remove-Item -Path "$sireum_home\lib\scalac-plugin-*.jar" -Force
+  Expand-Archive "$java_drop" -DestinationPath "$sireum_home\bin\win"
+  if (Test-Path "$sireum_home\bin\win\java") {
+    Remove-Item -Path "$sireum_home\bin\win\java" -Recurse -Force
   }
-  Copy-Item -Path "$scalac_plugin_drop" -Destination "$scalac_plugin_lib" -Force
+  Move "$sireum_home\bin\win\zulu$java_version-win_x64" "$sireum_home\bin\win\java"
+  "$java_version" | Set-Content "$java_ver_path"
 }

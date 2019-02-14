@@ -61,6 +61,56 @@ else
   >&2 echo "Sireum does not support: $(uname)."
   exit 1
 fi
+cd ${SIREUM_HOME}
+if [[ ! -f bin/sireum.jar ]]; then
+  echo "Please wait while downloading Sireum ..."
+  curl -c /dev/null -JLso bin/sireum.jar http://files.sireum.org/sireum
+  chmod +x bin/sireum.jar
+  if [[ ! -f versions.properties ]]; then
+    curl -JLso versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
+  fi
+  echo
+fi
+SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+mkdir -p ${SIREUM_HOME}/lib
+cd ${SIREUM_HOME}/lib
+if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
+    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
+    curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
+    echo
+  fi
+  rm -f scalac-plugin-*.jar
+  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
+fi
+if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
+  exit
+fi
+cd ${SIREUM_HOME}/bin
+SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
+SCALA_DROP="${SCALA_DROP_URL##*/}"
+grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
+if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
+    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
+    curl -JLso ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
+    echo
+  fi
+  7z x -y ${SIREUM_CACHE}/${SCALA_DROP} > /dev/null
+  rm -fR scala
+  mv scala-${SCALA_VERSION} scala
+  if [[ -d "scala/bin" ]]; then
+    echo "${SCALA_VERSION}" > scala/VER
+    chmod +x scala/bin/*
+  else
+    >&2 echo "Could not install Scala ${SCALA_VERSION}."
+    exit 1
+  fi
+fi
+if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
+  exit
+fi
 mkdir -p ${PLATFORM}
 cd ${PLATFORM}
 JAVA_DROP="${JAVA_DROP_URL##*/}"
@@ -97,38 +147,4 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
     >&2 echo "Could not install ${JAVA_NAME} ${JAVA_VERSION}."
     exit 1
   fi
-fi
-cd ${SIREUM_HOME}/bin
-SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
-SCALA_DROP="${SCALA_DROP_URL##*/}"
-grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
-if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
-    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
-    curl -JLso ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
-    echo
-  fi
-  7z x -y ${SIREUM_CACHE}/${SCALA_DROP} > /dev/null
-  rm -fR scala
-  mv scala-${SCALA_VERSION} scala
-  if [[ -d "scala/bin" ]]; then
-    echo "${SCALA_VERSION}" > scala/VER
-    chmod +x scala/bin/*
-  else
-    >&2 echo "Could not install Scala ${SCALA_VERSION}."
-    exit 1
-  fi
-fi
-SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-mkdir -p ${SIREUM_HOME}/lib
-cd ${SIREUM_HOME}/lib
-if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
-    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-    curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
-    echo
-  fi
-  rm -f scalac-plugin-*.jar
-  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
 fi
