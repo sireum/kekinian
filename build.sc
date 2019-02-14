@@ -50,6 +50,10 @@ object runtime extends mill.Module {
     override def macrosObject = macros
   }
 
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
 }
 
 object slang extends mill.Module {
@@ -72,19 +76,38 @@ object slang extends mill.Module {
     final override def tipeObject = tipe
   }
 
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
 }
 
 object alir extends Alir.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
+
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
 }
 
 object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
+
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
 }
 
 object cli extends Cli.Module {
   final override def alirObject = alir
   final override def toolsObject = tools
+
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
 }
 
 object bin extends ScalaModule {
