@@ -31,6 +31,8 @@ import $file.tools.Tools
 import $file.alir.Alir
 import $file.cli.Cli
 import $file.distro
+import mill.scalalib.ScalaModule
+import org.sireum.mill.SireumModule
 
 object runtime extends mill.Module {
 
@@ -85,6 +87,13 @@ object cli extends Cli.Module {
   final override def toolsObject = tools
 }
 
+object bin extends ScalaModule {
+  final override def scalaVersion = SireumModule.scalaVersion
+  final override def moduleDeps = Seq(runtime.library.jvm)
+}
+
+
+
 val libFiles = os.pwd / 'runtime / 'library / 'shared / 'src / 'main / 'scala / 'org / 'sireum / "Library_Ext.scala"
 
 val slangFiles = os.pwd / 'slang / 'frontend / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / "$SlangFiles.scala"
@@ -110,48 +119,6 @@ def build() = T.command {
   val jar = os.pwd / 'bin / "sireum.jar"
   os.copy(cli.assembly().path, jar, replaceExisting = true, copyAttributes = true)
 }
-
-
-def regenCliOpt() = T.command {
-  val out = os.pwd / 'bin / "sireum.jar"
-  if (os.exists(out)) {
-    val cliPackagePath = pwd / 'runtime / 'library / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'cli
-    log(%%('java, "-jar", out, 'tools, 'sergen, "-p", "org.sireum.cli", "-l", pwd / "license.txt",
-      "-m", "json", cliPackagePath / "CliOpt.scala")(
-      cliPackagePath))
-  } else {
-    println(s"Please first run ${pwd / 'bin / "build.sh"}")
-  }
-}
-
-
-def regenSlang() = T.command {
-  val out = os.pwd / 'bin / "sireum.jar"
-  if (os.exists(out)) {
-    val astPackagePath = pwd / 'slang / 'ast / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / 'ast
-    val slangPackagePath = pwd / 'slang / 'tipe / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang
-    log(%%('java, "-jar", out, 'tools, 'transgen, "-l", pwd / "license.txt", "-m", "immutable,mutable",
-      astPackagePath / "AST.scala")(astPackagePath))
-    log(%%('java, "-jar", out, 'tools, 'sergen, "-p", "org.sireum.lang.tipe", "-l", pwd / "license.txt",
-      "-m", "json,msgpack", slangPackagePath / 'symbol / "Info.scala", astPackagePath / "AST.scala")(
-      slangPackagePath / 'tipe))
-  } else {
-    println(s"Please first run ${pwd / 'bin / "build.sh"}")
-  }
-}
-
-
-def regenCli() = T.command {
-  val out = os.pwd / 'bin / "sireum.jar"
-  if (os.exists(out)) {
-    val sireumPackagePath = pwd / 'cli / 'jvm / 'src / 'main / 'scala / 'org / 'sireum
-    log(%%('java, "-jar", out, 'tools, 'cligen, "-p", "org.sireum", "-l", pwd / "license.txt",
-      sireumPackagePath / "cli.sc")(sireumPackagePath))
-  } else {
-    println(s"Please first run ${pwd / 'bin / "build.sh"}")
-  }
-}
-
 
 def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
   build()()
