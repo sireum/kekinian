@@ -42,25 +42,25 @@ object GenTools {
       val lOpt = path2fileOpt("license file", o.license, T)
       val src = paths2fileOpt("config file", o.args, T).get
       val destDir = path2fileOpt("output directory", o.outputDir, T).get
-      if (!destDir.isDirectory) error(s"Path ${destDir.getPath} is not a directory")
-      val dest = os.Path(destDir.getCanonicalFile) / s"${o.name.get}.scala"
+      if (!destDir.isDir) error(s"Path $destDir is not a directory")
+      val dest = destDir / s"${o.name.get}.scala"
       val (first, second) = o.width.size match {
         case z"2" => (o.width(0), o.width(1))
         case _ => (z"25", z"55")
       }
-      val outTemp = os.temp(deleteOnExit = false)
-      val r = SlangRunner.run(Cli.SlangRunOption("",  ISZ(src.getCanonicalPath), None(),
-        Some(String(outTemp.toIO.getCanonicalPath)), F, F, F))
+      val outTemp = Os.temp()
+      val r = SlangRunner.run(Cli.SlangRunOption("",  ISZ(src.value), None(),
+        Some(outTemp.string), F, F, F))
       if (r != 0) {
         eprintln(s"Could not run ${o.args(0)}")
         return r
       }
-      val configText = os.read(outTemp)
-      os.remove.all(outTemp)
+      val configText = outTemp.read
+      outTemp.removeAll()
       JSON.toCliOpt(configText) match {
         case Either.Left(config) =>
-          val out = CliGenJvm(lOpt, config, src, dest.toIO, o.packageName, o.name, first, second)
-          os.write.over(dest, out)
+          val out = CliGenJvm(lOpt, config, src, dest, o.packageName, o.name, first, second)
+          dest.writeOver(out)
           println(s"Wrote $dest")
           0
         case _ =>
@@ -80,25 +80,33 @@ object GenTools {
       0
     } else {
       val HomeNotFound = -1
-      val InvalidDir = -2
+      val JavaOrScalaNotFound = -2
+      val InvalidDir = -3
 
-      val d = os.Path(path2fileOpt("project parent folder", Some(o.args(0)), F).get.getCanonicalFile)
-      if (!os.exists(d)) {
-        os.makeDir.all(d)
+      val d = path2fileOpt("project parent folder", Some(o.args(0)), F).get
+      if (!d.exists) {
+        d.mkdirAll()
       }
-      if (!os.exists(d)) {
+      if (!d.exists) {
         eprintln(s"Could not create $d")
         return InvalidDir
       }
-      val project = d / o.name.get.value
-      os.makeDir.all(project)
+      val project = d / o.name.get
+      project.mkdirAll()
 
       if (!homeFound) return HomeNotFound
-      val home = if (isWin) homeOpt.get.toString.replaceAllLiterally("\\", "/") else homeOpt.get
+      if (!(javaFound && scalaFound)) return JavaOrScalaNotFound
+      val home = homeOpt.get
+      val javaHome = javaHomeOpt.get
+      val scalaHome = scalaHomeOpt.get
+      val isWin = Os.kind == Os.Kind.Win
+
+      def uriPathSep(s: Predef.String): Predef.String =
+        if (isWin) s.replaceAllLiterally("\\", "/") else s
 
       val devSuffix = if (isDev) "" else "-dev"
 
-      def normalizePath(path: os.Path): Predef.String = uriPathSep(path.toNIO.toString)
+      def normalizePath(path: Os.Path): Predef.String = uriPathSep(path.string.value)
 
       val scalaDir = normalizePath(scalaHome)
 
@@ -138,16 +146,16 @@ object GenTools {
 
       def jdkTable: Predef.String = {
         val (jdkClassPath, jdkSourcePath) = (
-          (for (p <- os.list(javaHome / 'jre / 'lib) if p.last.endsWith(".jar")) yield
+          (for (p <- (javaHome / "jre" / "lib").list if p.string.value.endsWith(".jar")) yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n"),
           s"""            <root url="jar://${normalizePath(javaHome)}/src.zip!/" type="simple" />"""
         )
-        val ideaLibs = (for (p <- os.walk(ideaLibDir) if p.last.endsWith(".jar"))
+        val ideaLibs = (for (p <- Os.Path.walk(ideaLibDir, F, T, f => f.string.value.endsWith(".jar")))
           yield
-            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
-        val ideaScalaLibs = (for (p <- os.walk(ideaPluginsDir / 'Scala / 'lib) if p.last.endsWith(".jar"))
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
+        val ideaScalaLibs = (for (p <- Os.Path.walk(ideaPluginsDir / "Scala" / "lib", F, T, f => f.string.value.endsWith(".jar")))
           yield
-            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n")
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
         s"""<application>
            |  <component name="ProjectJdkTable">
            |    <jdk version="2">
@@ -249,7 +257,7 @@ object GenTools {
            |</application>""".stripMargin
       }
 
-      os.makeDir.all(os.home / s".SireumIVE$devSuffix-sandbox")
+      (Os.home / s".SireumIVE$devSuffix-sandbox").mkdirAll()
 
       val name = o.name.get
 
@@ -257,54 +265,52 @@ object GenTools {
 
       val files =
         if (o.mode == Cli.IveMode.Idea) {
-          for (p <- os.list(project) if p.last.endsWith(".iml")) os.remove.all(p)
-          IveGen.idea(os.exists(project), isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+          for (p <- project.list if p.string.value.endsWith(".iml")) p.removeAll()
+          IveGen.idea(project.exists, isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get,
+            scalaVer, scalacPluginVer)
         } else
-          IveGen.mill(os.exists(project / "build.sc"), name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+          IveGen.mill((project / "build.sc").exists, name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
 
       def writeFiles(): Unit = {
         for ((path, text) <- files.entries) {
-          val p = project / os.RelPath(st"${(path, "/")}".render.value)
-          os.makeDir.all(p / os.up)
-          os.write.over(p, text.render.value)
+          val p = project / st"${(path, Os.fileSep)}".render.value
+          p.up.mkdirAll()
+          p.writeOver(text.render)
         }
       }
       writeFiles()
       val mill = if (isWin) "mill.bat" else "mill"
       if (o.mode == Cli.IveMode.Mill) {
-        val platform = if (isWin) "win" else if (scala.util.Properties.isLinux) "linux" else "mac"
-        val javaBin = homeOpt.get / 'bin / platform / 'java / 'bin
-        val envVarMap =
-          scala.collection.immutable.Map(("PATH", s"$javaBin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"))
+        val javaBin = javaHome / "bin"
+        val envVarMap = ISZ("PATH" ~> s"$javaBin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}")
         if (o.millPath) {
-          os.proc(mill, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
-            .call(cwd = project, stdout = os.Inherit, stderr = os.Inherit)
+          Os.proc(ISZ(mill.string, "all", "__.compile", "mill.scalalib.GenIdea/idea")).at(project).console.run()
         } else {
-          var millPath = homeOpt.get / 'bin / "mill-build" / mill
-          if (isWin || !os.exists(millPath)) millPath = homeOpt.get / 'bin / mill
-          os.proc(millPath, 'all, "__.compile", "mill.scalalib.GenIdea/idea")
-            .call(cwd = project, env = envVarMap, stdout = os.Inherit, stderr = os.Inherit)
+          var millPath = home / "bin" / "mill-build" / mill
+          if (isWin || !millPath.exists) millPath = homeOpt.get / "bin" / mill
+          Os.proc(ISZ(millPath.string, "all", "__.compile", "mill.scalalib.GenIdea/idea")).at(project).
+            env(envVarMap).console.run()
         }
         writeFiles()
       }
       val configOptions =
-        if (scala.util.Properties.isMac) os.home / 'Library / 'Preferences / s"SireumIVE$devSuffix" / 'options
-        else os.home / s".SireumIVE$devSuffix" / 'config / 'options
-      os.makeDir.all(configOptions)
+        if (scala.util.Properties.isMac) Os.home / "Library" / "Preferences" / s"SireumIVE$devSuffix" / "options"
+        else Os.home / s".SireumIVE$devSuffix" / "config" / "options"
+      configOptions.mkdirAll()
       val jdkTableXml = configOptions / "jdk.table.xml"
       val applicationLibrariesXml = configOptions / "applicationLibraries.xml"
       val fileTypesXml = configOptions / "filetypes.xml"
-      if (o.force || !os.exists(jdkTableXml)) {
+      if (o.force || !jdkTableXml.exists) {
         println(s"Generated $jdkTableXml")
-        os.write.over(jdkTableXml, jdkTable)
+        jdkTableXml.writeOver(jdkTable)
       }
-      if (o.force || !os.exists(applicationLibrariesXml)) {
+      if (o.force || !applicationLibrariesXml.exists) {
         println(s"Generated $applicationLibrariesXml")
-        os.write.over(applicationLibrariesXml, applicationLib)
+        applicationLibrariesXml.writeOver(applicationLib)
       }
-      if (o.force || !os.exists(fileTypesXml)) {
+      if (o.force || !fileTypesXml.exists) {
         println(s"Generated $fileTypesXml")
-        os.write.over(fileTypesXml, fileTypes)
+        fileTypesXml.writeOver(fileTypes)
       }
       println(s"Generated Sireum IVE project at $project")
       0
@@ -319,7 +325,7 @@ object GenTools {
       val lOpt = path2fileOpt("license file", o.license, T)
       val srcs = paths2files("Slang file", o.args, T)
       val destDir = path2fileOpt("output directory", o.outputDir, T).get
-      if (!destDir.isDirectory) error(s"Path ${destDir.getPath} is not a directory")
+      if (!destDir.isDir) error(s"Path $destDir is not a directory")
       for (m <- o.modes) {
         val (name, mode) = m match {
           case Cli.SerializerMode.Json =>
@@ -339,12 +345,12 @@ object GenTools {
               SerializerGen.Mode.MessagePack
             )
         }
-        val dest = os.Path(destDir.getCanonicalFile) / s"$name.scala"
+        val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
         val packageNameOpt: Option[ISZ[String]] = if (o.packageName.isEmpty) None() else Some(o.packageName)
-        SerializerGenJvm(T, mode, lOpt, srcs, dest.toIO, packageNameOpt, Some(String(name)), reporter) match {
+        SerializerGenJvm(T, mode, lOpt, srcs, dest, packageNameOpt, Some(String(name)), reporter) match {
           case Some(out) =>
-            os.write.over(dest, out)
+            dest.writeOver(out)
             println(s"Wrote $dest")
           case _ =>
             reporter.printMessages()
@@ -367,7 +373,7 @@ object GenTools {
       val lOpt = path2fileOpt("license file", o.license, T)
       val src = paths2fileOpt("Slang file", o.args, T).get
       val destDir = path2fileOpt("output directory", o.outputDir, T).get
-      if (!destDir.isDirectory) error(s"Path ${destDir.getPath} is not a directory")
+      if (destDir != Os.Path.Kind.Dir) error(s"Path $destDir is not a directory")
       for (m <- o.modes) {
         val (name, mode) = m match {
           case Cli.TransformerMode.Immutable =>
@@ -387,11 +393,11 @@ object GenTools {
               F
             )
         }
-        val dest = os.Path(destDir.getCanonicalFile) / s"$name.scala"
+        val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
-        TransformerGenJvm(T, mode, lOpt, src, dest.toIO, Some(String(name)), reporter) match {
+        TransformerGenJvm(T, mode, lOpt, src, dest, Some(String(name)), reporter) match {
           case Some(out) =>
-            os.write.over(dest, out)
+            dest.writeOver(out)
             println(s"Wrote $dest")
           case _ =>
             reporter.printMessages()

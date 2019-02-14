@@ -33,13 +33,12 @@ trait Module extends JvmOnly {
     if (isSourceDep) Seq(alirObject, toolsObject)
     else Seq()
 
-  final override def ivyDeps = {
-    val ds = Seq(ivy"com.lihaoyi::os-lib:$osLibVersion")
-    if (isSourceDep) Agg(ds: _*)
-    else Agg(ds ++ Seq(
+  final override def ivyDeps = T {
+    if (isSourceDep) Agg.empty
+    else Agg(
       jpLatest(isCross = false, "sireum", "alir"),
       jpLatest(isCross = false, "sireum", "tools"),
-    ): _*)
+    )
   }
 
   final override def deps = Seq()

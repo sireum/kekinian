@@ -25,9 +25,6 @@
 
 package org.sireum.cli
 
-import _root_.java.io._
-import _root_.java.nio.charset._
-import _root_.java.nio.file._
 import _root_.java.util.zip._
 
 import org.sireum._
@@ -38,8 +35,6 @@ import org.sireum.lang.symbol._
 import org.sireum.lang.tipe._
 import org.sireum.message._
 import org.sireum.Cli._
-
-import scala.collection.JavaConverters._
 
 object SlangTipe {
 
@@ -56,9 +51,8 @@ object SlangTipe {
 
   def run(o: SlangTipeOption, reporter: Reporter): Int = {
 
-    def readFile(f: File): (Option[String], String) = {
-      val file = f.getCanonicalFile.getAbsoluteFile
-      (Some(file.toURI.toASCIIString), os.read(os.Path(file)))
+    def readFile(f: Os.Path): (Option[String], String) = {
+      (Some(f.toUri), f.read)
     }
 
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
@@ -88,17 +82,17 @@ object SlangTipe {
       return InvalidMode
     }
 
-    val loadFileOpt: Option[File] = if (o.load.nonEmpty) {
-      val f = new File(o.load.get.value)
-      if (!f.isFile) {
+    val loadFileOpt: Option[Os.Path] = if (o.load.nonEmpty) {
+      val f = Os.path(o.load.get)
+      if (!f.exists || !f.isFile) {
         eprintln("Invalid file to load type information from")
         return InvalidFile
       }
       Some(f)
     } else None()
 
-    val saveFileOpt: Option[File] = if (o.save.nonEmpty) {
-      val f = new File(o.save.get.value)
+    val saveFileOpt: Option[Os.Path] = if (o.save.nonEmpty) {
+      val f = Os.path(o.save.get)
       if (f.exists && !f.isFile) {
         eprintln("Invalid file to save information to")
         return InvalidFile
@@ -132,15 +126,15 @@ object SlangTipe {
 
     var slangFiles = ISZ[(String, (Option[String], String))]()
     for (arg <- o.args) {
-      val f = new File(arg.value)
+      val f = Os.path(arg.value)
       if (!f.exists) {
         eprintln(s"File $arg does not exist.")
         return InvalidFile
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (!f.getName.endsWith(".sc") && !f.getName.endsWith(".cmd") && !f.getName.endsWith(".slang") &&
-        !f.getName.endsWith(".logika")) {
+      } else if (!f.string.value.endsWith(".sc") && !f.string.value.endsWith(".cmd") &&
+        !f.string.value.endsWith(".slang") && !f.string.value.endsWith(".logika")) {
         eprintln(s"Can only accept .sc, .cmd, .slang, or .logika files as arguments")
         return InvalidFile
       }
@@ -157,38 +151,31 @@ object SlangTipe {
     }
 
     var sources = ISZ[(Option[String], String)]()
-    def collectFiles(f: File): Unit = {
-      if (f.isDirectory) {
-        for (file <- f.listFiles()) {
-          collectFiles(file)
-        }
-      } else if (f.isFile) {
-        var isSlang = f.getName.endsWith(".slang")
-        if (f.getName.endsWith(".scala") || isSlang) {
-          if (!isSlang) {
-            for (firstLine <- Files.lines(f.toPath, StandardCharsets.UTF_8).limit(1).iterator.asScala) {
-              isSlang = firstLine
-                .replaceAllLiterally(" ", "")
-                .replaceAllLiterally("\t", "")
-                .replaceAllLiterally("\r", "")
-                .contains("#Sireum")
-            }
-          }
-          if (isSlang) {
-            sources = sources :+ readFile(f)
-            if (o.verbose) println(s"Read ${f.getCanonicalPath}")
-          }
-        }
-      }
-    }
 
     for (p <- o.sourcepath) {
-      val f = new File(p.value)
+      val f = Os.path(p.value)
       if (!f.exists) {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
-        collectFiles(f)
+        for (p <- Os.Path.walk(f, F, T, { f =>
+          var isSlang = f.string.value.endsWith(".slang")
+          if (f.string.value.endsWith(".scala") || isSlang) {
+            if (!isSlang) {
+              for (firstLine <- f.readLineStream.take(1).toISZ.elements) {
+                isSlang = firstLine.value
+                  .replaceAllLiterally(" ", "")
+                  .replaceAllLiterally("\t", "")
+                  .replaceAllLiterally("\r", "")
+                  .contains("#Sireum")
+              }
+            }
+          }
+          isSlang
+        })) {
+          sources = sources :+ readFile(p)
+          if (o.verbose) println(s"Read $p")
+        }
       }
     }
 
@@ -202,20 +189,20 @@ object SlangTipe {
       case Some(loadFile) =>
         if (o.verbose) {
           println()
-          println(s"Loading type information from ${loadFile.getPath} ...")
+          println(s"Loading type information from $loadFile ...")
           startTime()
         }
         val data: ISZ[U8] = if (o.gzip) {
-          val gis = new GZIPInputStream(new FileInputStream(loadFile))
+          val gis = new GZIPInputStream(new java.io.FileInputStream(new java.io.File(loadFile.string.value)))
           try {
             toIS(gis.bytes)
           } catch {
-            case e: IOException =>
+            case e: java.io.IOException =>
               eprintln(s"Could not load file: ${e.getMessage}")
               return LoadingError
           } finally gis.close()
         } else {
-          toIS(Files.readAllBytes(loadFile.toPath))
+          loadFile.readU8s
         }
         CustomMessagePack.toTypeHierarchy(data) match {
           case Either.Left(thl) =>
@@ -375,27 +362,27 @@ object SlangTipe {
       case Some(saveFile) =>
         if (o.verbose) {
           println()
-          println(s"Saving type information to ${saveFile.getPath} ...")
+          println(s"Saving type information to $saveFile ...")
           startTime()
         }
 
-        val (buf, length) = fromIS(CustomMessagePack.fromTypeHierarchy(th))
+        val data = CustomMessagePack.fromTypeHierarchy(th)
         if (o.gzip) {
-          val gos = new GZIPOutputStream(new FileOutputStream(saveFile))
+          val gos = new GZIPOutputStream(new java.io.FileOutputStream(new java.io.File(saveFile.string.value)))
+          val (buf, length) = fromIS(data)
           try gos.write(buf, 0, length)
           catch {
-            case e: IOException =>
+            case e: java.io.IOException =>
               eprintln(s"Could not save file: ${e.getMessage}")
               return SavingError
           } finally gos.close()
         } else {
-          val fos = new FileOutputStream(saveFile)
-          try fos.write(buf, 0, length)
+          try saveFile.writeOverU8s(data)
           catch {
-            case e: IOException =>
+            case e: java.io.IOException =>
               eprintln(s"Could not save file: ${e.getMessage}")
               return SavingError
-          } finally fos.close()
+          }
         }
 
         stopTime()
@@ -462,10 +449,9 @@ object SlangTipe {
     return (data.data.asInstanceOf[Array[Byte]], data.size.toInt)
   }
 
-
   implicit class GZIS(val gzis: GZIPInputStream) extends AnyVal {
     def bytes: Array[Byte] = {
-      val bos = new ByteArrayOutputStream
+      val bos = new java.io.ByteArrayOutputStream
       val buffer = new Array[Byte](16384)
       var n = gzis.read(buffer)
       while (n > -1) {

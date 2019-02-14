@@ -25,7 +25,7 @@
 
 package org.sireum
 
-import java.io.{File, InputStreamReader}
+import java.io.File
 
 import org.sireum.message.Reporter
 
@@ -42,77 +42,59 @@ object Sireum extends scala.App {
     case _ => -1
   })
 
-  def path2File(path: Predef.String): File = {
-    if (scala.util.Properties.isWin) {
-      if (path.startsWith("/cygdrive/")) {
-        val p = path.substring("/cygdrive/".length)
-        val ps = p.split('/')
-        new File(p.head + ":\\" + ps.tail.mkString("\\"))
-      } else if (path.startsWith("/")) {
-        val p = path.substring(1)
-        val ps = p.split('/')
-        new File(p.head + ":\\" + ps.tail.mkString("\\"))
-      } else new File(path)
-    } else new File(path)
-  }
-
-  def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): Seq[File] = {
-    var r = Vector[File]()
+  def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): Seq[Os.Path] = {
+    var r = Vector[Os.Path]()
     for (p <- paths) {
       r = r :+ paths2fileOpt(pathFor, ISZ(p), checkExist).get
     }
     r
   }
 
-  def paths2fileOpt(pathFor: String, path: ISZ[String], checkExist: B): scala.Option[File] = {
+  def paths2fileOpt(pathFor: String, path: ISZ[String], checkExist: B): scala.Option[Os.Path] = {
     path.size match {
       case z"0" => scala.None
       case z"1" =>
-        val f = path2File(path(0).value)
+        val f = Os.path(path(0).value).canon
         if (checkExist && !f.exists) error(s"File ${path(0)} does not exist.")
-        return scala.Some(f.getCanonicalFile)
+        return scala.Some(f)
       case _ =>
         error(s"Expecting a path for $pathFor, but found multiple.")
     }
   }
 
-  def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): scala.Option[File] = {
+  def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): scala.Option[Os.Path] = {
     if (path.isEmpty) return scala.None
-    val f = path2File(path.get.value)
-    if (checkExist && !f.exists) error(s"File '$path' does not exist.")
-    return scala.Some(f.getCanonicalFile)
+    val f = Os.path(path.get.value).canon
+    if (checkExist && !f.exists) error(s"File '${path.get}' does not exist.")
+    return scala.Some(f)
   }
-
-  def uriPathSep(s: Predef.String): Predef.String =
-    if (isWin) s.replaceAllLiterally("\\", "/") else s
 
   def error(msg: Predef.String): Nothing = {
     throw new RuntimeException(msg)
   }
 
-  lazy val isWin: Boolean = scala.util.Properties.isWin
-
   lazy val platform: Predef.String =
-    if (isWin) "win"
-    else if (scala.util.Properties.isMac) "mac"
-    else if (scala.util.Properties.isLinux) "linux"
-    else "unsupported"
+    Os.kind match {
+      case Os.Kind.Win => "win"
+      case Os.Kind.Linux => "linux"
+      case Os.Kind.Mac => "mac"
+      case Os.Kind.Unsupported => "unsupported"
+    }
 
-  lazy val homeOpt: scala.Option[os.Path] = {
-    var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => os.Path(new File(envVar).getCanonicalPath))
+  lazy val homeOpt: scala.Option[Os.Path] = {
+    var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
     if (r.isEmpty) {
-      r = scala.Option(System.getProperty("org.sireum.home")).map(p => os.Path(new File(p).getCanonicalPath))
+      r = scala.Option(System.getProperty("org.sireum.home")).map(p => Os.path(p).canon)
     }
     if (r.nonEmpty) r
     else try {
       val uri = getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toASCIIString
       val i = uri.indexOf(".jar")
       if (i >= 0) {
-        val path = os.Path(
+        val path = Os.path(
           new java.io.File(new java.net.URI(uri.substring(0, uri.lastIndexOf('/', i)))).getCanonicalPath
-        ) / os.up
-        if (os.exists(path / 'bin / platform / 'java) && os.exists(path / 'bin / "sireum.jar") &&
-          os.exists(path / 'bin / 'scala) && os.exists(path / 'lib)) scala.Some(path)
+        ).up
+        if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) scala.Some(path)
         else scala.None
       } else scala.None
     } catch {
@@ -120,16 +102,22 @@ object Sireum extends scala.App {
     }
   }
 
-  lazy val javaHome: os.Path = homeOpt.get / 'bin / platform / 'java
-  lazy val scalaHome: os.Path = homeOpt.get / 'bin / 'scala
-  lazy val scalacPluginJar: os.Path = homeOpt.get / 'lib / s"scalac-plugin-$scalacPluginVer.jar"
-  lazy val sireumJar: os.Path = homeOpt.get / 'bin / "sireum.jar"
-  lazy val ideaDir: os.Path =
-    if (platform == "mac") os.list(homeOpt.get / 'bin / platform / 'idea).find(_.last.endsWith(".app")).get /
-      'Contents
-    else homeOpt.get / 'bin / platform / 'idea
-  lazy val ideaLibDir: os.Path = ideaDir / 'lib
-  lazy val ideaPluginsDir: os.Path = ideaDir / 'plugins
+  lazy val javaHomeOpt: scala.Option[Os.Path] = homeOpt.map(_ / "bin" / platform / "java") match {
+    case scala.None => scala.Option(System.getenv("JAVA_HOME")).map(Os.path(_))
+    case r => r
+  }
+  lazy val scalaHomeOpt: scala.Option[Os.Path] = homeOpt.map(_ / "bin" / "scala") match {
+    case scala.None => scala.Option(System.getenv("SCALA_HOME")).map(Os.path(_))
+    case r => r
+  }
+  lazy val scalacPluginJar: Os.Path = homeOpt.get / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
+  lazy val sireumJar: Os.Path = homeOpt.get / "bin" / "sireum.jar"
+  lazy val ideaDir: Os.Path =
+    if (platform == "mac") (homeOpt.get / "bin" / platform / "idea").list.elements.
+      find(_.string.value.endsWith(".app")).get / "Contents"
+    else homeOpt.get / "bin" / platform / "idea"
+  lazy val ideaLibDir: Os.Path = ideaDir / "lib"
+  lazy val ideaPluginsDir: Os.Path = ideaDir / "plugins"
 
   lazy val (isDev, javaVer, scalaVer, scalacPluginVer) = {
     val p = new java.util.Properties
@@ -141,8 +129,8 @@ object Sireum extends scala.App {
         .head
         ._2))
     ("false" == p.get("org.sireum.version.dev"),
-      if (isWin) String(s"1.8-Zulu-${p.get("org.sireum.version.zulu")}")
-      else String(s"1.8-GraalVM-${p.get("org.sireum.version.graal")}"),
+      if (Os.kind == Os.Kind.Linux) String(s"1.8-GraalVM-${p.get("org.sireum.version.graal")}")
+      else String(s"1.8-Zulu-${p.get("org.sireum.version.zulu")}"),
       String(p.get("org.sireum.version.scala").toString),
       String(p.get("org.sireum.version.scalac-plugin").toString))
   }
@@ -151,6 +139,22 @@ object Sireum extends scala.App {
     if (homeOpt.isEmpty) {
       eprintln("Could not detect Sireum's home!")
       eprintln("Please either specify SIREUM_HOME env var or org.sireum.home property in JAVA_OPTS env var.")
+      F
+    } else T
+  }
+
+  def javaFound: B = {
+    if (javaHomeOpt.isEmpty) {
+      eprintln("Could not detect Java home directory!")
+      eprintln("Please specify JAVA_HOME env var.")
+      F
+    } else T
+  }
+
+  def scalaFound: B = {
+    if (scalaHomeOpt.isEmpty) {
+      eprintln("Could not detect Java home directory!")
+      eprintln("Please specify JAVA_HOME env var.")
       F
     } else T
   }

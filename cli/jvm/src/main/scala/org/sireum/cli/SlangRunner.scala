@@ -44,98 +44,114 @@ object SlangRunner {
       return 0
     }
     if (!homeFound) return HomeNotFound
+    val isWin = Os.kind == Os.Kind.Win
     if (o.nativ && isWin) {
       eprintln("Native code generation is not currently available for Windows")
       return NativeUnavailable
     }
-    val scalaExe = scalaHome / 'bin / (if (isWin) "scala.bat" else 'scala)
+    val scalaExe = scalaHomeOpt match {
+      case scala.Some(scalaHome) => scalaHome / "bin" / (if (isWin) "scala.bat" else "scala")
+      case _ => Os.path(if (isWin) "scala.bat" else "scala")
+    }
     val inputOpt = path2fileOpt("input", o.input, T)
-    val (stdout, stderr) =
+    val isConsole =
       path2fileOpt("output", o.output, F) match {
-        case scala.Some(f) =>
-          val p = os.Path(f.getCanonicalFile)
-          if (os.isDir(p)) {
+        case scala.Some(p) =>
+          if (p == Os.Path.Kind.Dir) {
             eprintln(s"Output $p cannot be a directory")
             eprintln()
             return InvalidOutput
           } else {
-            val d = p / os.up
-            if (!os.exists(d)) {
-              os.makeDir.all(d)
+            val d = p.up
+            if (!d.exists) {
+              d.mkdirAll()
             }
-            if (!os.exists(d)) {
+            if (!d.exists) {
               eprintln(s"Could not create parent directory of $p")
               eprintln()
               return InvalidOutput
-            } else (p: os.ProcessOutput, p: os.ProcessOutput)
+            } else F
           }
-        case _ => (os.Inherit: os.ProcessOutput, os.Inherit: os.ProcessOutput)
+        case _ => T
       }
-    val script = os.Path(path2fileOpt("Slang script", Some(o.args(0).value), checkExist = T).get)
-    val wd = script / os.up
-    var command =
-      Vector[os.Shellable](
-        scalaExe,
-        "-bootclasspath",
-        sireumJar,
-        s"-Xplugin:$scalacPluginJar",
-        "-classpath",
-        wd,
-        "-sourcepath",
-        wd,
-        "-unchecked",
-        "-feature"
-      )
-    if (o.nativ) command :+= ("-save": os.Shellable)
-    if (o.transformed) command :+= ("-Xprint:sireum": os.Shellable)
-    if (o.server) command :+= ("-nc": os.Shellable)
-    command :+= (script.last: os.Shellable)
-    command :+= (wd: os.Shellable)
-    for (i <- 1 until o.args.size) {
-      command :+= (o.args(i).value: os.Shellable)
-    }
-    val stdin: os.ProcessInput = inputOpt match {
-      case scala.Some(f) => os.Path(f.getCanonicalFile)
-      case _ =>
-        val p = wd / s"${script.last}.txt"
-        if (os.exists(p)) p else os.Inherit
-    }
-    val jarFile = wd / s"${script.last}.jar"
-    val env = _root_.scala.Predef.Map[Predef.String, Predef.String](
-      "JAVA_HOME" -> javaHome.toString,
-      "SCALA_HOME" -> scalaHome.toString,
-      "PATH" -> s"$javaHome/bin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}"
+    val script = path2fileOpt("Slang script", Some(o.args(0).value), checkExist = T).get
+    val wd = script.up
+    var command = ISZ[String](
+      scalaExe.string,
+      "-bootclasspath",
+      sireumJar.string,
+      s"-Xplugin:$scalacPluginJar",
+      "-classpath",
+      wd.string,
+      "-sourcepath",
+      wd.string,
+      "-unchecked",
+      "-feature"
     )
+    if (o.nativ) command :+= "-save"
+    if (o.transformed) command :+= "-Xprint:sireum"
+    if (o.server) command :+= "-nc"
+    command :+= script.name
+    command :+= wd.string
+    for (i <- 1 until o.args.size) {
+      command :+= o.args(i)
+    }
+    val inOpt = inputOpt match {
+      case scala.Some(f) => Some(f.read)
+      case _ =>
+        val p = wd / s"${script.name}.txt"
+        if (p.exists) Some(p.read) else None()
+    }
+    val jarFile = wd / s"${script.name}.jar"
+    var env = ISZ[(String, String)]()
+    javaHomeOpt match {
+      case scala.Some(javaHome) =>
+        env :+= "JAVA_HOME" ~> javaHome.string
+        env :+= "PATH" ~> s"$javaHome/bin${Os.pathSep}${Os.env("PATH").get}"
+      case _ =>
+    }
+    scalaHomeOpt match {
+      case scala.Some(scalaHome) => env :+= "SCALA_HOME" ~> scalaHome.string
+      case _ =>
+    }
     try {
-      val r = os.proc(command: _*)
-        .call(
-          cwd = wd,
-          env = env,
-          stdin = stdin,
-          stdout = stdout,
-          stderr = stderr,
-          check = false
-        )
-      if (r.exitCode != 0) {
-        eprintln(s"Error encountered when running $script")
-        return r.exitCode
+      var p = Os.proc(command).at(wd).env(env)
+      if (isConsole) {
+        p = p.console
+      } else {
+        p = p.redirectErr
       }
+      inOpt match {
+        case Some(in) => p.input(in)
+        case _ =>
+      }
+      p.run() match {
+        case r: Os.Proc.Result.Normal =>
+          if (r.exitCode == 0) {
+
+          } else {
+            eprintln(s"Error encountered when running $script")
+            return r.exitCode.toInt
+          }
+        case _ =>
+          eprintln(s"Error encountered when running $script")
+          return -1
+      }
+
       if (o.nativ) {
-        val nativeName = s"${script.last}.native"
-        command = Vector(javaHome / 'bin / "native-image", "--no-server", "-cp", sireumJar, "-jar", jarFile.last)
-        if (!scala.util.Properties.isMac) command :+= ("--static" : os.Shellable)
-        command :+= (nativeName : os.Shellable)
-        val graal = os.proc(command: _*).
-          call(cwd = os.pwd, env = env, stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit, check = false)
-        if (graal.exitCode == 0) {
-          os.remove.all(wd / s"$nativeName.o")
+        command = ISZ("native-image", "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
+        if (Os.kind != Os.Kind.Mac) command :+= "--static"
+        val nativeName = s"${script.name}.native"
+        command :+= nativeName
+        if (Os.proc(command).at(jarFile.up).run().ok) {
+          (wd / s"$nativeName.o").removeAll()
           println(s"Generated native executable ${wd / nativeName}")
         } else {
           eprintln(s"Failed to generate native executable ${wd / nativeName}")
           return GraalError
         }
       }
-    } finally os.remove.all(jarFile)
+    } finally jarFile.removeAll()
     0
   }
 }
