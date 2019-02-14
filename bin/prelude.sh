@@ -66,6 +66,10 @@ if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
   curl -c /dev/null -JLso bin/sireum.jar http://files.sireum.org/sireum
   chmod +x bin/sireum.jar
+  if [[ ! -f bin/sireum ]]; then
+    curl -JLso bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
+    chmod +x bin/sireum
+  fi
   if [[ ! -f versions.properties ]]; then
     curl -JLso versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   fi
