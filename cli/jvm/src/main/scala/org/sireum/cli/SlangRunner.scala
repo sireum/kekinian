@@ -84,13 +84,13 @@ object SlangRunner {
         "-sourcepath",
         wd,
         "-unchecked",
-        "-feature",
-        "-language:postfixOps"
+        "-feature"
       )
     if (o.nativ) command :+= ("-save": os.Shellable)
     if (o.transformed) command :+= ("-Xprint:sireum": os.Shellable)
     if (o.server) command :+= ("-nc": os.Shellable)
     command :+= (script.last: os.Shellable)
+    command :+= (wd: os.Shellable)
     for (i <- 1 until o.args.size) {
       command :+= (o.args(i).value: os.Shellable)
     }
@@ -126,7 +126,7 @@ object SlangRunner {
         if (!scala.util.Properties.isMac) command :+= ("--static" : os.Shellable)
         command :+= (nativeName : os.Shellable)
         val graal = os.proc(command: _*).
-          call(cwd = wd, env = env, stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit, check = false)
+          call(cwd = os.pwd, env = env, stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit, check = false)
         if (graal.exitCode == 0) {
           os.remove.all(wd / s"$nativeName.o")
           println(s"Generated native executable ${wd / nativeName}")
