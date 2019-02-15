@@ -128,7 +128,6 @@ object SlangRunner {
       var r = p.run()
       if (!r.ok) {
         eprintln(s"Error encountered when running $script, exit code: ${r.exitCode}")
-        eprintln(command.elements.mkString(" "))
         for (err <- r.errOpt) {
           eprintln(err)
         }
