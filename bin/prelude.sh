@@ -23,10 +23,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-COMMANDS="git curl 7z"
+COMMANDS="curl"
 for COMMAND in ${COMMANDS}; do
 	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
 done
+#
+# Sireum
+#
 SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 if [[ ! -f bin/sireum.jar ]]; then
@@ -47,9 +50,62 @@ getVersion() {
 }
 : ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
 mkdir -p ${SIREUM_CACHE}
-: ${SCALA_VERSION=$(getVersion "scala")}
+#
+# scalac plugin
+#
 SCALAC_PLUGIN_VER=$(getVersion "scalac-plugin")
 cd ${SIREUM_HOME}/bin
+SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+mkdir -p ${SIREUM_HOME}/lib
+cd ${SIREUM_HOME}/lib
+if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
+    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
+    curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
+    echo
+  fi
+  rm -f scalac-plugin-*.jar
+  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
+fi
+if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
+  exit
+fi
+#
+# Scala
+#
+COMMANDS="git 7z"
+for COMMAND in ${COMMANDS}; do
+	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
+done
+: ${SCALA_VERSION=$(getVersion "scala")}
+cd ${SIREUM_HOME}/bin
+SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
+SCALA_DROP="${SCALA_DROP_URL##*/}"
+grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
+if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
+    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
+    curl -JLso ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
+    echo
+  fi
+  7z x -y ${SIREUM_CACHE}/${SCALA_DROP} > /dev/null
+  rm -fR scala
+  mv scala-${SCALA_VERSION} scala
+  if [[ -d "scala/bin" ]]; then
+    echo "${SCALA_VERSION}" > scala/VER
+    chmod +x scala/bin/*
+  else
+    >&2 echo "Could not install Scala ${SCALA_VERSION}."
+    exit 1
+  fi
+fi
+#
+# Java
+#
+if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
+  exit
+fi
 source platform.sh
 if [[ "${PLATFORM}" = "win"  ]]; then
   JAVA_NAME="Zulu JDK"
@@ -74,46 +130,6 @@ elif [[ "${PLATFORM}" = "linux"  ]]; then
 else
   >&2 echo "Sireum does not support: $(uname)."
   exit 1
-fi
-SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-mkdir -p ${SIREUM_HOME}/lib
-cd ${SIREUM_HOME}/lib
-if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
-    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-    curl -JLso ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
-    echo
-  fi
-  rm -f scalac-plugin-*.jar
-  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
-fi
-if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
-  exit
-fi
-cd ${SIREUM_HOME}/bin
-SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
-SCALA_DROP="${SCALA_DROP_URL##*/}"
-grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
-if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
-    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
-    curl -JLso ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
-    echo
-  fi
-  7z x -y ${SIREUM_CACHE}/${SCALA_DROP} > /dev/null
-  rm -fR scala
-  mv scala-${SCALA_VERSION} scala
-  if [[ -d "scala/bin" ]]; then
-    echo "${SCALA_VERSION}" > scala/VER
-    chmod +x scala/bin/*
-  else
-    >&2 echo "Could not install Scala ${SCALA_VERSION}."
-    exit 1
-  fi
-fi
-if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
-  exit
 fi
 mkdir -p ${PLATFORM}
 cd ${PLATFORM}

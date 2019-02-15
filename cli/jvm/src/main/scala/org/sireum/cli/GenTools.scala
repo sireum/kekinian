@@ -99,7 +99,7 @@ object GenTools {
       val home = homeOpt.get
       val javaHome = javaHomeOpt.get
       val scalaHome = scalaHomeOpt.get
-      val isWin = Os.kind == Os.Kind.Win
+      val isWin = Os.isWin
 
       def uriPathSep(s: Predef.String): Predef.String =
         if (isWin) s.replaceAllLiterally("\\", "/") else s

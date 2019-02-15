@@ -44,7 +44,7 @@ object SlangRunner {
       return 0
     }
     if (!homeFound) return HomeNotFound
-    val isWin = Os.kind == Os.Kind.Win
+    val isWin = Os.isWin
     if (o.nativ && isWin) {
       eprintln("Native code generation is not currently available for Windows")
       return NativeUnavailable
@@ -76,7 +76,7 @@ object SlangRunner {
       }
     val script = path2fileOpt("Slang script", Some(o.args(0).value), checkExist = T).get
     val wd = script.up
-    var command = ISZ[String](
+    var command: ISZ[String] = ISZ(
       scalaExe.string,
       "-bootclasspath",
       sireumJar.string,
@@ -107,7 +107,7 @@ object SlangRunner {
     javaHomeOpt match {
       case scala.Some(javaHome) =>
         env :+= "JAVA_HOME" ~> javaHome.string
-        env :+= "PATH" ~> s"$javaHome/bin${Os.pathSep}${Os.env("PATH").get}"
+        env :+= "PATH" ~> s"$javaHome${Os.fileSep}bin${Os.pathSep}${Os.env("PATH").get}"
       case _ =>
     }
     scalaHomeOpt match {
@@ -125,33 +125,35 @@ object SlangRunner {
         case Some(in) => p.input(in)
         case _ =>
       }
-      p.run() match {
-        case r: Os.Proc.Result.Normal =>
-          if (r.exitCode == 0) {
-
-          } else {
-            eprintln(s"Error encountered when running $script")
-            return r.exitCode.toInt
-          }
-        case _ =>
-          eprintln(s"Error encountered when running $script")
-          return -1
-      }
-
-      if (o.nativ) {
+      var r = p.run()
+      if (!r.ok) {
+        eprintln(s"Error encountered when running $script, exit code: ${r.exitCode}")
+        eprintln(command.elements.mkString(" "))
+        for (err <- r.errOpt) {
+          eprintln(err)
+        }
+        return r.exitCode.toInt
+      } else if (o.nativ) {
         command = ISZ("native-image", "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
         if (Os.kind != Os.Kind.Mac) command :+= "--static"
         val nativeName = s"${script.name}.native"
         command :+= nativeName
-        if (Os.proc(command).at(jarFile.up).run().ok) {
+        r = Os.proc(command).at(jarFile.up).run()
+        if (r.ok) {
           (wd / s"$nativeName.o").removeAll()
           println(s"Generated native executable ${wd / nativeName}")
+          return 0
         } else {
-          eprintln(s"Failed to generate native executable ${wd / nativeName}")
+          eprintln(s"Failed to generate native executable ${wd / nativeName}, exit code: ${r.exitCode}")
+          eprintln(command.elements.mkString(" "))
+          for (err <- r.errOpt) {
+            eprintln(err)
+          }
           return GraalError
         }
+      } else {
+        return 0
       }
     } finally jarFile.removeAll()
-    0
   }
 }
