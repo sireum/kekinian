@@ -3,17 +3,15 @@ SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRI
 while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
 SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
 JAVA=java
-if [[ -z SIREUM_PROVIDED_JAVA ]]; then
-  if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
-    SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
-    JAVA=${SIREUM_HOME}/bin/win/java/bin/java.exe
-    SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
-  elif [[ "$(uname)" == "Darwin" ]]; then
-    JAVA=${SIREUM_HOME}/bin/mac/java/bin/java
-    SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-    JAVA=${SIREUM_HOME}/bin/linux/java/bin/java
-    SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
-  fi
+if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
+  SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
+  SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
+  [[ -z SIREUM_PROVIDED_JAVA ]] && JAVA=${SIREUM_HOME}/bin/win/java/bin/java.exe
+elif [[ "$(uname)" == "Darwin" ]]; then
+  SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
+  [[ -z SIREUM_PROVIDED_JAVA ]] && JAVA=${SIREUM_HOME}/bin/mac/java/bin/java
+elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+  SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
+  [[ -z SIREUM_PROVIDED_JAVA ]] && JAVA=${SIREUM_HOME}/bin/linux/java/bin/java
 fi
 exec ${JAVA} ${JAVA_OPTS} -jar "${SIREUM_JAR}" $*
