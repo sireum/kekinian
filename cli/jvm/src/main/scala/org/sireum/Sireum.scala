@@ -102,13 +102,27 @@ object Sireum extends scala.App {
     }
   }
 
-  lazy val javaHomeOpt: scala.Option[Os.Path] = homeOpt.map(_ / "bin" / platform / "java") match {
-    case scala.None => scala.Option(System.getenv("JAVA_HOME")).map(Os.path(_))
-    case r => r
+  lazy val javaHomeOpt: scala.Option[Os.Path] = {
+    val rOpt = scala.Option(System.getenv("JAVA_HOME")).map(Os.path(_))
+    rOpt match {
+      case scala.None =>
+        homeOpt.map(_ / "bin" / platform / "java") match {
+          case scala.None => scala.None
+          case r => if (r.get.exists) r else scala.None
+        }
+      case _ => rOpt
+    }
   }
-  lazy val scalaHomeOpt: scala.Option[Os.Path] = homeOpt.map(_ / "bin" / "scala") match {
-    case scala.None => scala.Option(System.getenv("SCALA_HOME")).map(Os.path(_))
-    case r => r
+  lazy val scalaHomeOpt: scala.Option[Os.Path] = {
+    val rOpt = scala.Option(System.getenv("SCALA_HOME")).map(Os.path(_))
+    rOpt match {
+      case scala.None =>
+        homeOpt.map(_ / "bin" / "scala") match {
+          case scala.None => scala.None
+          case r => if (r.get.exists) r else scala.None
+        }
+      case _ => rOpt
+    }
   }
   lazy val scalacPluginJar: Os.Path = homeOpt.get / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
   lazy val sireumJar: Os.Path = homeOpt.get / "bin" / "sireum.jar"
