@@ -3,6 +3,9 @@ SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRI
 while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
 SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
 JAVA=java
+if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
+  SIREUM_PROVIDED_JAVA=true
+fi
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
   SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
