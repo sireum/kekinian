@@ -28,6 +28,20 @@ for COMMAND in ${COMMANDS}; do
 	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
 done
 SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
+cd ${SIREUM_HOME}
+if [[ ! -f bin/sireum.jar ]]; then
+  echo "Please wait while downloading Sireum ..."
+  curl -c /dev/null -JLso bin/sireum.jar http://files.sireum.org/sireum
+  chmod +x bin/sireum.jar
+  if [[ ! -f bin/sireum ]]; then
+    curl -JLso bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
+    chmod +x bin/sireum
+  fi
+  if [[ ! -f versions.properties ]]; then
+    curl -JLso versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
+  fi
+  echo
+fi
 getVersion() {
   grep "^org.sireum.version.$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
 }
@@ -60,20 +74,6 @@ elif [[ "${PLATFORM}" = "linux"  ]]; then
 else
   >&2 echo "Sireum does not support: $(uname)."
   exit 1
-fi
-cd ${SIREUM_HOME}
-if [[ ! -f bin/sireum.jar ]]; then
-  echo "Please wait while downloading Sireum ..."
-  curl -c /dev/null -JLso bin/sireum.jar http://files.sireum.org/sireum
-  chmod +x bin/sireum.jar
-  if [[ ! -f bin/sireum ]]; then
-    curl -JLso bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
-    chmod +x bin/sireum
-  fi
-  if [[ ! -f versions.properties ]]; then
-    curl -JLso versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
-  fi
-  echo
 fi
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
 SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
