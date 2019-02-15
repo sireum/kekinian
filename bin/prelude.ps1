@@ -41,7 +41,7 @@ if (!(Test-Path $sireum_jar)) {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum.bat" -OutFile "$sireum_bat"
   }
   if (!(Test-Path $versions_properties)) {
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties" -OutFile "$version_properties"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties" -OutFile "$versions_properties"
   }
   ""
 }
