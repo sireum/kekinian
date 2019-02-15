@@ -6,12 +6,18 @@ JAVA=java
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
   SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
-  [[ -z SIREUM_PROVIDED_JAVA ]] && JAVA=${SIREUM_HOME}/bin/win/java/bin/java.exe
+  if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
+   JAVA=${SIREUM_HOME}/bin/win/java/bin/java.exe
+  fi
 elif [[ "$(uname)" == "Darwin" ]]; then
   SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
-  [[ -z SIREUM_PROVIDED_JAVA ]] && JAVA=${SIREUM_HOME}/bin/mac/java/bin/java
+  if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
+    JAVA=${SIREUM_HOME}/bin/mac/java/bin/java
+  fi
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
   SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
-  [[ -z SIREUM_PROVIDED_JAVA ]] && JAVA=${SIREUM_HOME}/bin/linux/java/bin/java
+  if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
+    JAVA=${SIREUM_HOME}/bin/linux/java/bin/java
+  fi
 fi
 exec ${JAVA} ${JAVA_OPTS} -jar "${SIREUM_JAR}" $*
