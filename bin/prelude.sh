@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-COMMANDS="curl"
+COMMANDS="git curl"
 for COMMAND in ${COMMANDS}; do
 	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
 done
@@ -71,13 +71,16 @@ fi
 if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
   exit
 fi
+uncompress() {
+  if hash unzip 2>/dev/null; then
+    unzip -qo $1
+  else
+    7z x -y $1 > /dev/null
+  fi
+}
 #
 # Scala
 #
-COMMANDS="git 7z"
-for COMMAND in ${COMMANDS}; do
-	type -P ${COMMAND} &>/dev/null && continue || { >&2 echo "${COMMAND} command not found."; exit 1; }
-done
 : ${SCALA_VERSION=$(getVersion "scala")}
 cd ${SIREUM_HOME}/bin
 SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
@@ -89,7 +92,7 @@ if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
     curl -JLso ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
     echo
   fi
-  7z x -y ${SIREUM_CACHE}/${SCALA_DROP} > /dev/null
+  $(uncompress ${SIREUM_CACHE}/${SCALA_DROP})
   rm -fR scala
   mv scala-${SCALA_VERSION} scala
   if [[ -d "scala/bin" ]]; then
@@ -155,7 +158,7 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
       mv graalvm-* java
     fi
   else
-    7z x -y ${SIREUM_CACHE}/${JAVA_DROP} > /dev/null
+    $(uncompress ${SIREUM_CACHE}/${JAVA_DROP})
     rm -fR java
     mv ${JAVA_DIR} java
   fi
