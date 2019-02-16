@@ -76,25 +76,6 @@ if (!(Test-Path "$scalac_plugin_lib")) {
 }
 
 
-$scalac_plugin_version = $properties["org.sireum.version.scalac-plugin"]
-New-Item -Type directory -Path "$sireum_home\lib" -Force | Out-Null
-$scalac_plugin_jar = "scalac-plugin-$scalac_plugin_version.jar"
-$scalac_plugin_drop = "$cache_dir\$scalac_plugin_jar"
-$scalac_plugin_lib = "$sireum_home\lib\$scalac_plugin_jar"
-if (!(Test-Path "$scalac_plugin_lib")) {
-  if (!(Test-Path "$scalac_plugin_drop")) {
-    "Please wait while downloading Slang scalac plugin $scalac_plugin_version ..."
-    $scalac_plugin_url = "https://jitpack.io/org/sireum/scalac-plugin/$scalac_plugin_version/$scalac_plugin_jar"
-    Invoke-WebRequest -Uri "$scalac_plugin_url" -OutFile "$scalac_plugin_drop"
-    ""
-  }
-  if (Test-Path "$sireum_home\lib\scalac-plugin-*.jar") {
-    Remove-Item -Path "$sireum_home\lib\scalac-plugin-*.jar" -Force
-  }
-  Copy-Item -Path "$scalac_plugin_drop" -Destination "$scalac_plugin_lib" -Force
-}
-
-
 if ($Env:SIREUM_PROVIDED_SCALA) {
   Exit
 }
@@ -110,12 +91,13 @@ if (Test-Path "$scala_ver_path") {
 if ($scala_update) {
   $scala_drop = "$cache_dir\scala-$scala_version.zip"
   if (!(Test-Path "$scala_drop")) {
-    "Please wait while downloading Scala $scala_version ... "
+    "Please wait while downloading Scala $scala_version ..."
     $scala_url = "https://downloads.lightbend.com/scala/$scala_version/scala-$scala_version.zip"
     Invoke-WebRequest -Uri "$scala_url" -OutFile "$scala_drop"
-    ""
   }
+  "Extracting Scala $scala_version ..."
   Expand-Archive "$scala_drop" -DestinationPath "$sireum_home\bin"
+  ""
   if (Test-Path "$sireum_home\bin\scala") {
     Remove-Item -Path "$sireum_home\bin\scala" -Recurse -Force
   }
@@ -142,8 +124,8 @@ if ($java_update) {
     "Please wait while downloading Zulu JDK $java_version ... "
     $java_url = "http://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
     Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
-    ""
   }
+  "Extracting Zulu JDK $java_version ... "
   Expand-Archive "$java_drop" -DestinationPath "$sireum_home\bin\win"
   if (Test-Path "$sireum_home\bin\win\java") {
     Remove-Item -Path "$sireum_home\bin\win\java" -Recurse -Force
