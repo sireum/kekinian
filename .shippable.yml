@@ -14,7 +14,7 @@ build:
       if [[ ! `git show -s HEAD | grep -F -q "[skip shippable]"` ]]; then
         mkdir -p $HOME/.coursier &&
         git submodule update --init --recursive &&
-        bin/test.sh;
+        bin/build.cmd test test-js;
       fi
   post_ci:
   on_success:
@@ -24,13 +24,3 @@ build:
   cache_dir_list:
     - $SHIPPABLE_BUILD_DIR/bin/linux/java
     - $SHIPPABLE_BUILD_DIR/bin/scala
-
-integrations:
-  notifications:
-    - integrationName: email
-      type: email
-      on_success: change
-      on_failure: always
-      on_cancel: never
-      on_start: never
-      on_pull_request: always

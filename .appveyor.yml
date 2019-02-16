@@ -8,16 +8,6 @@ init:
 
 clone_folder: c:\sireum
 
-environment:
-  matrix:
-  - COMPILER: msys2
-    PLATFORM: x64
-    MSYS2_ARCH: x86_64
-    MSYS2_DIR: msys64
-    MSYSTEM: MINGW64
-    BIT: 64
-  PATH: 'C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%'
-
 cache:
   - bin\win\java -> versions.properties
   - bin\scala -> versions.properties
@@ -26,4 +16,4 @@ install:
   - git submodule update --init --recursive
 
 build_script:
-  - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/test.sh"
+  - bin\build.cmd jitpack test test-js

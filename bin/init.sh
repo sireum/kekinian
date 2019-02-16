@@ -42,7 +42,7 @@ uncompress() {
 download() {
   if hash curl 2>/dev/null; then
     curl -c /dev/null -JLso $1 $2
-  elif hash 7z 2>/dev/null; then
+  elif hash wget 2>/dev/null; then
     wget -qO $1 $2
   else
     echo "Either curl or wget is required, but none found."

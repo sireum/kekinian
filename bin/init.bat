@@ -1,1 +1,1 @@
-@powershell %~dp0prelude.ps1
+@powershell %~dp0init.ps1
