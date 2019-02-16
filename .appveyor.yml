@@ -24,8 +24,6 @@ cache:
 
 install:
   - git submodule update --init --recursive
-  - ps1: $PSVersionTable.PSVersion
-  - bin\prelude.bat
 
 build_script:
   - bash -lc "$APPVEYOR_BUILD_FOLDER/bin/test.sh"
