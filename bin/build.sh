@@ -26,7 +26,7 @@
 export SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 git submodule update --init --recursive --remote
-bin/prelude.sh
+bin/init.sh
 source bin/platform.sh
 bin/mill-build/build-standalone.sh
 bin/mill-build/mill-standalone touche

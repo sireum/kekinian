@@ -34,7 +34,7 @@ elif [[ "${PLATFORM}" == "linux" ]]; then
 else
   FLAGS=
 fi
-bin/prelude.sh
+bin/init.sh
 bin/mill-build/build-standalone.sh
 #bin/mill-build/mill-standalone toucheMacro
 SIREUM_NATIVE=true bin/build.sh
