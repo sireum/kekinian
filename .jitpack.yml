@@ -1,6 +1,0 @@
-jdk:
-  - oraclejdk8
-before_install:
-  - export SIREUM_PROVIDED_JAVA=true
-install:
-  - bin/build.cmd m2
