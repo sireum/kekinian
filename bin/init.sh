@@ -169,7 +169,7 @@ grep -q ${JAVA_VERSION} java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDAT
 if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
   if [[ ! -f ${SIREUM_CACHE}/${JAVA_DROP} ]]; then
       echo "Please wait while downloading ${JAVA_NAME} ${JAVA_VERSION} ..."
-      $(download -JLso ${SIREUM_CACHE}/${JAVA_DROP} ${JAVA_DROP_URL})
+      $(download  ${SIREUM_CACHE}/${JAVA_DROP} ${JAVA_DROP_URL})
   fi
   echo "Extracting ${JAVA_NAME} ${JAVA_VERSION} ..."
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
