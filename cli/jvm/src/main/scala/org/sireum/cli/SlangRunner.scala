@@ -128,9 +128,7 @@ object SlangRunner {
       var r = p.run()
       if (!r.ok) {
         eprintln(s"Error encountered when running $script, exit code: ${r.exitCode}")
-        for (err <- r.errOpt) {
-          eprintln(err)
-        }
+        eprint(r.err)
         return r.exitCode.toInt
       } else if (o.nativ) {
         command = ISZ("native-image", "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
@@ -144,10 +142,7 @@ object SlangRunner {
           return 0
         } else {
           eprintln(s"Failed to generate native executable ${wd / nativeName}, exit code: ${r.exitCode}")
-          eprintln(command.elements.mkString(" "))
-          for (err <- r.errOpt) {
-            eprintln(err)
-          }
+          eprint(r.err)
           return GraalError
         }
       } else {
