@@ -6,7 +6,7 @@ if [ ! -f ${SCRIPT_HOME}/sireum.jar ]; then         #
 fi                                                  #
 exec ${SCRIPT_HOME}/sireum slang run -s "$0" "$@"   #
 :BOF
-if not exist %~dp0sireum.jar %~dp0init.bat
+if not exist %~dp0sireum.jar call %~dp0init.bat
 %~dp0sireum.bat slang run -s "%0" %*
 exit /B %errorlevel%
 ::!#
@@ -16,13 +16,15 @@ import org.sireum._
 
 def usage(): Unit = {
   println("Sireum /build")
-  println("Usage: ( tipe | compile | test | test-js | m2 | jitpack )+")
+  println("Usage: ( tipe | compile | test | test-js | m2 )+")
 }
+
 
 if (Os.cliArgs.size < 2) {
   usage()
   Os.exit(0)
 }
+
 
 val homeBin = Os.path(Os.cliArgs(0))
 val home = homeBin.up
@@ -30,6 +32,7 @@ val sireumJar = homeBin / "sireum.jar"
 val mill = homeBin / "mill.bat"
 var didTipe = F
 var didCompile = F
+var didM2 = F
 
 
 def downloadMill(): Unit = {
@@ -44,7 +47,7 @@ def downloadMill(): Unit = {
 
 def jitpack(): Unit = {
   println("Triggering jitpack ...")
-  val r = Os.proc(ISZ(mill.string, "jitPack", "--owner", "sireum", "--repo", "kekinian")).
+  val r = Os.proc(ISZ(mill.string, "jitPack", "--owner", "sireum", "--repo", "kekinian", "--lib", "cli")).
     at(home).console.run()
   r match {
     case r: Os.Proc.Result.Normal =>
@@ -77,6 +80,10 @@ def tipe(): Unit = {
 def compile(): Unit = {
   if (!didCompile) {
     didCompile = T
+    if (didM2) {
+      didM2 = F
+      (home / "out").removeAll()
+    }
     tipe()
     println("Compiling ...")
     Os.proc(ISZ(mill.string, "all", "cli.tests.compile", "alir.js.tests.compile")).at(home).console.runCheck()
@@ -114,6 +121,9 @@ def testJs(): Unit = {
 
 
 def m2(): Unit = {
+  didM2 = T
+  didCompile = F
+
   val repository = Os.home / ".m2" / "repository"
   repository.removeAll()
   (home / "out").removeAll()
@@ -145,8 +155,8 @@ def m2(): Unit = {
 }
 
 
-
 downloadMill()
+
 for (i <- 1 until Os.cliArgs.size) {
   Os.cliArgs(i) match {
     case string"tipe" => tipe()
@@ -154,7 +164,7 @@ for (i <- 1 until Os.cliArgs.size) {
     case string"test" => test()
     case string"test-js" => testJs()
     case string"m2" => m2()
-    case string"jitpack" => jitpack()
+    //case string"jitpack" => jitpack()
     case cmd =>
       usage()
       eprintln(s"Unrecognized command: $cmd")
