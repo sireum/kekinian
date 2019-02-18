@@ -133,30 +133,34 @@ fi
 if [[ -z "${PLATFORM}" ]]; then
   if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
     PLATFORM=win
-    JAVA_NAME="Zulu JDK"
-    if [[ -z ${JAVA_VERSION} ]]; then
-      JAVA_VERSION=$(getVersion "zulu")
-    fi
-    JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
   elif [[ "$(uname)" == "Darwin" ]]; then
     PLATFORM=mac
-    JAVA_NAME="Zulu JDK"
-    if [[ -z ${JAVA_VERSION} ]]; then
-      JAVA_VERSION=$(getVersion "zulu")
-    fi
-    JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
-    #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
     PLATFORM=linux
-    JAVA_NAME="GraalVM"
-    if [[ -z ${JAVA_VERSION} ]]; then
-      JAVA_VERSION=$(getVersion "graal")
-    fi
-    JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
   else
     >&2 echo "Sireum does not support: $(uname). Please set env var SIREUM_PROVIDED_JAVA=true to use pre-installed Java."
     exit 1
   fi
+fi
+if [[ "${PLATFORM}" == "mac" ]]; then
+  JAVA_NAME="Zulu JDK"
+  if [[ -z ${JAVA_VERSION} ]]; then
+    JAVA_VERSION=$(getVersion "zulu")
+  fi
+  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
+  #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
+elif [[ "${PLATFORM}" == "linux" ]]; then
+  JAVA_NAME="GraalVM"
+  if [[ -z ${JAVA_VERSION} ]]; then
+    JAVA_VERSION=$(getVersion "graal")
+  fi
+  JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
+elif [[ "${PLATFORM}" == "win" ]]; then
+  JAVA_NAME="Zulu JDK"
+  if [[ -z ${JAVA_VERSION} ]]; then
+    JAVA_VERSION=$(getVersion "zulu")
+  fi
+  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 fi
 mkdir -p ${PLATFORM}
 cd ${PLATFORM}
