@@ -32,12 +32,12 @@ import org.sireum.message.Reporter
 object Sireum extends scala.App {
 
   System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
-    case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create)
-    case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o)
-    case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o)
-    case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o)
-    case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o)
-    case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o)
+    case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
+    case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o).toInt
+    case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o).toInt
+    case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
+    case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt
+    case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o).toInt
     case Some(_: Cli.HelpOption) => 0
     case _ => -1
   })
@@ -50,23 +50,23 @@ object Sireum extends scala.App {
     r
   }
 
-  def paths2fileOpt(pathFor: String, path: ISZ[String], checkExist: B): scala.Option[Os.Path] = {
+  def paths2fileOpt(pathFor: String, path: ISZ[String], checkExist: B): Option[Os.Path] = {
     path.size match {
-      case z"0" => scala.None
+      case z"0" => None()
       case z"1" =>
         val f = Os.path(path(0).value).canon
         if (checkExist && !f.exists) error(s"File ${path(0)} does not exist.")
-        return scala.Some(f)
+        return Some(f)
       case _ =>
         error(s"Expecting a path for $pathFor, but found multiple.")
     }
   }
 
-  def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): scala.Option[Os.Path] = {
-    if (path.isEmpty) return scala.None
+  def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): Option[Os.Path] = {
+    if (path.isEmpty) return None()
     val f = Os.path(path.get.value).canon
     if (checkExist && !f.exists) error(s"File '${path.get}' does not exist.")
-    return scala.Some(f)
+    return Some(f)
   }
 
   def error(msg: Predef.String): Nothing = {
@@ -81,12 +81,12 @@ object Sireum extends scala.App {
       case Os.Kind.Unsupported => "unsupported"
     }
 
-  lazy val homeOpt: scala.Option[Os.Path] = {
+  lazy val homeOpt: Option[Os.Path] = {
     var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
     if (r.isEmpty) {
       r = scala.Option(System.getProperty("org.sireum.home")).map(p => Os.path(p).canon)
     }
-    if (r.nonEmpty) r
+    if (r.nonEmpty) Some(r.get)
     else try {
       val uri = getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toASCIIString
       val i = uri.indexOf(".jar")
@@ -94,35 +94,35 @@ object Sireum extends scala.App {
         val path = Os.path(
           new java.io.File(new java.net.URI(uri.substring(0, uri.lastIndexOf('/', i)))).getCanonicalPath
         ).up
-        if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) scala.Some(path)
-        else scala.None
-      } else scala.None
+        if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path)
+        else None()
+      } else None()
     } catch {
-      case _: Throwable => scala.None
+      case _: Throwable => None()
     }
   }
 
-  lazy val javaHomeOpt: scala.Option[Os.Path] = {
-    val rOpt = scala.Option(System.getenv("JAVA_HOME")).map(Os.path(_))
-    rOpt match {
-      case scala.None =>
-        homeOpt.map(_ / "bin" / platform / "java") match {
-          case scala.None => scala.None
-          case r => if (r.get.exists) r else scala.None
-        }
-      case _ => rOpt
+  lazy val javaHomeOpt: Option[Os.Path] = {
+    var rOpt = Os.env("JAVA_HOME").map(Os.path(_))
+    if (rOpt.isEmpty) {
+      rOpt = homeOpt.map(_ / "bin" / platform / "java")
+      rOpt match {
+        case Some(r) if r.exists =>
+        case _ => rOpt = None()
+      }
     }
+    rOpt
   }
-  lazy val scalaHomeOpt: scala.Option[Os.Path] = {
-    val rOpt = scala.Option(System.getenv("SCALA_HOME")).map(Os.path(_))
-    rOpt match {
-      case scala.None =>
-        homeOpt.map(_ / "bin" / "scala") match {
-          case scala.None => scala.None
-          case r => if (r.get.exists) r else scala.None
-        }
-      case _ => rOpt
+  lazy val scalaHomeOpt: Option[Os.Path] = {
+    var rOpt: Option[Os.Path] = Os.env("SCALA_HOME").map(Os.path(_))
+    if (rOpt.isEmpty) {
+      rOpt = homeOpt.map(_ / "bin" / "scala")
+      rOpt match {
+        case Some(r) if r.exists =>
+        case _ => rOpt = None()
+      }
     }
+    rOpt
   }
   lazy val scalacPluginJar: Os.Path = homeOpt.get / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
   lazy val sireumJar: Os.Path = homeOpt.get / "bin" / "sireum.jar"

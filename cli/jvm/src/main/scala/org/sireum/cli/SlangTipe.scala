@@ -38,18 +38,18 @@ import org.sireum.Cli._
 
 object SlangTipe {
 
-  val InvalidLibrary: Int = -1
-  val InvalidMode: Int = -2
-  val InvalidPath: Int = -3
-  val InvalidFile: Int = -4
-  val InvalidSources: Int = -5
-  val InvalidSlangFiles: Int = -6
-  val InvalidForceNames: Int = -7
-  val InternalError: Int = -8
-  val SavingError: Int = -9
-  val LoadingError: Int = -10
+  val InvalidLibrary: Z = -1
+  val InvalidMode: Z = -2
+  val InvalidPath: Z = -3
+  val InvalidFile: Z = -4
+  val InvalidSources: Z = -5
+  val InvalidSlangFiles: Z = -6
+  val InvalidForceNames: Z = -7
+  val InternalError: Z = -8
+  val SavingError: Z = -9
+  val LoadingError: Z = -10
 
-  def run(o: SlangTipeOption, reporter: Reporter): Int = {
+  def run(o: SlangTipeOption, reporter: Reporter): Z = {
 
     def readFile(f: Os.Path): (Option[String], String) = {
       (Some(f.toUri), f.read)

@@ -32,31 +32,33 @@ import org.sireum.eprintln
 
 object SlangRunner {
 
-  val HomeNotFound: Int = -1
-  val NativeUnavailable: Int = -2
-  val InvalidOutput: Int = -3
-  val GraalError: Int = -4
+  val HomeNotFound: Z = -1
+  val NativeUnavailable: Z = -2
+  val InvalidOutput: Z = -3
+  val GraalError: Z = -4
 
-  def run(o: SlangRunOption): Int = {
+  def run(o: SlangRunOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
       return 0
     }
-    if (!homeFound) return HomeNotFound
+    if (!homeFound) {
+      return HomeNotFound
+    }
     val isWin = Os.isWin
     if (o.nativ && isWin) {
       eprintln("Native code generation is not currently available for Windows")
       return NativeUnavailable
     }
-    val scalaExe = scalaHomeOpt match {
-      case scala.Some(scalaHome) => scalaHome / "bin" / (if (isWin) "scala.bat" else "scala")
+    val scalaExe: Os.Path = scalaHomeOpt match {
+      case Some(scalaHome) => scalaHome / "bin" / (if (isWin) "scala.bat" else "scala")
       case _ => Os.path(if (isWin) "scala.bat" else "scala")
     }
     val inputOpt = path2fileOpt("input", o.input, T)
-    val isConsole =
+    val isConsole: B =
       path2fileOpt("output", o.output, F) match {
-        case scala.Some(p) =>
+        case Some(p) =>
           if (p == Os.Path.Kind.Dir) {
             eprintln(s"Output $p cannot be a directory")
             eprintln()
@@ -70,11 +72,13 @@ object SlangRunner {
               eprintln(s"Could not create parent directory of $p")
               eprintln()
               return InvalidOutput
-            } else F
+            } else {
+              F
+            }
           }
         case _ => T
       }
-    val script = path2fileOpt("Slang script", Some(o.args(0).value), checkExist = T).get
+    val script = path2fileOpt("Slang script", Some(o.args(0).value), T).get
     val wd = script.up
     var command: ISZ[String] = ISZ(
       scalaExe.string,
@@ -88,16 +92,22 @@ object SlangRunner {
       "-unchecked",
       "-feature"
     )
-    if (o.nativ) command :+= "-save"
-    if (o.transformed) command :+= "-Xprint:sireum"
-    if (o.server) command :+= "-nc"
-    command :+= script.name
-    command :+= wd.string
+    if (o.nativ) {
+      command = command :+ "-save"
+    }
+    if (o.transformed) {
+      command = command :+ "-Xprint:sireum"
+    }
+    if (o.server) {
+      command = command :+ "-nc"
+    }
+    command = command :+ script.name
+    command = command :+ wd.string
     for (i <- 1 until o.args.size) {
       command :+= o.args(i)
     }
-    val inOpt = inputOpt match {
-      case scala.Some(f) => Some(f.read)
+    val inOpt: Option[String] = inputOpt match {
+      case Some(f) => Some(f.read)
       case _ =>
         val p = wd / s"${script.name}.txt"
         if (p.exists) Some(p.read) else None()
@@ -105,13 +115,13 @@ object SlangRunner {
     val jarFile = wd / s"${script.name}.jar"
     var env = ISZ[(String, String)]()
     javaHomeOpt match {
-      case scala.Some(javaHome) =>
+      case Some(javaHome) =>
         env :+= "JAVA_HOME" ~> javaHome.string
         env :+= "PATH" ~> s"$javaHome${Os.fileSep}bin${Os.pathSep}${Os.env("PATH").get}"
       case _ =>
     }
     scalaHomeOpt match {
-      case scala.Some(scalaHome) => env :+= "SCALA_HOME" ~> scalaHome.string
+      case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
       case _ =>
     }
     try {
@@ -132,9 +142,11 @@ object SlangRunner {
         return r.exitCode.toInt
       } else if (o.nativ) {
         command = ISZ("native-image", "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
-        if (Os.kind != Os.Kind.Mac) command :+= "--static"
+        if (Os.kind != Os.Kind.Mac) {
+          command = command :+ "--static"
+        }
         val nativeName = s"${script.name}.native"
-        command :+= nativeName
+        command = command :+ nativeName
         r = Os.proc(command).at(jarFile.up).run()
         if (r.ok) {
           (wd / s"$nativeName.o").removeAll()

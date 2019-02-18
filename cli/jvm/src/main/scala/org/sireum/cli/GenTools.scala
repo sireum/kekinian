@@ -32,7 +32,7 @@ import org.sireum.tools._
 
 object GenTools {
 
-  def cliGen(o: Cli.CligenOption): Int =
+  def cliGen(o: Cli.CligenOption): Z =
     try {
       o.args.size match {
         case z"0" => println(o.help); return 0
@@ -74,7 +74,7 @@ object GenTools {
         -1
     }
 
-  def iveGen(o: Cli.IvegenOption): Int =
+  def iveGen(o: Cli.IvegenOption): Z =
     if (o.args.size != 1) {
       println(o.help)
       0
@@ -316,7 +316,7 @@ object GenTools {
       0
     }
 
-  def serGen(o: Cli.SergenOption): Int =
+  def serGen(o: Cli.SergenOption): Z =
     try {
       if (o.args.isEmpty) {
         println(o.help)
@@ -363,7 +363,7 @@ object GenTools {
         -1
     }
 
-  def transGen(o: Cli.TransgenOption): Int =
+  def transGen(o: Cli.TransgenOption): Z =
     try {
       o.args.size match {
         case z"0" => println(o.help); return 0
