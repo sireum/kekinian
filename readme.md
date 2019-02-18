@@ -96,14 +96,24 @@ minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -Vm <instal
 
 #### Setup
 
-In a `sh` terminal:
+In a console terminal:
 
-```bash
-git clone https://github.com/sireum/kekinian
-kekinian/bin/setup.sh
-```
+* **macOs/Linux**:
 
-To update later on, simply re-run the `setup.sh` script.
+  ```bash
+  git clone https://github.com/sireum/kekinian
+  kekinian/bin/build.cmd setup
+  ```
+
+* **Windows**:
+
+  ```cmd
+  git clone https://github.com/sireum/kekinian
+  kekinian\bin\build.cmd setup
+  ```
+
+
+To update later on, simply re-run `build.cmd setup`.
 
 
 ## Using Sireum IVE
@@ -133,7 +143,7 @@ and launch Sireum IVE:
 
 * **Windows**:
 
-  ```batch
+  ```cmd
   REM Generates .\hello project directory with .\hello\src\script.sc
   %SIREUM_HOME%\bin\sireum.bat tools ivegen . 
   cmd /C %SIREUM_HOME%\bin\win\idea\bin\IVE.exe
@@ -177,7 +187,7 @@ and launch Sireum IVE:
 
 * **Windows**:
 
-  ```batch
+  ```cmd
   REM Generates .\hello-app project directory with .\hello-app\hello-app\src\app.scala
   %SIREUM_HOME%\bin\sireum.bat tools ivegen -m mill -n hello-app . 
   ```
@@ -193,33 +203,58 @@ directory of `SIREUM_HOME`.
 ### Sireum Kekinian Development
 
 Sireum is best developed (browsed/edited) by using Sireum IVE itself. 
-To setup IVE for Sireum development, first run the following in 
-a `sh` terminal:
+The `build.cmd setup` command above setup IVE for Sireum development.
+If you want to re-run just the IVE project re-generation, do the following in 
+a terminal:
 
-```bash
-${SIREUM_HOME}/bin/setup-project.sh
-```
+* **macOS/Linux**:
+
+  ```bash
+  ${SIREUM_HOME}/bin/build.cmd project
+  ```
+
+* **Windows**:
+
+  ```cmd
+  ${SIREUM_HOME}\bin\build.cmd project
+  ```
 
 Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
 
 To have the codebase and its test suites recompiled upon changes, run:
 
-```bash
-cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
-```
+* **macOS/Linux**:
 
-and to build its assembly:
 
-```bash
-${SIREUM_HOME} && bin/mill build
-```
+  ```bash
+  cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
+  ```
+
+  and to build its assembly:
+
+  ```bash
+  cd ${SIREUM_HOME} && bin/mill build
+  ```
+
+* **Windows**:
+
+
+  ```cmd
+  cd %SIREUM_HOME% && bin\mill.bat -w cli.tests.compile
+  ```
+
+  and to build its assembly:
+
+  ```cmd
+  cd %SIREUM_HOME% && bin\mill.bat build
+  ```
 
 #### Sireum Native Executable
 
-To build native executable (currently only available under macOS or Linux):
+To build native executable (currently only available under macOS or Linux; for macOS, GraalVM is assumed to be available in the PATH env var):
 
 ```bash
-${SIREUM_HOME}/build-native.sh
+${SIREUM_HOME}/bin/build.cmd native
 ```
 
 To run:

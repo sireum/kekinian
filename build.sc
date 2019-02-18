@@ -113,30 +113,15 @@ object cli extends Cli.Module {
 object bin extends ScalaModule {
   final override def scalaVersion = SireumModule.scalaVersion
   final override def moduleDeps = Seq(runtime.library.jvm)
+
+  object `mill-build` extends mill.Module {
+    object bin extends ScalaModule {
+      final override def scalaVersion = SireumModule.scalaVersion
+      final override def moduleDeps = Seq(runtime.library.jvm)
+    }
+  }
 }
 
-
-
-val libFiles = os.pwd / 'runtime / 'library / 'shared / 'src / 'main / 'scala / 'org / 'sireum / "Library_Ext.scala"
-
-val slangFiles = os.pwd / 'slang / 'frontend / 'shared / 'src / 'main / 'scala / 'org / 'sireum / 'lang / "$SlangFiles.scala"
-
-def toucheSlang() = T.command {
-  touchePath(slangFiles)
-}
-
-def toucheLib() = T.command {
-  touchePath(libFiles)
-}
-
-def toucheMacro() = T.command {
-  touchePath(os.pwd / 'runtime / 'macros / 'shared / 'src / 'main / 'scala / 'org / 'sireum / '$internal / "Macro.scala")
-}
-
-def touche() = T.command {
-  touchePath(libFiles)
-  touchePath(slangFiles)
-}
 
 def build() = T.command {
   val jar = os.pwd / 'bin / "sireum.jar"
@@ -187,14 +172,4 @@ private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
   if (out.trim.nonEmpty) logger.info(out)
   if (err.trim.nonEmpty) logger.error(err)
   if (r.exitCode != 0) System.exit(r.exitCode)
-}
-
-private def touchePath(path: Path): Unit = {
-  val content = os.read(path)
-  val lineSep = System.lineSeparator
-  if (content.endsWith(lineSep)) {
-    os.write.over(path, content.trim)
-  } else {
-    os.write.over(path, content + lineSep)
-  }
 }
