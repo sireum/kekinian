@@ -81,13 +81,14 @@ def buildMill(): Unit = {
   if (!(millBuild / "versions.properties").exists) {
     (home / "versions.properties").copyOverTo(millBuild / "versions.properties")
   }
-  if (!(millBuildBin / "scala").exists) {
+  if (!(millBuildBin / "scala").exists && (homeBin / "scala").exists) {
     (homeBin / "scala").copyOverTo(millBuildBin / "scala")
   }
   if (!(millBuild / "lib").exists) {
     (home / "lib").copyOverTo(millBuild / "lib")
   }
-  if (Os.kind != Os.Kind.Unsupported && !(millBuildBin / platform / "java").exists) {
+  if (Os.kind != Os.Kind.Unsupported && !(millBuildBin / platform / "java").exists &&
+    (homeBin / platform / "java").exists) {
     (homeBin / platform / "java").copyOverTo(millBuildBin / platform / "java")
   }
   Os.proc(ISZ((millBuildBin / "build.cmd").string)).console.runCheck()
