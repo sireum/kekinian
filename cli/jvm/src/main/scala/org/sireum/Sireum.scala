@@ -132,8 +132,7 @@ object Sireum extends scala.App {
     else homeOpt.get / "bin" / platform / "idea"
   lazy val ideaLibDir: Os.Path = ideaDir / "lib"
   lazy val ideaPluginsDir: Os.Path = ideaDir / "plugins"
-
-  lazy val (isDev, javaVer, scalaVer, scalacPluginVer) = {
+  lazy val versions: Map[String, String] = {
     val p = new java.util.Properties
     p.load(new java.io.StringReader(
       org.sireum.$internal.RC
@@ -142,11 +141,20 @@ object Sireum extends scala.App {
         }
         .head
         ._2))
-    ("false" == p.get("org.sireum.version.dev"),
-      if (Os.kind == Os.Kind.Linux) String(s"1.8-GraalVM-${p.get("org.sireum.version.graal")}")
-      else String(s"1.8-Zulu-${p.get("org.sireum.version.zulu")}"),
-      String(p.get("org.sireum.version.scala").toString),
-      String(p.get("org.sireum.version.scalac-plugin").toString))
+    var r = Map.empty[String, String]
+    import scala.collection.JavaConverters._
+    for (key <- p.keys().asScala) {
+      r = r + key.toString ~> p.get(key).toString
+    }
+    r
+  }
+
+  lazy val (isDev, javaVer, scalaVer, scalacPluginVer): (B, String, String, String) = {
+    (Some("false") == versions.get("org.sireum.version.dev"),
+      if (Os.kind == Os.Kind.Linux) s"1.8-GraalVM-${versions.get("org.sireum.version.graal").get}"
+      else s"1.8-Zulu-${versions.get("org.sireum.version.zulu").get}",
+      versions.get("org.sireum.version.scala").get,
+      versions.get("org.sireum.version.scalac-plugin").get)
   }
 
   def homeFound: B = {
