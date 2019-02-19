@@ -17,10 +17,10 @@ import org.sireum._
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup        | project      | bin        | native
-        |       | tipe         | compile      | test       | test-js
-        |       | touche       | touche-macro | touche-lib | touche-slang
-        |       | regen-cliopt | regen-slang  | regen-cli  | m2           )*
+        |Usage: ( setup        | project      | bin          | native
+        |       | tipe         | compile      | test         | test-js
+        |       | touche       | touche-lib   | touche-slang
+        |       | regen-cliopt | regen-slang  | regen-cli    | m2      )*
       """.render)
 }
 
@@ -36,7 +36,6 @@ val home = homeBin.up
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
-val macroFiles = home / "runtime" / "macros" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "$internal" / "Macro.scala"
 val libFiles = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "Library_Ext.scala"
 val slangFiles = home / "slang" / "frontend" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "$SlangFiles.scala"
 var didTipe = F
@@ -97,12 +96,12 @@ def buildMill(): Unit = {
 }
 
 
-def build(env: ISZ[(String, String)]): Unit = {
+def build(): Unit = {
   if (!didBuild) {
     didBuild = T
     println("Building ...")
     touche()
-    Os.proc(ISZ(mill.string, "build")).env(env).at(home).console.runCheck()
+    Os.proc(ISZ(mill.string, "build")).at(home).console.runCheck()
     touche()
     println()
   }
@@ -116,7 +115,7 @@ def nativ(): Unit = {
     Os.exit(-1)
   }
   val flags: ISZ[String] = if (Os.isLinux) ISZ("--static") else ISZ()
-  build(ISZ("SIREUM_NATIVE" ~> "true"))
+  build()
   println("Building native ...")
   val platDir = homeBin / platform
   Os.proc(("native-image" +: flags) ++
@@ -266,7 +265,7 @@ def m2(): Unit = {
 
 
 def project(): Unit = {
-  build(ISZ())
+  build()
   println("Generating IVE project ...")
   if (!Os.isWin) {
     Os.proc(ISZ((homeBin / "mill-build" / "bin" / "build.cmd").string, "dev")).console.runCheck()
@@ -281,7 +280,7 @@ def setup(): Unit = {
     Os.proc(ISZ("git", "submodule", "update", "--init", "--recursive", "--remote")).at(home).runCheck()
     Os.proc(ISZ("git", "pull", "--recurse-submodules")).at(home).runCheck()
   }
-  build(ISZ())
+  build()
   Os.proc(ISZ(mill.string, "IVE")).at(home).console.run()
   project()
   Os.kind match {
@@ -311,11 +310,11 @@ def setup(): Unit = {
 buildMill()
 
 Os.cliArgs.size match {
-  case z"1" => build(ISZ())
+  case z"1" => build()
   case n =>
     for (i <- 1 until n) {
       Os.cliArgs(i) match {
-        case string"bin" => build(ISZ())
+        case string"bin" => build()
         case string"native" => nativ()
         case string"setup" => setup()
         case string"project" => project()
@@ -324,7 +323,6 @@ Os.cliArgs.size match {
         case string"test" => test()
         case string"test-js" => testJs()
         case string"touche" => touche()
-        case string"touche-macro" => touchePath(macroFiles)
         case string"touche-lib" => touchePath(libFiles)
         case string"touche-slang" => touchePath(slangFiles)
         case string"regen-cliopt" => regenCliOpt()
