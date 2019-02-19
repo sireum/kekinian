@@ -276,10 +276,6 @@ def project(): Unit = {
 
 def setup(): Unit = {
   println("Setup ...")
-  if (!(home / "runtime" / "build.sc").exists) {
-    Os.proc(ISZ("git", "submodule", "update", "--init", "--recursive", "--remote")).at(home).runCheck()
-    Os.proc(ISZ("git", "pull", "--recurse-submodules")).at(home).runCheck()
-  }
   build()
   Os.proc(ISZ(mill.string, "IVE")).at(home).console.run()
   project()
@@ -306,6 +302,11 @@ def setup(): Unit = {
   }
 }
 
+
+if (!(home / "runtime" / "build.sc").exists) {
+  Os.proc(ISZ("git", "submodule", "update", "--init", "--recursive", "--remote")).at(home).runCheck()
+  Os.proc(ISZ("git", "pull", "--recurse-submodules")).at(home).runCheck()
+}
 
 buildMill()
 
