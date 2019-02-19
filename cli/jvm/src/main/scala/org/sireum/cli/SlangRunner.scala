@@ -46,14 +46,9 @@ object SlangRunner {
     if (!homeFound) {
       return HomeNotFound
     }
-    val isWin = Os.isWin
-    if (o.nativ && isWin) {
-      eprintln("Native code generation is not currently available for Windows")
-      return NativeUnavailable
-    }
     val scalaExe: Os.Path = scalaHomeOpt match {
-      case Some(scalaHome) => scalaHome / "bin" / (if (isWin) "scala.bat" else "scala")
-      case _ => Os.path(if (isWin) "scala.bat" else "scala")
+      case Some(scalaHome) => scalaHome / "bin" / (if (Os.isWin) "scala.bat" else "scala")
+      case _ => Os.path(if (Os.isWin) "scala.bat" else "scala")
     }
     val inputOpt = path2fileOpt("input", o.input, T)
     val isConsole: B =
@@ -124,42 +119,43 @@ object SlangRunner {
       case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
       case _ =>
     }
-    try {
-      var p = Os.proc(command).at(wd).env(env)
-      if (isConsole) {
-        p = p.console
-      } else {
-        p = p.redirectErr
-      }
-      inOpt match {
-        case Some(in) => p.input(in)
-        case _ =>
-      }
-      var r = p.run()
-      if (!r.ok) {
-        eprintln(s"Error encountered when running $script, exit code: ${r.exitCode}")
-        eprint(r.err)
-        return r.exitCode.toInt
-      } else if (o.nativ) {
-        command = ISZ("native-image", "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
-        if (Os.kind != Os.Kind.Mac) {
-          command = command :+ "--static"
-        }
-        val nativeName = s"${script.name}.native"
-        command = command :+ nativeName
-        r = Os.proc(command).at(jarFile.up).run()
-        if (r.ok) {
-          (wd / s"$nativeName.o").removeAll()
-          println(s"Generated native executable ${wd / nativeName}")
-          return 0
-        } else {
-          eprintln(s"Failed to generate native executable ${wd / nativeName}, exit code: ${r.exitCode}")
-          eprint(r.err)
-          return GraalError
-        }
-      } else {
+    var p = Os.proc(command).at(wd).env(env)
+    if (jarFile.exists) {
+      jarFile.removeOnExit()
+    }
+    if (isConsole) {
+      p = p.console
+    } else {
+      p = p.redirectErr
+    }
+    inOpt match {
+      case Some(in) => p.input(in)
+      case _ =>
+    }
+    var r = p.runCheck()
+    if (o.nativ) {
+      r = Os.proc(ISZ("native-image", "--version")).run()
+      if (!r.ok || ops.StringOps(r.out).contains("GraalVM")) {
         return 0
       }
-    } finally jarFile.removeAll()
+      command = ISZ("native-image", "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
+      if (Os.kind != Os.Kind.Mac) {
+        command = command :+ "--static"
+      }
+      val nativeName = s"${script.name}.native"
+      command = command :+ nativeName
+      r = Os.proc(command).at(jarFile.up).run()
+      if (r.ok) {
+        (wd / s"$nativeName.o").removeAll()
+        println(s"Generated native executable ${wd / nativeName}")
+        return 0
+      } else {
+        eprintln(s"Failed to generate native executable ${wd / nativeName}, exit code: ${r.exitCode}")
+        eprint(r.err)
+        return GraalError
+      }
+    } else {
+      return 0
+    }
   }
 }
