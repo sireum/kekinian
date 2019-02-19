@@ -172,10 +172,10 @@ def test(): Unit = {
 def testJs(): Unit = {
   compile()
   Os.proc(ISZ(mill.string, "all",
-    "runtime.library.shared.tests",
-    "slang.parser.shared.tests",
-    "slang.frontend.shared.tests",
-    "alir.shared.tests")).at(home).console.runCheck()
+    "runtime.library.js.tests",
+    "slang.parser.js.tests",
+    "slang.frontend.js.tests",
+    "alir.js.tests")).at(home).console.runCheck()
 }
 
 
