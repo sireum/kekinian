@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 MAINTAINER Robby <robby@k-state.edu>
 RUN apt-get update && \
     apt-get install -y wget git zip unzip libgomp1 xz-utils build-essential automake cmake aspcud curl python \
-                       locales bc libc6-dev libgmp-dev libsodium-dev nano software-properties-common && \
+                       locales bc libc6-dev libgmp-dev libsodium-dev nano software-properties-common zlib1g-dev gcc && \
     add-apt-repository universe && \
     apt-get update && \
     apt-get install -y p7zip-full && \
