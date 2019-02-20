@@ -81,7 +81,8 @@ object GenTools {
     } else {
       val HomeNotFound = -1
       val JavaOrScalaNotFound = -2
-      val InvalidDir = -3
+      val IveNotFound = -3
+      val InvalidDir = -4
 
       val d = path2fileOpt("project parent folder", Some(o.args(0)), F).get
       if (!d.exists) {
@@ -96,6 +97,10 @@ object GenTools {
 
       if (!homeFound) return HomeNotFound
       if (!(javaFound && scalaFound)) return JavaOrScalaNotFound
+      if (!ideaDir.exists) {
+        eprintln("Could not find IVE installation; please use either Sireum's binary sfx or source distribution")
+        return IveNotFound
+      }
       val home = homeOpt.get
       val javaHome = javaHomeOpt.get
       val scalaHome = scalaHomeOpt.get

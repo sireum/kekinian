@@ -1,13 +1,45 @@
-::#! 2> /dev/null                                   #
-@ 2>/dev/null # 2>nul & echo off & goto BOF         #
-SCRIPT_HOME=$(cd "$(dirname "$0")" && pwd)          #
-if [ ! -f ${SCRIPT_HOME}/sireum.jar ]; then         #
-  ${SCRIPT_HOME}/init.sh                            #
-fi                                                  #
-exec ${SCRIPT_HOME}/sireum slang run -s "$0" "$@"   #
+::#! 2> /dev/null                                                          #
+@ 2>/dev/null # 2>nul & echo off & goto BOF                                #
+export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                   #
+if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                               #
+  SIREUM_PROVIDED_JAVA=true                                                #
+fi                                                                         #
+if [ ! -f "${SIREUM_HOME}/bin/sireum.jar" ]; then                          #
+  "${SIREUM_HOME}/bin/init.sh"                                             #
+fi                                                                         #
+if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                #
+  PLATFORM="win"                                                           #
+  export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})                #
+  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                #
+    export JAVA_HOME="${SIREUM_HOME}\\bin\\win\\java"                      #
+    export PATH="${SIREUM_HOME}/bin/win/java":$PATH                        #
+    export PATH="$(cygpath -C OEM -w -a ${JAVA_HOME}/bin)":$PATH           #
+  fi                                                                       #
+elif [ "$(uname)" = "Darwin" ]; then                                       #
+  PLATFORM="mac"                                                           #
+  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                #
+    export JAVA_HOME="${SIREUM_HOME}/bin/mac/java"                         #
+    export PATH="${JAVA_HOME}/bin":$PATH                                   #
+  fi                                                                       #
+elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                  #
+  PLATFORM="linux"                                                         #
+  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                #
+    export JAVA_HOME="${SIREUM_HOME}/bin/linux/java"                       #
+    export PATH="${JAVA_HOME}/bin":$PATH                                   #
+  fi                                                                       #
+fi                                                                         #
+if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                          #
+  exec "$0.com" "$@"                                                       #
+else                                                                       #
+  rm -fR "$0.com"                                                          #
+  exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"               #
+fi                                                                         #
 :BOF
-if not exist %~dp0sireum.jar call %~dp0init.bat
-%~dp0sireum.bat slang run -s "%0" %*
+set SIREUM_HOME="%~dp0..\"
+if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
+if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
+if not defined SIREUM_PROVIDED_JAVA set PATH="%~dp0win\java\bin":%PATH%
+"%~dp0sireum.bat" slang run -s "%0" %*
 exit /B %errorlevel%
 ::!#
 // #Sireum
@@ -25,13 +57,7 @@ def usage(): Unit = {
 }
 
 
-if (Os.cliArgs.size < 1) {
-  usage()
-  Os.exit(0)
-}
-
-
-val homeBin = Os.path(Os.cliArgs(0))
+val homeBin: Os.Path = Os.slashDir
 val home = homeBin.up
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
@@ -71,13 +97,16 @@ def touche(): Unit = {
 def buildMill(): Unit = {
   val millBuild = homeBin / "mill-build"
   val millBuildBin = millBuild / "bin"
-  if (!(millBuildBin / "sireum.jar").exists) {
+  if (!(millBuildBin / "sireum.jar").exists ||
+    (homeBin / "sireum.jar").lastModified > (millBuildBin / "sireum.jar").lastModified) {
     (homeBin / "sireum.jar").copyOverTo(millBuildBin / "sireum.jar")
   }
-  if (!(millBuildBin / sireum.name).exists) {
+  if (!(millBuildBin / sireum.name).exists ||
+    sireum.lastModified > (millBuildBin / sireum.name).lastModified) {
     sireum.copyOverTo(millBuildBin / sireum.name)
   }
-  if (!(millBuild / "versions.properties").exists) {
+  if (!(millBuild / "versions.properties").exists ||
+    (millBuild / "versions.properties").lastModified > (millBuild / "versions.properties").lastModified) {
     (home / "versions.properties").copyOverTo(millBuild / "versions.properties")
   }
   if (!(millBuildBin / "scala").exists && (homeBin / "scala").exists) {
@@ -86,11 +115,10 @@ def buildMill(): Unit = {
   if (!(millBuild / "lib").exists) {
     (home / "lib").copyOverTo(millBuild / "lib")
   }
-  if (Os.kind != Os.Kind.Unsupported && !(millBuildBin / platform / "java").exists &&
-    (homeBin / platform / "java").exists) {
+  if (!(millBuildBin / platform / "java").exists && (homeBin / platform / "java").exists) {
     (homeBin / platform / "java").copyOverTo(millBuildBin / platform / "java")
   }
-  Os.proc(ISZ((millBuildBin / "build.cmd").string)).console.runCheck()
+  (millBuildBin / "build.cmd").slash(ISZ())
   (millBuild / "mill-standalone").copyOverTo(homeBin / "mill")
   (millBuild / "mill-standalone.bat").copyOverTo(homeBin / "mill.bat")
 }
@@ -119,7 +147,8 @@ def nativ(): Unit = {
   println("Building native ...")
   val platDir = homeBin / platform
   Os.proc(("native-image" +: flags) ++
-    ISZ[String]("--no-server", "-jar", sireumJar.string, (platDir / "sireum").string)).
+    ISZ[String]("--no-server", "-jar",
+      sireumJar.string, (platDir / "sireum").string)).
     console.runCheck()
   (platDir / "sireum.o").removeAll()
 }
@@ -175,7 +204,7 @@ def testJs(): Unit = {
     "runtime.library.js.tests",
     "slang.parser.js.tests",
     "slang.frontend.js.tests",
-    "alir.js.tests")).at(home).console.runCheck()
+    "alir.js.tests")).at(home).env(ISZ("NODEJS_MAX_HEAP" ~> "4096")).console.runCheck()
 }
 
 
@@ -310,33 +339,33 @@ if (!(home / "runtime" / "build.sc").exists) {
 
 buildMill()
 
-Os.cliArgs.size match {
-  case z"1" => build()
-  case n =>
-    for (i <- 1 until n) {
-      Os.cliArgs(i) match {
-        case string"bin" => build()
-        case string"native" => nativ()
-        case string"setup" => setup()
-        case string"project" => project()
-        case string"tipe" => tipe()
-        case string"compile" => compile()
-        case string"test" => test()
-        case string"test-js" => testJs()
-        case string"touche" => touche()
-        case string"touche-lib" => touchePath(libFiles)
-        case string"touche-slang" => touchePath(slangFiles)
-        case string"regen-cliopt" => regenCliOpt()
-        case string"regen-slang" => regenSlang()
-        case string"regen-cli" => regenSlang()
-        case string"m2" => m2()
-        case string"-h" => usage()
-        case string"--help" => usage()
-        //case string"jitpack" => jitpack()
-        case cmd =>
-          usage()
-          eprintln(s"Unrecognized command: $cmd")
-          Os.exit(-1)
-      }
+if (Os.cliArgs.isEmpty) {
+  build()
+} else {
+  for (i <- 0 until Os.cliArgs.size) {
+    Os.cliArgs(i) match {
+      case string"bin" => build()
+      case string"native" => nativ()
+      case string"setup" => setup()
+      case string"project" => project()
+      case string"tipe" => tipe()
+      case string"compile" => compile()
+      case string"test" => test()
+      case string"test-js" => testJs()
+      case string"touche" => touche()
+      case string"touche-lib" => touchePath(libFiles)
+      case string"touche-slang" => touchePath(slangFiles)
+      case string"regen-cliopt" => regenCliOpt()
+      case string"regen-slang" => regenSlang()
+      case string"regen-cli" => regenSlang()
+      case string"m2" => m2()
+      case string"-h" => usage()
+      case string"--help" => usage()
+      //case string"jitpack" => jitpack()
+      case cmd =>
+        usage()
+        eprintln(s"Unrecognized command: $cmd")
+        Os.exit(-1)
     }
+  }
 }
