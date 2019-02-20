@@ -14,7 +14,7 @@ build:
       if [[ ! `git show -s HEAD | grep -F -q "[skip shippable]"` ]]; then
         mkdir -p $HOME/.coursier &&
         git submodule update --init --recursive &&
-        bin/build.cmd test test-js;
+        bin/build.cmd test;
       fi
   post_ci:
   on_success:
