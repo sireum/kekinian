@@ -34,10 +34,13 @@ object Init {
                        scalacPlugin: Os.Path,
                        sireumJar: Os.Path)
 
-  val home: Os.Path = Os.kind match {
-    case Os.Kind.Win => Os.home / "AppData" / "Local" / "Sireum"
-    case Os.Kind.Mac => Os.home / "Library" / "Application Support" / "org.sireum"
-    case _ => Os.home / ".sireum"
+  @memoize def home: Os.Path = {
+    val r: Os.Path = Os.kind match {
+      case Os.Kind.Win => Os.home / "AppData" / "Local" / "Sireum"
+      case Os.Kind.Mac => Os.home / "Library" / "Application Support" / "org.sireum"
+      case _ => Os.home / ".sireum"
+    }
+    return r
   }
 
   def info(version: String, versions: Map[String, String]): Info = {
