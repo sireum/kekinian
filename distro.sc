@@ -129,7 +129,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       else ideaDir / 'lib
 
     val version = {
-      val v = %%('git, 'log, "-n", "1", "--pretty=format:%H")(pwd).out.lines.head.trim
+      val v = %%("git", "log", "-n", "1", "--date=format:%Y%m%d", "--pretty=format:4.%cd.%h")(pwd).out.lines.head.trim
       os.write.over(pwd / 'bin / 'VER, v)
       v
     }
@@ -375,7 +375,6 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     }
 
     def setupMac(ideaDrop: Path): Unit = {
-      val ideaDirParent = ideaDir / os.up
       %%('hdiutil, 'attach, ideaDrop)(pwd)
       val dirPath = os.list(os.root / 'Volumes).find(_.last.startsWith("IntelliJ")).get
       val appPath = dirPath / os.list(dirPath).find(_.last.endsWith(".app")).get.last
@@ -448,7 +447,6 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       os.remove.all(r)
       print(s"Packaging $r ... ")
       val distro7z = s"$platform.7z"
-      val distro = s"$platform.sfx"
       val setupDir = pwd / 'distro / (if (isDev) 'dev else 'release)
       val setups = os.list(setupDir)
       val shouldClone = clone || scala.util.Properties.isWin
