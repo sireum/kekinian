@@ -49,7 +49,7 @@ object Init {
       val r = Os.proc(ISZ(sireumJar.string, "-v")).run()
       if (!r.ok || !ops.StringOps(r.out).contains(version)) {
         sireumJar.removeAll()
-        eprintln(s"Failed to download Sireum v$version")
+        eprintln(s"Failed to download Sireum jar assembly v$version")
         Os.exit(-1)
       }
     }
