@@ -101,14 +101,14 @@ In a console terminal:
 * **macOs/Linux**:
 
   ```bash
-  git clone https://github.com/sireum/kekinian
+  git clone --recursive https://github.com/sireum/kekinian
   kekinian/bin/build.cmd setup
   ```
 
 * **Windows**:
 
   ```cmd
-  git clone https://github.com/sireum/kekinian
+  git clone --recursive https://github.com/sireum/kekinian
   kekinian\bin\build.cmd setup
   ```
 

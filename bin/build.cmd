@@ -334,8 +334,9 @@ def setup(): Unit = {
 
 
 if (!(home / "runtime" / "build.sc").exists) {
-  Os.proc(ISZ("git", "submodule", "update", "--init", "--recursive", "--remote")).at(home).runCheck()
-  Os.proc(ISZ("git", "pull", "--recurse-submodules")).at(home).runCheck()
+  eprintln("Some sub-modules are not present; please clone recursively or run:")
+  eprintln("git submodule update --init --recursive --remote")
+  Os.exit(-1)
 }
 
 buildMill()

@@ -127,6 +127,7 @@ if ($java_update) {
   }
   "Extracting Zulu JDK $java_version ... "
   Expand-Archive "$java_drop" -DestinationPath "$sireum_home\bin\win"
+  ""
   if (Test-Path "$sireum_home\bin\win\java") {
     Remove-Item -Path "$sireum_home\bin\win\java" -Recurse -Force
   }

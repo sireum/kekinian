@@ -72,10 +72,18 @@ object SlangRunner {
       }
     val script = path2fileOpt("Slang script", Some(o.args(0).value), T).get
     val wd = script.up
+    val sJar: Os.Path = if (Os.isWin) {
+      val tempJar = Os.tempFix("", ".jar")
+      sireumJar.copyOverTo(tempJar)
+      tempJar.removeOnExit()
+      tempJar
+    } else {
+      sireumJar
+    }
     var command: ISZ[String] = ISZ(
       scalaExe.string,
       "-bootclasspath",
-      sireumJar.string,
+      sJar.string,
       s"-Xplugin:$scalacPluginJar",
       "-classpath",
       wd.string,
@@ -104,7 +112,7 @@ object SlangRunner {
         if (p.exists) Some(p.read) else None()
     }
     val jarFile = wd / s"${script.name}.jar"
-    var env = ISZ[(String, String)]()
+    var env = ISZ("SLASH_DIR" ~> wd.string)
     val nativeImage: Os.Path = javaHomeOpt match {
       case Some(javaHome) =>
         env :+= "JAVA_HOME" ~> javaHome.string
@@ -142,7 +150,7 @@ object SlangRunner {
         return 0
       }
       println(s"Generating native image $nativ ...")
-      command = ISZ(nativeImage.string, "--no-server", "-cp", sireumJar.string, "-jar", jarFile.name)
+      command = ISZ(nativeImage.string, "--no-server", "-cp", sJar.string, "-jar", jarFile.name)
       if (Os.kind != Os.Kind.Mac) {
         command = command :+ "--static"
       }
