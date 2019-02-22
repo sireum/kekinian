@@ -61,6 +61,7 @@ val home = homeBin.up
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
+val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
 val libFiles = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "Library_Ext.scala"
 val slangFiles = home / "slang" / "frontend" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "$SlangFiles.scala"
 var didTipe = F
@@ -90,6 +91,7 @@ def touchePath(path: Os.Path): Unit = {
 def touche(): Unit = {
   touchePath(libFiles)
   touchePath(slangFiles)
+  touchePath(mainFile)
 }
 
 
