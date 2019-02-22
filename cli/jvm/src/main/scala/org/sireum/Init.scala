@@ -44,18 +44,9 @@ object Init {
   }
 
   def info(version: String, versions: Map[String, String]): Info = {
+    println(s"Installing dependencies at $home ...")
     home.mkdirAll()
-    val sireumJar = home / s"sireum-$version.jar"
-    if (!sireumJar.exists) {
-      sireumJar.downloadFrom(s"https://github.com/sireum/kekinian/releases/download/$version/sireum.jar")
-      sireumJar.chmodAll("+x")
-      val r = Os.proc(ISZ(sireumJar.string, "-v")).run()
-      if (!r.ok || !ops.StringOps(r.out).contains(version)) {
-        sireumJar.removeAll()
-        eprintln(s"Failed to download Sireum jar assembly v$version")
-        Os.exit(-1)
-      }
-    }
+    println()
 
     val javaHome: Os.Path = home / "java"
     var javaName = ""
@@ -92,6 +83,7 @@ object Init {
           val graal = home / s"graalvm-ce-$javaVersion"
           graal.moveOverTo(javaHome)
           javaVer.write(javaVersion)
+          println()
         }
       case Os.Kind.Win =>
         val javaVersion = versions.get("org.sireum.version.zulu").get
@@ -106,6 +98,7 @@ object Init {
           javaHome.removeAll()
           (home / s"zulu$javaVersion").moveOverTo(javaHome)
           javaVer.write(javaVersion)
+          println()
         }
       case _ =>
         eprintln("Unsupported platform")
@@ -138,6 +131,24 @@ object Init {
       }
       println("Please wait while downloading Slang scalac plugin ...")
       scalacPlugin.downloadFrom(scalacPluginUrl)
+      println()
+    }
+
+    val sireumJar = home / s"sireum-$version.jar"
+    if (!sireumJar.exists) {
+      for (p <- home.list if ops.StringOps(p.name).startsWith("sireum-")) {
+        p.removeAll()
+      }
+      println(s"Please wait while downloading Sireum jar assembly v$version ...")
+      sireumJar.downloadFrom(s"https://github.com/sireum/kekinian/releases/download/$version/sireum.jar")
+      sireumJar.chmodAll("+x")
+      val r = Os.proc(ISZ((javaHome / "bin" / (if (Os.isWin) "java.exe" else "java")).string,
+        "-jar", sireumJar.string, "-v")).run()
+      if (!r.ok || !ops.StringOps(r.out).contains(version)) {
+        sireumJar.removeAll()
+        eprintln(s"Failed to download Sireum jar assembly v$version")
+        Os.exit(-1)
+      }
       println()
     }
 
