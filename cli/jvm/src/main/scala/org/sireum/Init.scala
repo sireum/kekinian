@@ -44,9 +44,16 @@ object Init {
   }
 
   def info(version: String, versions: Map[String, String]): Info = {
-    println(s"Installing dependencies at $home ...")
     home.mkdirAll()
-    println()
+    var first = T
+    val cache = Os.home / "Downloads" / "sireum"
+    def printInstall(): Unit = {
+      if (first) {
+        first = F
+        println(s"Installing dependencies at $home ...")
+        println()
+      }
+    }
 
     val javaHome: Os.Path = home / "java"
     var javaName = ""
@@ -55,6 +62,7 @@ object Init {
       case Os.Kind.Mac =>
         val javaVersion = versions.get("org.sireum.version.graal").get
         if (!javaVer.exists || javaVer.read != javaVersion) {
+          printInstall()
           println(s"Please wait while downloading GraalVM $javaVersion ...")
           val javaUrl = s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/graalvm-ce-$javaVersion-macos-amd64.tar.gz"
           javaName = s"1.8-graalvm-ce-$javaVersion"
@@ -72,6 +80,7 @@ object Init {
       case Os.Kind.Linux =>
         val javaVersion = versions.get("org.sireum.version.graal").get
         if (!javaVer.exists || javaVer.read != javaVersion) {
+          printInstall()
           println(s"Please wait while downloading GraalVM $javaVersion ...")
           val javaUrl = s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/graalvm-ce-$javaVersion-linux-amd64.tar.gz"
           javaName = s"1.8-graalvm-ce-$javaVersion"
@@ -88,6 +97,7 @@ object Init {
       case Os.Kind.Win =>
         val javaVersion = versions.get("org.sireum.version.zulu").get
         if (!javaVer.exists || javaVer.read != javaVersion) {
+          printInstall()
           println(s"Please wait while downloading Zulu $javaVersion ...")
           val javaUrl = s"http://cdn.azul.com/zulu/bin/zulu$javaVersion-win_x64.zip"
           javaName = s"1.8-zulu-$javaVersion"
@@ -109,6 +119,7 @@ object Init {
     val scalaVer = scalaHome / "VER"
     val scalaVersion = versions.get("org.sireum.version.scala").get
     if (!scalaVer.exists || scalaVer.read != scalaVersion) {
+      printInstall()
       println(s"Please wait while downloading Scala $scalaVersion ...")
       val scalaUrl = s"http://downloads.lightbend.com/scala/$scalaVersion/scala-$scalaVersion.zip"
       val temp = Os.temp()
@@ -129,6 +140,7 @@ object Init {
       for (p <- home.list if ops.StringOps(p.name).startsWith("scalac-plugin")) {
         p.removeAll()
       }
+      printInstall()
       println("Please wait while downloading Slang scalac plugin ...")
       scalacPlugin.downloadFrom(scalacPluginUrl)
       println()
@@ -139,6 +151,7 @@ object Init {
       for (p <- home.list if ops.StringOps(p.name).startsWith("sireum-")) {
         p.removeAll()
       }
+      printInstall()
       println(s"Please wait while downloading Sireum jar assembly v$version ...")
       sireumJar.downloadFrom(s"https://github.com/sireum/kekinian/releases/download/$version/sireum.jar")
       sireumJar.chmodAll("+x")
