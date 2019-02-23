@@ -99,7 +99,10 @@ object Sireum {
     }
     if (r.nonEmpty) Some(r.get)
     else try {
-      var path = Os.slashDir.up
+      val cs = getClass.getProtectionDomain.getCodeSource
+      var path =
+        if (cs == null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
+        else Os.slashDir.up
       if (path.name.value == "bin") path = path.up
       if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path) else None()
     } catch {
