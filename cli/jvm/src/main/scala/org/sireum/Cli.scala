@@ -83,7 +83,8 @@ object Cli {
     mode: IveMode.Type,
     name: Option[String],
     millPath: B,
-    force: B
+    force: B,
+    compile: B
   ) extends SireumTopOption
 
   @enum object SerializerMode {
@@ -462,6 +463,7 @@ import Cli._
           |-p, --mill-path          Use mill available in the PATH environment variable
           |                           (only in mill mode)
           |-f, --force              Force regeneration of JDK and library tables
+          |-c, --no-compile         Only generate mill project without code compilation
           |-h, --help               Display this information""".render
 
     var jdk: Option[String] = Some("Java")
@@ -469,6 +471,7 @@ import Cli._
     var name: Option[String] = Some("hello")
     var millPath: B = false
     var force: B = false
+    var compile: B = true
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -507,6 +510,12 @@ import Cli._
              case Some(v) => force = v
              case _ => return None()
            }
+         } else if (arg == "-c" || arg == "--no-compile") {
+           val o: Option[B] = { j = j - 1; Some(!compile) }
+           o match {
+             case Some(v) => compile = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -516,7 +525,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IvegenOption(help, parseArguments(args, j), jdk, mode, name, millPath, force))
+    return Some(IvegenOption(help, parseArguments(args, j), jdk, mode, name, millPath, force, compile))
   }
 
   def parseSerializerModeH(arg: String): Option[SerializerMode.Type] = {

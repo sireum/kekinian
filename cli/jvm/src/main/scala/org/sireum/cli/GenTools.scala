@@ -290,12 +290,17 @@ object GenTools {
         val javaBin = javaHome / "bin"
         val envVarMap = ISZ("PATH" ~> s"$javaBin${java.io.File.pathSeparatorChar}${System.getenv("PATH")}")
         if (o.millPath) {
-          Os.proc(ISZ(mill.string, "all", "__.compile", "mill.scalalib.GenIdea/idea")).at(project).console.run()
+          val command: ISZ[String] =
+            if (o.compile) ISZ(mill.string, "all", "__.compile", "mill.scalalib.GenIdea/idea")
+            else ISZ(mill.string, "mill.scalalib.GenIdea/idea")
+          Os.proc(command).at(project).console.run()
         } else {
           var millPath = home / "bin" / "mill-build" / mill
           if (isWin || !millPath.exists) millPath = homeOpt.get / "bin" / mill
-          Os.proc(ISZ(millPath.string, "all", "__.compile", "mill.scalalib.GenIdea/idea")).at(project).
-            env(envVarMap).console.run()
+          val command: ISZ[String] =
+            if (o.compile) ISZ(millPath.string, "all", "__.compile", "mill.scalalib.GenIdea/idea")
+            else ISZ(millPath.string, "mill.scalalib.GenIdea/idea")
+          Os.proc(command).at(project).env(envVarMap).console.run()
         }
         writeFiles()
       }
