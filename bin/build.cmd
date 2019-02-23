@@ -359,7 +359,7 @@ if (Os.cliArgs.isEmpty) {
       case string"touche-slang" => touchePath(slangFiles)
       case string"regen-cliopt" => regenCliOpt()
       case string"regen-slang" => regenSlang()
-      case string"regen-cli" => regenSlang()
+      case string"regen-cli" => regenCli()
       case string"m2" => m2()
       case string"-h" => usage()
       case string"--help" => usage()
