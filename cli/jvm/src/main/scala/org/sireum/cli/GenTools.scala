@@ -378,7 +378,7 @@ object GenTools {
       val lOpt = path2fileOpt("license file", o.license, T)
       val src = paths2fileOpt("Slang file", o.args, T).get
       val destDir = path2fileOpt("output directory", o.outputDir, T).get
-      if (destDir != Os.Path.Kind.Dir) error(s"Path $destDir is not a directory")
+      if (!destDir.isDir) error(s"Path $destDir is not a directory")
       for (m <- o.modes) {
         val (name, mode) = m match {
           case Cli.TransformerMode.Immutable =>
