@@ -65,6 +65,7 @@ object GenTools {
           0
         case _ =>
           eprintln(s"Invalid config produced by running ${o.args(0)}")
+          eprintln(configText)
           -1
       }
     } catch {
