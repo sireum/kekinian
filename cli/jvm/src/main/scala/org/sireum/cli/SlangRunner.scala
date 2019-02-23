@@ -72,14 +72,9 @@ object SlangRunner {
       }
     val script = path2fileOpt("Slang script", Some(o.args(0).value), T).get
     val wd = script.up
-    val sJar: Os.Path = if (Os.isWin) {
-      val tempJar = Os.tempFix("", ".jar")
-      sireumJar.copyOverTo(tempJar)
-      tempJar.removeOnExit()
-      tempJar
-    } else {
-      sireumJar
-    }
+    val sJar: Os.Path =
+      if (Os.isWin && (sireumJar.up / "sireum-win.jar").exists) sireumJar.up / "sireum-win.jar"
+      else sireumJar
     var command: ISZ[String] = ISZ(
       scalaExe.string,
       "-bootclasspath",
