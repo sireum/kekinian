@@ -3,8 +3,7 @@ set SIREUM_HOME=%~dp0..\
 set JAVA=java.exe
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not defined SIREUM_PROVIDED_JAVA set JAVA=%~dp0win\java\bin\java.exe
-copy "%~dp0sireum.jar" "%~dp0sireum-win.jar" >nul
-"%JAVA%" %JAVA_OPTS% -jar "%~dp0sireum-win.jar" %*
-set code=%errorlevel%
-del /q "%~dp0sireum-win.jar"
-exit /B %code%
+copy /Y "%~dp0sireum.jar" "%~dp0.sireum-win.jar" > nul 2>&1
+attrib +H "%~dp0.sireum-win.jar"
+"%JAVA%" %JAVA_OPTS% -jar "%~dp0.sireum-win.jar" %*
+exit /B %errorlevel%

@@ -73,7 +73,7 @@ object SlangRunner {
     val script = path2fileOpt("Slang script", Some(o.args(0).value), T).get
     val wd = script.up
     val sJar: Os.Path =
-      if (Os.isWin && (sireumJar.up / "sireum-win.jar").exists) sireumJar.up / "sireum-win.jar"
+      if (Os.isWin && (sireumJar.up / ".sireum-win.jar").exists) sireumJar.up / ".sireum-win.jar"
       else sireumJar
     var command: ISZ[String] = ISZ(
       scalaExe.string,
