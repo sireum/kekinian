@@ -48,20 +48,22 @@ object SlangRunner {
       case _ => Os.Path.Impl(if (Os.isWin) "scala.bat" else "scala")
     }
     val inputOpt = path2fileOpt("input", o.input, T)
+    var outputOpt: Option[Os.Path] = None()
     val isConsole: B =
       path2fileOpt("output", o.output, F) match {
-        case Some(p) =>
-          if (p == Os.Path.Kind.Dir) {
-            eprintln(s"Output $p cannot be a directory")
+        case Some(path) =>
+          outputOpt = Some(path)
+          if (path == Os.Path.Kind.Dir) {
+            eprintln(s"Output $path cannot be a directory")
             eprintln()
             return InvalidOutput
           } else {
-            val d = p.up
+            val d = path.up
             if (!d.exists) {
               d.mkdirAll()
             }
             if (!d.exists) {
-              eprintln(s"Could not create parent directory of $p")
+              eprintln(s"Could not create parent directory of $path")
               eprintln()
               return InvalidOutput
             } else {
@@ -134,6 +136,10 @@ object SlangRunner {
       case _ =>
     }
     var r = p.runCheck()
+    outputOpt match {
+      case Some(path) => path.writeOver(r.out)
+      case _ =>
+    }
     if (o.nativ) {
       val nativeName = s"${script.name}.com"
       val nativ = wd / nativeName
