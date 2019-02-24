@@ -25,7 +25,7 @@ itself (and analyses on top of it) are written using Slang.
 
 Slang programs run on the JVM (Java 8+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
-via [Graal](https://graalvm.org) and also via compilation to C.
+via [Graal](http://graalvm.org) and also via compilation to C.
 
 ## Installing
 
