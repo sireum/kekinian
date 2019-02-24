@@ -101,7 +101,7 @@ object Sireum {
     else try {
       val cs = getClass.getProtectionDomain.getCodeSource
       var path =
-        if (cs == null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
+        if (cs != null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
         else Os.slashDir.up
       if (path.name.value == "bin") path = path.up
       if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path) else None()
@@ -203,7 +203,7 @@ object Sireum {
 
   def scalaFound: B = {
     if (scalaHomeOpt.isEmpty) {
-      eprintln("Could not detect Java home directory!")
+      eprintln("Could not detect Scala home directory!")
       eprintln("Please specify SCALA_HOME env var.")
       F
     } else T
