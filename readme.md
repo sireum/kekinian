@@ -67,8 +67,23 @@ for the specific platforms for [macOS](http://minisig.mac.distro.sireum.org),
 [Windows](http://minisig.win.distro.sireum.org), then run:
 
 ```console
-minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -Vm <installer-filename>
+minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -Vm <installer-file>
 ```
+
+Alternatively, you can also use a port of [OpenBSD's signify](https://man.openbsd.org/signify) for your
+operating system (e.g., `signify-openbsd` in Ubuntu) instead of `minisign` as follows:
+
+```console
+signify-openbsd -V -p sireum.pub -x <installer-file>.minisig -m <installer-file>
+```
+
+where `sireum.pub`'s content is:
+
+```
+untrusted comment: Sireum
+RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
+```
+
 
 ### Git Source Distribution
 
