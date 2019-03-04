@@ -224,42 +224,42 @@ object GenTools {
         } else {
           None()
         }
-        s"""<application>
-           |  <component name="ProjectJdkTable">
-           |    <jdk version="2">
-           |      <name value="Java" />
-           |      <type value="JavaSDK" />
-           |      <version value="$javaVer" />
-           |      <homePath value="$javaHome" />
-           |      <roots>
-           |        <annotationsPath>
-           |          <root type="composite">
-           |            <root url="jar://$$APPLICATION_HOME_DIR$$/lib/jdkAnnotations.jar!/" type="simple" />
-           |          </root>
-           |        </annotationsPath>
-           |        <classPath>
-           |          <root type="composite">
-           |$jdkClassPath
-           |          </root>
-           |        </classPath>
-           |        <javadocPath>
-           |          <root type="composite" />
-           |        </javadocPath>
-           |        <sourcePath>
-           |          <root type="composite">
-           |$jdkSourcePath
-           |          </root>
-           |        </sourcePath>
-           |      </roots>
-           |      <additional />
-           |    </jdk>
-           |$ideaOpt
-           |$ideaScalaOpt
-           |    <additional sdk="Java">
-           |      <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
-           |    </additional>
-           |  </component>
-           |</application>""".stripMargin
+        st"""<application>
+            |  <component name="ProjectJdkTable">
+            |    <jdk version="2">
+            |      <name value="Java" />
+            |      <type value="JavaSDK" />
+            |      <version value="$javaVer" />
+            |      <homePath value="$javaHome" />
+            |      <roots>
+            |        <annotationsPath>
+            |          <root type="composite">
+            |            <root url="jar://$$APPLICATION_HOME_DIR$$/lib/jdkAnnotations.jar!/" type="simple" />
+            |          </root>
+            |        </annotationsPath>
+            |        <classPath>
+            |          <root type="composite">
+            |$jdkClassPath
+            |          </root>
+            |        </classPath>
+            |        <javadocPath>
+            |          <root type="composite" />
+            |        </javadocPath>
+            |        <sourcePath>
+            |          <root type="composite">
+            |$jdkSourcePath
+            |          </root>
+            |        </sourcePath>
+            |      </roots>
+            |      <additional />
+            |    </jdk>
+            |$ideaOpt
+            |$ideaScalaOpt
+            |    <additional sdk="Java">
+            |      <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
+            |    </additional>
+            |  </component>
+            |</application>""".render.value
       }
 
       def fileTypes: Predef.String = {
