@@ -150,11 +150,12 @@ if [[ "${PLATFORM}" == "mac" ]]; then
   JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
   #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
-  JAVA_NAME="GraalVM"
+  JAVA_NAME="Zulu JDK"
   if [[ -z ${JAVA_VERSION} ]]; then
-    JAVA_VERSION=$(getVersion "graal")
+    JAVA_VERSION=$(getVersion "zulu")
   fi
-  JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
+  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
+  #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
 elif [[ "${PLATFORM}" == "win" ]]; then
   JAVA_NAME="Zulu JDK"
   if [[ -z ${JAVA_VERSION} ]]; then
@@ -183,7 +184,8 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
       mv graalvm-ce-${JAVA_VERSION}/Contents/Home java
       rm -fR graalvm-*
     else 
-      mv graalvm-* java
+      mv ${JAVA_DIR} java
+      #mv graalvm-* java
     fi
   else
     $(uncompress ${SIREUM_CACHE}/${JAVA_DROP})

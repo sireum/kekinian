@@ -266,7 +266,7 @@ To have the codebase and its test suites recompiled upon changes, run:
 
 #### Sireum Native Executable
 
-To build native executable (currently only available under macOS or Linux; for macOS, GraalVM is assumed to be available in the PATH env var):
+To build native executable (currently only available under macOS or Linux; GraalVM is assumed to be available from the PATH env var):
 
 ```bash
 ${SIREUM_HOME}/bin/build.cmd native

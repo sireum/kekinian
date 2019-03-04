@@ -173,8 +173,7 @@ object Sireum {
 
   lazy val (isDev, javaVer, scalaVer, scalacPluginVer): (B, String, String, String) = {
     (Some("false") == versions.get("org.sireum.version.dev"),
-      if (Os.kind == Os.Kind.Linux) s"1.8-GraalVM-${versions.get("org.sireum.version.graal").get}"
-      else s"1.8-Zulu-${versions.get("org.sireum.version.zulu").get}",
+      s"1.8-Zulu-${versions.get("org.sireum.version.zulu").get}",
       versions.get("org.sireum.version.scala").get,
       versions.get("org.sireum.version.scalac-plugin").get)
   }
