@@ -1,11 +1,25 @@
 FROM ubuntu:18.04
 MAINTAINER Robby <robby@k-state.edu>
-RUN apt-get update && \
-    apt-get install -y wget git zip unzip libgomp1 xz-utils build-essential automake cmake aspcud curl python \
-                       locales bc libc6-dev libgmp-dev libsodium-dev nano software-properties-common zlib1g-dev gcc && \
+ENV PATH=$PATH:/opt/graalvm/bin
+RUN apt update && \
+    apt install -y wget && \
+    cd /opt && \
+    wget -q https://github.com/oracle/graal/releases/download/vm-1.0.0-rc12/graalvm-ce-1.0.0-rc12-linux-amd64.tar.gz && \
+    tar xfz graalvm-ce-*.tar.gz && \
+    rm graalvm-ce-*.tar.gz && \
+    mv graalvm-ce-* graalvm && \
+    cd && \
+    apt upgrade -y && \
+    apt install -y git zip unzip libgomp1 xz-utils build-essential automake cmake aspcud curl python \
+                   locales bc libc6-dev libgmp-dev libsodium-dev nano software-properties-common zlib1g-dev gcc \
+                   g++ nodejs && \
     add-apt-repository universe && \
-    apt-get update && \
-    apt-get install -y p7zip-full && \
+    add-apt-repository ppa:avsm/ppa && \
+    apt update && \
+    apt install -y p7zip-full m4 opam && \
     locale-gen en_US en_US.UTF-8 && \
     dpkg-reconfigure locales && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    opam init -vv --debug --comp=4.06.1 --disable-sandboxing --reinit -a -j 4 && \
+    eval `opam env` && \
+    opam install coq=8.9.0 -vv --debug -y -j 4
