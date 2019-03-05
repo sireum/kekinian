@@ -13,3 +13,6 @@
 [submodule "bin/mill-build"]
 	path = bin/mill-build
 	url = https://github.com/sireum/mill-build
+[submodule "logika"]
+	path = logika
+	url = https://github.com/sireum/logika

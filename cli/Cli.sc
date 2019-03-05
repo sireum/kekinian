@@ -30,7 +30,7 @@ import org.sireum.mill.SireumModule._
 trait Module extends JvmOnly {
 
   final override def crossDeps =
-    if (isSourceDep) Seq(alirObject, toolsObject)
+    if (isSourceDep) Seq(alirObject, toolsObject, logikaObject)
     else Seq()
 
   final override def ivyDeps = T {
@@ -38,6 +38,7 @@ trait Module extends JvmOnly {
     else Agg(
       jpLatest(isCross = false, "sireum", "alir"),
       jpLatest(isCross = false, "sireum", "tools"),
+      jpLatest(isCross = false, "sireum", "logika"),
     )
   }
 
@@ -56,6 +57,8 @@ trait Module extends JvmOnly {
   def alirObject: CrossJvmJsPublish
 
   def toolsObject: CrossJvmJsPublish
+
+  def logikaObject: CrossJvmJsPublish
 
   final override def mainClass = Some("org.sireum.Sireum")
 }

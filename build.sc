@@ -29,6 +29,7 @@ import $file.runtime.Runtime
 import $file.slang.Slang
 import $file.tools.Tools
 import $file.alir.Alir
+import $file.logika.Logika
 import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
@@ -91,6 +92,16 @@ object alir extends Alir.Module with runtime.testProvider {
   }
 }
 
+
+object logika extends Logika.Module with runtime.testProvider {
+  final override def frontEndObject = slang.frontend
+
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
+}
+
 object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
 
@@ -103,6 +114,7 @@ object tools extends Tools.Module with runtime.testProvider {
 object cli extends Cli.Module {
   final override def alirObject = alir
   final override def toolsObject = tools
+  final override def logikaObject = logika
 
   object bin extends ScalaModule {
     final override def scalaVersion = SireumModule.scalaVersion
