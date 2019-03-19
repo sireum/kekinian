@@ -199,7 +199,8 @@ def test(): Unit = {
   println("Running jvm tests ...")
   Os.proc(ISZ(mill.string, "all",
     "runtime.library.jvm.tests.test",
-    "tools.jvm.tests")).at(home).console.runCheck()
+    "tools.jvm.tests",
+    "logika.jvm.tests")).at(home).console.runCheck()
   println()
 }
 
