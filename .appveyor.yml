@@ -11,6 +11,7 @@ clone_folder: c:\sireum
 cache:
   - bin\win\java -> versions.properties
   - bin\scala -> versions.properties
+  - bin\win\z3 -> versions.properties
 
 install:
   - git submodule update --init --recursive
