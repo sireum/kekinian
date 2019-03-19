@@ -15,6 +15,9 @@ mill-standalone
 /bin/mac/sireum*
 /bin/linux/sireum*
 /lib
+/bin/win/z3
+/bin/mac/z3
+/bin/linux/z3
 /bin/win/idea
 /bin/linux/idea
 /bin/mac/idea

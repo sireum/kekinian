@@ -94,6 +94,54 @@ fi
 
 
 #
+# Z3
+#
+if [[ -z "${PLATFORM}" ]]; then
+  if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
+    PLATFORM=win
+  elif [[ "$(uname)" == "Darwin" ]]; then
+    PLATFORM=mac
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+    PLATFORM=linux
+  else
+    >&2 echo "Sireum does not support: $(uname)."
+    exit 1
+  fi
+fi
+: ${Z3_VERSION=$(getVersion "z3")}
+Z3_M_VERSION="${Z3_VERSION%.*}"
+if [[ "${PLATFORM}" == "mac" ]]; then
+  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_M_VERSION}/z3-${Z3_VERSION}-x64-osx-10.14.1.zip
+elif [[ "${PLATFORM}" == "linux" ]]; then
+  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_M_VERSION}/z3-${Z3_VERSION}-x64-ubuntu-14.04.zip
+elif [[ "${PLATFORM}" == "win" ]]; then
+  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_M_VERSION}/z3-${Z3_VERSION}-x64-win.zip
+fi
+mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
+cd ${SIREUM_HOME}/bin/${PLATFORM}
+Z3_DROP="${Z3_DROP_URL##*/}"
+grep -q ${Z3_VERSION} z3/VER &> /dev/null && Z3_UPDATE=false || Z3_UPDATE=true
+if [[ ! -d "z3" ]] || [[ "${Z3_UPDATE}" = "true" ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${Z3_DROP} ]]; then
+    echo "Please wait while downloading Z3 ${Z3_VERSION} ..."
+    $(download ${SIREUM_CACHE}/${Z3_DROP} ${Z3_DROP_URL})
+  fi
+  echo "Extracting Z3 ${Z3_VERSION} ..."
+  $(uncompress ${SIREUM_CACHE}/${Z3_DROP})
+  echo
+  rm -fR z3
+  mv z3-* z3
+  if [[ -d "z3/bin" ]]; then
+    echo "${Z3_VERSION}" > z3/VER
+    chmod +x z3/bin/*
+  else
+    >&2 echo "Could not install Z3 ${Z3_VERSION}."
+    exit 1
+  fi
+fi
+
+
+#
 # Scala
 #
 if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
@@ -130,18 +178,6 @@ fi
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
   exit
 fi
-if [[ -z "${PLATFORM}" ]]; then
-  if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
-    PLATFORM=win
-  elif [[ "$(uname)" == "Darwin" ]]; then
-    PLATFORM=mac
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-    PLATFORM=linux
-  else
-    >&2 echo "Sireum does not support: $(uname). Please set env var SIREUM_PROVIDED_JAVA=true to use pre-installed Java."
-    exit 1
-  fi
-fi
 if [[ "${PLATFORM}" == "mac" ]]; then
   JAVA_NAME="Zulu JDK"
   if [[ -z ${JAVA_VERSION} ]]; then
@@ -163,7 +199,6 @@ elif [[ "${PLATFORM}" == "win" ]]; then
   fi
   JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 fi
-mkdir -p ${PLATFORM}
 cd ${PLATFORM}
 JAVA_DROP="${JAVA_DROP_URL##*/}"
 JAVA_DIR="${JAVA_DROP%.*}"

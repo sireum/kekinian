@@ -32,7 +32,8 @@ object Init {
                        javaName: String,
                        scalaHome: Os.Path,
                        scalacPlugin: Os.Path,
-                       sireumJar: Os.Path)
+                       sireumJar: Os.Path,
+                       z3Home: Os.Path)
 
   @memoize def home: Os.Path = {
     val r: Os.Path = Os.kind match {
@@ -154,6 +155,7 @@ object Init {
       printInstall()
       println(s"Please wait while downloading Sireum jar assembly v$version ...")
       sireumJar.downloadFrom(s"https://github.com/sireum/kekinian/releases/download/$version/sireum.jar")
+      //sireumJar.downloadFrom(s"http://files.sireum.org/sireum")
       sireumJar.chmodAll("+x")
       val r = Os.proc(ISZ((javaHome / "bin" / (if (Os.isWin) "java.exe" else "java")).string,
         "-jar", sireumJar.string, "-v")).run()
@@ -165,6 +167,34 @@ object Init {
       println()
     }
 
-    return Info(javaHome, javaName, scalaHome, scalacPlugin, sireumJar)
+
+    val z3Home = home / "z3"
+    val z3Ver = z3Home / "VER"
+    val z3Version = versions.get("org.sireum.version.z3").get
+    val z3VersionOps = ops.StringOps(z3Version)
+    val z3MVersion = z3VersionOps.substring(0, z3VersionOps.lastIndexOf('.'))
+    if (!z3Ver.exists || z3Ver.read != z3Version) {
+      printInstall()
+      println(s"Please wait while downloading Z3 $z3Version ...")
+      val z3Url: String = Os.kind match {
+        case Os.Kind.Win => s"https://github.com/Z3Prover/z3/releases/download/z3-$z3MVersion/z3-$z3Version-x64-win.zip"
+        case Os.Kind.Linux => s"https://github.com/Z3Prover/z3/releases/download/z3-$z3MVersion/z3-$z3Version-x64-ubuntu-14.04.zip"
+        case Os.Kind.Mac => s"https://github.com/Z3Prover/z3/releases/download/z3-$z3MVersion/z3-$z3Version-x64-osx-10.14.1.zip"
+        case _ => halt("Infeasible")
+      }
+      val temp = Os.temp()
+      temp.removeOnExit()
+      temp.downloadFrom(z3Url)
+      temp.unzipTo(home)
+      z3Home.removeAll()
+      for (p <- home.list if ops.StringOps(p.name).startsWith("z3-")) {
+        p.moveOverTo(z3Home)
+      }
+      (z3Home / "bin").chmodAll("+x")
+      z3Ver.write(z3Version)
+      println()
+    }
+
+    return Info(javaHome, javaName, scalaHome, scalacPlugin, sireumJar, z3Home)
   }
 }

@@ -1,45 +1,48 @@
-::#! 2> /dev/null                                                                        #
-@ 2>/dev/null # 2>nul & echo off & goto BOF                                              #
-export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                 #
-if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                             #
-  SIREUM_PROVIDED_JAVA=true                                                              #
-fi                                                                                       #
-if [ ! -f "${SIREUM_HOME}/bin/sireum.jar" ]; then                                        #
-  "${SIREUM_HOME}/bin/init.sh"                                                           #
-elif [ "${SIREUM_HOME}/versions.properties" -nt "${SIREUM_HOME}/bin/sireum.jar" ]; then  #
-  "${SIREUM_HOME}/bin/init.sh"                                                           #
-fi                                                                                       #
-if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                              #
-  PLATFORM="win"                                                                         #
-  export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})                              #
-  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                              #
-    export JAVA_HOME="${SIREUM_HOME}\\bin\\win\\java"                                    #
-    export PATH="${SIREUM_HOME}/bin/win/java":$PATH                                      #
-    export PATH="$(cygpath -C OEM -w -a ${JAVA_HOME}/bin)":$PATH                         #
-  fi                                                                                     #
-elif [ "$(uname)" = "Darwin" ]; then                                                     #
-  PLATFORM="mac"                                                                         #
-  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                              #
-    export JAVA_HOME="${SIREUM_HOME}/bin/mac/java"                                       #
-    export PATH="${JAVA_HOME}/bin":$PATH                                                 #
-  fi                                                                                     #
-elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                                #
-  PLATFORM="linux"                                                                       #
-  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                              #
-    export JAVA_HOME="${SIREUM_HOME}/bin/linux/java"                                     #
-    export PATH="${JAVA_HOME}/bin":$PATH                                                 #
-  fi                                                                                     #
-fi                                                                                       #
-if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                        #
-  exec "$0.com" "$@"                                                                     #
-else                                                                                     #
-  rm -fR "$0.com"                                                                        #
-  exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"                             #
-fi                                                                                       #
+::#! 2> /dev/null                                                                                           #
+@ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
+export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                                    #
+if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                                                #
+  SIREUM_PROVIDED_JAVA=true                                                                                 #
+fi                                                                                                          #
+if [ ! -f "${SIREUM_HOME}/bin/sireum.jar" ]; then                                                           #
+  "${SIREUM_HOME}/bin/init.sh"                                                                              #
+elif [ "${SIREUM_HOME}/versions.properties" -nt "${SIREUM_HOME}/bin/sireum.jar" ]; then                     #
+  "${SIREUM_HOME}/bin/init.sh"                                                                              #
+fi                                                                                                          #
+if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                                                 #
+  PLATFORM="win"                                                                                            #
+  export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})                                                 #
+  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
+    export JAVA_HOME="${SIREUM_HOME}\\bin\\win\\java"                                                       #
+    export Z3_HOME="${SIREUM_HOME}\\bin\\win\\z3"                                                           #
+    export PATH="${SIREUM_HOME}/bin/win/java":"${SIREUM_HOME}/bin/win/z3":$PATH                             #
+    export PATH="$(cygpath -C OEM -w -a ${JAVA_HOME}/bin)":"$(cygpath -C OEM -w -a ${Z3_HOME}/bin)":$PATH   #
+  fi                                                                                                        #
+elif [ "$(uname)" = "Darwin" ]; then                                                                        #
+  PLATFORM="mac"                                                                                            #
+  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
+    export JAVA_HOME="${SIREUM_HOME}/bin/mac/java"                                                          #
+    export Z3_HOME="${SIREUM_HOME}/bin/mac/z3"                                                              #
+    export PATH="${JAVA_HOME}/bin":"${Z3_HOME}/bin":$PATH                                                   #
+  fi                                                                                                        #
+elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                                                   #
+  PLATFORM="linux"                                                                                          #
+  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
+    export JAVA_HOME="${SIREUM_HOME}/bin/linux/java"                                                        #
+    export Z3_HOME="${SIREUM_HOME}/bin/linux/z3"                                                            #
+    export PATH="${JAVA_HOME}/bin":"${Z3_HOME}/bin":$PATH                                                   #
+  fi                                                                                                        #
+fi                                                                                                          #
+if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
+  exec "$0.com" "$@"                                                                                        #
+else                                                                                                        #
+  rm -fR "$0.com"                                                                                           #
+  exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"                                                #
+fi                                                                                                          #
 :BOF
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
-if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin:%PATH%
+if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
 "%~dp0sireum.bat" slang run -s "%0" %*
 exit /B %errorlevel%
 ::!#
