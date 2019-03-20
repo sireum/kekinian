@@ -149,8 +149,8 @@ if (Test-Path "$java_ver_path") {
 if ($java_update) {
   $java_drop = "$cache_dir\zulu$java_version-win_x64.zip"
   if (!(Test-Path "$java_drop")) {
-    "Please wait while downloading Zulu JDK $java_version ... "
-    $java_url = "http://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
+    "Please wait while downloading ZuluFX $java_version ... "
+    $java_url = "https://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
     Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
   }
   "Extracting Zulu JDK $java_version ... "

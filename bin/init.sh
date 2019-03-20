@@ -178,26 +178,16 @@ fi
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
   exit
 fi
+JAVA_NAME="ZuluFX"
+if [[ -z ${JAVA_VERSION} ]]; then
+  JAVA_VERSION=$(getVersion "zulu")
+fi
 if [[ "${PLATFORM}" == "mac" ]]; then
-  JAVA_NAME="Zulu JDK"
-  if [[ -z ${JAVA_VERSION} ]]; then
-    JAVA_VERSION=$(getVersion "zulu")
-  fi
-  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
-  #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-macos-amd64.tar.gz
+  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
 elif [[ "${PLATFORM}" == "linux" ]]; then
-  JAVA_NAME="Zulu JDK"
-  if [[ -z ${JAVA_VERSION} ]]; then
-    JAVA_VERSION=$(getVersion "zulu")
-  fi
-  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
-  #JAVA_DROP_URL=https://github.com/oracle/graal/releases/download/vm-${JAVA_VERSION}/graalvm-ce-${JAVA_VERSION}-linux-amd64.tar.gz
+  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
 elif [[ "${PLATFORM}" == "win" ]]; then
-  JAVA_NAME="Zulu JDK"
-  if [[ -z ${JAVA_VERSION} ]]; then
-    JAVA_VERSION=$(getVersion "zulu")
-  fi
-  JAVA_DROP_URL=http://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
+  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 fi
 cd ${PLATFORM}
 JAVA_DROP="${JAVA_DROP_URL##*/}"
