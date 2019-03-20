@@ -205,13 +205,7 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
     tar xf ${SIREUM_CACHE}/${JAVA_DROP}
     rm -fR java
-    if [[ "${PLATFORM}" == "mac" ]]; then
-      mv graalvm-ce-${JAVA_VERSION}/Contents/Home java
-      rm -fR graalvm-*
-    else 
-      mv ${JAVA_DIR} java
-      #mv graalvm-* java
-    fi
+    mv ${JAVA_DIR} java
   else
     $(uncompress ${SIREUM_CACHE}/${JAVA_DROP})
     rm -fR java
