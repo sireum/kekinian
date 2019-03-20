@@ -55,8 +55,8 @@ def usage(): Unit = {
     st"""Sireum /build
         |Usage: ( setup        | project      | bin          | native
         |       | tipe         | compile      | test         | test-js
-        |       | touche       | touche-lib   | touche-slang
-        |       | regen-cliopt | regen-slang  | regen-cli    | m2      )*
+        |       | m2           | touche       | touche-lib   | touche-slang
+        |       | regen-cliopt | regen-slang  | regen-logika | regen-cli    )*
       """.render)
 }
 
@@ -237,6 +237,13 @@ def regenSlang(): Unit = {
 }
 
 
+def regenLogika(): Unit = {
+  val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable", "-n", "StateTransformer", s"${logikaPackagePath / "State.scala"}")).at(logikaPackagePath).console.run()
+}
+
+
 def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
@@ -365,6 +372,7 @@ if (Os.cliArgs.isEmpty) {
       case string"touche-slang" => touchePath(slangFiles)
       case string"regen-cliopt" => regenCliOpt()
       case string"regen-slang" => regenSlang()
+      case string"regen-logika" => regenLogika()
       case string"regen-cli" => regenCli()
       case string"m2" => m2()
       case string"-h" => usage()
