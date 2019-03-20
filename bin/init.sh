@@ -183,7 +183,7 @@ if [[ -z ${JAVA_VERSION} ]]; then
   JAVA_VERSION=$(getVersion "zulu")
 fi
 if [[ "${PLATFORM}" == "mac" ]]; then
-  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.zip
+  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
 elif [[ "${PLATFORM}" == "win" ]]; then
