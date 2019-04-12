@@ -34,6 +34,7 @@ import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
 import org.sireum.mill.SireumModule
+//import $ivy.`ch.epfl.scala::mill-bloop:1.2.5+202-7b4b0c7f+20190412-1353`
 
 object runtime extends mill.Module {
 

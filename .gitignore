@@ -1,5 +1,7 @@
 /.idea
 /.idea_modules
+/.bloop
+/.metals
 out
 Scratch.scala
 Scratch.sc
