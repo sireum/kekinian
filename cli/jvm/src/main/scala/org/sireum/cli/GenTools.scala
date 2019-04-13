@@ -94,6 +94,7 @@ object GenTools {
         return InvalidDir
       }
       val project = d / o.name.get
+      val projectExists = project.exists
       project.mkdirAll()
 
       if (!homeFound) return HomeNotFound
@@ -282,7 +283,7 @@ object GenTools {
       val files =
         if (o.mode == Cli.IveMode.Idea) {
           for (p <- project.list if p.string.value.endsWith(".iml")) p.removeAll()
-          IveGen.idea(project.exists, isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get,
+          IveGen.idea(projectExists, isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get,
             scalaVer, scalacPluginVer)
         } else
           IveGen.mill((project / "build.sc").exists, name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
