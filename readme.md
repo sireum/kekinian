@@ -128,7 +128,7 @@ In a console terminal:
   ```
 
 
-To update later on, simply re-run `build.cmd setup`.
+To update later on, simply do a `git pull --recurse-submodules` and re-run `build.cmd setup`.
 
 
 ## Using Sireum IVE
@@ -245,10 +245,10 @@ To have the codebase and its test suites recompiled upon changes, run:
   cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
   ```
 
-  and to build its assembly:
+  and to build its assembly/CLI tool:
 
   ```bash
-  cd ${SIREUM_HOME} && bin/mill build
+  ${SIREUM_HOME}/bin/build.cmd
   ```
 
 * **Windows**:
@@ -258,15 +258,17 @@ To have the codebase and its test suites recompiled upon changes, run:
   cd %SIREUM_HOME% && bin\mill.bat -w cli.tests.compile
   ```
 
-  and to build its assembly:
+  and to build its assembly/CLI tool:
 
   ```cmd
-  cd %SIREUM_HOME% && bin\mill.bat build
+  ${SIREUM_HOME}/bin/build.cmd
   ```
 
 #### Sireum Native Executable
 
-To build native executable (currently only available under macOS or Linux; GraalVM is assumed to be available from the PATH env var):
+It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
+
+To build their native executable (currently only available under macOS or Linux; [Graal](http://graalvm.org)'s `native-image` is assumed to be available from the PATH env var):
 
 ```bash
 ${SIREUM_HOME}/bin/build.cmd native
@@ -285,3 +287,5 @@ To run:
   ```bash
   ${SIREUM_HOME}/bin/linux/sireum
   ```
+  
+Note that once the native version is available (and has a newer timestamp), `${SIREUM_HOME}/bin/sireum` calls the native version. This is also similar for `${SIREUM_HOME}/bin/build.cmd` and `${SIREUM_HOME}/bin/mill-build/build.cmd`.
