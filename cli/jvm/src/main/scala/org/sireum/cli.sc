@@ -27,6 +27,15 @@
 import org.sireum._
 import org.sireum.cli.CliOpt._
 
+val aadl = Group(
+  name = "aadl",
+  description = "AADL tools",
+  header =
+    st"""AADL Tools""".render,
+  unlisted = F,
+  subs = ISZ(org.sireum.aadl.act.cli.actTool)
+)
+
 val main = Group(
   name = "sireum",
   description = "",
@@ -34,6 +43,6 @@ val main = Group(
     st"""Sireum: A High-Assurance Software Development Platform
         |(c) 2019, SAnToS Laboratory, Kansas State University""".render,
   unlisted = F,
-  subs = ISZ(org.sireum.lang.cli.group, org.sireum.tools.cli.group)
+  subs = ISZ(aadl, org.sireum.lang.cli.group, org.sireum.tools.cli.group)
 )
 println(org.sireum.cli.JSON.fromCliOpt(main, T))

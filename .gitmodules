@@ -16,3 +16,9 @@
 [submodule "logika"]
 	path = logika
 	url = https://github.com/sireum/logika
+[submodule "aadl/air"]
+	path = aadl/air
+	url = https://github.com/sireum/air
+[submodule "aadl/act"]
+	path = aadl/act
+	url = https://github.com/sireum/act

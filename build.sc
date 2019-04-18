@@ -30,6 +30,8 @@ import $file.slang.Slang
 import $file.tools.Tools
 import $file.alir.Alir
 import $file.logika.Logika
+import $file.aadl.air.Air
+import $file.aadl.act.Act
 import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
@@ -112,15 +114,29 @@ object tools extends Tools.Module with runtime.testProvider {
   }
 }
 
+object aadl extends mill.Module {
+
+  object air extends Air.Module {
+    final override def libraryObject = runtime.library
+    final override def testObject = runtime.test
+  }
+
+  object act extends Act.Module {
+    final override def airObject = air
+
+    object bin extends ScalaModule {
+      final override def scalaVersion = SireumModule.scalaVersion
+      final override def moduleDeps = Seq(runtime.library.jvm)
+    }
+  }
+}
+
+
 object cli extends Cli.Module {
   final override def alirObject = alir
   final override def toolsObject = tools
   final override def logikaObject = logika
-
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  final override def actObject = aadl.act
 }
 
 object bin extends ScalaModule {

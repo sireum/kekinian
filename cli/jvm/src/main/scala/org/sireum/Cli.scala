@@ -38,6 +38,27 @@ object Cli {
 
   @datatype class HelpOption extends SireumTopOption
 
+  @enum object ActFormat {
+    'Air
+    'Camkesir
+    'Aadl
+  }
+
+  @enum object ActMode {
+    'Json
+    'Msgpack
+  }
+
+  @datatype class ActOption(
+    help: String,
+    args: ISZ[String],
+    input: ActFormat.Type,
+    mode: ActMode.Type,
+    outputDir: Option[String],
+    auxDirs: ISZ[String],
+    aadlRootDir: Option[String]
+  ) extends SireumTopOption
+
   @datatype class SlangRunOption(
     help: String,
     args: ISZ[String],
@@ -128,17 +149,150 @@ import Cli._
             |(c) 2019, SAnToS Laboratory, Kansas State University
             |
             |Available modes:
+            |aadl                     AADL tools
             |slang                    Slang tools
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("slang", "tools"))
+    val opt = select("sireum", args, i, ISZ("aadl", "slang", "tools"))
     opt match {
+      case Some(string"aadl") => parseAadl(args, i + 1)
       case Some(string"slang") => parseSlang(args, i + 1)
       case Some(string"tools") => parseTools(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseAadl(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""AADL Tools
+            |
+            |Available modes:
+            |act                      AADL to CAmkES translator""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("aadl", args, i, ISZ("act"))
+    opt match {
+      case Some(string"act") => parseAct(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseActFormatH(arg: String): Option[ActFormat.Type] = {
+    arg.native match {
+      case "air" => return Some(ActFormat.Air)
+      case "camkesir" => return Some(ActFormat.Camkesir)
+      case "aadl" => return Some(ActFormat.Aadl)
+      case s =>
+        eprintln(s"Expecting one of the following: { air, camkesir, aadl }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseActFormat(args: ISZ[String], i: Z): Option[ActFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { air, camkesir, aadl }, but none found.")
+      return None()
+    }
+    val r = parseActFormatH(args(i))
+    return r
+  }
+
+  def parseActModeH(arg: String): Option[ActMode.Type] = {
+    arg.native match {
+      case "json" => return Some(ActMode.Json)
+      case "msgpack" => return Some(ActMode.Msgpack)
+      case s =>
+        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseActMode(args: ISZ[String], i: Z): Option[ActMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
+      return None()
+    }
+    val r = parseActModeH(args(i))
+    return r
+  }
+
+  def parseAct(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum ACT: An AADL-to-CAmkES Translator
+          |
+          |Usage: <option>* <file>+
+          |
+          |Available Options:
+          |-i, --input              Input format (expects one of { air, camkesir, aadl };
+          |                           default: air)
+          |-m, --mode               Serialization method (only valid for air/camkesir
+          |                           input (expects one of { json, msgpack }; default:
+          |                           json)
+          |-o, --output-dir         Output directory for the generated project files
+          |                           (expects a path; default is ".")
+          |-a, --aux-directories    
+          |                          Directories containing C files to be included in
+          |                           build (expects path strings)
+          |-r, --root-dir            (expects a path)
+          |-h, --help               Display this information""".render
+
+    var input: ActFormat.Type = ActFormat.Air
+    var mode: ActMode.Type = ActMode.Json
+    var outputDir: Option[String] = Some(".")
+    var auxDirs: ISZ[String] = ISZ[String]()
+    var aadlRootDir: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-i" || arg == "--input") {
+           val o: Option[ActFormat.Type] = parseActFormat(args, j + 1)
+           o match {
+             case Some(v) => input = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[ActMode.Type] = parseActMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--aux-directories") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => auxDirs = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--root-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => aadlRootDir = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(ActOption(help, parseArguments(args, j), input, mode, outputDir, auxDirs, aadlRootDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
