@@ -83,7 +83,7 @@ object SlangRunner {
       sJar.string,
       s"-Xplugin:$scalacPluginJar",
       "-classpath",
-      wd.string,
+      s"$wd${Os.pathSep}$sJar",
       "-sourcepath",
       wd.string,
       "-unchecked",
