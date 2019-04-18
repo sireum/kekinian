@@ -30,9 +30,10 @@ import java.io.File
 import org.sireum._
 import org.sireum.aadl.ir.{Aadl, JSON => AirJSON, MsgPack}
 import Cli.{ActFormat, ActMode}
+
 object Act {
 
-  def act(o: Cli.ActOption): Int = {
+  def act(o: Cli.ActOption): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case _ =>
