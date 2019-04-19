@@ -50,7 +50,7 @@ object GenTools {
       }
       val outTemp = Os.temp()
       val r = SlangRunner.run(Cli.SlangRunOption("", ISZ(src.value), None(),
-        Some(outTemp.string), F, F, F))
+        Some(outTemp.string), T, F, F))
       if (r != 0) {
         eprintln(s"Could not run ${o.args(0)}")
         return r
