@@ -32,11 +32,11 @@ import $file.alir.Alir
 import $file.logika.Logika
 import $file.aadl.air.Air
 import $file.aadl.act.Act
+import $file.aadl.phantom.Phantom
 import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
 import org.sireum.mill.SireumModule
-//import $ivy.`ch.epfl.scala::mill-bloop:1.2.5+202-7b4b0c7f+20190412-1353`
 
 object runtime extends mill.Module {
 
@@ -129,6 +129,10 @@ object aadl extends mill.Module {
       final override def moduleDeps = Seq(runtime.library.jvm)
     }
   }
+
+  object phantom extends Phantom.Module {
+    final override def libraryObject = runtime.library
+  }
 }
 
 
@@ -137,6 +141,7 @@ object cli extends Cli.Module {
   final override def toolsObject = tools
   final override def logikaObject = logika
   final override def actObject = aadl.act
+  final override def phantomObject = aadl.phantom
 }
 
 object bin extends ScalaModule {

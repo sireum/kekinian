@@ -43,7 +43,8 @@ object Sireum {
           case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
           case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt
           case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o).toInt
-          case Some(o: Cli.ActOption) => cli.Act.act(o).toInt
+          case Some(o: Cli.ActOption) => cli.Act.run(o).toInt
+          case Some(o: Cli.PhantomOption) => cli.Phantom.run(o).toInt
           case Some(_: Cli.HelpOption) => 0
           case _ => -1
         })

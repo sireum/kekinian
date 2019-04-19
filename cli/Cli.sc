@@ -40,10 +40,13 @@ trait Module extends JvmOnly {
       jpLatest(isCross = false, "sireum", "tools"),
       jpLatest(isCross = false, "sireum", "logika"),
       jpLatest(isCross = false, "sireum", "act"),
+      jpLatest(isCross = false, "sireum", "phantom"),
     )
   }
 
-  final override def deps = Seq()
+  final override def deps =
+    if (isSourceDep) Seq(phantomObject)
+    else Seq()
 
   final override def testFrameworks = Seq()
 
@@ -62,6 +65,8 @@ trait Module extends JvmOnly {
   def logikaObject: CrossJvmJsPublish
 
   def actObject: CrossJvmJsPublish
+
+  def phantomObject: JvmOnly
 
   final override def mainClass = Some("org.sireum.Sireum")
 }

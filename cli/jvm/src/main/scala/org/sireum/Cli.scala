@@ -59,6 +59,21 @@ object Cli {
     aadlRootDir: Option[String]
   ) extends SireumTopOption
 
+  @enum object PhantomMode {
+    'Json
+    'Msgpack
+  }
+
+  @datatype class PhantomOption(
+    help: String,
+    args: ISZ[String],
+    mode: PhantomMode.Type,
+    osate: Option[String],
+    projects: ISZ[String],
+    main: Option[String],
+    output: Option[String]
+  ) extends SireumTopOption
+
   @datatype class SlangRunOption(
     help: String,
     args: ISZ[String],
@@ -170,13 +185,15 @@ import Cli._
         st"""AADL Tools
             |
             |Available modes:
-            |act                      AADL to CAmkES translator""".render
+            |act                      AADL to CAmkES translator
+            |phantom                 """.render
       )
       return Some(HelpOption())
     }
-    val opt = select("aadl", args, i, ISZ("act"))
+    val opt = select("aadl", args, i, ISZ("act", "phantom"))
     opt match {
       case Some(string"act") => parseAct(args, i + 1)
+      case Some(string"phantom") => parsePhantom(args, i + 1)
       case _ => return None()
     }
   }
@@ -293,6 +310,96 @@ import Cli._
       }
     }
     return Some(ActOption(help, parseArguments(args, j), input, mode, outputDir, auxDirs, aadlRootDir))
+  }
+
+  def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
+    arg.native match {
+      case "json" => return Some(PhantomMode.Json)
+      case "msgpack" => return Some(PhantomMode.Msgpack)
+      case s =>
+        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parsePhantomMode(args: ISZ[String], i: Z): Option[PhantomMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
+      return None()
+    }
+    val r = parsePhantomModeH(args(i))
+    return r
+  }
+
+  def parsePhantom(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
+          |
+          |Usage: <option>* <system-name>
+          |
+          |Available Options:
+          |-m, --mode               Serialization method (expects one of { json, msgpack
+          |                           }; default: json)
+          |-e, --osate              OSATE installation path (expects a path)
+          |-p, --projects           OSATE project folders (expects path strings; default
+          |                           is ".")
+          |-a, --main-package       AADL main package name (expects a string)
+          |-o, --output             AIR output file path (expects a path)
+          |-h, --help               Display this information""".render
+
+    var mode: PhantomMode.Type = PhantomMode.Json
+    var osate: Option[String] = None[String]()
+    var projects: ISZ[String] = ISZ(".")
+    var main: Option[String] = None[String]()
+    var output: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--osate") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => osate = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--projects") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => projects = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--main-package") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => main = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(PhantomOption(help, parseArguments(args, j), mode, osate, projects, main, output))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

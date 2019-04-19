@@ -33,7 +33,7 @@ val aadl = Group(
   header =
     st"""AADL Tools""".render,
   unlisted = F,
-  subs = ISZ(org.sireum.aadl.act.cli.actTool)
+  subs = ISZ(org.sireum.aadl.act.cli.actTool, org.sireum.aadl.phantom.cli.phantomTool)
 )
 
 val main = Group(

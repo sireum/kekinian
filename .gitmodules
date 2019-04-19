@@ -22,3 +22,6 @@
 [submodule "aadl/act"]
 	path = aadl/act
 	url = https://github.com/sireum/act
+[submodule "aadl/phantom"]
+	path = aadl/phantom
+	url = https://github.com/sireum/phantom
