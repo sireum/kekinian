@@ -112,7 +112,7 @@ def buildMill(): Unit = {
     sireum.copyOverTo(millBuildBin / sireum.name)
   }
   if (!(millBuild / "versions.properties").exists ||
-    (millBuild / "versions.properties").lastModified > (millBuild / "versions.properties").lastModified) {
+    (home / "versions.properties").lastModified > (millBuild / "versions.properties").lastModified) {
     (home / "versions.properties").copyOverTo(millBuild / "versions.properties")
   }
   if (!(millBuildBin / "scala").exists && (homeBin / "scala").exists) {
