@@ -124,6 +124,14 @@ def buildMill(): Unit = {
   if (!(millBuildBin / platform / "java").exists && (homeBin / platform / "java").exists) {
     (homeBin / platform / "java").copyOverTo(millBuildBin / platform / "java")
   }
+  if ((millBuildBin / "prelude.sh").exists &&
+    (homeBin / "init.sh").lastModified > (millBuildBin / "prelude.sh").lastModified) {
+    (homeBin / "init.sh").copyOverTo(millBuildBin / "prelude.sh")
+  }
+  if ((millBuildBin / "prelude.ps1").exists &&
+    (homeBin / "init.ps1").lastModified > (millBuildBin / "prelude.ps1").lastModified) {
+    (homeBin / "init.ps1").copyOverTo(millBuildBin / "prelude.ps1")
+  }
   (millBuildBin / "build.cmd").slash(ISZ())
   (millBuild / "mill-standalone").copyOverTo(homeBin / "mill")
   (millBuild / "mill-standalone.bat").copyOverTo(homeBin / "mill.bat")
