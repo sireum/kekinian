@@ -69,9 +69,6 @@ if (!(Test-Path "$scalac_plugin_lib")) {
     Invoke-WebRequest -Uri "$scalac_plugin_url" -OutFile "$scalac_plugin_drop"
     ""
   }
-  if (Test-Path "$sireum_home\lib\scalac-plugin-*.jar") {
-    Remove-Item -Path "$sireum_home\lib\scalac-plugin-*.jar" -Force
-  }
   Copy-Item -Path "$scalac_plugin_drop" -Destination "$scalac_plugin_lib" -Force
 }
 

@@ -88,7 +88,6 @@ if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
     $(download ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL})
     echo
   fi
-  rm -f scalac-plugin-*.jar
   cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
 fi
 
