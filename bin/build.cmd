@@ -161,8 +161,8 @@ def nativ(): Unit = {
   println("Building native ...")
   val platDir = homeBin / platform
   Os.proc(("native-image" +: flags) ++
-    ISZ[String]("--no-server", "-jar",
-      sireumJar.string, (platDir / "sireum").string)).
+    ISZ[String]("--no-server", "--initialize-at-build-time", "--no-fallback",
+      "-jar", sireumJar.string, (platDir / "sireum").string)).
     console.runCheck()
   (platDir / "sireum.o").removeAll()
 }

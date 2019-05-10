@@ -65,7 +65,7 @@ object Init {
         if (!javaVer.exists || javaVer.read != javaVersion) {
           printInstall()
           println(s"Please wait while downloading GraalVM $javaVersion ...")
-          val javaUrl = s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/graalvm-ce-$javaVersion-macos-amd64.tar.gz"
+          val javaUrl = s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/graalvm-ce-darwin-amd64-$javaVersion.tar.gz"
           javaName = s"1.8-graalvm-ce-$javaVersion"
           val temp = Os.temp()
           temp.removeOnExit()
@@ -75,6 +75,13 @@ object Init {
           val graal = home / s"graalvm-ce-$javaVersion"
           (graal / "Contents" / "Home").moveOverTo(javaHome)
           graal.removeAll()
+          val niJar = javaHome / "native-image.jar"
+          niJar.downloadFrom(s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/native-image-installable-svm-darwin-amd64-$javaVersion.jar")
+          Os.proc(ISZ((javaHome / "bin" / "jar").string, "xf", niJar.string)).at(javaHome).runCheck()
+          niJar.removeAll()
+          for (f <- (javaHome / "jre" / "lib" / "svm" / "bin").list) {
+            f.chmodAll("+x")
+          }
           javaVer.write(javaVersion)
           println()
         }
@@ -83,7 +90,7 @@ object Init {
         if (!javaVer.exists || javaVer.read != javaVersion) {
           printInstall()
           println(s"Please wait while downloading GraalVM $javaVersion ...")
-          val javaUrl = s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/graalvm-ce-$javaVersion-linux-amd64.tar.gz"
+          val javaUrl = s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/graalvm-ce-linux-amd64-$javaVersion.tar.gz"
           javaName = s"1.8-graalvm-ce-$javaVersion"
           val temp = Os.temp()
           temp.removeOnExit()
@@ -92,6 +99,13 @@ object Init {
           javaHome.removeAll()
           val graal = home / s"graalvm-ce-$javaVersion"
           graal.moveOverTo(javaHome)
+          val niJar = javaHome / "native-image.jar"
+          niJar.downloadFrom(s"https://github.com/oracle/graal/releases/download/vm-$javaVersion/native-image-installable-svm-linux-amd64-$javaVersion.jar")
+          Os.proc(ISZ((javaHome / "bin" / "jar").string, "xf", niJar.string)).at(javaHome).runCheck()
+          niJar.removeAll()
+          for (f <- (javaHome / "jre" / "lib" / "svm" / "bin").list) {
+            f.chmodAll("+x")
+          }
           javaVer.write(javaVersion)
           println()
         }

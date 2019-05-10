@@ -151,7 +151,8 @@ object SlangRunner {
         return 0
       }
       println(s"Generating native image $nativ ...")
-      command = ISZ(nativeImage.string, "--no-server", "-cp", sJar.string, "-jar", jarFile.name)
+      command = ISZ(nativeImage.string, "--no-server", "--initialize-at-build-time",
+        "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name)
       if (Os.kind != Os.Kind.Mac) {
         command = command :+ "--static"
       }
