@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 MAINTAINER Robby <robby@k-state.edu>
-ENV PATH=$PATH:/opt/graalvm/bin
+ENV PATH=$PATH:/opt/graalvm/jre/lib/svm/bin
 RUN apt update && \
     apt install -y wget && \
     cd /opt && \
