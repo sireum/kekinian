@@ -1,1 +1,1 @@
-@powershell %~dp0init.ps1
+@powershell -noprofile -executionpolicy bypass -file %~dp0init.ps1
