@@ -97,6 +97,29 @@ object Cli {
     gzip: B
   ) extends SireumTopOption
 
+  @datatype class CTranspilerOption(
+    help: String,
+    args: ISZ[String],
+    sourcepath: ISZ[String],
+    output: Option[String],
+    verbose: B,
+    projectName: Option[String],
+    apps: ISZ[String],
+    unroll: B,
+    fingerprint: Z,
+    bitWidth: Z,
+    maxStringSize: Z,
+    maxArraySize: Z,
+    customArraySizes: ISZ[String],
+    customConstants: ISZ[String],
+    plugins: ISZ[String],
+    exts: ISZ[String],
+    forwarding: ISZ[String],
+    stackSize: Option[String],
+    save: Option[String],
+    load: Option[String]
+  ) extends SireumTopOption
+
   @datatype class CligenOption(
     help: String,
     args: ISZ[String],
@@ -343,7 +366,7 @@ import Cli._
           |-e, --osate              OSATE installation path (expects a path)
           |-p, --projects           OSATE project folders (expects path strings; default
           |                           is ".")
-          |-a, --main-package       AADL main package name (expects a string)
+          |-a, --main-package       AADL main package file (expects a string)
           |-o, --output             AIR output file path (expects a path)
           |-h, --help               Display this information""".render
 
@@ -409,14 +432,16 @@ import Cli._
             |
             |Available modes:
             |run                      Script runner
-            |tipe                     Type checker""".render
+            |tipe                     Type checker
+            |transpilers              Slang transpilers""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("slang", args, i, ISZ("run", "tipe"))
+    val opt = select("slang", args, i, ISZ("run", "tipe", "transpilers"))
     opt match {
       case Some(string"run") => parseSlangRun(args, i + 1)
       case Some(string"tipe") => parseSlangTipe(args, i + 1)
+      case Some(string"transpilers") => parseTranspilers(args, i + 1)
       case _ => return None()
     }
   }
@@ -590,6 +615,219 @@ import Cli._
       }
     }
     return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, save, load, gzip))
+  }
+
+  def parseTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Slang Transpilers
+            |
+            |Available modes:
+            |c                        Slang Embedded to C transpiler""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("transpilers", args, i, ISZ("c"))
+    opt match {
+      case Some(string"c") => parseCTranspiler(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseCTranspiler(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Embedded To C Transpiler
+          |
+          |Usage: <option>* ( <slang-file> )*
+          |
+          |Available Options:
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |-o, --output-dir         Output directory for transpiled files (expects a path;
+          |                           default is "out")
+          |    --verbose            Enable verbose mode
+          |-h, --help               Display this information
+          |
+          |Configuration Options:
+          |-n, --name               Project name (expects a string; default is "main")
+          |-a, --apps               @app fully qualified names (expects a string separated
+          |                           by ",")
+          |-u, --unroll             Enable for-loop unrolling
+          |-f, --fingerprint        Generic entity fingerprinting size (expects an
+          |                           integer; default is 3)
+          |-b, --bits               Default bit-width for unbounded integer types (e.g.,
+          |                           Z) (expects one of { 64, 32, 16, 8 })
+          |    --string-size        Maximum string size (expects an integer; default is
+          |                           100)
+          |    --sequence-size      Default maximum sequence size (expects an integer;
+          |                           default is 100)
+          |-q, --sequence           Custom maximum sequence sizes, each in the form of
+          |                           <type>=<size>, where <type> is either IS[,], MS[,],
+          |                           ISZ[], MSZ[], or ZS with fully qualified index and
+          |                           element types where applicable (expects a string
+          |                           separated by ",")
+          |-c, --constants          Custom constant for object variables, each in the form
+          |                           of <name>=<lit>, where <name> is a qualified name of
+          |                           an object var and <lit> is a Slang literal
+          |                           expression (expects a string separated by ",")
+          |-p, --plugins            Plugin fully qualified names (expects a string
+          |                           separated by ",")
+          |-e, --exts               Extension file paths (expects path strings)
+          |-w, --forward            Object forwarding, each in form of <name>=<name>,
+          |                           where <name> is a fully qualified name of an object
+          |                           (expects a string separated by ",")
+          |-z, --stack-size         Maximum stack size in bytes (expects a string; default
+          |                           is "16 * 1024 * 1024")
+          |
+          |Persistence Options:
+          |    --save               Path to save type information to (outline should not
+          |                           be enabled) (expects a path)
+          |    --load               Path to load type information from (expects a path)""".render
+
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var output: Option[String] = Some("out")
+    var verbose: B = false
+    var projectName: Option[String] = Some("main")
+    var apps: ISZ[String] = ISZ[String]()
+    var unroll: B = false
+    var fingerprint: Z = 3
+    var bitWidth: Z = 64
+    var maxStringSize: Z = 100
+    var maxArraySize: Z = 100
+    var customArraySizes: ISZ[String] = ISZ[String]()
+    var customConstants: ISZ[String] = ISZ[String]()
+    var plugins: ISZ[String] = ISZ[String]()
+    var exts: ISZ[String] = ISZ[String]()
+    var forwarding: ISZ[String] = ISZ[String]()
+    var stackSize: Option[String] = Some("16 * 1024 * 1024")
+    var save: Option[String] = None[String]()
+    var load: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => projectName = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--apps") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => apps = v
+             case _ => return None()
+           }
+         } else if (arg == "-u" || arg == "--unroll") {
+           val o: Option[B] = { j = j - 1; Some(!unroll) }
+           o match {
+             case Some(v) => unroll = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--fingerprint") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), Some(64))
+           o match {
+             case Some(v) => fingerprint = v
+             case _ => return None()
+           }
+         } else if (arg == "-b" || arg == "--bits") {
+           val o: Option[Z] = parseNumChoice(args, j + 1, ISZ(z"64", z"32", z"16", z"8"))
+           o match {
+             case Some(v) => bitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--string-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxStringSize = v
+             case _ => return None()
+           }
+         } else if (arg == "--sequence-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxArraySize = v
+             case _ => return None()
+           }
+         } else if (arg == "-q" || arg == "--sequence") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => customArraySizes = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--constants") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => customConstants = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--plugins") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => plugins = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--exts") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => exts = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--forward") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => forwarding = v
+             case _ => return None()
+           }
+         } else if (arg == "-z" || arg == "--stack-size") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => stackSize = v
+             case _ => return None()
+           }
+         } else if (arg == "--save") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => save = v
+             case _ => return None()
+           }
+         } else if (arg == "--load") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => load = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, projectName, apps, unroll, fingerprint, bitWidth, maxStringSize, maxArraySize, customArraySizes, customConstants, plugins, exts, forwarding, stackSize, save, load))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

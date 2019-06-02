@@ -29,6 +29,7 @@ import $file.runtime.Runtime
 import $file.slang.Slang
 import $file.tools.Tools
 import $file.alir.Alir
+import $file.transpilers.Transpilers
 import $file.logika.Logika
 import $file.aadl.air.Air
 import $file.aadl.act.Act
@@ -95,6 +96,21 @@ object alir extends Alir.Module with runtime.testProvider {
   }
 }
 
+object transpilers extends mill.Module {
+
+  object common extends Transpilers.Module.Common {
+    override val alirObject = alir
+  }
+
+  object c extends Transpilers.Module.C {
+    override val commonObject = common
+  }
+
+  object bin extends ScalaModule {
+    final override def scalaVersion = SireumModule.scalaVersion
+    final override def moduleDeps = Seq(runtime.library.jvm)
+  }
+}
 
 object logika extends Logika.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
@@ -138,6 +154,7 @@ object aadl extends mill.Module {
 
 object cli extends Cli.Module {
   final override def alirObject = alir
+  final override def transpilersCObject = transpilers.c
   final override def toolsObject = tools
   final override def logikaObject = logika
   final override def actObject = aadl.act

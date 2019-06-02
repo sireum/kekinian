@@ -25,3 +25,6 @@
 [submodule "aadl/phantom"]
 	path = aadl/phantom
 	url = https://github.com/sireum/phantom
+[submodule "transpilers"]
+	path = transpilers
+	url = https://github.com/sireum/transpilers

@@ -27,13 +27,19 @@
 import org.sireum._
 import org.sireum.cli.CliOpt._
 
+import org.sireum.aadl.act
+import org.sireum.aadl.phantom
+import org.sireum.lang
+import org.sireum.transpilers
+import org.sireum.tools
+
 val aadl = Group(
   name = "aadl",
   description = "AADL tools",
   header =
     st"""AADL Tools""".render,
   unlisted = F,
-  subs = ISZ(org.sireum.aadl.act.cli.actTool, org.sireum.aadl.phantom.cli.phantomTool)
+  subs = ISZ(act.cli.actTool, phantom.cli.phantomTool)
 )
 
 val main = Group(
@@ -43,6 +49,9 @@ val main = Group(
     st"""Sireum: A High-Assurance Software Development Platform
         |(c) 2019, SAnToS Laboratory, Kansas State University""".render,
   unlisted = F,
-  subs = ISZ(aadl, org.sireum.lang.cli.group, org.sireum.tools.cli.group)
+  subs = ISZ(
+    aadl,
+    lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
+    tools.cli.group)
 )
 println(org.sireum.cli.JSON.fromCliOpt(main, T))

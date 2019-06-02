@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2018, Robby, Kansas State University
+ Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,14 @@ import org.sireum.mill.SireumModule._
 trait Module extends JvmOnly {
 
   final override def crossDeps =
-    if (isSourceDep) Seq(alirObject, toolsObject, logikaObject, actObject)
+    if (isSourceDep) Seq(alirObject, transpilersCObject, toolsObject, logikaObject, actObject)
     else Seq()
 
   final override def ivyDeps = T {
     if (isSourceDep) Agg.empty
     else Agg(
       jpLatest(isCross = false, "sireum", "alir"),
+      jpLatest(isCross = false, "sireum", "transpilers", "c"),
       jpLatest(isCross = false, "sireum", "tools"),
       jpLatest(isCross = false, "sireum", "logika"),
       jpLatest(isCross = false, "sireum", "act"),
@@ -59,6 +60,8 @@ trait Module extends JvmOnly {
   )
 
   def alirObject: CrossJvmJsPublish
+
+  def transpilersCObject: CrossJvmJsPublish
 
   def toolsObject: CrossJvmJsPublish
 

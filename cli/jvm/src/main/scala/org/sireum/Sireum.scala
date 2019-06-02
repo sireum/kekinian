@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2018, Robby, Kansas State University
+ Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ object Sireum {
         System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
           case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
           case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o).toInt
+          case Some(o: Cli.CTranspilerOption) => cli.CTranspiler.run(o).toInt
           case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o).toInt
           case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
           case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt
