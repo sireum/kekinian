@@ -40,6 +40,7 @@ object Sireum {
           case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
           case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o).toInt
           case Some(o: Cli.CTranspilerOption) => cli.CTranspiler.run(o).toInt
+          case Some(o: Cli.BcgenOption) => cli.GenTools.bcGen(o).toInt
           case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o).toInt
           case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
           case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt

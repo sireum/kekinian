@@ -120,6 +120,21 @@ object Cli {
     load: Option[String]
   ) extends SireumTopOption
 
+  @enum object BitCodecMode {
+    'Program
+    'Script
+  }
+
+  @datatype class BcgenOption(
+    help: String,
+    args: ISZ[String],
+    mode: BitCodecMode.Type,
+    packageName: ISZ[String],
+    name: Option[String],
+    license: Option[String],
+    outputDir: Option[String]
+  ) extends SireumTopOption
+
   @datatype class CligenOption(
     help: String,
     args: ISZ[String],
@@ -836,6 +851,7 @@ import Cli._
         st"""Sireum Utility Tools
             |
             |Available modes:
+            |bcgen                    Bit encoder/decoder generator
             |cligen                   Command-line interface (CLI) generator
             |ivegen                   Sireum IVE project generator
             |sergen                   De/Serializer generator
@@ -843,14 +859,108 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("cligen", "ivegen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("bcgen", "cligen", "ivegen", "sergen", "transgen"))
     opt match {
+      case Some(string"bcgen") => parseBcgen(args, i + 1)
       case Some(string"cligen") => parseCligen(args, i + 1)
       case Some(string"ivegen") => parseIvegen(args, i + 1)
       case Some(string"sergen") => parseSergen(args, i + 1)
       case Some(string"transgen") => parseTransgen(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseBitCodecModeH(arg: String): Option[BitCodecMode.Type] = {
+    arg.native match {
+      case "program" => return Some(BitCodecMode.Program)
+      case "script" => return Some(BitCodecMode.Script)
+      case s =>
+        eprintln(s"Expecting one of the following: { program, script }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseBitCodecMode(args: ISZ[String], i: Z): Option[BitCodecMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { program, script }, but none found.")
+      return None()
+    }
+    val r = parseBitCodecModeH(args(i))
+    return r
+  }
+
+  def parseBcgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum BitCodec Generator
+          |
+          |Usage: <option>* <spec-file>
+          |
+          |Available Options:
+          |-m, --mode               Generated codec unit mode (expects one of { program,
+          |                           script }; default: program)
+          |-p, --package            Package name for the codec (expects a string separated
+          |                           by ".")
+          |-n, --name               Object simple name for the codec (expects a string;
+          |                           default is "BitCodec")
+          |-l, --license            License file to be inserted in the file header
+          |                           (expects a path)
+          |-o, --output-dir         Output directory for the generated codec files
+          |                           (expects a path; default is ".")
+          |-h, --help               Display this information""".render
+
+    var mode: BitCodecMode.Type = BitCodecMode.Program
+    var packageName: ISZ[String] = ISZ[String]()
+    var name: Option[String] = Some("BitCodec")
+    var license: Option[String] = None[String]()
+    var outputDir: Option[String] = Some(".")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[BitCodecMode.Type] = parseBitCodecMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(BcgenOption(help, parseArguments(args, j), mode, packageName, name, license, outputDir))
   }
 
   def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1071,9 +1181,8 @@ import Cli._
           |Available Options:
           |-m, --modes              De/serializer mode (expects one or more of { json,
           |                           msgpack }; default: json)
-          |-p, --package            Type simple name for the de/serializers (default:
-          |                           "Json" or "MsgPack") (expects a string separated by
-          |                           ".")
+          |-p, --package            Package name for the de/serializers (expects a string
+          |                           separated by ".")
           |-n, --name               Type simple name for the de/serializers (default:
           |                           "Json" or "MsgPack") (expects a string)
           |-l, --license            License file to be inserted in the file header
@@ -1176,7 +1285,7 @@ import Cli._
     val help =
       st"""Sireum Transformer Generator
           |
-          |Usage: <option>* <slang-file>
+          |Usage: <option>* <slang-file>+
           |
           |Available Options:
           |-m, --modes              Transformer mode (expects one or more of { immutable,
