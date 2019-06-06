@@ -60,7 +60,8 @@ object GenTools {
         return r
       }
       val reporter = Reporter.create
-      Parser.parseTopUnit[ast.TopUnit.Program](src.read, F, T, F, Some(src.value), reporter) match {
+      val text = src.read
+      Parser.parseTopUnit[ast.TopUnit.Program](text, F, T, F, Some(src.value), reporter) match {
         case Some(p) if !reporter.hasIssue =>
           val (_, program) = FrontEnd.checkWorksheet(None(), p, reporter)
           if (reporter.hasIssue) {
@@ -73,7 +74,11 @@ object GenTools {
             case Either.Left(config) =>
               val prev: String = if (dest.isFile) dest.read else ""
               val r = BitCodecGen.gen(lOpt.map(_.read), src.name,
-                o.packageName, o.name.get, configText, config, program, prev).render
+                o.packageName, o.name.get, text, config, program, prev, reporter)
+              if (reporter.hasIssue) {
+                reporter.printMessages()
+                return -1
+              }
               //dest.write(r)
               //println(s"Wrote $dest")
               0
