@@ -129,6 +129,7 @@ object Cli {
     help: String,
     args: ISZ[String],
     mode: BitCodecMode.Type,
+    isLittleEndian: B,
     packageName: ISZ[String],
     name: Option[String],
     license: Option[String],
@@ -898,6 +899,7 @@ import Cli._
           |Available Options:
           |-m, --mode               Generated codec unit mode (expects one of { program,
           |                           script }; default: program)
+          |-l, --little             Generate little-endian bitcodec instead of big-endian
           |-p, --package            Package name for the codec (expects a string separated
           |                           by ".")
           |-n, --name               Object simple name for the codec (expects a string;
@@ -909,6 +911,7 @@ import Cli._
           |-h, --help               Display this information""".render
 
     var mode: BitCodecMode.Type = BitCodecMode.Program
+    var isLittleEndian: B = false
     var packageName: ISZ[String] = ISZ[String]()
     var name: Option[String] = Some("BitCodec")
     var license: Option[String] = None[String]()
@@ -925,6 +928,12 @@ import Cli._
            val o: Option[BitCodecMode.Type] = parseBitCodecMode(args, j + 1)
            o match {
              case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--little") {
+           val o: Option[B] = { j = j - 1; Some(!isLittleEndian) }
+           o match {
+             case Some(v) => isLittleEndian = v
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--package") {
@@ -960,7 +969,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(BcgenOption(help, parseArguments(args, j), mode, packageName, name, license, outputDir))
+    return Some(BcgenOption(help, parseArguments(args, j), mode, isLittleEndian, packageName, name, license, outputDir))
   }
 
   def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
