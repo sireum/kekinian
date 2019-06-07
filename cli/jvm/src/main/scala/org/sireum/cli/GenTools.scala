@@ -79,10 +79,8 @@ object GenTools {
                 reporter.printMessages()
                 return -1
               }
-              println("Coming soon ...")
-              //println(r.render)
-              //dest.write(r)
-              //println(s"Wrote $dest")
+              dest.writeOver(r.render)
+              println(s"Wrote $dest")
               0
             case _ =>
               eprintln(s"Invalid config produced by running ${o.args(0)}")
