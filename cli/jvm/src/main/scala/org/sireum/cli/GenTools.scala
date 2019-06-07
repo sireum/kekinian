@@ -68,23 +68,25 @@ object GenTools {
             reporter.printMessages()
             return -1
           }
-          val configText = outTemp.read
+          val specText = outTemp.read
           outTemp.removeAll()
-          Spec.fromJSON(configText) match {
-            case Either.Left(config) =>
+          Spec.fromJSON(specText) match {
+            case Either.Left(spec) =>
               val prev: String = if (dest.isFile) dest.read else ""
-              val r = BitCodecGen.gen(lOpt.map(_.read), src.name,
-                o.packageName, o.name.get, text, config, program, prev, reporter)
+              val r = BitCodecGen.gen(o.mode == Cli.BitCodecMode.Program, !o.isLittleEndian, lOpt.map(_.read),
+                src.name, o.packageName, o.name.get, text, spec, program, prev, reporter)
               if (reporter.hasIssue) {
                 reporter.printMessages()
                 return -1
               }
+              println("Coming soon ...")
+              //println(r.render)
               //dest.write(r)
               //println(s"Wrote $dest")
               0
             case _ =>
               eprintln(s"Invalid config produced by running ${o.args(0)}")
-              eprintln(configText)
+              eprintln(specText)
               -1
           }
         case _ =>
@@ -150,8 +152,7 @@ object GenTools {
     } else {
       val HomeNotFound = -1
       val JavaOrScalaNotFound = -2
-      val IveNotFound = -3
-      val InvalidDir = -4
+      val InvalidDir = -3
 
       val d = path2fileOpt("project parent folder", Some(o.args(0)), F).get
       if (!d.exists) {
