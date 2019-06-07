@@ -899,10 +899,11 @@ import Cli._
           |Available Options:
           |-m, --mode               Generated codec unit mode (expects one of { program,
           |                           script }; default: program)
-          |-l, --little             Generate little-endian bitcodec instead of big-endian
+          |    --little             Generate little-endian bitcodec instead of big-endian
           |-p, --package            Package name for the codec (expects a string separated
           |                           by ".")
-          |-n, --name               Object simple name for the codec (expects a string;
+          |-n, --name               Object and filename for the codec (script always uses
+          |                           BitCodec as the object name) (expects a string;
           |                           default is "BitCodec")
           |-l, --license            License file to be inserted in the file header
           |                           (expects a path)
@@ -930,7 +931,7 @@ import Cli._
              case Some(v) => mode = v
              case _ => return None()
            }
-         } else if (arg == "-l" || arg == "--little") {
+         } else if (arg == "--little") {
            val o: Option[B] = { j = j - 1; Some(!isLittleEndian) }
            o match {
              case Some(v) => isLittleEndian = v
