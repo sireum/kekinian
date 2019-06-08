@@ -124,11 +124,12 @@ def buildMill(): Unit = {
   if (!(millBuildBin / platform / "java").exists && (homeBin / platform / "java").exists) {
     (homeBin / platform / "java").copyOverTo(millBuildBin / platform / "java")
   }
-  if ((millBuildBin / "prelude.sh").exists &&
+  if (!(millBuildBin / "prelude.sh").exists ||
     (homeBin / "init.sh").lastModified > (millBuildBin / "prelude.sh").lastModified) {
     (homeBin / "init.sh").copyOverTo(millBuildBin / "prelude.sh")
+    (millBuildBin / "prelude.sh").chmod("+x")
   }
-  if ((millBuildBin / "prelude.ps1").exists &&
+  if (!(millBuildBin / "prelude.ps1").exists ||
     (homeBin / "init.ps1").lastModified > (millBuildBin / "prelude.ps1").lastModified) {
     (homeBin / "init.ps1").copyOverTo(millBuildBin / "prelude.ps1")
   }
