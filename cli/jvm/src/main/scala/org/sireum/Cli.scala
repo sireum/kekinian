@@ -156,7 +156,10 @@ object Cli {
     args: ISZ[String],
     jdk: Option[String],
     mode: IveMode.Type,
-    name: Option[String],
+    projectName: Option[String],
+    moduleName: Option[String],
+    packageName: ISZ[String],
+    appName: Option[String],
     millPath: B,
     force: B,
     compile: B
@@ -1079,7 +1082,12 @@ import Cli._
           |                           mill for full Slang development) (expects one of {
           |                           idea, mill }; default: idea)
           |-n, --name               Project name (expects a string; default is "hello")
-          |-p, --mill-path          Use mill available in the PATH environment variable
+          |    --module             Module name (default: project name) (expects a string)
+          |-p, --package            Fully qualified app package name (expects a string
+          |                           separated by ".")
+          |    --app                App/script name (default: "app" in mill mode;
+          |                           otherwise, "script") (expects a string)
+          |    --mill-path          Use mill available in the PATH environment variable
           |                           (only in mill mode)
           |-f, --force              Force regeneration of JDK and library tables
           |-c, --no-compile         Only generate mill project without code compilation
@@ -1087,7 +1095,10 @@ import Cli._
 
     var jdk: Option[String] = Some("Java")
     var mode: IveMode.Type = IveMode.Idea
-    var name: Option[String] = Some("hello")
+    var projectName: Option[String] = Some("hello")
+    var moduleName: Option[String] = None[String]()
+    var packageName: ISZ[String] = ISZ[String]()
+    var appName: Option[String] = None[String]()
     var millPath: B = false
     var force: B = false
     var compile: B = true
@@ -1114,10 +1125,28 @@ import Cli._
          } else if (arg == "-n" || arg == "--name") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => name = v
+             case Some(v) => projectName = v
              case _ => return None()
            }
-         } else if (arg == "-p" || arg == "--mill-path") {
+         } else if (arg == "--module") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => moduleName = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "--app") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => appName = v
+             case _ => return None()
+           }
+         } else if (arg == "--mill-path") {
            val o: Option[B] = { j = j - 1; Some(!millPath) }
            o match {
              case Some(v) => millPath = v
@@ -1144,7 +1173,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IvegenOption(help, parseArguments(args, j), jdk, mode, name, millPath, force, compile))
+    return Some(IvegenOption(help, parseArguments(args, j), jdk, mode, projectName, moduleName, packageName, appName, millPath, force, compile))
   }
 
   def parseSerializerModeH(arg: String): Option[SerializerMode.Type] = {

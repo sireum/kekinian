@@ -160,7 +160,7 @@ object GenTools {
         eprintln(s"Could not create $d")
         return InvalidDir
       }
-      val project = d / o.name.get
+      val project = d / o.projectName.get
       val projectExists = project.exists
       project.mkdirAll()
 
@@ -343,17 +343,20 @@ object GenTools {
 
       (Os.home / s".SireumIVE$devSuffix-sandbox").mkdirAll()
 
-      val name = o.name.get
+      val projectName = o.projectName.get
 
       val projectPath = project.toString
 
       val files =
         if (o.mode == Cli.IveMode.Idea) {
           for (p <- project.list if p.string.value.endsWith(".iml")) p.removeAll()
-          IveGen.idea(projectExists, isWin, uriPathSep(home.toString), name, projectPath, o.jdk.get,
-            scalaVer, scalacPluginVer)
+          IveGen.idea(projectExists, isWin, uriPathSep(home.toString), projectName,
+            o.moduleName.getOrElse(projectName), o.appName.getOrElse("script"),
+            projectPath, o.jdk.get, scalaVer, scalacPluginVer)
         } else
-          IveGen.mill((project / "build.sc").exists, name, projectPath, o.jdk.get, scalaVer, scalacPluginVer)
+          IveGen.mill((project / "build.sc").exists, projectName,
+            o.moduleName.getOrElse(projectName), o.packageName, o.appName.getOrElse("app"),
+            projectPath, o.jdk.get, scalaVer, scalacPluginVer)
 
       def writeFiles(): Unit = {
         for ((path, text) <- files.entries) {
