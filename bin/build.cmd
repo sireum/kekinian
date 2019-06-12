@@ -53,10 +53,10 @@ import org.sireum._
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup        | project      | bin          | native
+        |Usage: ( setup        | project      | bin          | native        | m2
         |       | tipe         | compile      | test         | test-js
-        |       | m2           | touche       | touche-lib   | touche-slang
-        |       | regen-cliopt | regen-slang  | regen-logika | regen-cli    )*
+        |       | touche       | touche-lib   | touche-slang | touche-transpilers
+        |       | regen-cliopt | regen-slang  | regen-logika | regen-cli          )*
       """.render)
 }
 
@@ -69,6 +69,7 @@ val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
 val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
 val libFiles = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "Library_Ext.scala"
 val slangFiles = home / "slang" / "frontend" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "$SlangFiles.scala"
+val transpilersFiles = home / "transpilers" / "c" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "transpilers" / "c" / "Runtime_Ext.scala"
 var didTipe = F
 var didCompile = F
 var didM2 = F
@@ -96,6 +97,7 @@ def touchePath(path: Os.Path): Unit = {
 def touche(): Unit = {
   touchePath(libFiles)
   touchePath(slangFiles)
+  touchePath(transpilersFiles)
   touchePath(mainFile)
 }
 
@@ -379,6 +381,7 @@ if (Os.cliArgs.isEmpty) {
       case string"touche" => touche()
       case string"touche-lib" => touchePath(libFiles)
       case string"touche-slang" => touchePath(slangFiles)
+      case string"touche-transpilers" => touchePath(transpilersFiles)
       case string"regen-cliopt" => regenCliOpt()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
