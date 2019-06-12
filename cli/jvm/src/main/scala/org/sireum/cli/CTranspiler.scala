@@ -441,6 +441,12 @@ object CTranspiler {
       }
     }
 
+    var excludedNames: HashSet[ISZ[String]] = HashSet.empty
+    for (s <- o.excludeBuild) {
+      val name = for (id <- ops.StringOps(s).split((c: C) => c.value == '.')) yield ops.StringOps(id).trim
+      excludedNames = excludedNames + name
+    }
+
     var constants = HashMap.empty[ISZ[String], AST.Exp]
     for (p <- o.customConstants) {
       try {
@@ -467,6 +473,7 @@ object CTranspiler {
       customConstants = constants,
       plugins = plugins,
       exts = exts,
+      excludedNames = excludedNames,
       forLoopOpt = o.unroll,
       stackSize = o.stackSize.get,
     )
