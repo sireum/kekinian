@@ -42,8 +42,9 @@ with command-line installers to (optionally) configure where Sireum should be
 installed.
  
 Below are the installation instructions for 64-bit (amd64) macOS, Linux, and 
-Windows (or, one can simply download the distribution files and extract them 
-using a program capable of uncompressing `7z` archive).
+Windows (or, one can simply download the distribution files from the
+[GitHub releases page](https://github.com/sireum/kekinian/releases)
+and extract them  using a program capable of uncompressing `7z` archive).
 
 * **macOS**: run the following command in a terminal:
 
@@ -117,7 +118,7 @@ In a console terminal:
 
   ```bash
   git clone --recursive https://github.com/sireum/kekinian
-  kekinian/bin/build.cmd setup
+  kekinian/bin/build.cmd setup  # for non-POSIX shell, prefix with sh
   ```
 
 * **Windows**:
@@ -127,13 +128,28 @@ In a console terminal:
   kekinian\bin\build.cmd setup
   ```
 
+Set the `SIREUM_HOME` env var to the `kekinian` path above.
 
-To update later on, simply do a `git pull --recurse-submodules` and re-run `build.cmd setup`.
+To update later on, simply do a `git pull --recurse-submodules` and re-run 
+`build.cmd setup` (or simply `build.cmd` to rebuild Sireum CLI tools).
 
+If rebuilding Sireum somehow failed, try cleaning the repo:
+
+* **macOS/Linux**:
+
+  ```bash
+  ${SIREUM_HOME}/bin/clean.sh
+  ```
+
+* **Windows**:
+
+  ```cmd
+  %SIREUM_HOME%\bin\clean.bat
+  ```
+  
+and re-run `build.cmd setup`.
 
 ## Using Sireum IVE
-
-First, set the `SIREUM_HOME` env var to the Sireum installation path.
 
 ### Slang Script Example Project
 
@@ -231,7 +247,7 @@ a terminal:
 * **Windows**:
 
   ```cmd
-  ${SIREUM_HOME}\bin\build.cmd project
+  %SIREUM_HOME%\bin\build.cmd project
   ```
 
 Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
@@ -239,7 +255,6 @@ Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
 To have the codebase and its test suites recompiled upon changes, run:
 
 * **macOS/Linux**:
-
 
   ```bash
   cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
@@ -253,7 +268,6 @@ To have the codebase and its test suites recompiled upon changes, run:
 
 * **Windows**:
 
-
   ```cmd
   cd %SIREUM_HOME% && bin\mill.bat -w cli.tests.compile
   ```
@@ -261,18 +275,29 @@ To have the codebase and its test suites recompiled upon changes, run:
   and to build its assembly/CLI tool:
 
   ```cmd
-  ${SIREUM_HOME}/bin/build.cmd
+  %SIREUM_HOME%\bin\build.cmd
   ```
 
 #### Sireum Native Executable
 
 It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
 
-To build their native executable (currently only available under macOS or Linux; [Graal](http://graalvm.org)'s `native-image` is assumed to be available from the PATH env var):
+To build their native executable using [Graal](http://graalvm.org) 
+(`native-image` is assumed to be available from the PATH env var
+and Graal's dependencies have been installed):
 
-```bash
-${SIREUM_HOME}/bin/build.cmd native
-```
+
+* **macOS/Linux**:
+
+  ```bash
+  ${SIREUM_HOME}/bin/build.cmd native
+  ```
+
+* **Windows**:
+
+  ```cmd
+  ${SIREUM_HOME}\bin\build.cmd native
+  ```
 
 To run:
 
@@ -288,4 +313,12 @@ To run:
   ${SIREUM_HOME}/bin/linux/sireum
   ```
   
-Note that once the native version is available (and has a newer timestamp), `${SIREUM_HOME}/bin/sireum` calls the native version. This is also similar for `${SIREUM_HOME}/bin/build.cmd` and `${SIREUM_HOME}/bin/mill-build/build.cmd`.
+* **Windows**:
+
+  ```cmd
+  %SIREUM_HOME%\bin\win\sireum.exe
+  ```
+  
+Note that once the native version is available (and has a newer timestamp),
+`sireum` and `sireum.bat` in `bin` call the native version. 
+ This is also similar for `build.cmd` in `bin` and `bin/mill-build/bin`.
