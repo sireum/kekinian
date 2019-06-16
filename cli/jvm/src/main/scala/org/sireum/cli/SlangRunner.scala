@@ -139,7 +139,7 @@ object SlangRunner {
       if (nativ.exists && nativ.lastModified > script.lastModified) {
         return 0
       }
-      r = Os.proc(ISZ(nativeImage.string, "--version")).env(env).run()
+      r = Os.proc(ISZ(nativeImage.string, "--version")).env(env).standard.run()
       if (!(r.ok && ops.StringOps(r.out).contains("GraalVM"))) {
         return 0
       }
