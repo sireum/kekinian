@@ -16,6 +16,8 @@ mill-standalone
 /bin/.sireum-win.jar
 /bin/mac/sireum*
 /bin/linux/sireum*
+/bin/win/sireum*
+/bin/win/.sireum.exe
 /lib
 /bin/win/z3
 /bin/mac/z3

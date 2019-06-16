@@ -110,14 +110,7 @@ object SlangRunner {
     }
     val jarFile = wd / s"${script.name}.jar"
     var env = ISZ("SLASH_DIR" ~> wd.string)
-    val nativeImage: Os.Path = javaHomeOpt match {
-      case Some(javaHome) =>
-        env :+= "JAVA_HOME" ~> javaHome.string
-        env :+= "PATH" ~> s"$javaHome${Os.fileSep}bin${Os.pathSep}${Os.env("PATH").get}"
-        if ((javaHome / "bin" / "native-image").exists) javaHome / "bin" / "native-image"
-        else Os.Path.Impl("native-image")
-      case _ => Os.Path.Impl("native-image")
-    }
+    val nativeImage: Os.Path = if (Os.isWin) Os.Path.Impl("native-image.cmd") else Os.Path.Impl("native-image")
     scalaHomeOpt match {
       case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
       case _ =>
@@ -151,17 +144,29 @@ object SlangRunner {
         return 0
       }
       println(s"Generating native image $nativ ...")
-      command = ISZ(nativeImage.string, "--no-server", "--initialize-at-build-time",
-        "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name)
-      if (Os.kind != Os.Kind.Mac) {
-        command = command :+ "--static"
+      val flags: ISZ[String] = Os.kind match {
+        case Os.Kind.Mac => ISZ("--no-server")
+        case Os.Kind.Linux => ISZ("--no-server", "--static")
+        case Os.Kind.Win => ISZ("--static")
+        case _ => return 0
       }
-      command = command :+ nativeName
-      r = Os.proc(command).at(jarFile.up).env(env).console.run()
+      command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time",
+        "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name, nativeName)
+      r = Os.proc(command).at(jarFile.up).console.run()
+      for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
+        f.removeAll()
+      }
+      (wd / s"$nativeName.o").removeAll()
+      if ((wd / s"$nativeName.exe").exists) {
+        (wd / s"$nativeName.exe").moveOverTo(wd / nativeName)
+      }
+      if ((wd / s"${script.name}.jar").exists) {
+        (wd / s"${script.name}.jar").removeAll()
+      }
       if (r.ok) {
-        (wd / s"$nativeName.o").removeAll()
         return 0
       } else {
+        (wd / s"$nativeName.exe").removeAll()
         eprintln(s"Failed to generate native executable $nativ, exit code: ${r.exitCode}")
         eprint(r.err)
         return GraalError

@@ -40,15 +40,21 @@ else                                                                            
   exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"                                                #
 fi                                                                                                          #
 :BOF
+setlocal
+set NEWER=False
+if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
+if "%NEWER%" == "True" goto native
+del "%~dpnx0.com" > nul 2>&1
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
-if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
-"%~dp0sireum.bat" slang run -s "%0" %*
+"%~dp0sireum.bat" slang run -s -n "%0" %*
+exit /B %errorlevel%
+:native
+%~dpnx0.com %*
 exit /B %errorlevel%
 ::!#
 // #Sireum
 import org.sireum._
-
 
 def usage(): Unit = {
   println(
@@ -154,20 +160,28 @@ def build(): Unit = {
 
 
 def nativ(): Unit = {
-  val ni = Os.proc(ISZ("native-image", "--help")).run()
+  val platDir = homeBin / platform
+  val nativeImage: String = if (Os.isWin) "native-image.cmd" else "native-image"
+  val ni = Os.proc(ISZ(nativeImage, "--help")).run()
   if (!ops.StringOps(ni.out).contains("GraalVM")) {
     eprintln("Could not find GraalVM's native-image")
     Os.exit(-1)
   }
-  val flags: ISZ[String] = if (Os.isLinux) ISZ("--static") else ISZ()
+  val flags: ISZ[String] = Os.kind match {
+    case Os.Kind.Mac => ISZ("--no-server")
+    case Os.Kind.Linux => ISZ("--static", "--no-server")
+    case Os.Kind.Win => ISZ("--static")
+    case _ => halt("Unsupported operating system")
+  }
   build()
   println("Building native ...")
-  val platDir = homeBin / platform
-  Os.proc(("native-image" +: flags) ++
-    ISZ[String]("--no-server", "--initialize-at-build-time", "--no-fallback",
-      "-jar", sireumJar.string, (platDir / "sireum").string)).
-    console.runCheck()
+  Os.proc((nativeImage +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
+      "-jar", sireumJar.string, (platDir / "sireum").string)).console.runCheck()
   (platDir / "sireum.o").removeAll()
+  for (f <- platDir.list if ops.StringOps(f.name).startsWith("sireum.") && !ops.StringOps(f.name).endsWith(".exe")) {
+    f.remove()
+  }
+  println()
 }
 
 
