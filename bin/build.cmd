@@ -47,6 +47,7 @@ if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
+if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
 "%~dp0sireum.bat" slang run -s -n "%0" %*
 exit /B %errorlevel%
 :native
