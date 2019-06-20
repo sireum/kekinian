@@ -50,6 +50,7 @@ object GenTools {
       val ext: String = o.mode match {
         case Cli.BitCodecMode.Program => "scala"
         case Cli.BitCodecMode.Script => "sc"
+        case Cli.BitCodecMode.Json => "json"
       }
       val dest = destDir / s"${o.name.get}.$ext"
       val outTemp = Os.temp()
@@ -73,8 +74,9 @@ object GenTools {
           Spec.fromJSON(specText) match {
             case Either.Left(spec) =>
               val prev: String = if (dest.isFile) dest.read else ""
-              val r = BitCodecGen.gen(o.mode == Cli.BitCodecMode.Program, !o.isLittleEndian, lOpt.map(_.read),
-                src.name, o.packageName, o.name.get, text, spec, program, prev, reporter)
+              val r = BitCodecGen.gen(o.mode == Cli.BitCodecMode.Json, o.mode == Cli.BitCodecMode.Program,
+                !o.isLittleEndian, lOpt.map(_.read), src.name, o.packageName, o.name.get, text, spec,
+                org.sireum.bitcodec.JSON.Printer.printSpec(spec), program, prev, reporter)
               if (reporter.hasIssue) {
                 reporter.printMessages()
                 return -1

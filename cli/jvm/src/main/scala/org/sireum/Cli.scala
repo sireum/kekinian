@@ -124,6 +124,7 @@ object Cli {
   @enum object BitCodecMode {
     'Program
     'Script
+    'Json
   }
 
   @datatype class BcgenOption(
@@ -889,15 +890,16 @@ import Cli._
     arg.native match {
       case "program" => return Some(BitCodecMode.Program)
       case "script" => return Some(BitCodecMode.Script)
+      case "json" => return Some(BitCodecMode.Json)
       case s =>
-        eprintln(s"Expecting one of the following: { program, script }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { program, script, json }, but found '$s'.")
         return None()
     }
   }
 
   def parseBitCodecMode(args: ISZ[String], i: Z): Option[BitCodecMode.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { program, script }, but none found.")
+      eprintln("Expecting one of the following: { program, script, json }, but none found.")
       return None()
     }
     val r = parseBitCodecModeH(args(i))
@@ -912,7 +914,7 @@ import Cli._
           |
           |Available Options:
           |-m, --mode               Generated codec unit mode (expects one of { program,
-          |                           script }; default: program)
+          |                           script, json }; default: program)
           |    --little             Generate little-endian bitcodec instead of big-endian
           |-p, --package            Package name for the codec (expects a string separated
           |                           by ".")
