@@ -14,6 +14,7 @@ addons:
   homebrew:
     packages:
       - p7zip
+    update: true
 
 script:
   - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
