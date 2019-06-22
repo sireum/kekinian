@@ -162,12 +162,9 @@ def build(): Unit = {
 
 def nativ(): Unit = {
   val platDir = homeBin / platform
-  val nativeImage: String = if (Os.isWin) "native-image.cmd" else "native-image"
-  val ni = Os.proc(ISZ(nativeImage, "--help")).run()
-  if (!ops.StringOps(ni.out).contains("GraalVM")) {
-    eprintln("Could not find GraalVM's native-image")
-    Os.exit(-1)
-  }
+  val nativeImage: Os.Path =
+    platDir / "graal" / "jre" / "lib" / "svm" / "bin" / (if (Os.isWin) "native-image.cmd" else "native-image")
+  (homeBin / "graal.cmd").call(ISZ()).console.runCheck()
   val flags: ISZ[String] = Os.kind match {
     case Os.Kind.Mac => ISZ("--no-server")
     case Os.Kind.Linux => ISZ("--static", "--no-server")
@@ -176,7 +173,7 @@ def nativ(): Unit = {
   }
   build()
   println("Building native ...")
-  Os.proc((nativeImage +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
+  Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
       "-jar", sireumJar.string, (platDir / "sireum").string)).console.runCheck()
   (platDir / "sireum.o").removeAll()
   for (f <- platDir.list if ops.StringOps(f.name).startsWith("sireum.") && !ops.StringOps(f.name).endsWith(".exe")) {

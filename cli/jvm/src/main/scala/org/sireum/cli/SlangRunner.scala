@@ -110,7 +110,15 @@ object SlangRunner {
     }
     val jarFile = wd / s"${script.name}.jar"
     var env = ISZ("SLASH_DIR" ~> wd.string)
-    val nativeImage: Os.Path = if (Os.isWin) Os.Path.Impl("native-image.cmd") else Os.Path.Impl("native-image")
+    val nativeImage: Os.Path = {
+      val niName: String = if (Os.isWin) "native-image.cmd" else "native-image"
+      homeOpt match {
+        case Some(home) =>
+          val p = home / "bin" / platform / "graal" / "jre" / "lib" / "svm" / "bin" / niName
+          if (p.isFile) p else Os.path(niName)
+        case _ => Os.path(niName)
+      }
+    }
     scalaHomeOpt match {
       case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
       case _ =>
