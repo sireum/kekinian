@@ -33,3 +33,6 @@ mill-standalone
 /distro/*.exe
 *.cmd.jar
 *.cmd.com
+/bin/win/graal
+/bin/mac/graal
+/bin/linux/graal
