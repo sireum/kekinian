@@ -60,10 +60,11 @@ import org.sireum._
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup        | project      | bin          | native        | m2
+        |Usage: ( setup        | project      | bin          | native
         |       | tipe         | compile      | test         | test-js
         |       | touche       | touche-lib   | touche-slang | touche-transpilers
-        |       | regen-cliopt | regen-slang  | regen-logika | regen-cli          )*
+        |       | regen-cliopt | regen-slang  | regen-logika | regen-cli
+        |       | regen-air    | regen-act    | m2                                )*
       """.render)
 }
 
@@ -267,6 +268,20 @@ def regenLogika(): Unit = {
 }
 
 
+def regenAir(): Unit = {
+  val airPackagePath = home / "hamr" / "air" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "aadl" / "ir"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", s"${airPackagePath / "AadlAST.scala"}")).at(airPackagePath).console.run()
+}
+
+
+def regenAct(): Unit = {
+  val actPackagePath = home / "hamr" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "aadl" / "act" / "ast"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", s"${actPackagePath / "ActAst.scala"}")).at(actPackagePath).console.run()
+}
+
+
 def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
@@ -397,6 +412,8 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-cliopt" => regenCliOpt()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
+      case string"regen-air" => regenAir()
+      case string"regen-act" => regenAct()
       case string"regen-cli" => regenCli()
       case string"m2" => m2()
       case string"-h" => usage()
