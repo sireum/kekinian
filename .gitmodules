@@ -16,14 +16,14 @@
 [submodule "logika"]
 	path = logika
 	url = https://github.com/sireum/logika
-[submodule "aadl/air"]
-	path = aadl/air
+[submodule "hamr/air"]
+	path = hamr/air
 	url = https://github.com/sireum/air
-[submodule "aadl/act"]
-	path = aadl/act
+[submodule "hamr/act"]
+	path = hamr/act
 	url = https://github.com/sireum/act
-[submodule "aadl/phantom"]
-	path = aadl/phantom
+[submodule "hamr/phantom"]
+	path = hamr/phantom
 	url = https://github.com/sireum/phantom
 [submodule "transpilers"]
 	path = transpilers

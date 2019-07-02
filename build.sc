@@ -31,9 +31,9 @@ import $file.tools.Tools
 import $file.alir.Alir
 import $file.transpilers.Transpilers
 import $file.logika.Logika
-import $file.aadl.air.Air
-import $file.aadl.act.Act
-import $file.aadl.phantom.Phantom
+import $file.hamr.air.Air
+import $file.hamr.act.Act
+import $file.hamr.phantom.Phantom
 import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
@@ -130,7 +130,7 @@ object tools extends Tools.Module with runtime.testProvider {
   }
 }
 
-object aadl extends mill.Module {
+object hamr extends mill.Module {
 
   object air extends Air.Module {
     final override def libraryObject = runtime.library
@@ -157,8 +157,8 @@ object cli extends Cli.Module {
   final override def transpilersCObject = transpilers.c
   final override def toolsObject = tools
   final override def logikaObject = logika
-  final override def actObject = aadl.act
-  final override def phantomObject = aadl.phantom
+  final override def actObject = hamr.act
+  final override def phantomObject = hamr.phantom
 }
 
 object bin extends ScalaModule {
