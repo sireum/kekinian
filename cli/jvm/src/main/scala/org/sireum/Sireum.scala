@@ -140,10 +140,17 @@ object Sireum {
     rOpt
   }
 
-  lazy val scalacPluginJar: Os.Path = homeOpt match {
-    case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
-    case _ if isNative => info.scalacPlugin
-    case _ => homeNotFound()
+  lazy val scalacPluginJar: Os.Path = {
+    val r = homeOpt match {
+      case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
+      case _ if isNative => info.scalacPlugin
+      case _ => homeNotFound()
+    }
+    if (!r.exists) {
+      r.up.mkdirAll()
+      r.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
+    }
+    r
   }
 
   lazy val sireumJar: Os.Path = homeOpt match {
