@@ -147,8 +147,10 @@ object Sireum {
       case _ => homeNotFound()
     }
     if (!r.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
+      println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
       r.up.mkdirAll()
       r.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
+      println()
     }
     r
   }
