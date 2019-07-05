@@ -71,7 +71,7 @@ object Phantom {
       }
       f
     } else {
-      Os.path(projects(0).value + impl.value + outExt)
+      Os.path(projects(0).value.value + impl.value + outExt)
     }
 
     val osateDirOpt: Option[Os.Path] = o.osate match {

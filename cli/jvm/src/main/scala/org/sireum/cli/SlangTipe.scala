@@ -100,8 +100,8 @@ object SlangTipe {
       Some(f)
     } else None()
 
-    var start = 0l
-    var used = 0l
+    var start = 0L
+    var used = 0L
     val rt = Runtime.getRuntime
     def startTime(): Unit = {
       start = System.currentTimeMillis
@@ -291,7 +291,7 @@ object SlangTipe {
 
       var ok = T
       for (name <- o.force) {
-        val ids = ISZ[String](name.value.split('.').map(id => String(id)): _*)
+        val ids = ISZ[String](name.value.split('.').toIndexedSeq.map(id => String(id)): _*)
         var found = F
         th.nameMap.get(ids) match {
           case Some(info: Info.Object) =>

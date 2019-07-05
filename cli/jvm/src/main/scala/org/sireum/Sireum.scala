@@ -146,7 +146,7 @@ object Sireum {
       case _ if isNative => info.scalacPlugin
       case _ => homeNotFound()
     }
-    if (!r.exists) {
+    if (!r.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
       r.up.mkdirAll()
       r.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
     }
@@ -169,13 +169,13 @@ object Sireum {
     val p = new java.util.Properties
     p.load(new java.io.StringReader(
       org.sireum.$internal.RC
-        .text(Seq("../../../../../../..")) { (p, _) =>
-          p == Seq("versions.properties")
+        .text(Vector("../../../../../../..")) { (p, _) =>
+          p == Vector("versions.properties")
         }
         .head
         ._2))
     var r = Map.empty[String, String]
-    import scala.collection.JavaConverters._
+    import org.sireum.$internal.CollectionCompat.Converters._
     for (key <- p.keys().asScala) {
       r = r + key.toString ~> p.get(key).toString
     }

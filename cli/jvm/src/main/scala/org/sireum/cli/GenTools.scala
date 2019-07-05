@@ -219,7 +219,7 @@ object GenTools {
       def jdkTable: Predef.String = {
         val (jdkClassPath, jdkSourcePath) = (
           (for (p <- (javaHome / "jre" / "lib").list if p.string.value.endsWith(".jar")) yield
-            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").mkString("\n"),
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n"),
           s"""            <root url="jar://${normalizePath(javaHome)}/src.zip!/" type="simple" />"""
         )
         lazy val ideaLibs = (for (p <- Os.Path.walk(ideaLibDir, F, T, f => f.string.value.endsWith(".jar")))

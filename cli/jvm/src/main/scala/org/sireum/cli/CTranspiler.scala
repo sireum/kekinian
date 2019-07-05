@@ -58,8 +58,8 @@ object CTranspiler {
       Some(f)
     } else None()
 
-    var start = 0l
-    var used = 0l
+    var start = 0L
+    var used = 0L
     val rt = Runtime.getRuntime
     def startTime(): Unit = {
       start = System.currentTimeMillis
@@ -379,13 +379,13 @@ object CTranspiler {
     var forwardingMap = HashMap.empty[ISZ[String], ISZ[String]]
     for (p <- o.forwarding) {
       val Array(key, value) = p.value.split('=')
-      forwardingMap = forwardingMap + ISZ(key.split('.').map(s => String(s.trim)): _*) ~> ISZ(
-        value.split('.').map(s => String(s.trim)): _*
+      forwardingMap = forwardingMap + ISZ(key.split('.').toIndexedSeq.map(s => String(s.trim)): _*) ~> ISZ(
+        value.split('.').toIndexedSeq.map(s => String(s.trim)): _*
       )
     }
 
     for (app <- o.apps) {
-      entryPoints = entryPoints :+ TypeSpecializer.EntryPoint.App(ISZ(app.value.split('.').map(String(_)): _*))
+      entryPoints = entryPoints :+ TypeSpecializer.EntryPoint.App(ISZ(app.value.split('.').toIndexedSeq.map(String(_)): _*))
     }
 
     val tsr = TypeSpecializer.specialize(thOpt.get, entryPoints, forwardingMap, reporter)
@@ -453,7 +453,7 @@ object CTranspiler {
         val Array(key, value) = p.value.split('=')
         val e = Parser.parseExp[AST.Exp](value)
         e match {
-          case e: AST.Lit => constants = constants + ISZ(key.split('.').map(x => String(x.trim)): _*) ~> e
+          case e: AST.Lit => constants = constants + ISZ(key.split('.').toIndexedSeq.map(x => String(x.trim)): _*) ~> e
           case _ => throw new Exception
         }
       } catch {
