@@ -349,23 +349,20 @@ def setup(): Unit = {
   project()
   Os.kind match {
     case Os.Kind.Win =>
-      println(
-        st"""Sireum-dev IVE can now be launched by running ${homeBin / "win" / "idea" / "bin" / "IVE.exe"}
-            |Java Development Kit (JDK) is available at ${homeBin / "win" / "java"}
-            |Scala is available at ${homeBin / "scala"}
-            |Mill can be found at ${homeBin / "mill.bat"}""".render)
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "win" / "idea" / "bin" / "IVE.exe"}")
+      println(s"Java Development Kit (JDK) is available at ${homeBin / "win" / "java"}")
+      println(s"Scala is available at ${homeBin / "scala"}")
+      println(s"Mill can be found at ${homeBin / "mill.bat"}")
     case Os.Kind.Linux =>
-      println(
-        st"""Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "idea" / "bin" / "IVE.sh"}
-            |Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}
-            |Scala is available at ${homeBin / "scala"}
-            |Mill can be found at ${homeBin / "mill"}""".render)
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "idea" / "bin" / "IVE.sh"}")
+      println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}")
+      println(s"Scala is available at ${homeBin / "scala"}")
+      println(s"Mill can be found at ${homeBin / "mill"}")
     case Os.Kind.Mac =>
-      println(
-        st"""Sireum-dev IVE can now be launched by running ${homeBin / "mac" / "idea" / "IVE.app"}
-            |Java Development Kit (JDK) is available at ${homeBin / "mac" / "java"}
-            |Scala is available at ${homeBin / "scala"}
-            |Mill can be found at ${homeBin / "mill"}""".render)
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "mac" / "idea" / "IVE.app"}")
+      println(s"Java Development Kit (JDK) is available at ${homeBin / "mac" / "java"}")
+      println(s"Scala is available at ${homeBin / "scala"}")
+      println(s"Mill can be found at ${homeBin / "mill"}")
     case _ =>
   }
 }
