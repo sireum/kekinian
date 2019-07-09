@@ -115,8 +115,11 @@ def buildMill(): Unit = {
   if (!(millBuildBin / "scala").exists && (homeBin / "scala").exists) {
     (homeBin / "scala").copyOverTo(millBuildBin / "scala")
   }
-  if (!(millBuild / "lib").exists) {
-    (home / "lib").copyOverTo(millBuild / "lib")
+  for (p <- (home / "lib").list) {
+    val mp = millBuild / "lib" / p.name
+    if (!mp.exists || mp.lastModified < p.lastModified) {
+      p.copyOverTo(mp)
+    }
   }
   if (!(millBuildBin / platform / "java").exists && (homeBin / platform / "java").exists) {
     (homeBin / platform / "java").copyOverTo(millBuildBin / platform / "java")
