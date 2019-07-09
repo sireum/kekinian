@@ -147,10 +147,15 @@ object Sireum {
       case _ => homeNotFound()
     }
     if (!r.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
-      println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
+      val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
+      if (!scalacPluginCache.exists) {
+        scalacPluginCache.up.mkdirAll()
+        println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
+        scalacPluginCache.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
+        println()
+      }
       r.up.mkdirAll()
-      r.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
-      println()
+      scalacPluginCache.copyOverTo(r)
     }
     r
   }
