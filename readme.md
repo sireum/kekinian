@@ -5,7 +5,7 @@
 | master | [![travis](https://travis-ci.org/sireum/kekinian.svg?branch=master)](https://travis-ci.org/sireum/kekinian) | [![shippable](https://api.shippable.com/projects/5ab59969f488d607007cd6c0/badge?branch=master)](https://app.shippable.com/github/sireum/kekinian/dashboard) | [![appveyor](https://ci.appveyor.com/api/projects/status/1k6elsvubt5r3adm?svg=true)](https://ci.appveyor.com/project/robby-phd/kekinian) |
 
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
-core components are being built using the Sireum Programming Language (Slang).
+core components are being built using the Sireum programming language -- Slang.
 
 Slang is an OO/FP programming language with contract and proof languages
 designed for formal verification and analyses; that is, it serves as the basis for the next generation
@@ -25,7 +25,12 @@ itself (and analyses on top of it) are written using Slang.
 
 Slang programs run on the JVM (Java 8+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
-via [Graal](http://graalvm.org) and also via compilation to C.
+via [Graal](http://graalvm.org) and also via compilation to C. 
+The generated C code is both Slang source-traceable and 
+in the form that is structurally close to the Slang source; 
+in addition to `gcc` and `clang`, it can also be compiled using the 
+[CompCert](http://compcert.inria.fr/) Verified C Compiler 
+to provide a high-assurance toolchain for program correctness down to machine code.
 
 ## Installing
 
@@ -282,8 +287,10 @@ To have the codebase and its test suites recompiled upon changes, run:
 
 It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
 
-First, run `bin\graal.cmd` to install [Graal](http://graalvm.org) and its
-[`native-image` prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites); then:
+First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites),
+then `bin\graal.cmd` to install GraalVM itself.
+
+To build Sireum native executable:
 
 * **macOS/Linux**:
 
@@ -293,7 +300,7 @@ First, run `bin\graal.cmd` to install [Graal](http://graalvm.org) and its
 
 * **Windows**:
 
-  Note: Graal requires [Windows 7.1 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8442).
+  Note: Graal's `native-image` in Windows requires [Windows 7.1 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8442).
 
   ```cmd
   %SIREUM_HOME%\bin\build.cmd native
