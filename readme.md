@@ -287,10 +287,9 @@ To have the codebase and its test suites recompiled upon changes, run:
 
 It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
 
-First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites),
-then `bin\graal.cmd` to install GraalVM itself.
-
-To build Sireum native executable:
+First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites)
+(note: `native-image` for Windows requires [Windows 7.1 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8442)); 
+then, to build Sireum native executable:
 
 * **macOS/Linux**:
 
@@ -299,8 +298,6 @@ To build Sireum native executable:
   ```
 
 * **Windows**:
-
-  Note: Graal's `native-image` in Windows requires [Windows 7.1 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8442).
 
   ```cmd
   %SIREUM_HOME%\bin\build.cmd native
