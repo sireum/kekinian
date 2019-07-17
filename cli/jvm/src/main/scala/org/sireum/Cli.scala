@@ -125,12 +125,13 @@ object Cli {
     'Program
     'Script
     'Json
+    'Dot
   }
 
   @datatype class BcgenOption(
     help: String,
     args: ISZ[String],
-    mode: BitCodecMode.Type,
+    mode: ISZ[BitCodecMode.Type],
     isLittleEndian: B,
     packageName: ISZ[String],
     name: Option[String],
@@ -891,19 +892,36 @@ import Cli._
       case "program" => return Some(BitCodecMode.Program)
       case "script" => return Some(BitCodecMode.Script)
       case "json" => return Some(BitCodecMode.Json)
+      case "dot" => return Some(BitCodecMode.Dot)
       case s =>
-        eprintln(s"Expecting one of the following: { program, script, json }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { program, script, json, dot }, but found '$s'.")
         return None()
     }
   }
 
   def parseBitCodecMode(args: ISZ[String], i: Z): Option[BitCodecMode.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { program, script, json }, but none found.")
+      eprintln("Expecting one of the following: { program, script, json, dot }, but none found.")
       return None()
     }
     val r = parseBitCodecModeH(args(i))
     return r
+  }
+
+  def parseBitCodecModes(args: ISZ[String], i: Z): Option[ISZ[BitCodecMode.Type]] = {
+    val tokensOpt = tokenize(args, i, "BitCodecMode", ',', T)
+    if (tokensOpt.isEmpty) {
+      return None()
+    }
+    var r = ISZ[BitCodecMode.Type]()
+    for (token <- tokensOpt.get) {
+      val e = parseBitCodecModeH(token)
+      e match {
+        case Some(v) => r = r :+ v
+        case _ => return None()
+      }
+    }
+    return Some(r)
   }
 
   def parseBcgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -913,8 +931,8 @@ import Cli._
           |Usage: <option>* <spec-file>
           |
           |Available Options:
-          |-m, --mode               Generated codec unit mode (expects one of { program,
-          |                           script, json }; default: program)
+          |-m, --mode               Generated codec unit mode (expects one or more of {
+          |                           program, script, json, dot }; default: program)
           |    --little             Generate little-endian bitcodec instead of big-endian
           |-p, --package            Package name for the codec (expects a string separated
           |                           by ".")
@@ -927,7 +945,7 @@ import Cli._
           |                           (expects a path; default is ".")
           |-h, --help               Display this information""".render
 
-    var mode: BitCodecMode.Type = BitCodecMode.Program
+    var mode: ISZ[BitCodecMode.Type] = ISZ(BitCodecMode.Program)
     var isLittleEndian: B = false
     var packageName: ISZ[String] = ISZ[String]()
     var name: Option[String] = Some("BitCodec")
@@ -942,7 +960,7 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[BitCodecMode.Type] = parseBitCodecMode(args, j + 1)
+           val o: Option[ISZ[BitCodecMode.Type]] = parseBitCodecModes(args, j + 1)
            o match {
              case Some(v) => mode = v
              case _ => return None()

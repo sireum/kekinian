@@ -47,12 +47,6 @@ object GenTools {
       val src = paths2fileOpt("config file", o.args, T).get
       val destDir = path2fileOpt("output directory", o.outputDir, T).get
       if (!destDir.isDir) error(s"Path $destDir is not a directory")
-      val ext: String = o.mode match {
-        case Cli.BitCodecMode.Program => "scala"
-        case Cli.BitCodecMode.Script => "sc"
-        case Cli.BitCodecMode.Json => "json"
-      }
-      val dest = destDir / s"${o.name.get}.$ext"
       val outTemp = Os.temp()
       val r = SlangRunner.run(Cli.SlangRunOption("", ISZ(src.value), None(),
         Some(outTemp.string), T, F, F))
@@ -73,16 +67,31 @@ object GenTools {
           outTemp.removeAll()
           Spec.fromJSON(specText) match {
             case Either.Left(spec) =>
-              val prev: String = if (dest.isFile) dest.read else ""
-              val r = BitCodecGen.gen(o.mode == Cli.BitCodecMode.Json, o.mode == Cli.BitCodecMode.Program,
-                !o.isLittleEndian, lOpt.map(_.read), src.name, o.packageName, o.name.get, text, spec,
-                org.sireum.bitcodec.JSON.Printer.printSpec(spec), program, prev, reporter)
-              if (reporter.hasIssue) {
-                reporter.printMessages()
-                return -1
+              for (mode <- o.mode) {
+                val ext: String = mode match {
+                  case Cli.BitCodecMode.Program => "scala"
+                  case Cli.BitCodecMode.Script => "sc"
+                  case Cli.BitCodecMode.Json => "json"
+                  case Cli.BitCodecMode.Dot => "dot"
+                }
+                val dest = destDir / s"${o.name.get}.$ext"
+                val prev: String = if (dest.isFile) dest.read else ""
+                val output: BitCodecGen.Output.Type = mode match {
+                  case Cli.BitCodecMode.Program => BitCodecGen.Output.Program
+                  case Cli.BitCodecMode.Script => BitCodecGen.Output.Script
+                  case Cli.BitCodecMode.Json => BitCodecGen.Output.Json
+                  case Cli.BitCodecMode.Dot => BitCodecGen.Output.Dot
+                }
+                val r = BitCodecGen.gen(output, !o.isLittleEndian, lOpt.map(_.read), src.name,
+                  o.packageName, o.name.get, text, spec, org.sireum.bitcodec.JSON.Printer.printSpec(spec),
+                  program, prev, reporter)
+                if (reporter.hasIssue) {
+                  reporter.printMessages()
+                  return -1
+                }
+                dest.writeOver(r.render)
+                println(s"Wrote $dest")
               }
-              dest.writeOver(r.render)
-              println(s"Wrote $dest")
               0
             case _ =>
               eprintln(s"Invalid config produced by running ${o.args(0)}")
