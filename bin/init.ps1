@@ -149,7 +149,7 @@ if ($java_update) {
     $java_url = "https://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
     Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
   }
-  "Extracting Zulu JDK $java_version ... "
+  "Extracting ZuluFX $java_version ... "
   Expand-Archive "$java_drop" -DestinationPath "$sireum_home\bin\win"
   ""
   if (Test-Path "$sireum_home\bin\win\java") {
