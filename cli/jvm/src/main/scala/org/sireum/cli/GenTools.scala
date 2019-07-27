@@ -234,6 +234,9 @@ object GenTools {
         lazy val ideaLibs = (for (p <- Os.Path.walk(ideaLibDir, F, T, f => f.string.value.endsWith(".jar")))
           yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
+        lazy val ideaJavaLibs = (for (p <- Os.Path.walk(ideaPluginsDir / "java" / "lib", F, T, f => f.string.value.endsWith(".jar")))
+          yield
+            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
         lazy val ideaScalaLibs = (for (p <- Os.Path.walk(ideaPluginsDir / "Scala" / "lib", F, T, f => f.string.value.endsWith(".jar")))
           yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
@@ -287,6 +290,7 @@ object GenTools {
                |          <root type="composite">
                |$jdkClassPath
                |$ideaLibs
+               |$ideaJavaLibs
                |$ideaScalaLibs
                |          </root>
                |        </classPath>

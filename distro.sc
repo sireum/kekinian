@@ -24,7 +24,16 @@ object distro {
       "idea-dev.svg",
       "idea-dev.ico",
       "idea-ce.svg",
-      "idea-ce-eap.svg"
+      "idea-ce-eap.svg",
+      "idea-ce_16.svg",
+      "idea-ce-eap_16.svg",
+      "idea-ce_16@2x.svg",
+      "idea-ce-eap_16@2x.svg",
+      "icon_CE_256.png",
+      "icon_CE_256@2x.png",
+      "icon_CE_512.png",
+      "icon_CE_512@2x.png",
+      "idea_logo_background.png",
     )
     val ideaExtMap = Map("mac" -> ".dmg", "win" -> ".exe", "linux" -> ".tar.gz")
 
@@ -213,8 +222,35 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
 
     def patchImages(): Unit = {
       val resourcesJar = libDir / "resources.jar"
+      val distroDir = pwd / 'resources / 'distro
       print(s"Patching $resourcesJar ... ")
-      if (isDev)
+      rm ! distroDir / 'idea
+      %%(
+        "7z",
+        'x,
+        resourcesJar,
+        "idea/IdeaApplicationInfo.xml"
+      )(distroDir)
+      val iai = distroDir / 'idea / "IdeaApplicationInfo.xml"
+      val content = read ! iai
+      write.over(iai, content.replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "").replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", ""))
+      %%(
+        "7z",
+        'a,
+        resourcesJar,
+        "idea/IdeaApplicationInfo.xml"
+      )(distroDir)
+      rm ! distroDir / 'idea
+      if (isDev) {
+        %%(
+          "7z",
+          'd,
+          resourcesJar,
+          "idea-ce_16.svg",
+          "idea-ce_16@2x.svg",
+          "idea-ce-eap_16.svg",
+          "idea-ce-eap_16@2x.svg"
+        )(distroDir / 'images / 'dev)
         %%(
           "7z",
           'a,
@@ -225,8 +261,17 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           "idea_community_logo@2x.png",
           "idea-ce.svg",
           "idea-ce-eap.svg"
-        )(pwd / 'resources / 'distro / 'images / 'dev)
-      else
+        )(distroDir / 'images / 'dev)
+      } else {
+        %%(
+          "7z",
+          'd,
+          resourcesJar,
+          "idea-ce_16.svg",
+          "idea-ce_16@2x.svg",
+          "idea-ce-eap_16.svg",
+          "idea-ce-eap_16@2x.svg"
+        )(distroDir / 'images / 'release)
         %%(
           "7z",
           'a,
@@ -237,7 +282,8 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           "idea_community_logo@2x.png",
           "idea-ce.svg",
           "idea-ce-eap.svg"
-        )(pwd / 'resources / 'distro / 'images / 'release)
+        )(distroDir / 'images / 'release)
+      }
       println("done!")
     }
 
