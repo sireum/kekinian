@@ -687,11 +687,11 @@ import Cli._
           |                           <type>=<size>, where <type> is either IS[,], MS[,],
           |                           ISZ[], MSZ[], or ZS with fully qualified index and
           |                           element types where applicable (expects a string
-          |                           separated by ",")
+          |                           separated by ";")
           |-c, --constants          Custom constant for object variables, each in the form
           |                           of <name>=<lit>, where <name> is a qualified name of
           |                           an object var and <lit> is a Slang literal
-          |                           expression (expects a string separated by ",")
+          |                           expression (expects a string separated by ";")
           |-p, --plugins            Plugin fully qualified names (expects a string
           |                           separated by ",")
           |-e, --exts               Extension file paths (expects path strings)
@@ -797,13 +797,13 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-q" || arg == "--sequence") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => customArraySizes = v
              case _ => return None()
            }
          } else if (arg == "-c" || arg == "--constants") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => customConstants = v
              case _ => return None()
