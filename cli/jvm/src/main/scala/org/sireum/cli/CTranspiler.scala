@@ -414,22 +414,32 @@ object CTranspiler {
         val e = Parser.parseExp[AST.Exp.Select](s"o[$key]")
         e.targs(0) match {
           case t: AST.Type.Named =>
+            def addS(name: ISZ[String], otherName: ISZ[String], it: AST.Typed, et: AST.Typed) = {
+              val t1 = AST.Typed.Name(name, ISZ(it, et))
+              val t2 = AST.Typed.Name(otherName, ISZ(it, et))
+              customArraySizes = customArraySizes + t1 ~> num
+              customArraySizes.get(t2) match {
+                case Some(_) =>
+                case _ => customArraySizes = customArraySizes + t2 ~> num
+              }
+            }
             t.name.ids.map(_.value.value) match {
               case ISZ("MS") if t.typeArgs.size.toInt == 2 =>
-                customArraySizes = customArraySizes + AST.Typed
-                  .Name(AST.Typed.msName, ISZ(toTyped(t.typeArgs(0)), toTyped(t.typeArgs(1)))) ~> num
+                val it = toTyped(t.typeArgs(0))
+                val et = toTyped(t.typeArgs(1))
+                addS(AST.Typed.msName, AST.Typed.isName, it, et)
               case ISZ("IS") if t.typeArgs.size.toInt == 2 =>
-                customArraySizes = customArraySizes + AST.Typed
-                  .Name(AST.Typed.isName, ISZ(toTyped(t.typeArgs(0)), toTyped(t.typeArgs(1)))) ~> num
+                val it = toTyped(t.typeArgs(0))
+                val et = toTyped(t.typeArgs(1))
+                addS(AST.Typed.isName, AST.Typed.msName, it, et)
               case ISZ("ISZ") if t.typeArgs.size.toInt == 1 =>
-                customArraySizes = customArraySizes + AST.Typed
-                  .Name(AST.Typed.isName, ISZ(AST.Typed.z, toTyped(t.typeArgs(0)))) ~> num
+                val et = toTyped(t.typeArgs(0))
+                addS(AST.Typed.isName, AST.Typed.msName, AST.Typed.z, et)
               case ISZ("MSZ") if t.typeArgs.size.toInt == 1 =>
-                customArraySizes = customArraySizes + AST.Typed
-                  .Name(AST.Typed.msName, ISZ(AST.Typed.z, toTyped(t.typeArgs(0)))) ~> num
+                val et = toTyped(t.typeArgs(0))
+                addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, et)
               case ISZ("ZS") if t.typeArgs.size.toInt == 0 =>
-                customArraySizes = customArraySizes + AST.Typed
-                  .Name(AST.Typed.msName, ISZ(AST.Typed.z, AST.Typed.z)) ~> num
+                addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, AST.Typed.z)
               case _ => throw new Exception
             }
           case _ => throw new Exception
