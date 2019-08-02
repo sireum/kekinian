@@ -418,10 +418,6 @@ object CTranspiler {
               val t1 = AST.Typed.Name(name, ISZ(it, et))
               val t2 = AST.Typed.Name(otherName, ISZ(it, et))
               customArraySizes = customArraySizes + t1 ~> num
-              customArraySizes.get(t2) match {
-                case Some(_) =>
-                case _ => customArraySizes = customArraySizes + t2 ~> num
-              }
             }
             t.name.ids.map(_.value.value) match {
               case ISZ("MS") if t.typeArgs.size.toInt == 2 =>
