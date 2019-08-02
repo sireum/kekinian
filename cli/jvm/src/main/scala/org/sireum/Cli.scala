@@ -205,29 +205,29 @@ import Cli._
   def parseSireum(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""Sireum: A High-Assurance Software Development Platform
+        st"""Sireum: A High-Assurance System Engineering Platform
             |(c) 2019, SAnToS Laboratory, Kansas State University
             |
             |Available modes:
-            |aadl                     AADL tools
+            |hamr                     HAMR Tools
             |slang                    Slang tools
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("aadl", "slang", "tools"))
+    val opt = select("sireum", args, i, ISZ("hamr", "slang", "tools"))
     opt match {
-      case Some(string"aadl") => parseAadl(args, i + 1)
+      case Some(string"hamr") => parseHamr(args, i + 1)
       case Some(string"slang") => parseSlang(args, i + 1)
       case Some(string"tools") => parseTools(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseAadl(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseHamr(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""AADL Tools
+        st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems
             |
             |Available modes:
             |act                      AADL to CAmkES translator
@@ -235,7 +235,7 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("aadl", args, i, ISZ("act", "phantom"))
+    val opt = select("hamr", args, i, ISZ("act", "phantom"))
     opt match {
       case Some(string"act") => parseAct(args, i + 1)
       case Some(string"phantom") => parsePhantom(args, i + 1)

@@ -33,11 +33,11 @@ import org.sireum.lang
 import org.sireum.transpilers
 import org.sireum.tools
 
-val aadl = Group(
-  name = "aadl",
-  description = "AADL tools",
+val hamr = Group(
+  name = "hamr",
+  description = "HAMR Tools",
   header =
-    st"""AADL Tools""".render,
+    st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems""".render,
   unlisted = F,
   subs = ISZ(act.cli.actTool, phantom.cli.phantomTool)
 )
@@ -46,11 +46,11 @@ val main = Group(
   name = "sireum",
   description = "",
   header =
-    st"""Sireum: A High-Assurance Software Development Platform
+    st"""Sireum: A High-Assurance System Engineering Platform
         |(c) 2019, SAnToS Laboratory, Kansas State University""".render,
   unlisted = F,
   subs = ISZ(
-    aadl,
+    hamr,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
     tools.cli.group)
 )
