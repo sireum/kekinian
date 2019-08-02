@@ -1,4 +1,4 @@
-# Sireum: A High-Assurance Software Development Platform
+# Sireum: A High-Assurance System Engineering Platform
 
 | CI Status | macOS | Linux | Windows |
 | :----: | :---: | :---: | :---: | 
