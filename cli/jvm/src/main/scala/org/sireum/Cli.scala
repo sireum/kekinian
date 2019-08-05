@@ -74,6 +74,13 @@ object Cli {
     output: Option[String]
   ) extends SireumTopOption
 
+  @datatype class LogikaVerifierOption(
+    help: String,
+    args: ISZ[String],
+    sourcepath: ISZ[String],
+    timeout: Z
+  ) extends SireumTopOption
+
   @datatype class SlangRunOption(
     help: String,
     args: ISZ[String],
@@ -215,9 +222,10 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("hamr", "slang", "tools"))
+    val opt = select("sireum", args, i, ISZ("hamr", "logika", "slang", "tools"))
     opt match {
       case Some(string"hamr") => parseHamr(args, i + 1)
+      case Some(string"logika") => parseLogika(args, i + 1)
       case Some(string"slang") => parseSlang(args, i + 1)
       case Some(string"tools") => parseTools(args, i + 1)
       case _ => return None()
@@ -445,6 +453,70 @@ import Cli._
       }
     }
     return Some(PhantomOption(help, parseArguments(args, j), mode, osate, projects, main, output))
+  }
+
+  def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Logika Toolset for Slang
+            |
+            |Available modes:
+            |verifier                 Logika verifier""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("logika", args, i, ISZ("verifier"))
+    opt match {
+      case Some(string"verifier") => parseLogikaVerifier(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseLogikaVerifier(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Logika Verifier for Slang
+          |
+          |Usage: <option>* [<slang-file>]
+          |
+          |Available Options:
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
+          |                           default is 2)
+          |-h, --help               Display this information""".render
+
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var timeout: Z = 2
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

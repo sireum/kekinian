@@ -47,6 +47,7 @@ object Sireum {
           case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o).toInt
           case Some(o: Cli.ActOption) => cli.Act.run(o).toInt
           case Some(o: Cli.PhantomOption) => cli.Phantom.run(o).toInt
+          case Some(o: Cli.LogikaVerifierOption) => cli.Logika.run(o).toInt
           case Some(_: Cli.HelpOption) => 0
           case _ => -1
         })

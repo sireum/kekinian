@@ -24,35 +24,50 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.sireum.cli
+
 import org.sireum._
-import org.sireum.cli.CliOpt._
 
-import org.sireum.aadl.act
-import org.sireum.aadl.phantom
-import org.sireum.lang
-import org.sireum.transpilers
-import org.sireum.tools
+object Logika {
 
-val hamr = Group(
-  name = "hamr",
-  description = "HAMR Tools",
-  header =
-    st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems""".render,
-  unlisted = F,
-  subs = ISZ(act.cli.actTool, phantom.cli.phantomTool)
-)
+  def run(o: Cli.LogikaVerifierOption): Z = {
+    if (o.sourcepath.nonEmpty) {
+      eprintln("Logika sourcepath support is coming soon")
+      return -1
+    }
 
-val main = Group(
-  name = "sireum",
-  description = "",
-  header =
-    st"""Sireum: A High-Assurance System Engineering Platform
-        |(c) 2019, SAnToS Laboratory, Kansas State University""".render,
-  unlisted = F,
-  subs = ISZ(
-    hamr,
-    logika.cli.group,
-    lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
-    tools.cli.group)
-)
-println(org.sireum.cli.JSON.fromCliOpt(main, T))
+    if (o.args.isEmpty) {
+      println(o.help)
+      println()
+      return 0
+    }
+
+    val config = logika.Logika.Config(3, HashMap.empty, o.timeout)
+
+    for (arg <- o.args) {
+      val f = Os.path(arg)
+      if (f.isFile && f.ext != ".sc") {
+        val z3Exe: String = Sireum.homeOpt match {
+          case Some(home) => (home / "bin" / Sireum.platform / "z3" / "bin" / (if (Os.isWin) "z3.exe" else "z3")).value
+          case _ => "z3"
+        }
+        val reporter = message.Reporter.create
+        logika.Logika.checkWorksheet(Some(f.value), f.read, config,
+          (th: lang.tipe.TypeHierarchy) => logika.Z3(z3Exe , th, config.smt2TimeoutInSeconds), reporter)
+        reporter.printMessages()
+        if (reporter.hasIssue) {
+          return -1
+        } else {
+          println("Logika verified!")
+          println()
+          return 0
+        }
+      } else {
+        eprintln(s"$arg is not a Slang script file")
+        return -1
+      }
+    }
+
+    return 0
+  }
+}
