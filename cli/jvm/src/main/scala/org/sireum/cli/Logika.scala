@@ -45,7 +45,7 @@ object Logika {
 
     for (arg <- o.args) {
       val f = Os.path(arg)
-      if (f.isFile && f.ext != ".sc") {
+      if (f.isFile && f.ext.value != ".sc") {
         val z3Exe: String = Sireum.homeOpt match {
           case Some(home) => (home / "bin" / Sireum.platform / "z3" / "bin" / (if (Os.isWin) "z3.exe" else "z3")).value
           case _ => "z3"
