@@ -224,24 +224,24 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       val resourcesJar = libDir / "resources.jar"
       val distroDir = pwd / 'resources / 'distro
       print(s"Patching $resourcesJar ... ")
-      rm ! distroDir / 'idea
-      %%(
-        "7z",
-        'x,
-        resourcesJar,
-        "idea/IdeaApplicationInfo.xml"
-      )(distroDir)
-      val iai = distroDir / 'idea / "IdeaApplicationInfo.xml"
-      val content = read ! iai
-      write.over(iai, content.replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "").replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", ""))
-      %%(
-        "7z",
-        'a,
-        resourcesJar,
-        "idea/IdeaApplicationInfo.xml"
-      )(distroDir)
-      rm ! distroDir / 'idea
-      if (isDev) {
+      if (platform != "linux") {
+        rm ! distroDir / 'idea
+        %%(
+          "7z",
+          'x,
+          resourcesJar,
+          "idea/IdeaApplicationInfo.xml"
+        )(distroDir)
+        val iai = distroDir / 'idea / "IdeaApplicationInfo.xml"
+        val content = read ! iai
+        write.over(iai, content.replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "").replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", ""))
+        %%(
+          "7z",
+          'a,
+          resourcesJar,
+          "idea/IdeaApplicationInfo.xml"
+        )(distroDir)
+        rm ! distroDir / 'idea
         %%(
           "7z",
           'd,
@@ -250,7 +250,9 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           "idea-ce_16@2x.svg",
           "idea-ce-eap_16.svg",
           "idea-ce-eap_16@2x.svg"
-        )(distroDir / 'images / 'dev)
+        )(distroDir / 'images)
+      }
+      if (isDev) {
         %%(
           "7z",
           'a,
@@ -263,15 +265,6 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           "idea-ce-eap.svg"
         )(distroDir / 'images / 'dev)
       } else {
-        %%(
-          "7z",
-          'd,
-          resourcesJar,
-          "idea-ce_16.svg",
-          "idea-ce_16@2x.svg",
-          "idea-ce-eap_16.svg",
-          "idea-ce-eap_16@2x.svg"
-        )(distroDir / 'images / 'release)
         %%(
           "7z",
           'a,
