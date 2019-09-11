@@ -511,8 +511,27 @@ object CTranspiler {
         f = f / segment.value
       }
       f.up.mkdirAll()
+      f = f.canon
       f.writeOver(e._2.render)
       println(s"Wrote $f")
+    }
+    for (e <- r.extFiles.entries) {
+      val path = e._1
+      val extFile = e._2
+      var f = resultDir
+      for (segment <- path) {
+        f = f / segment.value
+      }
+      val p = Os.uriToPath(extFile.uri)
+      f.up.mkdirAll()
+      f = f.canon
+      if (Os.isWin) {
+        f.writeOver(extFile.content)
+        println(s"Wrote $f")
+      } else {
+        f.mklink(p)
+        println(s"Created symlink from $f to $p")
+      }
     }
     stopTime()
 
