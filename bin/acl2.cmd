@@ -157,12 +157,17 @@ def platform(p: String): Unit = {
   acl2(p)
 }
 
-val platforms: ISZ[String] = Z(Os.cliArgs(0)) match {
-  case Some(n) =>
-    cores = n
-    ops.ISZOps(Os.cliArgs).drop(1)
-  case _ => Os.cliArgs
-}
+val platforms: ISZ[String] = 
+  if (Os.cliArgs.isEmpty) {
+    ISZ[String]()
+  } else {
+    Z(Os.cliArgs(0)) match {
+      case Some(n) =>
+        cores = n
+        ops.ISZOps(Os.cliArgs).drop(1)
+      case _ => Os.cliArgs
+    }
+  }
 
 if (platforms.isEmpty) {
   Os.kind match {
