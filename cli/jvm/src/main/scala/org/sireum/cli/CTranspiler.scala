@@ -482,7 +482,8 @@ object CTranspiler {
       excludedNames = excludedNames,
       forLoopOpt = o.unroll,
       stackSize = o.stackSize.get,
-      libOnly = o.libOnly
+      libOnly = o.libOnly,
+      stableTypeId = o.stableTypeId
     )
 
     val trans = StaticTranspiler(config, tsr)

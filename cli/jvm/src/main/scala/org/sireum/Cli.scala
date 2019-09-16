@@ -125,6 +125,7 @@ object Cli {
     stackSize: Option[String],
     excludeBuild: ISZ[String],
     libOnly: B,
+    stableTypeId: B,
     save: Option[String],
     load: Option[String]
   ) extends SireumTopOption
@@ -777,6 +778,7 @@ import Cli._
           |                           generated CMake file (expects a string separated by
           |                           ",")
           |-l, --lib-only           Only generate library definition in CMake file
+          |-i, --stable-type-id     Enable stable type id
           |
           |Persistence Options:
           |    --save               Path to save type information to (outline should not
@@ -801,6 +803,7 @@ import Cli._
     var stackSize: Option[String] = Some("16 * 1024 * 1024")
     var excludeBuild: ISZ[String] = ISZ[String]()
     var libOnly: B = false
+    var stableTypeId: B = false
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
     var j = i
@@ -919,6 +922,12 @@ import Cli._
              case Some(v) => libOnly = v
              case _ => return None()
            }
+         } else if (arg == "-i" || arg == "--stable-type-id") {
+           val o: Option[B] = { j = j - 1; Some(!stableTypeId) }
+           o match {
+             case Some(v) => stableTypeId = v
+             case _ => return None()
+           }
          } else if (arg == "--save") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -940,7 +949,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, projectName, apps, unroll, fingerprint, bitWidth, maxStringSize, maxArraySize, customArraySizes, customConstants, plugins, exts, forwarding, stackSize, excludeBuild, libOnly, save, load))
+    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, projectName, apps, unroll, fingerprint, bitWidth, maxStringSize, maxArraySize, customArraySizes, customConstants, plugins, exts, forwarding, stackSize, excludeBuild, libOnly, stableTypeId, save, load))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
