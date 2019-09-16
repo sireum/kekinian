@@ -36,3 +36,7 @@ mill-standalone
 /bin/win/graal
 /bin/mac/graal
 /bin/linux/graal
+/bin/mac/ccl
+/bin/linux/ccl
+/bin/mac/acl2
+/bin/linux/acl2
