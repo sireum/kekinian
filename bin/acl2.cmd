@@ -14,23 +14,20 @@ if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                     
   export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})                                                 #
   if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
     export JAVA_HOME="${SIREUM_HOME}\\bin\\win\\java"                                                       #
-    export Z3_HOME="${SIREUM_HOME}\\bin\\win\\z3"                                                           #
-    export PATH="${SIREUM_HOME}/bin/win/java":"${SIREUM_HOME}/bin/win/z3":$PATH                             #
-    export PATH="$(cygpath -C OEM -w -a ${JAVA_HOME}/bin)":"$(cygpath -C OEM -w -a ${Z3_HOME}/bin)":$PATH   #
+    export PATH="${SIREUM_HOME}/bin/win/java":$PATH                             #
+    export PATH="$(cygpath -C OEM -w -a ${JAVA_HOME}/bin)":$PATH   #
   fi                                                                                                        #
 elif [ "$(uname)" = "Darwin" ]; then                                                                        #
   PLATFORM="mac"                                                                                            #
   if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
     export JAVA_HOME="${SIREUM_HOME}/bin/mac/java"                                                          #
-    export Z3_HOME="${SIREUM_HOME}/bin/mac/z3"                                                              #
-    export PATH="${JAVA_HOME}/bin":"${Z3_HOME}/bin":$PATH                                                   #
+    export PATH="${JAVA_HOME}/bin":$PATH                                                   #
   fi                                                                                                        #
 elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                                                   #
   PLATFORM="linux"                                                                                          #
   if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
     export JAVA_HOME="${SIREUM_HOME}/bin/linux/java"                                                        #
-    export Z3_HOME="${SIREUM_HOME}/bin/linux/z3"                                                            #
-    export PATH="${JAVA_HOME}/bin":"${Z3_HOME}/bin":$PATH                                                   #
+    export PATH="${JAVA_HOME}/bin":$PATH                                                   #
   fi                                                                                                        #
 fi                                                                                                          #
 if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
@@ -62,17 +59,6 @@ def usage(): Unit = {
   println("Usage: [<num-of-cores>] ( mac | linux )*")
 }
 
-val cclVersion = "1.11.5"
-val acl2Version = "8.2"
-
-val cclUrlPrefix = s"https://github.com/Clozure/ccl/releases/download/v$cclVersion/"
-val cclBundleMap: Map[String, String] = Map.empty[String, String] ++ ISZ(
-  "linux" ~> s"ccl-$cclVersion-linuxx86.tar.gz",
-  "mac" ~> s"ccl-$cclVersion-darwinx86.tar.gz"
-)
-
-val acl2UrlPrefix = s"https://github.com/acl2-devel/acl2-devel/releases/download/$acl2Version/"
-
 val homeBin: Os.Path = Os.slashDir
 val home = homeBin.up
 val sireumJar = homeBin / "sireum.jar"
@@ -80,6 +66,13 @@ val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 var cores: Z = 4
 
 def ccl(p: String): Unit = {
+  val cclVersion = "1.11.5"
+  val cclUrlPrefix = s"https://github.com/Clozure/ccl/releases/download/v$cclVersion/"
+  val cclBundleMap: Map[String, String] = Map.empty[String, String] ++ ISZ(
+    "linux" ~> s"ccl-$cclVersion-linuxx86.tar.gz",
+    "mac" ~> s"ccl-$cclVersion-darwinx86.tar.gz"
+  )
+
   val platformDir = homeBin / p
   val cclDir = platformDir / "ccl"
   val ver = cclDir / "VER"
@@ -89,6 +82,7 @@ def ccl(p: String): Unit = {
   }
 
   val bundle = cclBundleMap.get(p).get
+
   val cache = Os.home / "Downloads" / "sireum" / bundle
 
   if (!cache.exists) {
@@ -107,9 +101,14 @@ def ccl(p: String): Unit = {
 
 def acl2(p: String): Unit = {
   ccl(p)
+
+  val acl2Version = "8.2"
+
+  val acl2UrlPrefix = s"https://github.com/acl2-devel/acl2-devel/releases/download/$acl2Version/"
+
   val platformDir = homeBin / p
   val acl2Dir = platformDir / "acl2"
-  val cclExe = platformDir / "ccl" / "lx86cl64"
+  val cclExe = platformDir / "ccl" / (if (p == "linux") "lx86cl64" else "dx86cl64")
   val ver = acl2Dir / "VER"
 
   if (ver.exists && ver.read == acl2Version) {
@@ -158,7 +157,14 @@ def platform(p: String): Unit = {
   acl2(p)
 }
 
-if (Os.cliArgs.isEmpty) {
+val platforms: ISZ[String] = Z(Os.cliArgs(0)) match {
+  case Some(n) =>
+    cores = n
+    ops.ISZOps(Os.cliArgs).drop(1)
+  case _ => Os.cliArgs
+}
+
+if (platforms.isEmpty) {
   Os.kind match {
     case Os.Kind.Mac => platform("mac")
     case Os.Kind.Linux => platform("linux")
@@ -166,12 +172,6 @@ if (Os.cliArgs.isEmpty) {
     case _ => platform("???")
   }
 } else {
-  val platforms: ISZ[String] = Z(Os.cliArgs(0)) match {
-    case Some(n) =>
-      cores = n
-      ops.ISZOps(Os.cliArgs).drop(1)
-    case _ => Os.cliArgs
-  }
   for (p <- (HashSSet.empty[String] ++ platforms).elements) {
     platform(p)
   }
