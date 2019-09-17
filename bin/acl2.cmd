@@ -56,7 +56,7 @@ import org.sireum._
 
 
 def usage(): Unit = {
-  println("Usage: [<num-of-cores>] ( mac | linux )*")
+  println("Usage: [<num-of-cores>]")
 }
 
 val homeBin: Os.Path = Os.slashDir
@@ -145,6 +145,14 @@ def acl2(p: String): Unit = {
 def platform(p: String): Unit = {
   p match {
     case string"mac" =>
+      val r = Os.proc(ISZ("sw_vers", "-productVersion")).runCheck()
+      val versionOps = ops.StringOps(r.out)
+      val version = Z(versionOps.substring(3, versionOps.indexOfFrom('.', 4))).get
+      if (version >= 14) {
+        println("Please install acl2 under macOS Mojave or later using macports as follows:")
+        println("sudo port install acl2 +certify")
+        Os.exit(0)
+      }
     case string"linux" =>
     case string"-h" =>
       usage()
@@ -157,27 +165,18 @@ def platform(p: String): Unit = {
   acl2(p)
 }
 
-val platforms: ISZ[String] = 
-  if (Os.cliArgs.isEmpty) {
-    ISZ[String]()
-  } else {
-    Z(Os.cliArgs(0)) match {
-      case Some(n) =>
-        cores = n
-        ops.ISZOps(Os.cliArgs).drop(1)
-      case _ => Os.cliArgs
-    }
+if (Os.cliArgs.nonEmpty) {
+  Z(Os.cliArgs(0)) match {
+    case Some(n) =>
+      cores = n
+      ops.ISZOps(Os.cliArgs).drop(1)
+    case _ => Os.cliArgs
   }
+}
 
-if (platforms.isEmpty) {
-  Os.kind match {
-    case Os.Kind.Mac => platform("mac")
-    case Os.Kind.Linux => platform("linux")
-    case Os.Kind.Win => platform("win")
-    case _ => platform("???")
-  }
-} else {
-  for (p <- (HashSSet.empty[String] ++ platforms).elements) {
-    platform(p)
-  }
+Os.kind match {
+  case Os.Kind.Mac => platform("mac")
+  case Os.Kind.Linux => platform("linux")
+  case Os.Kind.Win => platform("win")
+  case _ => platform("???")
 }
