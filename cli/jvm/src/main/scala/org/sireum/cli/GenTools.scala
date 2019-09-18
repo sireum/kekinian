@@ -83,7 +83,7 @@ object GenTools {
                   case Cli.BitCodecMode.Dot => BitCodecGen.Output.Dot
                 }
                 val r = BitCodecGen.gen(output, !o.isLittleEndian, lOpt.map(_.read), src.name,
-                  o.packageName, o.name.get, text, spec, org.sireum.bitcodec.JSON.Printer.printSpec(spec),
+                  o.packageName, o.name.get, text, o.traits, spec, org.sireum.bitcodec.JSON.Printer.printSpec(spec),
                   program, prev, reporter)
                 if (reporter.hasIssue) {
                   reporter.printMessages()
