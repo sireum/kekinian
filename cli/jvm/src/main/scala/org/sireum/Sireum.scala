@@ -36,7 +36,7 @@ object Sireum {
       case Array("-v") | Array("--version") =>
         println(s"Sireum v${$internal.Macro.version}${if (isNative) " (native)" else ""}")
       case _ =>
-        System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
+        System.exit(Cli.parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
           case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
           case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o).toInt
           case Some(o: Cli.CTranspilerOption) => cli.CTranspiler.run(o).toInt
