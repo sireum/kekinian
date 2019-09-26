@@ -39,7 +39,7 @@ val hamr = Group(
   header =
     st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems""".render,
   unlisted = F,
-  subs = ISZ(act.cli.actTool, phantom.cli.phantomTool)
+  subs = ISZ(act.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool)
 )
 
 val main = Group(

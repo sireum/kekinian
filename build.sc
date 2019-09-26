@@ -34,6 +34,7 @@ import $file.logika.Logika
 import $file.hamr.air.Air
 import $file.hamr.act.Act
 import $file.hamr.phantom.Phantom
+import $file.hamr.arsit.Arsit
 import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
@@ -149,6 +150,15 @@ object hamr extends mill.Module {
   object phantom extends Phantom.Module {
     final override def libraryObject = runtime.library
   }
+
+  object arsit extends Arsit.Module {
+    final override def airObject = air
+
+    object bin extends ScalaModule {
+      final override def scalaVersion = SireumModule.scalaVersion
+      final override def moduleDeps = Seq(runtime.library.jvm)
+    }
+  }
 }
 
 
@@ -159,6 +169,7 @@ object cli extends Cli.Module {
   final override def logikaObject = logika
   final override def actObject = hamr.act
   final override def phantomObject = hamr.phantom
+  final override def arsitObject = hamr.arsit
 }
 
 object bin extends ScalaModule {

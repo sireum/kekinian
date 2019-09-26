@@ -38,24 +38,39 @@ object Cli {
 
   @datatype class HelpOption extends SireumTopOption
 
-  @enum object ActFormat {
-    'Air
-    'Camkesir
-    'Aadl
+  @enum object Platform {
+    'JVM
+    'Linux
+    'Cygwin
+    'MacOS
+    'SeL4
   }
 
-  @enum object ActMode {
-    'Json
-    'Msgpack
+  @enum object IpcMechanism {
+    'MessageQueue
+    'SharedMemory
   }
 
-  @datatype class ActOption(
+  @datatype class HamrCodeGenOption(
     help: String,
     args: ISZ[String],
-    input: ActFormat.Type,
-    mode: ActMode.Type,
+    json: B,
+    verbose: B,
+    platform: Platform.Type,
     outputDir: Option[String],
-    auxDirs: ISZ[String],
+    packageName: Option[String],
+    embedArt: B,
+    devicesAsThreads: B,
+    ipc: IpcMechanism.Type,
+    slangAuxCodeDir: Option[String],
+    slangOutputCDir: Option[String],
+    excludeComponentImpl: B,
+    bitWidth: Z,
+    maxStringSize: Z,
+    maxArraySize: Z,
+    camkesOutputDir: Option[String],
+    camkesAuxCodeDirs: ISZ[String],
+    trustedBuildProfile: B,
     aadlRootDir: Option[String]
   ) extends SireumTopOption
 
@@ -236,82 +251,126 @@ object Cli {
         st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems
             |
             |Available modes:
-            |act                      AADL to CAmkES translator
+            |code-gen                 Generate code from AADL IR
             |phantom                 """.render
       )
       return Some(HelpOption())
     }
-    val opt = select("hamr", args, i, ISZ("act", "phantom"))
+    val opt = select("hamr", args, i, ISZ("code-gen", "phantom"))
     opt match {
-      case Some(string"act") => parseAct(args, i + 1)
+      case Some(string"code-gen") => parseHamrCodeGen(args, i + 1)
       case Some(string"phantom") => parsePhantom(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseActFormatH(arg: String): Option[ActFormat.Type] = {
+  def parsePlatformH(arg: String): Option[Platform.Type] = {
     arg.native match {
-      case "air" => return Some(ActFormat.Air)
-      case "camkesir" => return Some(ActFormat.Camkesir)
-      case "aadl" => return Some(ActFormat.Aadl)
+      case "JVM" => return Some(Platform.JVM)
+      case "Linux" => return Some(Platform.Linux)
+      case "Cygwin" => return Some(Platform.Cygwin)
+      case "MacOS" => return Some(Platform.MacOS)
+      case "seL4" => return Some(Platform.SeL4)
       case s =>
-        eprintln(s"Expecting one of the following: { air, camkesir, aadl }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4 }, but found '$s'.")
         return None()
     }
   }
 
-  def parseActFormat(args: ISZ[String], i: Z): Option[ActFormat.Type] = {
+  def parsePlatform(args: ISZ[String], i: Z): Option[Platform.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { air, camkesir, aadl }, but none found.")
+      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4 }, but none found.")
       return None()
     }
-    val r = parseActFormatH(args(i))
+    val r = parsePlatformH(args(i))
     return r
   }
 
-  def parseActModeH(arg: String): Option[ActMode.Type] = {
+  def parseIpcMechanismH(arg: String): Option[IpcMechanism.Type] = {
     arg.native match {
-      case "json" => return Some(ActMode.Json)
-      case "msgpack" => return Some(ActMode.Msgpack)
+      case "MessageQueue" => return Some(IpcMechanism.MessageQueue)
+      case "SharedMemory" => return Some(IpcMechanism.SharedMemory)
       case s =>
-        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { MessageQueue, SharedMemory }, but found '$s'.")
         return None()
     }
   }
 
-  def parseActMode(args: ISZ[String], i: Z): Option[ActMode.Type] = {
+  def parseIpcMechanism(args: ISZ[String], i: Z): Option[IpcMechanism.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
+      eprintln("Expecting one of the following: { MessageQueue, SharedMemory }, but none found.")
       return None()
     }
-    val r = parseActModeH(args(i))
+    val r = parseIpcMechanismH(args(i))
     return r
   }
 
-  def parseAct(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseHamrCodeGen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
-      st"""Sireum ACT: An AADL-to-CAmkES Translator
+      st"""Code Generator
           |
-          |Usage: <option>* <file>+
+          |Usage: <option>* air-file
           |
           |Available Options:
-          |-i, --input              Input format (expects one of { air, camkesir, aadl };
-          |                           default: air)
-          |-m, --mode               Serialization method (only valid for air/camkesir
-          |                           input (expects one of { json, msgpack }; default:
-          |                           json)
+          |-j, --json               Input serialized using Json (otherwise MsgPack
+          |                           assumed)
+          |    --verbose            Enable verbose mode
+          |    --platform           Target platform (expects one of { JVM, Linux, Cygwin,
+          |                           MacOS, seL4 }; default: JVM)
+          |-h, --help               Display this information
+          |
+          |Slang Options:
           |-o, --output-dir         Output directory for the generated project files
           |                           (expects a path; default is ".")
-          |-a, --aux-directories    
+          |    --package-name       Base package name for Slang project (output-dir's
+          |                           simple name used if not provided) (expects a string)
+          |    --embed-art          Embed ART project files
+          |    --devices-as-thread  Treat AADL devices as threads
+          |
+          |Transpiler Options:
+          |    --ipc-mechanism      IPC communication mechanism (requires 'trans' option)
+          |                           (expects one of { MessageQueue, SharedMemory };
+          |                           default: MessageQueue)
+          |    --slang-aux-code-dir Auxiliary C source code directory (expects a path)
+          |    --slang-output-c-dir Output directory for C artifacts (expects a path)
+          |    --exclude-component-impl
+          |                          Exclude Slang component implementations
+          |-b, --bit-width          Default bit-width for unbounded integer types (e.g.,
+          |                           Z) (expects one of { 64, 32, 16, 8 })
+          |    --max-string-size    Maximum string size (expects an integer; default is
+          |                           100)
+          |    --max-array-size     Default maximum sequence size (expects an integer;
+          |                           default is 100)
+          |
+          |CAmkES Options:
+          |-o, --camkes-output-dir    
+          |                          Output directory for the generated CAmkES project
+          |                           files (expects a path; default is ".")
+          |-a, --camkes-aux-code-dirs    
           |                          Directories containing C files to be included in
-          |                           build (expects path strings)
-          |-r, --root-dir            (expects a path)
-          |-h, --help               Display this information""".render
+          |                           CAmkES build (expects path strings)
+          |    --trusted-build-profile
+          |                          Used Trusted Build profile
+          |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
+          |                           path)""".render
 
-    var input: ActFormat.Type = ActFormat.Air
-    var mode: ActMode.Type = ActMode.Json
+    var json: B = false
+    var verbose: B = false
+    var platform: Platform.Type = Platform.JVM
     var outputDir: Option[String] = Some(".")
-    var auxDirs: ISZ[String] = ISZ[String]()
+    var packageName: Option[String] = None[String]()
+    var embedArt: B = false
+    var devicesAsThreads: B = false
+    var ipc: IpcMechanism.Type = IpcMechanism.MessageQueue
+    var slangAuxCodeDir: Option[String] = None[String]()
+    var slangOutputCDir: Option[String] = None[String]()
+    var excludeComponentImpl: B = false
+    var bitWidth: Z = 64
+    var maxStringSize: Z = 100
+    var maxArraySize: Z = 100
+    var camkesOutputDir: Option[String] = Some(".")
+    var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
+    var trustedBuildProfile: B = false
     var aadlRootDir: Option[String] = None[String]()
     var j = i
     var isOption = T
@@ -321,16 +380,22 @@ object Cli {
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-i" || arg == "--input") {
-           val o: Option[ActFormat.Type] = parseActFormat(args, j + 1)
+        } else if (arg == "-j" || arg == "--json") {
+           val o: Option[B] = { j = j - 1; Some(!json) }
            o match {
-             case Some(v) => input = v
+             case Some(v) => json = v
              case _ => return None()
            }
-         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[ActMode.Type] = parseActMode(args, j + 1)
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
            o match {
-             case Some(v) => mode = v
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "--platform") {
+           val o: Option[Platform.Type] = parsePlatform(args, j + 1)
+           o match {
+             case Some(v) => platform = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--output-dir") {
@@ -339,13 +404,85 @@ object Cli {
              case Some(v) => outputDir = v
              case _ => return None()
            }
-         } else if (arg == "-a" || arg == "--aux-directories") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+         } else if (arg == "--package-name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => auxDirs = v
+             case Some(v) => packageName = v
              case _ => return None()
            }
-         } else if (arg == "-r" || arg == "--root-dir") {
+         } else if (arg == "--embed-art") {
+           val o: Option[B] = { j = j - 1; Some(!embedArt) }
+           o match {
+             case Some(v) => embedArt = v
+             case _ => return None()
+           }
+         } else if (arg == "--devices-as-thread") {
+           val o: Option[B] = { j = j - 1; Some(!devicesAsThreads) }
+           o match {
+             case Some(v) => devicesAsThreads = v
+             case _ => return None()
+           }
+         } else if (arg == "--ipc-mechanism") {
+           val o: Option[IpcMechanism.Type] = parseIpcMechanism(args, j + 1)
+           o match {
+             case Some(v) => ipc = v
+             case _ => return None()
+           }
+         } else if (arg == "--slang-aux-code-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => slangAuxCodeDir = v
+             case _ => return None()
+           }
+         } else if (arg == "--slang-output-c-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => slangOutputCDir = v
+             case _ => return None()
+           }
+         } else if (arg == "--exclude-component-impl") {
+           val o: Option[B] = { j = j - 1; Some(!excludeComponentImpl) }
+           o match {
+             case Some(v) => excludeComponentImpl = v
+             case _ => return None()
+           }
+         } else if (arg == "-b" || arg == "--bit-width") {
+           val o: Option[Z] = parseNumChoice(args, j + 1, ISZ(z"64", z"32", z"16", z"8"))
+           o match {
+             case Some(v) => bitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--max-string-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxStringSize = v
+             case _ => return None()
+           }
+         } else if (arg == "--max-array-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxArraySize = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--camkes-output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => camkesOutputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--camkes-aux-code-dirs") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => camkesAuxCodeDirs = v
+             case _ => return None()
+           }
+         } else if (arg == "--trusted-build-profile") {
+           val o: Option[B] = { j = j - 1; Some(!trustedBuildProfile) }
+           o match {
+             case Some(v) => trustedBuildProfile = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--aadl-root-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => aadlRootDir = v
@@ -360,7 +497,7 @@ object Cli {
         isOption = F
       }
     }
-    return Some(ActOption(help, parseArguments(args, j), input, mode, outputDir, auxDirs, aadlRootDir))
+    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, ipc, slangAuxCodeDir, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, camkesOutputDir, camkesAuxCodeDirs, trustedBuildProfile, aadlRootDir))
   }
 
   def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
@@ -1029,7 +1166,7 @@ object Cli {
           |                           (expects a path)
           |-o, --output-dir         Output directory for the generated codec files
           |                           (expects a path; default is ".")
-          |-t, --traits             Fully-qualified name of @msig traits for all bitcodec
+          |-t, --traits             Fully-qualified name of @sig traits for all bitcodec
           |                           types to extend (expects a string separated by ";")
           |-h, --help               Display this information""".render
 
