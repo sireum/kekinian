@@ -221,6 +221,11 @@ object Cli {
     license: Option[String],
     outputDir: Option[String]
   ) extends SireumTopOption
+}
+
+import Cli._
+
+@record class Cli(pathSep: C) {
 
   def parseSireum(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
@@ -1132,7 +1137,7 @@ object Cli {
   }
 
   def parseBitCodecModes(args: ISZ[String], i: Z): Option[ISZ[BitCodecMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "BitCodecMode", (c: C) => c === ',', "'',''", T)
+    val tokensOpt = tokenize(args, i, "BitCodecMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
@@ -1459,7 +1464,7 @@ object Cli {
   }
 
   def parseSerializerModes(args: ISZ[String], i: Z): Option[ISZ[SerializerMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "SerializerMode", (c: C) => c === ',', "'',''", T)
+    val tokensOpt = tokenize(args, i, "SerializerMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
@@ -1568,7 +1573,7 @@ object Cli {
   }
 
   def parseTransformerModes(args: ISZ[String], i: Z): Option[ISZ[TransformerMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "TransformerMode", (c: C) => c === ',', "'',''", T)
+    val tokensOpt = tokenize(args, i, "TransformerMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
@@ -1659,7 +1664,7 @@ object Cli {
   }
 
   def parsePaths(args: ISZ[String], i: Z): Option[ISZ[String]] = {
-    return tokenize(args, i, "path", (c: C) => c === ':' || c === ';', "':' or ';'", F)
+    return tokenize(args, i, "path", pathSep, F)
   }
 
   def parsePath(args: ISZ[String], i: Z): Option[Option[String]] = {
@@ -1670,7 +1675,7 @@ object Cli {
   }
 
   def parseStrings(args: ISZ[String], i: Z, sep: C): Option[ISZ[String]] = {
-    tokenize(args, i, "string", (c: C) => c == sep, s"'$sep'", F) match {
+    tokenize(args, i, "string", sep, F) match {
       case r@Some(_) => return r
       case _ => return None()
     }
@@ -1685,7 +1690,7 @@ object Cli {
   }
 
   def parseNums(args: ISZ[String], i: Z, sep: C, minOpt: Option[Z], maxOpt: Option[Z]): Option[ISZ[Z]] = {
-    tokenize(args, i, "integer", (c: C) => sep == c, s"'$sep'", T) match {
+    tokenize(args, i, "integer", sep, T) match {
       case Some(sargs) =>
         var r = ISZ[Z]()
         for (arg <- sargs) {
@@ -1699,23 +1704,23 @@ object Cli {
     }
   }
 
-  def tokenize(args: ISZ[String], i: Z, tpe: String, sepP: C => B @pure, sepText: String, removeWhitespace: B): Option[ISZ[String]] = {
+  def tokenize(args: ISZ[String], i: Z, tpe: String, sep: C, removeWhitespace: B): Option[ISZ[String]] = {
     if (i >= args.size) {
-      eprintln(s"Expecting a sequence of $tpe separated by $sepText, but none found.")
+      eprintln(s"Expecting a sequence of $tpe separated by '$sep', but none found.")
       return None()
     }
     val arg = args(i)
-    return Some(tokenizeH(arg, sepP, removeWhitespace))
+    return Some(tokenizeH(arg, sep, removeWhitespace))
   }
 
-  def tokenizeH(arg: String, sepP: C => B @pure, removeWhitespace: B): ISZ[String] = {
+  def tokenizeH(arg: String, sep: C, removeWhitespace: B): ISZ[String] = {
     val argCis = conversions.String.toCis(arg)
     var r = ISZ[String]()
     var cis = ISZ[C]()
     var j = 0
     while (j < argCis.size) {
       val c = argCis(j)
-      if (sepP(c)) {
+      if (c == sep) {
         r = r :+ conversions.String.fromCis(cis)
         cis = ISZ[C]()
       } else {
