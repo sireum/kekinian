@@ -81,7 +81,12 @@ object HAMR {
       new File(slangOutputDir, "src/c/nix")
     }
 
-    val packageName: Option[Predef.String] = if(o.packageName.nonEmpty) { o.packageName.map(_.native) } else { Some(cleanupPackageName(slangOutputDir)) }
+    val packageName: Option[Predef.String] = if(o.packageName.nonEmpty) {
+      o.packageName.map(m => cleanupPackageName(m.native))
+    } else {
+      Some(cleanupPackageName(slangOutputDir.getCanonicalFile.getName))
+    }
+
     var retValue = 0
 
     if(!o.trustedBuildProfile) {
@@ -125,10 +130,10 @@ object HAMR {
   }
 
   def toOption(f: File): Option[Predef.String] = {
-    return Some(f.getAbsolutePath)
+    return Some(f.getCanonicalPath)
   }
 
-  def cleanupPackageName(f: File): Predef.String = {
-    return f.getName.replaceAll("-", "_")
+  def cleanupPackageName(s: Predef.String): Predef.String = {
+    return s.replaceAll("-", "_")
   }
 }

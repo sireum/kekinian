@@ -31,4 +31,3 @@
 [submodule "hamr/arsit"]
 	path = hamr/arsit
 	url = https://github.com/sireum/arsit.git
-	branch = hamr
