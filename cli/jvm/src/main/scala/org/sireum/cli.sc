@@ -27,8 +27,8 @@
 import org.sireum._
 import org.sireum.cli.CliOpt._
 
-import org.sireum.aadl.act
-import org.sireum.aadl.phantom
+import org.sireum.hamr.act
+import org.sireum.hamr.phantom
 import org.sireum.lang
 import org.sireum.transpilers
 import org.sireum.tools

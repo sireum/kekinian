@@ -79,7 +79,7 @@ object Phantom {
       case _ => None()
     }
 
-    return org.sireum.aadl.phantom.Phantom.run(serializeType, osateDirOpt, projects, mainPackage, outFile, o.args(0))
+    return org.sireum.hamr.phantom.Phantom.run(serializeType, osateDirOpt, projects, mainPackage, outFile, o.args(0))
     0
   }
 

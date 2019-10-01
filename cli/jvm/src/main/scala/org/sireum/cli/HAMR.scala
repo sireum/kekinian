@@ -28,9 +28,9 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Cli
 import org.sireum.Cli._
-import org.sireum.aadl.arsit.ArsitBridge
+import org.sireum.hamr.arsit.ArsitBridge
 import java.io.File
-import org.sireum.aadl.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
+import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 
 object HAMR {
   def codeGen(o: Cli.HamrCodeGenOption): Z = {
@@ -47,7 +47,7 @@ object HAMR {
       return -1
     }
 
-    val model: org.sireum.aadl.ir.Aadl = if (o.json) {
+    val model: Aadl = if (o.json) {
       irJSON.toAadl(input) match {
         case Either.Left(m) => m
         case Either.Right(m) =>
@@ -95,7 +95,7 @@ object HAMR {
       val platform = ArsitBridge.Platform.valueOf(o.platform.name.native)
       val slangAuxCodeDir = o.slangAuxCodeDir.map(_.native)
 
-      retValue = org.sireum.aadl.arsit.Arsit.run( //
+      retValue = org.sireum.hamr.arsit.Arsit.run( //
         model, toOption(slangOutputDir), packageName, o.embedArt, genBlessEntryPoints, o.verbose, o.devicesAsThreads,
         ipc, o.excludeComponentImpl, slangAuxCodeDir, toOption(outputCDirectory), platform,
         o.bitWidth.toInt, o.maxStringSize.toInt, o.maxArraySize.toInt)
@@ -109,7 +109,7 @@ object HAMR {
       val hamrStaticLib = toOption(new File(outputCDirectory, "sel4-build/libmain.a"))
       val hamrBasePackageName = packageName
 
-      retValue = org.sireum.aadl.act.Act.run(toOption(camkesOutputDir), model, camkesAuxCodeDirs, aadlRootDir,
+      retValue = org.sireum.hamr.act.Act.run(toOption(camkesOutputDir), model, camkesAuxCodeDirs, aadlRootDir,
         hamrIntegration, hamrIncludeDirs, hamrStaticLib, hamrBasePackageName)
     }
 

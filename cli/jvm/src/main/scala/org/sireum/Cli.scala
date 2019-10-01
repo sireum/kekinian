@@ -47,8 +47,8 @@ object Cli {
   }
 
   @enum object IpcMechanism {
-    'MessageQueue
     'SharedMemory
+    'MessageQueue
   }
 
   @datatype class HamrCodeGenOption(
@@ -293,17 +293,17 @@ import Cli._
 
   def parseIpcMechanismH(arg: String): Option[IpcMechanism.Type] = {
     arg.native match {
-      case "MessageQueue" => return Some(IpcMechanism.MessageQueue)
       case "SharedMemory" => return Some(IpcMechanism.SharedMemory)
+      case "MessageQueue" => return Some(IpcMechanism.MessageQueue)
       case s =>
-        eprintln(s"Expecting one of the following: { MessageQueue, SharedMemory }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { SharedMemory, MessageQueue }, but found '$s'.")
         return None()
     }
   }
 
   def parseIpcMechanism(args: ISZ[String], i: Z): Option[IpcMechanism.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { MessageQueue, SharedMemory }, but none found.")
+      eprintln("Expecting one of the following: { SharedMemory, MessageQueue }, but none found.")
       return None()
     }
     val r = parseIpcMechanismH(args(i))
@@ -334,8 +334,8 @@ import Cli._
           |
           |Transpiler Options:
           |    --ipc-mechanism      IPC communication mechanism (requires 'trans' option)
-          |                           (expects one of { MessageQueue, SharedMemory };
-          |                           default: MessageQueue)
+          |                           (expects one of { SharedMemory, MessageQueue };
+          |                           default: SharedMemory)
           |    --slang-aux-code-dir Auxiliary C source code directory (expects a path)
           |    --slang-output-c-dir Output directory for C artifacts (expects a path)
           |    --exclude-component-impl
@@ -366,7 +366,7 @@ import Cli._
     var packageName: Option[String] = None[String]()
     var embedArt: B = false
     var devicesAsThreads: B = false
-    var ipc: IpcMechanism.Type = IpcMechanism.MessageQueue
+    var ipc: IpcMechanism.Type = IpcMechanism.SharedMemory
     var slangAuxCodeDir: Option[String] = None[String]()
     var slangOutputCDir: Option[String] = None[String]()
     var excludeComponentImpl: B = false

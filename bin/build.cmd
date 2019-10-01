@@ -259,14 +259,14 @@ def regenLogika(): Unit = {
 
 
 def regenAir(): Unit = {
-  val airPackagePath = home / "hamr" / "air" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "aadl" / "ir"
+  val airPackagePath = home / "hamr" / "air" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "ir"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", s"${airPackagePath / "AadlAST.scala"}")).at(airPackagePath).console.run()
 }
 
 
 def regenAct(): Unit = {
-  val actPackagePath = home / "hamr" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "aadl" / "act" / "ast"
+  val actPackagePath = home / "hamr" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "act" / "ast"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", s"${actPackagePath / "ActAst.scala"}")).at(actPackagePath).console.run()
 }
