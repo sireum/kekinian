@@ -28,20 +28,30 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Cli
 import org.sireum.Cli._
-import org.sireum.hamr.arsit.ArsitBridge
-import java.io.File
+import org.sireum.Cli.HamrPlatform._
+
+import org.sireum.hamr.arsit
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 
+import org.sireum.message._
+import org.sireum.ops.StringOps
+import org.sireum.Os.Path
+
 object HAMR {
-  def codeGen(o: Cli.HamrCodeGenOption): Z = {
+
+  val toolName: String = "HAMR"
+
+  // cli interface
+  def codeGen(o: Cli.HamrCodeGenOption): Int = {
     o.args.size match {
-      case z"0" => println(o.help); return 0
+      case z"0 " => println(o.help); return 0
       case _ =>
     }
 
-    val inputFile: Option[File] = if(o.args.size != 1) None[File] else Some(new File(o.args(0).native))
-    val input = if (inputFile.nonEmpty && inputFile.get.exists) {
-      scala.io.Source.fromFile(inputFile.get).getLines.mkString
+    val inputFile: Option[Path] = if (o.args.size != 1) None[Path]() else Some(Os.path(o.args(0)))
+
+    val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
+      inputFile.get.read
     } else {
       eprintln("Input file not found.  Expecting exactly 1")
       return -1
@@ -70,70 +80,230 @@ object HAMR {
       }
     }
 
-    val targetingSel4 = o.platform == Platform.SeL4
-
-    val camkesOutputDir = toFile(o.camkesOutputDir)
-    val slangOutputDir = toFile(o.outputDir)
-
-    val outputCDirectory = if(targetingSel4) {
-      new File(camkesOutputDir, "hamr")
-    }  else {
-      new File(slangOutputDir, "src/c/nix")
-    }
-
-    val packageName: Option[Predef.String] = if(o.packageName.nonEmpty) {
-      o.packageName.map(m => cleanupPackageName(m.native))
-    } else {
-      Some(cleanupPackageName(slangOutputDir.getCanonicalFile.getName))
-    }
-
-    var retValue = 0
-
-    if(!o.trustedBuildProfile) {
-      val genBlessEntryPoints = false
-      val ipc = ArsitBridge.IPCMechanism.valueOf(o.ipc.name.native)
-      val platform = ArsitBridge.Platform.valueOf(o.platform.name.native)
-      val slangAuxCodeDir = o.slangAuxCodeDir.map(_.native)
-
-      retValue = org.sireum.hamr.arsit.Arsit.run( //
-        model, toOption(slangOutputDir), packageName, o.embedArt, genBlessEntryPoints, o.verbose, o.devicesAsThreads,
-        ipc, o.excludeComponentImpl, slangAuxCodeDir, toOption(outputCDirectory), platform,
-        o.bitWidth.toInt, o.maxStringSize.toInt, o.maxArraySize.toInt)
-    }
-
-    if(retValue == 0 && o.platform == Cli.Platform.SeL4) {
-      val camkesAuxCodeDirs = o.camkesAuxCodeDirs.map(_.native)
-      val aadlRootDir = o.aadlRootDir.map(_.native)
-      val hamrIntegration = !o.trustedBuildProfile
-      val hamrIncludeDirs = ISZ[Predef.String](outputCDirectory.getAbsolutePath)
-      val hamrStaticLib = toOption(new File(outputCDirectory, "sel4-build/libmain.a"))
-      val hamrBasePackageName = packageName
-
-      retValue = org.sireum.hamr.act.Act.run(toOption(camkesOutputDir), model, camkesAuxCodeDirs, aadlRootDir,
-        hamrIntegration, hamrIncludeDirs, hamrStaticLib, hamrBasePackageName)
-    }
-
-    return retValue
+    return codeGen(model, o)
   }
 
-  def toFile(o: Option[String]): File = {
+  // JAVA/OSATE interface
+  def codeGen(model: Aadl,
+              //
+              verbose: B,
+              platform: HamrPlatform.Type,
+              slangOutputDir: Option[Predef.String],
+              slangPackageName: Option[Predef.String],
+              embedArt: B,
+              devicesAsThreads: B,
+              //
+              ipcMechanism: Option[HamrIpcMechanism.Type],
+              slangAuxCodeDir: ISZ[Predef.String],
+              slangOutputCDirectory: Option[Predef.String],
+              excludeComponentImpl: B,
+              bitWidth: Int,
+              maxStringSize: Int,
+              maxArraySize: Int,
+              //
+              camkesOutputDirectory: Option[Predef.String],
+              camkesAuxCodeDirs: ISZ[Predef.String],
+              aadlRootDir: Option[Predef.String]
+             ): Int = {
+
+    val _ipcMechanism = if(ipcMechanism.isEmpty) { HamrIpcMechanism.MessageQueue } else { ipcMechanism.get }
+
+    val o = Cli.HamrCodeGenOption("", ISZ(), F,
+      verbose,
+      platform,
+      slangOutputDir.map(f => org.sireum.String(f)),
+      slangPackageName.map(f => org.sireum.String(f)),
+      embedArt,
+      devicesAsThreads,
+      //
+      _ipcMechanism,
+      slangAuxCodeDir.map(f => org.sireum.String(f)),
+      slangOutputCDirectory.map(f => org.sireum.String(f)),
+      excludeComponentImpl,
+      bitWidth,
+      maxStringSize,
+      maxArraySize,
+      //
+      camkesOutputDirectory.map(f => org.sireum.String(f)),
+      camkesAuxCodeDirs.map(f => org.sireum.String(f)),
+      aadlRootDir.map(f => org.sireum.String(f))
+    )
+
+    return codeGen(model, o)
+  }
+
+  def codeGen(model: Aadl, o: Cli.HamrCodeGenOption): Int = {
+
+    val targetingSel4 = o.platform == HamrPlatform.SeL4
+
+    val camkesOutputDir: Path = toPath(o.camkesOutputDir)
+    val slangOutputDir: Path = toPath(o.outputDir)
+
+    val outputCDirectory = if(targetingSel4) {
+      camkesOutputDir / "hamr"
+    }  else {
+      slangOutputDir / "src" / "c" / "nix"
+    }
+
+    val packageName: String = if(o.packageName.nonEmpty) {
+      cleanupPackageName(o.packageName.get)
+    } else {
+      cleanupPackageName(slangOutputDir.name)
+    }
+
+    val (runArsit, runTranspiler, runACT, hamrIntegration) = o.platform match {
+      case JVM => (T, F, F, F)
+      case Linux | Cygwin | MacOS => (T, T, F, F)
+      case SeL4 => (T, T, T, T)
+      case SeL4_Only | SeL4_TB => (F, F, T, F)
+    }
+
+    var reporter = Reporter.create
+
+    if(runArsit) {
+      val arsitReporter = Reporter.create
+
+      val genBlessEntryPoints = false
+      val ipc = arsit.Cli.IpcMechanism.byName(o.ipc.name).get
+      val platform = arsit.Cli.ArsitPlatform.byName(o.platform.name).get
+      val fileSep = StringOps(org.sireum.Os.fileSep).first
+
+      val opt = arsit.Cli.ArsitOption(
+        slangOutputDir.abs.value,
+        packageName,
+        o.embedArt,
+        genBlessEntryPoints,
+        o.verbose,
+        o.devicesAsThreads,
+        ipc,
+        o.slangAuxCodeDirs,
+        toOption(outputCDirectory),
+        o.excludeComponentImpl,
+        platform,
+        o.bitWidth,
+        o.maxStringSize,
+        o.maxArraySize,
+        fileSep
+      )
+
+      arsitReporter.info(None(), "HAMR", "Generating Slang artifacts...")
+
+      val results = arsit.Arsit.run(model, opt, arsitReporter)
+
+      var index = printMessages(arsitReporter.messages, 0)
+
+      if(!arsitReporter.hasError) {
+        for (r <- results.resources) {
+          val p = Os.path(r.path)
+          assert(!p.exists || p.isFile)
+          p.up.mkdirAll()
+          if (r.overwrite || !p.exists) {
+            p.writeOver(r.content.render)
+            arsitReporter.info(None(), toolName, s"Wrote: ${p}")
+          } else {
+            arsitReporter.info(None(), toolName, s"File exists, will not overwrite: ${p}")
+          }
+        }
+      }
+
+      index = printMessages(arsitReporter.messages, index)
+
+      if(!arsitReporter.hasError && runTranspiler) {
+
+          val ao = results.transpilerOptions.get
+          val o = Cli.CTranspilerOption(
+            help = "",
+            args = ISZ(), //
+            sourcepath = ao.sourcepath, //
+            output = ao.output, //
+            verbose = ao.verbose, //
+            projectName = ao.projectName, //
+            apps = ao.apps, //
+            unroll = ao.unroll, //
+            fingerprint = ao.fingerprint, //
+            bitWidth = ao.bitWidth, //
+            maxStringSize = ao.maxStringSize, //
+            maxArraySize = ao.maxArraySize, //
+            customArraySizes = ao.customArraySizes, //
+            customConstants = ao.customConstants, //
+            plugins = ao.plugins, //
+            exts = ao.exts, //
+            forwarding = ao.forwarding, //
+            stackSize = ao.stackSize, //
+            excludeBuild = ao.excludeBuild, //
+            libOnly = ao.libOnly, //
+            stableTypeId = ao.stableTypeId, //
+            save = ao.save, //
+            load = ao.load
+          )
+          if (CTranspiler.run(o) != 0) {
+            arsitReporter.error(None(), toolName, s"Transpiler did not complete successfully")
+          }
+      }
+
+      printMessages(arsitReporter.messages, index)
+
+      reporter = Reporter.combine(reporter, arsitReporter)
+    }
+
+    if(!reporter.hasError && runACT) {
+      val actReporter = Reporter.create
+
+      val hamrIncludeDirs = if(hamrIntegration) { ISZ[String](outputCDirectory.canon.value) } else { ISZ[String]() }
+      val hamrStaticLib = if(hamrIntegration) { toOption(outputCDirectory / "sel4-build" / "libmain.a") } else { None[String]() }
+
+      actReporter.info(None(), "HAMR", "Generating CAmkES artifacts...")
+
+      org.sireum.hamr.act.Act.run(
+        toOption(camkesOutputDir),
+        model,
+        o.camkesAuxCodeDirs,
+        o.aadlRootDir,
+        hamrIntegration, hamrIncludeDirs, hamrStaticLib, Some(packageName),
+        actReporter)
+
+      printMessages(actReporter.messages, 0)
+
+      reporter = Reporter.combine(reporter, actReporter)
+    }
+
+    return if(reporter.hasError) 1 else 0
+  }
+
+  def printMessages(messages: ISZ[Message], index: Int): Int = {
+    for(i <- index until messages.size) {
+      val m = messages(i)
+      val t = if(m.level != org.sireum.message.Level.Info) s"${m.level.name}: " else ""
+      val err = m.level == org.sireum.message.Level.Error
+      val mText: String = m.posOpt match {
+        case Some(pos) => s"${t}[${pos.beginLine}, ${pos.beginColumn}] ${m.text}"
+        case _ => s"${t}${m.text}"
+      }
+      cprintln(err, mText)
+    }
+    return messages.size.toInt
+  }
+
+  def toPath(o: Option[String]): Path = {
     return o match {
       case Some(path) =>
-        val f = new File(path.native)
-        return if(!f.exists() && !f.mkdirs()) {
-          new File(".")
+        val f = Os.path(path)
+        assert(f.isDir)
+        f.canon.mkdirAll() // f.mkdirAll will throw a FileAlreadyExistsException if path is a symlink to a dir
+        return if(!f.exists) {
+          Os.path(".")
         } else {
           f
         }
-      case _ => new File(".")
+      case _ => Os.path(".")
     }
   }
 
-  def toOption(f: File): Option[Predef.String] = {
-    return Some(f.getCanonicalPath)
+  def toOption(f: Path): Option[String] = {
+    return Some(f.canon.value)
   }
 
-  def cleanupPackageName(s: Predef.String): Predef.String = {
-    return s.replaceAll("-", "_")
+  def cleanupPackageName(s: String): String = {
+    return s.native.replaceAll("[\\-|\\.]", "_")
   }
 }

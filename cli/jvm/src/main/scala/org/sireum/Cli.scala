@@ -38,15 +38,17 @@ object Cli {
 
   @datatype class HelpOption extends SireumTopOption
 
-  @enum object Platform {
+  @enum object HamrPlatform {
     'JVM
     'Linux
     'Cygwin
     'MacOS
     'SeL4
+    'SeL4_Only
+    'SeL4_TB
   }
 
-  @enum object IpcMechanism {
+  @enum object HamrIpcMechanism {
     'SharedMemory
     'MessageQueue
   }
@@ -56,13 +58,13 @@ object Cli {
     args: ISZ[String],
     json: B,
     verbose: B,
-    platform: Platform.Type,
+    platform: HamrPlatform.Type,
     outputDir: Option[String],
     packageName: Option[String],
     embedArt: B,
     devicesAsThreads: B,
-    ipc: IpcMechanism.Type,
-    slangAuxCodeDir: Option[String],
+    ipc: HamrIpcMechanism.Type,
+    slangAuxCodeDirs: ISZ[String],
     slangOutputCDir: Option[String],
     excludeComponentImpl: B,
     bitWidth: Z,
@@ -70,7 +72,6 @@ object Cli {
     maxArraySize: Z,
     camkesOutputDir: Option[String],
     camkesAuxCodeDirs: ISZ[String],
-    trustedBuildProfile: B,
     aadlRootDir: Option[String]
   ) extends SireumTopOption
 
@@ -269,44 +270,46 @@ import Cli._
     }
   }
 
-  def parsePlatformH(arg: String): Option[Platform.Type] = {
+  def parseHamrPlatformH(arg: String): Option[HamrPlatform.Type] = {
     arg.native match {
-      case "JVM" => return Some(Platform.JVM)
-      case "Linux" => return Some(Platform.Linux)
-      case "Cygwin" => return Some(Platform.Cygwin)
-      case "MacOS" => return Some(Platform.MacOS)
-      case "seL4" => return Some(Platform.SeL4)
+      case "JVM" => return Some(HamrPlatform.JVM)
+      case "Linux" => return Some(HamrPlatform.Linux)
+      case "Cygwin" => return Some(HamrPlatform.Cygwin)
+      case "MacOS" => return Some(HamrPlatform.MacOS)
+      case "seL4" => return Some(HamrPlatform.SeL4)
+      case "seL4_Only" => return Some(HamrPlatform.SeL4_Only)
+      case "seL4_TB" => return Some(HamrPlatform.SeL4_TB)
       case s =>
-        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB }, but found '$s'.")
         return None()
     }
   }
 
-  def parsePlatform(args: ISZ[String], i: Z): Option[Platform.Type] = {
+  def parseHamrPlatform(args: ISZ[String], i: Z): Option[HamrPlatform.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4 }, but none found.")
+      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB }, but none found.")
       return None()
     }
-    val r = parsePlatformH(args(i))
+    val r = parseHamrPlatformH(args(i))
     return r
   }
 
-  def parseIpcMechanismH(arg: String): Option[IpcMechanism.Type] = {
+  def parseHamrIpcMechanismH(arg: String): Option[HamrIpcMechanism.Type] = {
     arg.native match {
-      case "SharedMemory" => return Some(IpcMechanism.SharedMemory)
-      case "MessageQueue" => return Some(IpcMechanism.MessageQueue)
+      case "SharedMemory" => return Some(HamrIpcMechanism.SharedMemory)
+      case "MessageQueue" => return Some(HamrIpcMechanism.MessageQueue)
       case s =>
         eprintln(s"Expecting one of the following: { SharedMemory, MessageQueue }, but found '$s'.")
         return None()
     }
   }
 
-  def parseIpcMechanism(args: ISZ[String], i: Z): Option[IpcMechanism.Type] = {
+  def parseHamrIpcMechanism(args: ISZ[String], i: Z): Option[HamrIpcMechanism.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { SharedMemory, MessageQueue }, but none found.")
       return None()
     }
-    val r = parseIpcMechanismH(args(i))
+    val r = parseHamrIpcMechanismH(args(i))
     return r
   }
 
@@ -321,7 +324,7 @@ import Cli._
           |                           assumed)
           |    --verbose            Enable verbose mode
           |    --platform           Target platform (expects one of { JVM, Linux, Cygwin,
-          |                           MacOS, seL4 }; default: JVM)
+          |                           MacOS, seL4, seL4_Only, seL4_TB }; default: JVM)
           |-h, --help               Display this information
           |
           |Slang Options:
@@ -336,7 +339,9 @@ import Cli._
           |    --ipc-mechanism      IPC communication mechanism (requires 'trans' option)
           |                           (expects one of { SharedMemory, MessageQueue };
           |                           default: SharedMemory)
-          |    --slang-aux-code-dir Auxiliary C source code directory (expects a path)
+          |    --slang-aux-code-dirs
+          |                          Auxiliary C source code directory (expects path
+          |                           strings)
           |    --slang-output-c-dir Output directory for C artifacts (expects a path)
           |    --exclude-component-impl
           |                          Exclude Slang component implementations
@@ -354,20 +359,18 @@ import Cli._
           |-a, --camkes-aux-code-dirs    
           |                          Directories containing C files to be included in
           |                           CAmkES build (expects path strings)
-          |    --trusted-build-profile
-          |                          Used Trusted Build profile
           |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
           |                           path)""".render
 
     var json: B = false
     var verbose: B = false
-    var platform: Platform.Type = Platform.JVM
+    var platform: HamrPlatform.Type = HamrPlatform.JVM
     var outputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
     var embedArt: B = false
     var devicesAsThreads: B = false
-    var ipc: IpcMechanism.Type = IpcMechanism.SharedMemory
-    var slangAuxCodeDir: Option[String] = None[String]()
+    var ipc: HamrIpcMechanism.Type = HamrIpcMechanism.SharedMemory
+    var slangAuxCodeDirs: ISZ[String] = ISZ[String]()
     var slangOutputCDir: Option[String] = None[String]()
     var excludeComponentImpl: B = false
     var bitWidth: Z = 64
@@ -375,7 +378,6 @@ import Cli._
     var maxArraySize: Z = 100
     var camkesOutputDir: Option[String] = Some(".")
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
-    var trustedBuildProfile: B = false
     var aadlRootDir: Option[String] = None[String]()
     var j = i
     var isOption = T
@@ -398,7 +400,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--platform") {
-           val o: Option[Platform.Type] = parsePlatform(args, j + 1)
+           val o: Option[HamrPlatform.Type] = parseHamrPlatform(args, j + 1)
            o match {
              case Some(v) => platform = v
              case _ => return None()
@@ -428,15 +430,15 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--ipc-mechanism") {
-           val o: Option[IpcMechanism.Type] = parseIpcMechanism(args, j + 1)
+           val o: Option[HamrIpcMechanism.Type] = parseHamrIpcMechanism(args, j + 1)
            o match {
              case Some(v) => ipc = v
              case _ => return None()
            }
-         } else if (arg == "--slang-aux-code-dir") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
+         } else if (arg == "--slang-aux-code-dirs") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
-             case Some(v) => slangAuxCodeDir = v
+             case Some(v) => slangAuxCodeDirs = v
              case _ => return None()
            }
          } else if (arg == "--slang-output-c-dir") {
@@ -481,12 +483,6 @@ import Cli._
              case Some(v) => camkesAuxCodeDirs = v
              case _ => return None()
            }
-         } else if (arg == "--trusted-build-profile") {
-           val o: Option[B] = { j = j - 1; Some(!trustedBuildProfile) }
-           o match {
-             case Some(v) => trustedBuildProfile = v
-             case _ => return None()
-           }
          } else if (arg == "-r" || arg == "--aadl-root-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -502,7 +498,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, ipc, slangAuxCodeDir, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, camkesOutputDir, camkesAuxCodeDirs, trustedBuildProfile, aadlRootDir))
+    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, ipc, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir))
   }
 
   def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
