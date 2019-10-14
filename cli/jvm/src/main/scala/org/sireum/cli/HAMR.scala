@@ -200,6 +200,10 @@ object HAMR {
           if (r.overwrite || !p.exists) {
             p.writeOver(r.content.render)
             arsitReporter.info(None(), toolName, s"Wrote: ${p}")
+            if(r.makeExecutable) {
+              p.chmod("700")
+              arsitReporter.info(None(), toolName, s"Made ${p} executable")
+            }
           } else {
             arsitReporter.info(None(), toolName, s"File exists, will not overwrite: ${p}")
           }
@@ -251,6 +255,7 @@ object HAMR {
 
       val hamrIncludeDirs = if(hamrIntegration) { ISZ[String](outputCDirectory.canon.value) } else { ISZ[String]() }
       val hamrStaticLib = if(hamrIntegration) { toOption(outputCDirectory / "sel4-build" / "libmain.a") } else { None[String]() }
+      val platform = org.sireum.hamr.act.ActPlatform.byName(o.platform.name).get
 
       actReporter.info(None(), "HAMR", "Generating CAmkES artifacts...")
 
@@ -259,7 +264,7 @@ object HAMR {
         model,
         o.camkesAuxCodeDirs,
         o.aadlRootDir,
-        hamrIntegration, hamrIncludeDirs, hamrStaticLib, Some(packageName),
+        platform, hamrIncludeDirs, hamrStaticLib, Some(packageName),
         actReporter)
 
       printMessages(actReporter.messages, 0)
