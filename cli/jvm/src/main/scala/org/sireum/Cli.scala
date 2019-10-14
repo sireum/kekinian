@@ -115,6 +115,7 @@ object Cli {
     force: ISZ[String],
     verbose: B,
     noRuntime: B,
+    exclude: ISZ[String],
     save: Option[String],
     load: Option[String],
     gzip: B
@@ -763,6 +764,8 @@ import Cli._
           |    --verbose            Enable verbose mode
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
+          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |                           separated by ",")
           |-h, --help               Display this information
           |
           |Persistence Options:
@@ -776,6 +779,7 @@ import Cli._
     var force: ISZ[String] = ISZ[String]()
     var verbose: B = false
     var noRuntime: B = false
+    var exclude: ISZ[String] = ISZ[String]()
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
     var gzip: B = true
@@ -817,6 +821,12 @@ import Cli._
              case Some(v) => noRuntime = v
              case _ => return None()
            }
+         } else if (arg == "-x" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => exclude = v
+             case _ => return None()
+           }
          } else if (arg == "--save") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -844,7 +854,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, save, load, gzip))
+    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, exclude, save, load, gzip))
   }
 
   def parseTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {

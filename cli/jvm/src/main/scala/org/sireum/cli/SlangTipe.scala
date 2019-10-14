@@ -159,8 +159,9 @@ object SlangTipe {
         return InvalidPath
       } else {
         for (p <- Os.Path.walk(f, F, T, { f =>
-          var isSlang = f.string.value.endsWith(".slang")
-          if (f.string.value.endsWith(".scala") || isSlang) {
+          val excluded = ops.ISZOps(o.exclude).exists(segment => ops.StringOps(f.toUri).contains(segment))
+          var isSlang = !excluded && f.string.value.endsWith(".slang")
+          if (!excluded && (f.string.value.endsWith(".scala") || isSlang)) {
             if (!isSlang) {
               for (firstLine <- f.readLineStream.take(1).toISZ.elements) {
                 isSlang = firstLine.value
