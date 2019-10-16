@@ -400,6 +400,9 @@ object GenTools {
           Os.proc(command).at(project).env(envVarMap).console.runCheck()
         }
         writeFiles()
+        for (f <- Os.Path.walk(home / ".idea_modules", F, F, (p: Os.Path) => ops.StringOps(p.name).endsWith(".iml"))) {
+          f.writeOver(ops.StringOps(f.read).replaceAllLiterally("ideaCompileOutput", "compile"))
+        }
       }
       val configOptions =
         if (scala.util.Properties.isMac) Os.home / "Library" / "Preferences" / s"SireumIVE$devSuffix" / "options"
