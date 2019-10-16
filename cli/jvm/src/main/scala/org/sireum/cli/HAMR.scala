@@ -214,35 +214,35 @@ object HAMR {
 
       if(!arsitReporter.hasError && runTranspiler) {
 
-          val ao = results.transpilerOptions.get
-          val o = Cli.CTranspilerOption(
-            help = "",
-            args = ISZ(), //
-            sourcepath = ao.sourcepath, //
-            output = ao.output, //
-            verbose = ao.verbose, //
-            projectName = ao.projectName, //
-            apps = ao.apps, //
-            unroll = ao.unroll, //
-            fingerprint = ao.fingerprint, //
-            bitWidth = ao.bitWidth, //
-            maxStringSize = ao.maxStringSize, //
-            maxArraySize = ao.maxArraySize, //
-            customArraySizes = ao.customArraySizes, //
-            customConstants = ao.customConstants, //
-            plugins = ao.plugins, //
-            exts = ao.exts, //
-            forwarding = ao.forwarding, //
-            stackSize = ao.stackSize, //
-            excludeBuild = ao.excludeBuild, //
-            libOnly = ao.libOnly, //
-            stableTypeId = ao.stableTypeId, //
-            save = ao.save, //
-            load = ao.load
-          )
-          if (CTranspiler.run(o) != 0) {
-            arsitReporter.error(None(), toolName, s"Transpiler did not complete successfully")
-          }
+        val ao = results.transpilerOptions.get
+        val o = Cli.CTranspilerOption(
+          help = "",
+          args = ISZ(), //
+          sourcepath = ao.sourcepath, //
+          output = ao.output, //
+          verbose = ao.verbose, //
+          projectName = ao.projectName, //
+          apps = ao.apps, //
+          unroll = ao.unroll, //
+          fingerprint = ao.fingerprint, //
+          bitWidth = ao.bitWidth, //
+          maxStringSize = ao.maxStringSize, //
+          maxArraySize = ao.maxArraySize, //
+          customArraySizes = ao.customArraySizes, //
+          customConstants = ao.customConstants, //
+          plugins = ao.plugins, //
+          exts = ao.exts, //
+          forwarding = ao.forwarding, //
+          stackSize = ao.stackSize, //
+          excludeBuild = ao.excludeBuild, //
+          libOnly = ao.libOnly, //
+          stableTypeId = ao.stableTypeId, //
+          save = ao.save, //
+          load = ao.load
+        )
+        if (CTranspiler.run(o) != 0) {
+          arsitReporter.error(None(), toolName, s"Transpiler did not complete successfully")
+        }
       }
 
       printMessages(arsitReporter.messages, index)
@@ -259,7 +259,7 @@ object HAMR {
 
       actReporter.info(None(), "HAMR", "Generating CAmkES artifacts...")
 
-      org.sireum.hamr.act.Act.run(
+      val results = org.sireum.hamr.act.Act.run(
         toOption(camkesOutputDir),
         model,
         o.camkesAuxCodeDirs,
@@ -267,8 +267,26 @@ object HAMR {
         platform, hamrIncludeDirs, hamrStaticLib, Some(packageName),
         actReporter)
 
-      printMessages(actReporter.messages, 0)
+      var index = printMessages(actReporter.messages, 0)
 
+      if(!reporter.hasError) {
+        for (r <- results.resources) {
+          val p = Os.path(r.path)
+          assert(!p.exists || p.isFile)
+          p.up.mkdirAll()
+          if (r.overwrite || !p.exists) {
+            p.writeOver(r.content.render)
+            actReporter.info(None(), toolName, s"Wrote: ${p}")
+            if(r.makeExecutable) {
+              p.chmod("700")
+              actReporter.info(None(), toolName, s"Made ${p} executable")
+            }
+          } else {
+            actReporter.info(None(), toolName, s"File exists, will not overwrite: ${p}")
+          }
+        }
+      }
+      printMessages(actReporter.messages, 0)
       reporter = Reporter.combine(reporter, actReporter)
     }
 
@@ -293,7 +311,7 @@ object HAMR {
     return o match {
       case Some(path) =>
         val f = Os.path(path)
-        assert(f.isDir)
+        assert(!f.exists || f.isDir)
         f.canon.mkdirAll() // f.mkdirAll will throw a FileAlreadyExistsException if path is a symlink to a dir
         return if(!f.exists) {
           Os.path(".")
