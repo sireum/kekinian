@@ -27,4 +27,4 @@
 	url = https://github.com/sireum/transpilers
 [submodule "hamr/codegen"]
 	path = hamr/codegen
-	url = https://github.com/sireum/hamr-codegen.git
+	url = https://github.com/sireum/hamr-codegen
