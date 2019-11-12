@@ -32,9 +32,10 @@ import $file.alir.Alir
 import $file.transpilers.Transpilers
 import $file.logika.Logika
 import $file.hamr.air.Air
-import $file.hamr.act.Act
+import $file.hamr.codegen.Codegen
+import $file.hamr.codegen.act.Act
+import $file.hamr.codegen.arsit.Arsit
 import $file.hamr.phantom.Phantom
-import $file.hamr.arsit.Arsit
 import $file.cli.Cli
 import $file.distro
 import mill.scalalib.ScalaModule
@@ -137,27 +138,34 @@ object hamr extends mill.Module {
     final override def libraryObject = runtime.library
     final override def testObject = runtime.test
   }
-
-  object act extends Act.Module {
-    final override def airObject = air
-
-    object bin extends ScalaModule {
-      final override def scalaVersion = SireumModule.scalaVersion
-      final override def moduleDeps = Seq(runtime.library.jvm)
-    }
-  }
-
+  
   object phantom extends Phantom.Module {
     final override def libraryObject = runtime.library
   }
+  
+  object codegen extends Codegen.Module with runtime.testProvider {
 
-  object arsit extends Arsit.Module {
-    final override def airObject = air
+    object act extends Act.Module {
+      final override def airObject = air
 
-    object bin extends ScalaModule {
-      final override def scalaVersion = SireumModule.scalaVersion
-      final override def moduleDeps = Seq(runtime.library.jvm)
+      object bin extends ScalaModule {
+        final override def scalaVersion = SireumModule.scalaVersion
+        final override def moduleDeps = Seq(runtime.library.jvm)
+      }
     }
+
+    object arsit extends Arsit.Module {
+      final override def airObject = air
+
+      object bin extends ScalaModule {
+        final override def scalaVersion = SireumModule.scalaVersion
+        final override def moduleDeps = Seq(runtime.library.jvm)
+      }
+    }
+    
+    final override def actObject = act    
+    final override def airObject = air
+    final override def arsitObject = arsit
   }
 }
 
@@ -167,9 +175,8 @@ object cli extends Cli.Module {
   final override def transpilersCObject = transpilers.c
   final override def toolsObject = tools
   final override def logikaObject = logika
-  final override def actObject = hamr.act
   final override def phantomObject = hamr.phantom
-  final override def arsitObject = hamr.arsit
+  final override def hamrCodegenObject = hamr.codegen
 }
 
 object bin extends ScalaModule {

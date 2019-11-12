@@ -65,6 +65,7 @@ val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum
 val libFiles = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "Library_Ext.scala"
 val slangFiles = home / "slang" / "frontend" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "$SlangFiles.scala"
 val transpilersFiles = home / "transpilers" / "c" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "transpilers" / "c" / "Runtime_Ext.scala"
+val artFiles = home / "hamr" / "codegen" / "arsit" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "arsit" / "Library_Ext.scala"
 var didTipe = F
 var didCompile = F
 var didM2 = F
@@ -94,6 +95,7 @@ def touche(): Unit = {
   touchePath(slangFiles)
   touchePath(transpilersFiles)
   touchePath(mainFile)
+  touchePath(artFiles)
 }
 
 
@@ -178,8 +180,9 @@ def tipe(): Unit = {
   if (!didTipe) {
     didTipe = T
     println("Slang type checking ...")
+    val excludes = "hamr/arsit/jvm/src/test/results,hamr/act/jvm/src/test/result,hamr/codegen/jvm/src/test/result"
     Os.proc(ISZ("java", "-jar", sireumJar.string,
-      "slang", "tipe", "--verbose", "-r", "-s", home.string)).at(home).console.runCheck()
+      "slang", "tipe", "--verbose", "-r", "-s", home.string, "-x", excludes)).at(home).console.runCheck()
     println()
   }
 }

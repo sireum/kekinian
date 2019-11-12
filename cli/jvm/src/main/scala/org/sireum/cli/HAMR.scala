@@ -27,15 +27,10 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Cli
-import org.sireum.Cli._
-import org.sireum.Cli.HamrPlatform._
-
-import org.sireum.hamr.arsit
-import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
-
 import org.sireum.message._
-import org.sireum.ops.StringOps
 import org.sireum.Os.Path
+import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
+import org.sireum.hamr.codegen._
 
 object HAMR {
 
@@ -87,13 +82,13 @@ object HAMR {
   def codeGen(model: Aadl,
               //
               verbose: B,
-              platform: HamrPlatform.Type,
+              platform: Cli.HamrPlatform.Type,
               slangOutputDir: Option[Predef.String],
               slangPackageName: Option[Predef.String],
               embedArt: B,
               devicesAsThreads: B,
               //
-              ipcMechanism: Option[HamrIpcMechanism.Type],
+              ipcMechanism: Option[Cli.HamrIpcMechanism.Type],
               slangAuxCodeDir: ISZ[Predef.String],
               slangOutputCDirectory: Option[Predef.String],
               excludeComponentImpl: B,
@@ -106,7 +101,7 @@ object HAMR {
               aadlRootDir: Option[Predef.String]
              ): Int = {
 
-    val _ipcMechanism = if(ipcMechanism.isEmpty) { HamrIpcMechanism.MessageQueue } else { ipcMechanism.get }
+    val _ipcMechanism = if(ipcMechanism.isEmpty) { Cli.HamrIpcMechanism.MessageQueue } else { ipcMechanism.get }
 
     val o = Cli.HamrCodeGenOption("", ISZ(), F,
       verbose,
@@ -134,199 +129,69 @@ object HAMR {
 
   def codeGen(model: Aadl, o: Cli.HamrCodeGenOption): Int = {
 
-    val targetingSel4 = o.platform == HamrPlatform.SeL4
-
-    val camkesOutputDir: Path = toPath(o.camkesOutputDir)
-    val slangOutputDir: Path = toPath(o.outputDir)
-
-    val outputCDirectory = if(targetingSel4) {
-      camkesOutputDir / "hamr"
-    }  else {
-      slangOutputDir / "src" / "c" / "nix"
-    }
-
-    val packageName: String = if(o.packageName.nonEmpty) {
-      cleanupPackageName(o.packageName.get)
-    } else {
-      cleanupPackageName(slangOutputDir.name)
-    }
-
-    val (runArsit, runTranspiler, runACT, hamrIntegration) = o.platform match {
-      case JVM => (T, F, F, F)
-      case Linux | Cygwin | MacOS => (T, T, F, F)
-      case SeL4 => (T, T, T, T)
-      case SeL4_Only | SeL4_TB => (F, F, T, F)
-    }
-
+    val ops = CodeGenConfig(
+      verbose = o.verbose,
+      writeOutResources = T,
+      platform = CodeGenPlatform.byName(o.platform.name).get,
+      slangOutputDir = o.outputDir,
+      packageName = o.packageName,
+      embedArt = o.embedArt,
+      devicesAsThreads = o.devicesAsThreads,
+      ipc = CodeGenIpcMechanism.byName(o.ipc.name).get,
+      slangAuxCodeDirs = o.slangAuxCodeDirs,
+      slangOutputCDir = o.slangOutputCDir,
+      excludeComponentImpl = o.excludeComponentImpl,
+      bitWidth = o.bitWidth,
+      maxStringSize = o.maxStringSize,
+      maxArraySize = o.maxArraySize,
+      camkesOutputDir = o.camkesOutputDir,
+      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
+      aadlRootDir = o.aadlRootDir
+    )
+    
     var reporter = Reporter.create
-
-    if(runArsit) {
-      val arsitReporter = Reporter.create
-
-      val genBlessEntryPoints = false
-      val ipc = arsit.Cli.IpcMechanism.byName(o.ipc.name).get
-      val platform = arsit.Cli.ArsitPlatform.byName(o.platform.name).get
-      val fileSep = StringOps(org.sireum.Os.fileSep).first
-
-      val opt = arsit.Cli.ArsitOption(
-        slangOutputDir.abs.value,
-        packageName,
-        o.embedArt,
-        genBlessEntryPoints,
-        o.verbose,
-        o.devicesAsThreads,
-        ipc,
-        o.slangAuxCodeDirs,
-        toOption(outputCDirectory),
-        o.excludeComponentImpl,
-        platform,
-        o.bitWidth,
-        o.maxStringSize,
-        o.maxArraySize,
-        fileSep
+        
+    // call back function
+    def transpile(ao: TranspilerConfig): Z = {
+      val to = Cli.CTranspilerOption(
+        help = "",
+        args = ISZ(),
+        sourcepath = ao.sourcepath,
+        output = ao.output,
+        verbose = ao.verbose,
+        projectName = ao.projectName,
+        apps = ao.apps,
+        unroll = ao.unroll,
+        fingerprint = ao.fingerprint,
+        bitWidth = ao.bitWidth,
+        maxStringSize = ao.maxStringSize,
+        maxArraySize = ao.maxArraySize,
+        customArraySizes = ao.customArraySizes,
+        customConstants = ao.customConstants,
+        plugins = ao.plugins,
+        exts = ao.exts,
+        forwarding = ao.forwarding,
+        stackSize = ao.stackSize,
+        excludeBuild = ao.excludeBuild,
+        libOnly = ao.libOnly,
+        stableTypeId = ao.stableTypeId,
+        save = ao.save,
+        load = ao.load
       )
-
-      arsitReporter.info(None(), "HAMR", "Generating Slang artifacts...")
-
-      val results = arsit.Arsit.run(model, opt, arsitReporter)
-
-      var index = printMessages(arsitReporter.messages, 0)
-
-      if(!arsitReporter.hasError) {
-        for (r <- results.resources) {
-          val p = Os.path(r.path)
-          assert(!p.exists || p.isFile)
-          p.up.mkdirAll()
-          if (r.overwrite || !p.exists) {
-            p.writeOver(r.content.render)
-            arsitReporter.info(None(), toolName, s"Wrote: ${p}")
-            if(r.makeExecutable) {
-              p.chmod("700")
-              arsitReporter.info(None(), toolName, s"Made ${p} executable")
-            }
-          } else {
-            arsitReporter.info(None(), toolName, s"File exists, will not overwrite: ${p}")
-          }
+      
+      val result = CTranspiler.run(to)
+      if(result == 0 && o.platform == Cli.HamrPlatform.SeL4) {
+        val cmake = Os.path(ao.output.get) / "CMakeLists.txt"
+        if(cmake.exists) {
+          cmake.writeAppend("\n\nadd_definitions(-DCAMKES)\n")
         }
-      }
-
-      index = printMessages(arsitReporter.messages, index)
-
-      if(!arsitReporter.hasError && runTranspiler) {
-
-        val ao = results.transpilerOptions.get
-        val o = Cli.CTranspilerOption(
-          help = "",
-          args = ISZ(), //
-          sourcepath = ao.sourcepath, //
-          output = ao.output, //
-          verbose = ao.verbose, //
-          projectName = ao.projectName, //
-          apps = ao.apps, //
-          unroll = ao.unroll, //
-          fingerprint = ao.fingerprint, //
-          bitWidth = ao.bitWidth, //
-          maxStringSize = ao.maxStringSize, //
-          maxArraySize = ao.maxArraySize, //
-          customArraySizes = ao.customArraySizes, //
-          customConstants = ao.customConstants, //
-          plugins = ao.plugins, //
-          exts = ao.exts, //
-          forwarding = ao.forwarding, //
-          stackSize = ao.stackSize, //
-          excludeBuild = ao.excludeBuild, //
-          libOnly = ao.libOnly, //
-          stableTypeId = ao.stableTypeId, //
-          save = ao.save, //
-          load = ao.load
-        )
-        if (CTranspiler.run(o) != 0) {
-          arsitReporter.error(None(), toolName, s"Transpiler did not complete successfully")
-        }
-      }
-
-      printMessages(arsitReporter.messages, index)
-
-      reporter = Reporter.combine(reporter, arsitReporter)
+      } 
+      
+      return result
     }
-
-    if(!reporter.hasError && runACT) {
-      val actReporter = Reporter.create
-
-      val hamrIncludeDirs = if(hamrIntegration) { ISZ[String](outputCDirectory.canon.value) } else { ISZ[String]() }
-      val hamrStaticLib = if(hamrIntegration) { toOption(outputCDirectory / "sel4-build" / "libmain.a") } else { None[String]() }
-      val platform = org.sireum.hamr.act.ActPlatform.byName(o.platform.name).get
-
-      actReporter.info(None(), "HAMR", "Generating CAmkES artifacts...")
-
-      val results = org.sireum.hamr.act.Act.run(
-        toOption(camkesOutputDir),
-        model,
-        o.camkesAuxCodeDirs,
-        o.aadlRootDir,
-        platform, hamrIncludeDirs, hamrStaticLib, Some(packageName),
-        actReporter)
-
-      var index = printMessages(actReporter.messages, 0)
-
-      if(!reporter.hasError) {
-        for (r <- results.resources) {
-          val p = Os.path(r.path)
-          assert(!p.exists || p.isFile)
-          p.up.mkdirAll()
-          if (r.overwrite || !p.exists) {
-            p.writeOver(r.content.render)
-            actReporter.info(None(), toolName, s"Wrote: ${p}")
-            if(r.makeExecutable) {
-              p.chmod("700")
-              actReporter.info(None(), toolName, s"Made ${p} executable")
-            }
-          } else {
-            actReporter.info(None(), toolName, s"File exists, will not overwrite: ${p}")
-          }
-        }
-      }
-      printMessages(actReporter.messages, 0)
-      reporter = Reporter.combine(reporter, actReporter)
-    }
-
+    
+    val results = CodeGen.codeGen(model, ops, reporter, transpile _ )
+    
     return if(reporter.hasError) 1 else 0
-  }
-
-  def printMessages(messages: ISZ[Message], index: Int): Int = {
-    for(i <- index until messages.size) {
-      val m = messages(i)
-      val t = if(m.level != org.sireum.message.Level.Info) s"${m.level.name}: " else ""
-      val err = m.level == org.sireum.message.Level.Error
-      val mText: String = m.posOpt match {
-        case Some(pos) => s"${t}[${pos.beginLine}, ${pos.beginColumn}] ${m.text}"
-        case _ => s"${t}${m.text}"
-      }
-      cprintln(err, mText)
-    }
-    return messages.size.toInt
-  }
-
-  def toPath(o: Option[String]): Path = {
-    return o match {
-      case Some(path) =>
-        val f = Os.path(path)
-        assert(!f.exists || f.isDir)
-        f.canon.mkdirAll() // f.mkdirAll will throw a FileAlreadyExistsException if path is a symlink to a dir
-        return if(!f.exists) {
-          Os.path(".")
-        } else {
-          f
-        }
-      case _ => Os.path(".")
-    }
-  }
-
-  def toOption(f: Path): Option[String] = {
-    return Some(f.canon.value)
-  }
-
-  def cleanupPackageName(s: String): String = {
-    return s.native.replaceAll("[\\-|\\.]", "_")
   }
 }
