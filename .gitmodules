@@ -19,15 +19,9 @@
 [submodule "hamr/air"]
 	path = hamr/air
 	url = https://github.com/sireum/air
-[submodule "hamr/act"]
-	path = hamr/act
-	url = https://github.com/sireum/act
 [submodule "hamr/phantom"]
 	path = hamr/phantom
 	url = https://github.com/sireum/phantom
 [submodule "transpilers"]
 	path = transpilers
 	url = https://github.com/sireum/transpilers
-[submodule "hamr/arsit"]
-	path = hamr/arsit
-	url = https://github.com/sireum/arsit.git
