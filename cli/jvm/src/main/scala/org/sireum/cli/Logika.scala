@@ -52,7 +52,7 @@ object Logika {
         }
         val reporter = message.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config,
-          (th: lang.tipe.TypeHierarchy) => logika.Z3(z3Exe , th, config.smt2TimeoutInSeconds), reporter)
+          (th: lang.tipe.TypeHierarchy) => logika.Z3(z3Exe , th), reporter)
         reporter.printMessages()
         if (reporter.hasIssue) {
           return -1
