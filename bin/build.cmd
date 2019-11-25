@@ -105,22 +105,25 @@ def buildMill(): Unit = {
       if (p.exists) {
         p.removeAll()
       }
+      p.up.mkdirAll()
       p.mklink(target)
     }
   }
   val millBuild = homeBin / "mill-build"
+  symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
   symlink(millBuildBin / "sireum.jar", homeBin / "sireum.jar")
   symlink(millBuildBin / sireum.name, sireum)
-  symlink(millBuild / "versions.properties", home / "versions.properties")
   symlink(millBuildBin / "scala", homeBin / "scala")
-  for (p <- (home / "lib").list) {
-    symlink(millBuild / "lib" / p.name, p)
-  }
-  symlink(millBuildBin / platform / "java", homeBin / platform / "java")
-  symlink(millBuildBin / platform / "z3", homeBin / platform / "z3")
   symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
   symlink(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
+  val millBuildBinPlatform = millBuildBin / platform
+  symlink(millBuildBinPlatform / "java", homeBin / platform / "java")
+  symlink(millBuildBinPlatform / "z3", homeBin / platform / "z3")
+  val millBuildLib = millBuild / "lib"
+  for (p <- (home / "lib").list) {
+    symlink(millBuildLib / p.name, p)
+  }
   (millBuildBin / "build.cmd").slash(ISZ())
   (millBuild / "mill-standalone").copyOverTo(homeBin / "mill")
   (millBuild / "mill-standalone.bat").copyOverTo(homeBin / "mill.bat")
