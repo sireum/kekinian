@@ -100,6 +100,11 @@ def touche(): Unit = {
 
 
 def buildMill(): Unit = {
+  def copyIfNewer(from: Os.Path, to: Os.Path): Unit = {
+    if (!to.exists || from.lastModified > to.lastModified) {
+      from.copyOverTo(to)
+    }
+  }
   def symlink(p: Os.Path, target: Os.Path): Unit = {
     if (!p.isSymLink) {
       if (p.exists) {
@@ -109,11 +114,6 @@ def buildMill(): Unit = {
       p.mklink(target)
     }
   }
-  def copyIfNewer(from: Os.Path, to: Os.Path): Unit = {
-    if (!to.exists || from.lastModified > to.lastModified) {
-      from.copyOverTo(to)
-    }
-  }
   val millBuild = homeBin / "mill-build"
   symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
@@ -121,7 +121,7 @@ def buildMill(): Unit = {
   symlink(millBuildBin / sireum.name, sireum)
   symlink(millBuildBin / "scala", homeBin / "scala")
   symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
-  symlink(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
+  copyIfNewer(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
   val millBuildBinPlatform = millBuildBin / platform
   symlink(millBuildBinPlatform / "java", homeBin / platform / "java")
   symlink(millBuildBinPlatform / "z3", homeBin / platform / "z3")
@@ -174,7 +174,7 @@ def tipe(): Unit = {
   if (!didTipe) {
     didTipe = T
     println("Slang type checking ...")
-    val excludes = "hamr/arsit/jvm/src/test/results,hamr/act/jvm/src/test/result,hamr/codegen/jvm/src/test/result"
+    val excludes = "/bin/,hamr/arsit/jvm/src/test/results,hamr/act/jvm/src/test/result,hamr/codegen/jvm/src/test/result"
     Os.proc(ISZ("java", "-jar", sireumJar.string,
       "slang", "tipe", "--verbose", "-r", "-s", home.string, "-x", excludes)).at(home).console.runCheck()
     println()
