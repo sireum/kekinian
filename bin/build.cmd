@@ -106,7 +106,9 @@ def buildMill(): Unit = {
     }
   }
   def symlink(p: Os.Path, target: Os.Path): Unit = {
-    if (!p.isSymLink) {
+    if (Os.isWin && target.isFile) {
+      copyIfNewer(target, p)
+    } else if (!p.isSymLink) {
       if (p.exists) {
         p.removeAll()
       }
@@ -121,7 +123,7 @@ def buildMill(): Unit = {
   symlink(millBuildBin / sireum.name, sireum)
   symlink(millBuildBin / "scala", homeBin / "scala")
   symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
-  copyIfNewer(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
+  symlink(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
   val millBuildBinPlatform = millBuildBin / platform
   symlink(millBuildBinPlatform / "java", homeBin / platform / "java")
   symlink(millBuildBinPlatform / "z3", homeBin / platform / "z3")
