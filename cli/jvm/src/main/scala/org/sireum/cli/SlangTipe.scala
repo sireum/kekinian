@@ -158,21 +158,28 @@ object SlangTipe {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
-        for (p <- Os.Path.walk(f, F, T, { f =>
-          val excluded = ops.ISZOps(o.exclude).exists(segment => ops.StringOps(f.toUri).contains(segment))
-          var isSlang = !excluded && f.string.value.endsWith(".slang")
-          if (!excluded && (f.string.value.endsWith(".scala") || isSlang)) {
-            if (!isSlang) {
-              for (firstLine <- f.readLineStream.take(1).toISZ.elements) {
-                isSlang = firstLine.value
-                  .replaceAllLiterally(" ", "")
-                  .replaceAllLiterally("\t", "")
-                  .replaceAllLiterally("\r", "")
-                  .contains("#Sireum")
+        var seen = HashSet.empty[Os.Path]
+        for (p <- Os.Path.walk(f, F, T, { path =>
+          val pathCanon = path.canon
+          if (seen.contains(pathCanon)) {
+            F
+          } else {
+            seen = seen + pathCanon.canon
+            val excluded = ops.ISZOps(o.exclude).exists(segment => ops.StringOps(pathCanon.toUri).contains(segment))
+            var isSlang = !excluded && pathCanon.string.value.endsWith(".slang")
+            if (!excluded && (pathCanon.string.value.endsWith(".scala") || isSlang)) {
+              if (!isSlang) {
+                for (firstLine <- pathCanon.readLineStream.take(1).toISZ.elements) {
+                  isSlang = firstLine.value
+                    .replaceAllLiterally(" ", "")
+                    .replaceAllLiterally("\t", "")
+                    .replaceAllLiterally("\r", "")
+                    .contains("#Sireum")
+                }
               }
             }
+            isSlang
           }
-          isSlang
         })) {
           sources = sources :+ readFile(p)
           if (o.verbose) println(s"Read $p")

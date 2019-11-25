@@ -171,20 +171,27 @@ object CTranspiler {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
-        for (p <- Os.Path.walk(f, F, T, { f =>
-          var isSlang = f.string.value.endsWith(".slang")
-          if (f.string.value.endsWith(".scala") || isSlang) {
-            if (!isSlang) {
-              for (firstLine <- f.readLineStream.take(1).toISZ.elements) {
-                isSlang = firstLine.value
-                  .replaceAllLiterally(" ", "")
-                  .replaceAllLiterally("\t", "")
-                  .replaceAllLiterally("\r", "")
-                  .contains("#Sireum")
+        var seen = HashSet.empty[Os.Path]
+        for (p <- Os.Path.walk(f, F, T, { path =>
+          val pathCanon = path.canon
+          if (seen.contains(pathCanon)) {
+            F
+          } else {
+            seen = seen + pathCanon
+            var isSlang = pathCanon.string.value.endsWith(".slang")
+            if (pathCanon.string.value.endsWith(".scala") || isSlang) {
+              if (!isSlang) {
+                for (firstLine <- pathCanon.readLineStream.take(1).toISZ.elements) {
+                  isSlang = firstLine.value
+                    .replaceAllLiterally(" ", "")
+                    .replaceAllLiterally("\t", "")
+                    .replaceAllLiterally("\r", "")
+                    .contains("#Sireum")
+                }
               }
             }
+            isSlang
           }
-          isSlang
         })) {
           sources = sources :+ readFile(p)
           if (o.verbose) println(s"Read $p")
