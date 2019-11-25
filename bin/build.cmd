@@ -109,6 +109,11 @@ def buildMill(): Unit = {
       p.mklink(target)
     }
   }
+  def copyIfNewer(from: Os.Path, to: Os.Path): Unit = {
+    if (!to.exists || from.lastModified > to.lastModified) {
+      from.copyOverTo(to)
+    }
+  }
   val millBuild = homeBin / "mill-build"
   symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
@@ -125,8 +130,8 @@ def buildMill(): Unit = {
     symlink(millBuildLib / p.name, p)
   }
   (millBuildBin / "build.cmd").slash(ISZ())
-  (millBuild / "mill-standalone").copyOverTo(homeBin / "mill")
-  (millBuild / "mill-standalone.bat").copyOverTo(homeBin / "mill.bat")
+  copyIfNewer(millBuild / "mill-standalone", homeBin / "mill")
+  copyIfNewer(millBuild / "mill-standalone.bat", homeBin / "mill.bat")
 }
 
 
