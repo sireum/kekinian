@@ -100,41 +100,27 @@ def touche(): Unit = {
 
 
 def buildMill(): Unit = {
-  val millBuild = homeBin / "mill-build"
-  val millBuildBin = millBuild / "bin"
-  if (!(millBuildBin / "sireum.jar").exists ||
-    (homeBin / "sireum.jar").lastModified > (millBuildBin / "sireum.jar").lastModified) {
-    (homeBin / "sireum.jar").copyOverTo(millBuildBin / "sireum.jar")
-  }
-  if (!(millBuildBin / sireum.name).exists ||
-    sireum.lastModified > (millBuildBin / sireum.name).lastModified) {
-    sireum.copyOverTo(millBuildBin / sireum.name)
-  }
-  if (!(millBuild / "versions.properties").exists ||
-    (home / "versions.properties").lastModified > (millBuild / "versions.properties").lastModified) {
-    (home / "versions.properties").copyOverTo(millBuild / "versions.properties")
-  }
-  if (!(millBuildBin / "scala").exists && (homeBin / "scala").exists) {
-    (homeBin / "scala").copyOverTo(millBuildBin / "scala")
-  }
-  for (p <- (home / "lib").list) {
-    val mp = millBuild / "lib" / p.name
-    if (!mp.exists || mp.lastModified < p.lastModified) {
-      p.copyOverTo(mp)
+  def symlink(p: Os.Path, target: Os.Path): Unit = {
+    if (!p.isSymLink) {
+      if (p.exists) {
+        p.removeAll()
+      }
+      p.mklink(target)
     }
   }
-  if (!(millBuildBin / platform / "java").exists && (homeBin / platform / "java").exists) {
-    (homeBin / platform / "java").copyOverTo(millBuildBin / platform / "java")
+  val millBuild = homeBin / "mill-build"
+  val millBuildBin = millBuild / "bin"
+  symlink(millBuildBin / "sireum.jar", homeBin / "sireum.jar")
+  symlink(millBuildBin / sireum.name, sireum)
+  symlink(millBuild / "versions.properties", home / "versions.properties")
+  symlink(millBuildBin / "scala", homeBin / "scala")
+  for (p <- (home / "lib").list) {
+    symlink(millBuild / "lib" / p.name, p)
   }
-  if (!(millBuildBin / "prelude.sh").exists ||
-    (homeBin / "init.sh").lastModified > (millBuildBin / "prelude.sh").lastModified) {
-    (homeBin / "init.sh").copyOverTo(millBuildBin / "prelude.sh")
-    (millBuildBin / "prelude.sh").chmod("+x")
-  }
-  if (!(millBuildBin / "prelude.ps1").exists ||
-    (homeBin / "init.ps1").lastModified > (millBuildBin / "prelude.ps1").lastModified) {
-    (homeBin / "init.ps1").copyOverTo(millBuildBin / "prelude.ps1")
-  }
+  symlink(millBuildBin / platform / "java", homeBin / platform / "java")
+  symlink(millBuildBin / platform / "z3", homeBin / platform / "z3")
+  symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
+  symlink(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
   (millBuildBin / "build.cmd").slash(ISZ())
   (millBuild / "mill-standalone").copyOverTo(homeBin / "mill")
   (millBuild / "mill-standalone.bat").copyOverTo(homeBin / "mill.bat")
