@@ -176,9 +176,11 @@ def tipe(): Unit = {
   if (!didTipe) {
     didTipe = T
     println("Slang type checking ...")
-    val excludes = "/bin/,hamr/arsit/jvm/src/test/results,hamr/act/jvm/src/test/result,hamr/codegen/jvm/src/test/result"
+    val excludes = "hamr/arsit/jvm/src/test/results,hamr/act/jvm/src/test/result,hamr/codegen/jvm/src/test/result"
+    val excludedDirs = Set ++ ISZ[String]("bin", "out", "distro", "resources")
+    val sourcepath: ISZ[Os.Path] = for (p <- home.list if !excludedDirs.contains(p.name)) yield p
     Os.proc(ISZ("java", "-jar", sireumJar.string,
-      "slang", "tipe", "--verbose", "-r", "-s", home.string, "-x", excludes)).at(home).console.runCheck()
+      "slang", "tipe", "--verbose", "-r", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
     println()
   }
 }
