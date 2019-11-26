@@ -106,7 +106,7 @@ def buildMill(): Unit = {
     }
   }
   def symlink(p: Os.Path, target: Os.Path): Unit = {
-    if (Os.isWin && target.isFile) {
+    if (Os.isWin) {
       copyIfNewer(target, p)
     } else if (!p.isSymLink) {
       if (p.exists) {
