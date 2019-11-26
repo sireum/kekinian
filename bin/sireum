@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -x
 SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRIPT/$(basename "$0")
 while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
 export SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
@@ -11,19 +11,22 @@ if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})
   SIREUM_JAR="${SIREUM_HOME}\\bin\\sireum.jar"
   if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
-   JAVA="${SIREUM_HOME}/bin/win/java/bin/java.exe"
+    export JAVA_HOME="${SIREUM_HOME}/bin/win/java"
+    JAVA="${JAVA_HOME}/bin/java.exe"
   fi
 elif [[ "$(uname)" == "Darwin" ]]; then
   PLATFORM="mac"
   SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
   if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
-    JAVA="${SIREUM_HOME}/bin/mac/java/bin/java"
+    export JAVA_HOME="${SIREUM_HOME}/bin/mac/java"
+    JAVA="${JAVA_HOME}/bin/java"
   fi
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
   PLATFORM="linux"
   SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
   if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
-    JAVA="${SIREUM_HOME}/bin/linux/java/bin/java"
+    export JAVA_HOME="${SIREUM_HOME}/bin/linux/java"
+    JAVA="${JAVA_HOME}/bin/java"
   fi
 fi
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
