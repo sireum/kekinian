@@ -103,9 +103,11 @@ object SlangTipe {
     var start = 0L
     var used = 0L
     val rt = Runtime.getRuntime
+
     def startTime(): Unit = {
       start = System.currentTimeMillis
     }
+
     def stopTime(): Unit = {
       if (o.verbose) {
         val end = System.currentTimeMillis
@@ -158,28 +160,21 @@ object SlangTipe {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
-        var seen = HashSet.empty[Os.Path]
         for (p <- Os.Path.walk(f, F, T, { path =>
-          val pathCanon = path.canon
-          if (seen.contains(pathCanon)) {
-            F
-          } else {
-            seen = seen + pathCanon.canon
-            val excluded = ops.ISZOps(o.exclude).exists(segment => ops.StringOps(pathCanon.toUri).contains(segment))
-            var isSlang = !excluded && pathCanon.string.value.endsWith(".slang")
-            if (!excluded && (pathCanon.string.value.endsWith(".scala") || isSlang)) {
-              if (!isSlang) {
-                for (firstLine <- pathCanon.readLineStream.take(1).toISZ.elements) {
-                  isSlang = firstLine.value
-                    .replaceAllLiterally(" ", "")
-                    .replaceAllLiterally("\t", "")
-                    .replaceAllLiterally("\r", "")
-                    .contains("#Sireum")
-                }
+          val excluded = ops.ISZOps(o.exclude).exists(segment => ops.StringOps(path.toUri).contains(segment))
+          var isSlang = !excluded && path.string.value.endsWith(".slang")
+          if (!excluded && (path.string.value.endsWith(".scala") || isSlang)) {
+            if (!isSlang) {
+              for (firstLine <- path.readLineStream.take(1).toISZ.elements) {
+                isSlang = firstLine.value
+                  .replaceAllLiterally(" ", "")
+                  .replaceAllLiterally("\t", "")
+                  .replaceAllLiterally("\r", "")
+                  .contains("#Sireum")
               }
             }
-            isSlang
           }
+          isSlang
         })) {
           sources = sources :+ readFile(p)
           if (o.verbose) println(s"Read $p")
@@ -470,4 +465,5 @@ object SlangTipe {
       bos.toByteArray
     }
   }
+
 }

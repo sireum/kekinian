@@ -33,6 +33,7 @@ object CTranspiler {
     def readFile(f: Os.Path): (Option[String], String) = {
       (Some(f.toUri), f.read)
     }
+
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
       println(o.help)
       println()
@@ -61,9 +62,11 @@ object CTranspiler {
     var start = 0L
     var used = 0L
     val rt = Runtime.getRuntime
+
     def startTime(): Unit = {
       start = System.currentTimeMillis
     }
+
     def stopTime(): Unit = {
       if (o.verbose) {
         val end = System.currentTimeMillis
@@ -173,25 +176,19 @@ object CTranspiler {
       } else {
         var seen = HashSet.empty[Os.Path]
         for (p <- Os.Path.walk(f, F, T, { path =>
-          val pathCanon = path.canon
-          if (seen.contains(pathCanon)) {
-            F
-          } else {
-            seen = seen + pathCanon
-            var isSlang = pathCanon.string.value.endsWith(".slang")
-            if (pathCanon.string.value.endsWith(".scala") || isSlang) {
-              if (!isSlang) {
-                for (firstLine <- pathCanon.readLineStream.take(1).toISZ.elements) {
-                  isSlang = firstLine.value
-                    .replaceAllLiterally(" ", "")
-                    .replaceAllLiterally("\t", "")
-                    .replaceAllLiterally("\r", "")
-                    .contains("#Sireum")
-                }
+          var isSlang = path.string.value.endsWith(".slang")
+          if (path.string.value.endsWith(".scala") || isSlang) {
+            if (!isSlang) {
+              for (firstLine <- path.readLineStream.take(1).toISZ.elements) {
+                isSlang = firstLine.value
+                  .replaceAllLiterally(" ", "")
+                  .replaceAllLiterally("\t", "")
+                  .replaceAllLiterally("\r", "")
+                  .contains("#Sireum")
               }
             }
-            isSlang
           }
+          isSlang
         })) {
           sources = sources :+ readFile(p)
           if (o.verbose) println(s"Read $p")
@@ -426,6 +423,7 @@ object CTranspiler {
               val t2 = AST.Typed.Name(otherName, ISZ(it, et))
               customArraySizes = customArraySizes + t1 ~> num
             }
+
             t.name.ids.map(_.value.value) match {
               case ISZ("MS") if t.typeArgs.size.toInt == 2 =>
                 val it = toTyped(t.typeArgs(0))
