@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -e
 SIREUM_SCRIPT=$(cd -P "$(dirname "$0")" && pwd -P) && SIREUM_SCRIPT=$SIREUM_SCRIPT/$(basename "$0")
 while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlink "$SIREUM_SCRIPT"); SIREUM_SCRIPT=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM"); done
 export SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
