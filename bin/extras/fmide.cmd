@@ -53,7 +53,7 @@ def download(kind: Os.Kind.Type): Os.Path = {
   val (name, url) = platformNameUrlMap.get(kind).get
   val r = Os.home / "Downloads" / "sireum" / name
   if (!r.exists) {
-    println(s"Downloading $name...")
+    println(s"Downloading $name ...")
     r.downloadFrom(url)
     println()
   }
@@ -65,7 +65,7 @@ def linux(): Unit = {
   val d = homeBin / "linux" / "fmide"
   d.removeAll()
   d.mkdirAll()
-  println(s"Extracting ${f.name} .,,")
+  println(s"Extracting ${f.name} ...")
   Os.proc(ISZ("tar", "xfz", f.string)).at(d).runCheck()
   println()
   println(s"Installing HAMR plugin ...")
@@ -80,7 +80,7 @@ def mac(): Unit = {
   val d = homeBinMac / "fmide.app"
   d.removeAll()
   homeBinMac.mkdirAll()
-  println(s"Extracting ${f.name} .,,")
+  println(s"Extracting ${f.name} ...")
   Os.proc(ISZ("tar", "xfz", f.string)).at(homeBinMac).runCheck()
   ;{
     val l = homeBinMac.list
@@ -99,7 +99,7 @@ def win(): Unit = {
   val d = homeBin / "win" / "fmide"
   d.removeAll()
   d.mkdirAll()
-  println(s"Extracting ${f.name} .,,")
+  println(s"Extracting ${f.name} ...")
   f.unzipTo(d)
   println()
   println(s"Installing HAMR plugin ...")
