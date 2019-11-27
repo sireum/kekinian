@@ -1,6 +1,6 @@
 ::#! 2> /dev/null                                                                                           #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
-export SIREUM_HOME=$(cd -P $(dirname "$0")/../.. && pwd -P)                                                    #
+export SIREUM_HOME=$(cd -P $(dirname "$0")/../.. && pwd -P)                                                 #
 if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #

@@ -1,6 +1,6 @@
 ::#! 2> /dev/null                                                                                           #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
-export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                                    #
+export SIREUM_HOME=$(cd -P $(dirname "$0")/../.. && pwd -P)                                                 #
 if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
@@ -13,8 +13,8 @@ set NEWER=False
 if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
 if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
-if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
-"%~dp0sireum.bat" slang run -s -n "%0" %*
+if not exist "%~dp0..\sireum.jar" call "%~dp0..\init.bat"
+"%~dp0..\sireum.bat" slang run -s -n "%0" %*
 exit /B %errorlevel%
 :native
 %~dpnx0.com %*
@@ -32,8 +32,8 @@ val graalVersion = "19.2.1"
 
 val url = s"https://github.com/oracle/graal/releases/download/vm-$graalVersion"
 
-val homeBin: Os.Path = Os.slashDir
-val home = homeBin.up
+val homeBin: Os.Path = Os.slashDir.up.canon
+val home = homeBin.up.canon
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 

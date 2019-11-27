@@ -153,7 +153,7 @@ def nativ(): Unit = {
   val platDir = homeBin / platform
   val nativeImage: Os.Path =
     platDir / "graal" / "jre" / "lib" / "svm" / "bin" / (if (Os.isWin) "native-image.cmd" else "native-image")
-  (homeBin / "graal.cmd").call(ISZ()).console.runCheck()
+  (homeBin / "install" / "graal.cmd").call(ISZ()).console.runCheck()
   val flags: ISZ[String] = Os.kind match {
     case Os.Kind.Mac => ISZ("--no-server")
     case Os.Kind.Linux => ISZ("--static", "--no-server")
