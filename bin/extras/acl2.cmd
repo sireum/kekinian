@@ -1,6 +1,6 @@
 ::#! 2> /dev/null                                                                                           #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
-export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                                    #
+export SIREUM_HOME=$(cd -P $(dirname "$0")/../.. && pwd -P)                                                    #
 if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
@@ -28,8 +28,8 @@ def usage(): Unit = {
   println("Usage: [<num-of-cores>]")
 }
 
-val homeBin: Os.Path = Os.slashDir
-val home = homeBin.up
+val homeBin: Os.Path = Os.slashDir.up.canon
+val home = homeBin.up.canon
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 var cores: Z = 4
@@ -108,7 +108,7 @@ def acl2(p: String): Unit = {
 
   ver.writeOver(acl2Version)
 
-  println("... done!")
+  println(s"... done! acl2 is installed at $acl2Dir")
 }
 
 def platform(p: String): Unit = {
