@@ -34,7 +34,7 @@ val p2Args = ISZ[String](
   "org.sireum.aadl.osate.hamr.feature.feature.group"
 )
 val envs = ISZ[(String, String)]("PATH" ~>
-  s"${Os.env("PATH").get}:${Os.env("JAVA_HOME").get}/bin")
+  s"${Os.env("PATH").get}${Os.pathSep}${Os.env("JAVA_HOME").get}${Os.fileSep}bin")
 var platformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
 
 for (r <- GitHub.repo("loonwerks", "formal-methods-workbench").releases.take(1); a <- r.assets) {
@@ -82,11 +82,7 @@ def mac(): Unit = {
   homeBinMac.mkdirAll()
   println(s"Extracting ${f.name} ...")
   Os.proc(ISZ("tar", "xfz", f.string)).at(homeBinMac).runCheck()
-  ;{
-    val l = homeBinMac.list
-    assert(l.size == 1, s"Unexpected content of ${f.name}")
-    l(0).moveTo(d)
-  }
+  (homeBinMac / "com.collins.fmw.ide.app").moveTo(d)
   println()
   println(s"Installing HAMR plugin ...")
   Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args).env(envs).runCheck()
