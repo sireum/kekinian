@@ -42,3 +42,6 @@ mill-standalone
 /bin/linux/ccl
 /bin/mac/acl2
 /bin/linux/acl2
+/bin/mac/fmide.app
+/bin/linux/fmide
+/bin/win/fmide
