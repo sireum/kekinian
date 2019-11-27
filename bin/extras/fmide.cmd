@@ -5,7 +5,7 @@ if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                               
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
   rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run -s "$0" "$@"                                                #
+  exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"                                                #
 fi                                                                                                          #
 :BOF
 setlocal
@@ -13,8 +13,8 @@ set NEWER=False
 if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
 if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
-if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
-"%~dp0sireum.bat" slang run -s "%0" %*
+if not exist "%~dp0..\sireum.jar" call "%~dp0..\init.bat"
+"%~dp0..\sireum.bat" slang run -s -n "%0" %*
 exit /B %errorlevel%
 :native
 %~dpnx0.com %*
@@ -50,7 +50,7 @@ for (r <- GitHub.repo("loonwerks", "formal-methods-workbench").releases.take(1);
 }
 
 def download(kind: Os.Kind.Type): Os.Path = {
-  val (name, url) = platformNameUrlMap.get(Os.Kind.Linux).get
+  val (name, url) = platformNameUrlMap.get(kind).get
   val r = Os.home / "Downloads" / "sireum" / name
   if (!r.exists) {
     println(s"Downloading $name...")

@@ -13,8 +13,8 @@ set NEWER=False
 if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
 if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
-if not exist "%~dp0sireum.jar" call "%~dp0init.bat"
-"%~dp0sireum.bat" slang run -s -n "%0" %*
+if not exist "%~dp0..\sireum.jar" call "%~dp0..\init.bat"
+"%~dp0..\sireum.bat" slang run -s -n "%0" %*
 exit /B %errorlevel%
 :native
 %~dpnx0.com %*
