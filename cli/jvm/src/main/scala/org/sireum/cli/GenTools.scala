@@ -369,7 +369,7 @@ object GenTools {
             o.moduleName.getOrElse(projectName), o.appName.getOrElse("script"),
             projectPath, o.jdk.get, scalaVer, scalacPluginVer)
         } else
-          IveGen.mill((project / "build.sc").exists, projectName,
+          IveGen.mill((project / "build.sc").exists, isWin, uriPathSep(home.toString), projectName,
             o.moduleName.getOrElse(projectName), o.packageName, o.appName.getOrElse("app"),
             projectPath, o.jdk.get, scalaVer, scalacPluginVer)
 
