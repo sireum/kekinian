@@ -41,6 +41,12 @@ import $file.distro
 import mill.scalalib.ScalaModule
 import org.sireum.mill.SireumModule
 
+trait BinModule extends mill.scalalib.ScalaModule {
+  final override def scalaVersion = SireumModule.scalaVersion
+  final override def moduleDeps = Seq(runtime.library.jvm)
+  final override def repositories = super.repositories ++ SireumModule.repositories
+}
+
 object runtime extends mill.Module {
 
   object macros extends Runtime.Module.Macros
@@ -57,10 +63,7 @@ object runtime extends mill.Module {
     override def macrosObject = macros
   }
 
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  object bin extends BinModule
 }
 
 object slang extends mill.Module {
@@ -83,19 +86,13 @@ object slang extends mill.Module {
     final override def tipeObject = tipe
   }
 
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  object bin extends BinModule
 }
 
 object alir extends Alir.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
 
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  object bin extends BinModule
 }
 
 object transpilers extends mill.Module {
@@ -108,28 +105,19 @@ object transpilers extends mill.Module {
     override val commonObject = common
   }
 
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  object bin extends BinModule
 }
 
 object logika extends Logika.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
 
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  object bin extends BinModule
 }
 
 object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
 
-  object bin extends ScalaModule {
-    final override def scalaVersion = SireumModule.scalaVersion
-    final override def moduleDeps = Seq(runtime.library.jvm)
-  }
+  object bin extends BinModule
 }
 
 object hamr extends mill.Module {
@@ -148,19 +136,13 @@ object hamr extends mill.Module {
     object act extends Act.Module {
       final override def airObject = air
 
-      object bin extends ScalaModule {
-        final override def scalaVersion = SireumModule.scalaVersion
-        final override def moduleDeps = Seq(runtime.library.jvm)
-      }
+      object bin extends BinModule
     }
 
     object arsit extends Arsit.Module {
       final override def airObject = air
 
-      object bin extends ScalaModule {
-        final override def scalaVersion = SireumModule.scalaVersion
-        final override def moduleDeps = Seq(runtime.library.jvm)
-      }
+      object bin extends BinModule
     }
     
     final override def actObject = act    
@@ -179,15 +161,10 @@ object cli extends Cli.Module {
   final override def hamrCodegenObject = hamr.codegen
 }
 
-object bin extends ScalaModule {
-  final override def scalaVersion = SireumModule.scalaVersion
-  final override def moduleDeps = Seq(runtime.library.jvm)
+object bin extends BinModule {
 
   object `mill-build` extends mill.Module {
-    object bin extends ScalaModule {
-      final override def scalaVersion = SireumModule.scalaVersion
-      final override def moduleDeps = Seq(runtime.library.jvm)
-    }
+    object bin extends BinModule
   }
 }
 
