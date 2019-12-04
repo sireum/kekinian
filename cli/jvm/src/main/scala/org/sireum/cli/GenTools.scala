@@ -400,7 +400,7 @@ object GenTools {
           Os.proc(command).at(project).env(envVarMap).console.runCheck()
         }
         writeFiles()
-        for (f <- Os.Path.walk(home / ".idea_modules", F, F, (p: Os.Path) => ops.StringOps(p.name).endsWith(".iml"))) {
+        for (f <- Os.Path.walk(project / ".idea_modules", F, F, (p: Os.Path) => ops.StringOps(p.name).endsWith(".iml"))) {
           f.writeOver(ops.StringOps(f.read).replaceAllLiterally("ideaCompileOutput", "compile"))
         }
       }
