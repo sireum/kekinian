@@ -162,11 +162,19 @@ def nativ(): Unit = {
   }
   build()
   println("Building native ...")
-  Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
-      "-jar", sireumJar.string, (platDir / "sireum").string)).console.runCheck()
+  val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
+      "-jar", sireumJar.string, (platDir / "sireum").string)).console.bufferErr.run()
+  if (r.exitCode != 0) {
+    for (line <- ops.StringOps(r.err).split((c: C) => c === '\n') if !ops.StringOps(line).startsWith("warning: unknown anonymous info")) {
+      eprintln(line)
+    }
+  }
   (platDir / "sireum.o").removeAll()
   for (f <- platDir.list if ops.StringOps(f.name).startsWith("sireum.") && !ops.StringOps(f.name).endsWith(".exe")) {
-    f.remove()
+    f.removeAll()
+  }
+  if (r.exitCode != 0) {
+    Os.exit(r.exitCode)
   }
   println()
 }
