@@ -25,12 +25,12 @@ import org.sireum._
 
 val homeBin: Os.Path = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val p2Args = ISZ[String](
+@strictpure def p2Args(install: B): ISZ[String] = ISZ[String](
   "-application",
   "org.eclipse.equinox.p2.director",
   "-repository",
   "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master/",
-  "-installIU",
+  if (install) "-installIU" else "-uninstallIU",
   "org.sireum.aadl.osate.hamr.feature.feature.group"
 )
 val envs = ISZ[(String, String)]("PATH" ~>
@@ -69,9 +69,10 @@ def linux(): Unit = {
   Os.proc(ISZ("tar", "xfz", f.string)).at(d).runCheck()
   println()
   println(s"Installing HAMR plugin ...")
-  Os.proc((d / "fmide").string +: p2Args).env(envs).runCheck()
+  Os.proc((d / "fmide").string +: p2Args(F)).env(envs).runCheck()
+  Os.proc((d / "fmide").string +: p2Args(T)).env(envs).runCheck()
   println()
-  println(s"... done! FMIDE is installed at $d")
+  println(s"FMIDE is installed at $d")
 }
 
 def mac(): Unit = {
@@ -85,9 +86,10 @@ def mac(): Unit = {
   (homeBinMac / "com.collins.fmw.ide.app").moveTo(d)
   println()
   println(s"Installing HAMR plugin ...")
-  Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args).env(envs).runCheck()
+  Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args(F)).env(envs).runCheck()
+  Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args(T)).env(envs).runCheck()
   println()
-  println(s"... done! FMIDE is installed at $d")
+  println(s"FMIDE is installed at $d")
 }
 
 def win(): Unit = {
@@ -99,9 +101,10 @@ def win(): Unit = {
   f.unzipTo(d)
   println()
   println(s"Installing HAMR plugin ...")
-  Os.proc((d / "fmide.exe").string +: p2Args).env(envs).runCheck()
+  Os.proc((d / "fmide.exe").string +: p2Args(F)).env(envs).runCheck()
+  Os.proc((d / "fmide.exe").string +: p2Args(T)).env(envs).runCheck()
   println()
-  println(s"... done! FMIDE is installed at $d")
+  println(s"FMIDE is installed at $d")
 }
 
 Os.kind match {
