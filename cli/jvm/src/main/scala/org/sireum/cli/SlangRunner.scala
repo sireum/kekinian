@@ -87,7 +87,8 @@ object SlangRunner {
       "-sourcepath",
       wd.string,
       "-unchecked",
-      "-feature"
+      "-feature",
+      "-howtorun:script"
     )
     if (o.nativ) {
       command = command :+ "-save"
