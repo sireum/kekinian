@@ -115,7 +115,7 @@ object SlangRunner {
       val niName: String = if (Os.isWin) "native-image.cmd" else "native-image"
       homeOpt match {
         case Some(home) =>
-          val p = home / "bin" / platform / "graal" / "jre" / "lib" / "svm" / "bin" / niName
+          val p = home / "bin" / platform / "graal" / "bin" / niName
           if (p.isFile) p else Os.path(niName)
         case _ => Os.path(niName)
       }
