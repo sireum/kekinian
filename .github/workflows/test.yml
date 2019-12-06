@@ -1,0 +1,35 @@
+name: CI
+
+on: [push]
+
+jobs:
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2-beta
+      - name: Test
+        run: |
+          cd $GITHUB_WORKSPACE && git submodule update --init --recursive && bin/build.cmd test
+
+  build-mac:
+    runs-on: macOS-latest
+    steps:
+      - name: Install 7z
+        run: brew install p7zip
+      - name: Checkout
+        uses: actions/checkout@v2-beta
+      - name: Test
+        run: |
+          cd $GITHUB_WORKSPACE && git submodule update --init --recursive && bin/build.cmd test
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2-beta
+      - name: Test
+        shell: cmd
+        run: |
+          cd /d %GITHUB_WORKSPACE% && git submodule update --init --recursive && bin\build.cmd test
