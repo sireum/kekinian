@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+
+  github:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2-beta
+      - name: Deploy
+        env:
+          GITHUB_USERNAME: x-access-token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          git submodule update --init --recursive
+          bin/build.cmd ghpack
