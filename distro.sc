@@ -35,7 +35,7 @@ object distro {
     "icon_CE_512@2x.png",
     "idea_logo_background.png",
   )
-  val ideaExtMap = Map("mac" -> ".dmg", "win" -> ".exe", "linux" -> ".tar.gz")
+  val ideaExtMap = Map("mac" -> ".dmg", "win" -> ".win.zip", "linux" -> ".tar.gz")
 
   val cacheDir: Path = {
     Option(System.getenv("SIREUM_CACHE")) match {
