@@ -478,8 +478,8 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     patchImages()
     patchIdeaProperties(ideaDir / 'bin / "idea.properties")
     patchVMOptions(ideaDir / 'bin / "idea64.exe.vmoptions")
-    os.remove(ideaDir / 'bin / "idea.exe")
-    os.remove(ideaDir / 'bin / "idea.exe.vmoptions")
+    os.remove.all(ideaDir / 'bin / "idea.exe")
+    os.remove.all(ideaDir / 'bin / "idea.exe.vmoptions")
     os.move(ideaDir / 'bin / "idea64.exe", ideaDir / 'bin / "IVE.exe")
     os.move(ideaDir / 'bin / "idea64.exe.vmoptions", ideaDir / 'bin / "IVE.exe.vmoptions")
   }
