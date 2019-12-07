@@ -1,6 +1,6 @@
 # Sireum: A High-Assurance System Engineering Platform
 
-[![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions)
+[![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
 
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
 core components are being built using the Sireum programming language -- Slang.
