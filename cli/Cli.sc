@@ -27,8 +27,18 @@ import mill._
 import mill.scalalib._
 import org.sireum.mill.SireumModule._
 
-trait Module extends JvmOnly {
+trait Module extends JvmPublishOnly {
 
+  final override def description = "Sireum CLI"
+
+  final override def artifactName = "cli"
+
+  final override def subUrl: String = "kekinian"
+
+  final override def developers = Seq(
+    Developers.robby,
+    Developers.jason
+  )
   final override def crossDeps =
     if (isSourceDep) Seq(alirObject, transpilersCObject, toolsObject, logikaObject, hamrCodegenObject)
     else Seq()
@@ -66,9 +76,11 @@ trait Module extends JvmOnly {
 
   def logikaObject: CrossJvmJsPublish
 
-  def phantomObject: JvmOnly
+  def phantomObject: JvmPublish
   
   def hamrCodegenObject: CrossJvmJsPublish
 
   final override def mainClass = Some("org.sireum.Sireum")
+
+  object tests extends Tests
 }
