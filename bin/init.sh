@@ -24,12 +24,34 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
+  Z7="${SIREUM_HOME}/bin/win/7za.exe"
+  if [[ -z "${PLATFORM}" ]]; then
+    PLATFORM=win
+  fi
+elif [[ "$(uname)" == "Darwin" ]]; then
+  Z7="${SIREUM_HOME}/bin/mac/7za"
+  if [[ -z "${PLATFORM}" ]]; then
+    PLATFORM=mac
+  fi
+elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+  Z7="${SIREUM_HOME}/bin/linux/7za"
+  if [[ -z "${PLATFORM}" ]]; then
+    PLATFORM=linux
+  fi
+else
+  >&2 echo "Sireum does not support: $(uname)."
+  exit 1
+fi
+
 getVersion() {
   grep "^org.sireum.version.$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
 }
 
 uncompress() {
-  if hash unzip 2>/dev/null; then
+  if [ -x "$Z7" ]; then
+    $Z7 x -y $1 > /dev/null
+  elif hash unzip 2>/dev/null; then
     unzip -qo $1
   elif hash 7z 2>/dev/null; then
     7z x -y $1 > /dev/null
@@ -95,18 +117,6 @@ fi
 #
 # Z3
 #
-if [[ -z "${PLATFORM}" ]]; then
-  if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
-    PLATFORM=win
-  elif [[ "$(uname)" == "Darwin" ]]; then
-    PLATFORM=mac
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-    PLATFORM=linux
-  else
-    >&2 echo "Sireum does not support: $(uname)."
-    exit 1
-  fi
-fi
 : ${Z3_VERSION=$(getVersion "z3")}
 if [[ "${PLATFORM}" == "mac" ]]; then
   Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/Z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-osx-10.14.2.zip

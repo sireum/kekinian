@@ -158,6 +158,16 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     if (isDev) devVer else ver
   }
 
+  val z7: String = {
+    val (plat, exe): (String, String) =
+      if (scala.util.Properties.isMac) ("mac", "7za")
+      else if (scala.util.Properties.isLinux) ("linux", "7za")
+      else if (scala.util.Properties.isWin) ("win", "7za.exe")
+      else ("unsupported", "")
+    val f = os.pwd / 'bin / plat / exe
+    if (exists(f)) f.toIO.getCanonicalPath else "7z"
+  }
+
   def downloadPlugins(): Unit = {
     for (p <- plugins.values) {
       val ver = p.version(isDev)
@@ -185,7 +195,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         println("done!")
       } else {
         print(s"Extracting ${p.id} plugin ... ")
-        %%("7z", 'x, "-y", zipPath)(pluginsDir)
+        %%(z7, 'x, "-y", zipPath)(pluginsDir)
         println("done!")
       }
     }
@@ -230,7 +240,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     print(s"Patching $resourcesJar ... ")
     rm ! distroDir / 'idea
     %%(
-      "7z",
+      z7,
       'x,
       resourcesJar,
       "idea/IdeaApplicationInfo.xml"
@@ -239,14 +249,14 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     val content = read ! iai
     write.over(iai, content.replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "svg-small=\"/idea-ce_16.png\"").replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", "svg-small=\"/idea-ce_16.png\""))
     %%(
-      "7z",
+      z7,
       'a,
       resourcesJar,
       "idea/IdeaApplicationInfo.xml"
     )(distroDir)
     rm ! distroDir / 'idea
     %%(
-      "7z",
+      z7,
       'd,
       resourcesJar,
       "idea-ce_16.svg",
@@ -256,7 +266,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     )(distroDir / 'images)
     if (isDev) {
       %%(
-        "7z",
+        z7,
         'a,
         resourcesJar,
         "idea_community_about.png",
@@ -270,7 +280,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       )(distroDir / 'images / 'dev)
     } else {
       %%(
-        "7z",
+        z7,
         'a,
         resourcesJar,
         "idea_community_about.png",
@@ -293,7 +303,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     if (!os.exists(rhDir / rhExe)) {
       print("Downloading ResourceHacker ... ")
       %%('curl, "-JLso", "rh.zip", "http://angusj.com/resourcehacker/resource_hacker.zip")(rhDir)
-      %%("7z", 'x, "rh.zip", rhExe)(rhDir)
+      %%(z7, 'x, "rh.zip", rhExe)(rhDir)
       println("done!")
     }
     val binDir = ideaDir / 'bin
@@ -378,7 +388,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           require(entries.contains(f.last), s"File ${f.last} is not in $iconsJar.")
           f.last : os.Shellable
         }).toVector
-    os.proc(Seq[os.Shellable]("7z", 'a, iconsJar) ++ entriesToUpdate: _*).call(cwd = iconsPath)
+    os.proc(Seq[os.Shellable](z7, 'a, iconsJar) ++ entriesToUpdate: _*).call(cwd = iconsPath)
     println("done!")
   }
 
@@ -459,7 +469,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
 
   def setupWin(ideaDrop: Path): Unit = {
     os.makeDir.all(ideaDir)
-    %%("7z", 'x, "-y", ideaDrop)(ideaDir)
+    %%(z7, 'x, "-y", ideaDrop)(ideaDir)
     os.remove.all(ideaDir / '$PLUGINSDIR)
     println("done!")
     deletePlugins()
@@ -517,7 +527,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     }
     try {
       val sfx = repoDir / 'distro / s"$platform$devSuffix$sfxSuffix"
-      val cmd = Seq[os.Shellable]("7z", 'a, distro7z) ++
+      val cmd = Seq[os.Shellable](z7, 'a, distro7z) ++
         distroMap(platform).map(rp => RelPath(distroDir.last) / rp: os.Shellable)
       os.proc(cmd: _*).call(cwd = distroDir / os.up)
       platform match {

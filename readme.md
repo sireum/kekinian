@@ -1,6 +1,6 @@
 # Sireum: A High-Assurance System Engineering Platform
 
-[![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
+[![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) [![shippable](https://api.shippable.com/projects/5ab59969f488d607007cd6c0/badge?branch=master)](https://app.shippable.com/github/sireum/kekinian/dashboard) [![appveyor](https://ci.appveyor.com/api/projects/status/1k6elsvubt5r3adm?svg=true)](https://ci.appveyor.com/project/robby-phd/kekinian) [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
 
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
 core components are being built using the Sireum programming language -- Slang.
@@ -93,24 +93,11 @@ RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
 
 #### Requirements:
 
-* **macOS**: `7z` (p7zip from, e.g., [MacPorts](https://macports.org) or [Homebrew](https://brew.sh/))
+* **macOS**: none
 
-* **Linux**: `curl`, `git`, and `7z` (install from the Linux distribution package manager,
-  e.g., `apt install curl git p7zip-full` in Ubuntu 18.04 universe)
+* **Linux**: `curl` and `git`
 
-* **Windows**: [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development), `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)) and [7-Zip](https://7-zip.org)
-
-  If using Cygwin:
-  
-  ```
-  export CYGWIN=winsymlinks:nativestrict
-  ```
-  
-  Otherwise: 
-  
-  ```bash
-  export MSYS=winsymlinks:nativestrict
-  ```
+* **Windows**: [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com))
 
 
 #### Setup

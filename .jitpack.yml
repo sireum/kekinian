@@ -2,9 +2,7 @@ jdk:
   - oraclejdk11
 before_install:
   - export SIREUM_PROVIDED_JAVA=true
-  - wget -O 7z https://github.com/develar/7zip-bin/raw/master/linux/x64/7za
-  - chmod +x 7z
-  - export PATH=$PATH:`pwd`
+  - export SIREUM_HOME=`pwd`
   - bin/init.sh
 install:
   - bin/build.cmd m2
