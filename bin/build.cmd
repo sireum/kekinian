@@ -51,7 +51,8 @@ def usage(): Unit = {
         |       | tipe         | compile      | test         | test-js
         |       | touche       | touche-lib   | touche-slang | touche-transpilers
         |       | regen-cliopt | regen-slang  | regen-logika | regen-cli
-        |       | regen-air    | regen-act    | m2           | ghpack             )*
+        |       | regen-air    | regen-act
+        |       | m2           | jitpack      |ghpack                             )*
       """.render)
 }
 
@@ -445,6 +446,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-act" => regenAct()
       case string"regen-cli" => regenCli()
       case string"m2" => m2()
+      case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"-h" => usage()
       case string"--help" => usage()
