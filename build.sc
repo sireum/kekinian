@@ -198,8 +198,9 @@ def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boole
 }
 
 
-def jitPack(owner: String, repo: String, hash: String, lib: String = "") = T.command {
-  org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib, hash)
+def jitPack(owner: String, repo: String, lib: String = "", hash: String = "") = T.command {
+  if ("" == hash) org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib)
+  else org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib, hash)
 }
 
 
