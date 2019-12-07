@@ -51,7 +51,7 @@ def usage(): Unit = {
         |       | tipe         | compile      | test         | test-js
         |       | touche       | touche-lib   | touche-slang | touche-transpilers
         |       | regen-cliopt | regen-slang  | regen-logika | regen-cli
-        |       | regen-air    | regen-act    | m2                                )*
+        |       | regen-air    | regen-act    | m2           | ghpack             )*
       """.render)
 }
 
@@ -288,34 +288,12 @@ def regenCli(): Unit = {
 }
 
 
-def jitpack(): Unit = {
-  println("Triggering jitpack ...")
-  val r = Os.proc(ISZ(mill.string, "jitPack", "--owner", "sireum", "--repo", "kekinian", "--lib", "cli")).
-    at(home).console.run()
-  r match {
-    case r: Os.Proc.Result.Normal =>
-      println(r.out)
-      println(r.err)
-      if (!r.ok) {
-        eprintln(s"Exit code: ${r.exitCode}")
-      }
-    case r: Os.Proc.Result.Exception =>
-      eprintln(s"Exception: ${r.err}")
-    case _: Os.Proc.Result.Timeout =>
-      eprintln("Timeout")
-      eprintln()
-  }
-  println()
-}
-
-
-def m2(): Unit = {
+def m2(): Os.Path = {
   didM2 = T
   didCompile = F
 
-  val repository = Os.home / ".m2" / "repository"
-  repository.removeAll()
-  (home / "out").removeAll()
+  val repository = home / "out" / ".m2" / "repository"
+  repository.up.removeAll()
 
   def sub(name: String, m2s: ISZ[ISZ[String]]): Unit = {
     println(s"Publishing $name...")
@@ -327,7 +305,7 @@ def m2(): Unit = {
     }
 
     Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
-      at(home).env(ISZ("SIREUM_SOURCE_BUILD" ~> "false")).console.runCheck()
+      at(home).console.runCheck()
     println("Artifacts")
     for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
       println(s"* $p")
@@ -337,12 +315,45 @@ def m2(): Unit = {
 
   sub("runtime", for (pkg <- ISZ("macros", "library", "test"); plat <- ISZ("shared", "jvm", "js"))
     yield ISZ("runtime", pkg, plat, "m2"))
-  sub("slang", for (pkg <- ISZ("ast", "parser", "tipe", "frontend"); plat <- ISZ("shared", "js"))
+  sub("slang", for (pkg <- ISZ("ast", "parser", "tipe", "frontend"); plat <- ISZ("shared", "jvm" /*, "js"*/))
     yield ISZ("slang", pkg, plat, "m2"))
-  sub("alir", for (plat <- ISZ("shared", "js")) yield ISZ("alir", plat, "m2"))
-  sub("tools", for (plat <- ISZ("shared", "jvm")) yield ISZ("tools", plat, "m2"))
+  sub("alir", for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("alir", plat, "m2"))
+  sub("transpilers", for (pkg <- ISZ("common", "c"); plat <- ISZ("shared", "jvm" /*, "js"*/))
+    yield ISZ("transpilers", pkg, plat, "m2"))
+  sub("logika", for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("logika", plat, "m2"))
+  sub("tools", for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("tools", plat, "m2"))
+  sub("hamr", for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
+    yield ISZ("hamr", pkg, plat, "m2"))
+  sub("hamr", ISZ(ISZ("hamr", "phantom", "m2")))
+  sub("hamr codegen", for (pkg <- ISZ("act", "arsit"); plat <- ISZ("shared", "jvm"))
+    yield ISZ("hamr", "codegen", pkg, plat, "m2"))
+  sub("cli", ISZ(ISZ("cli", "m2")))
+  return repository
 }
 
+def ghpack(): Unit = {
+  val repository = m2()
+  for (p <- Os.Path.walk(repository, F, F, (f: Os.Path) => ops.StringOps(f.name).endsWith("pom"))) {
+    val d = p.up.canon
+    val pom = d / "pom.xml"
+    p.copyOverTo(pom)
+    val pops = ops.StringOps(pom.read)
+    val i = pops.stringIndexOf("</project>")
+    pom.writeOver(pops.substring(0, i))
+    pom.writeAppend(
+      st"""    <distributionManagement>
+          |        <repository>
+          |            <id>github</id>
+          |            <name>GitHub Sireum Apache Maven Packages</name>
+          |            <url>https://maven.pkg.github.com/sireum/kekinian</url>
+          |        </repository>
+          |    </distributionManagement>
+          |""".render
+    )
+    pom.writeAppend(pops.substring(i, pops.size))
+    Os.proc(ISZ("mvn", "--settings", (home / "distro" / "mvn-settings.xml").string, "deploy")).at(d).console.runCheck()
+  }
+}
 
 def project(): Unit = {
   build()
@@ -412,9 +423,9 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-act" => regenAct()
       case string"regen-cli" => regenCli()
       case string"m2" => m2()
+      case string"ghpack" => ghpack()
       case string"-h" => usage()
       case string"--help" => usage()
-      //case string"jitpack" => jitpack()
       case cmd =>
         usage()
         eprintln(s"Unrecognized command: $cmd")
