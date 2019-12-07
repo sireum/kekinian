@@ -292,44 +292,66 @@ def m2(): Os.Path = {
   didM2 = T
   didCompile = F
 
-  val repository = home / "out" / ".m2" / "repository"
-  repository.up.removeAll()
+  val repository = Os.home / ".m2" / "repository"
+  (repository / "org" / "sireum").removeAll()
 
-  def sub(name: String, m2s: ISZ[ISZ[String]]): Unit = {
-    println(s"Publishing $name...")
-    val m2Paths: ISZ[Os.Path] =
-      for (cd <- for (m2 <- m2s) yield st"${(m2, Os.fileSep)}".render) yield home / "out" / cd
+  var m2s: ISZ[ISZ[String]] = for (pkg <- ISZ("macros", "library", "test"); plat <- ISZ("shared", "jvm", "js")) yield
+    ISZ("runtime", pkg, plat, "m2") // runtime
+  m2s = m2s ++ (for (pkg <- ISZ("ast", "parser", "tipe", "frontend"); plat <- ISZ("shared", "jvm" /*, "js"*/))
+    yield ISZ("slang", pkg, plat, "m2")) // slang
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("alir", plat, "m2")) // alir
+  m2s = m2s ++ (for (pkg <- ISZ("common", "c"); plat <- ISZ("shared", "jvm" /*, "js"*/))
+    yield ISZ("transpilers", pkg, plat, "m2")) // transpilers
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("logika", plat, "m2")) // logika
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("tools", plat, "m2"))
+  m2s = m2s ++ (for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
+    yield ISZ("hamr", pkg, plat, "m2")) // air
+  m2s = m2s :+ ISZ("hamr", "phantom", "m2") // phantom
+  m2s = m2s ++ (for (pkg <- ISZ("act", "arsit"); plat <- ISZ("shared", "jvm"))
+    yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
+  m2s = m2s :+ ISZ("cli", "m2")
 
-    for (m2p <- m2Paths) {
-      m2p.removeAll()
-    }
+  println(s"Publishing local m2 ...")
+  val m2Paths: ISZ[Os.Path] =
+    for (cd <- for (m2 <- m2s) yield st"${(m2, Os.fileSep)}".render) yield home / "out" / cd
 
-    Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
-      at(home).console.runCheck()
-    println("Artifacts")
-    for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
-      println(s"* $p")
-    }
-    println()
+  for (m2p <- m2Paths) {
+    m2p.removeAll()
   }
 
-  sub("runtime", for (pkg <- ISZ("macros", "library", "test"); plat <- ISZ("shared", "jvm", "js"))
-    yield ISZ("runtime", pkg, plat, "m2"))
-  sub("slang", for (pkg <- ISZ("ast", "parser", "tipe", "frontend"); plat <- ISZ("shared", "jvm" /*, "js"*/))
-    yield ISZ("slang", pkg, plat, "m2"))
-  sub("alir", for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("alir", plat, "m2"))
-  sub("transpilers", for (pkg <- ISZ("common", "c"); plat <- ISZ("shared", "jvm" /*, "js"*/))
-    yield ISZ("transpilers", pkg, plat, "m2"))
-  sub("logika", for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("logika", plat, "m2"))
-  sub("tools", for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("tools", plat, "m2"))
-  sub("hamr", for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
-    yield ISZ("hamr", pkg, plat, "m2"))
-  sub("hamr", ISZ(ISZ("hamr", "phantom", "m2")))
-  sub("hamr codegen", for (pkg <- ISZ("act", "arsit"); plat <- ISZ("shared", "jvm"))
-    yield ISZ("hamr", "codegen", pkg, plat, "m2"))
-  sub("cli", ISZ(ISZ("cli", "m2")))
-  return repository
+  Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
+    at(home).console.runCheck()
+  println("Artifacts")
+  for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
+    println(s"* $p")
+  }
+  println()
+
+  return repository / "org" / "sireum"
 }
+
+
+def jitpack(): Unit = {
+  println("Triggering jitpack ...")
+  val r = mill.call(ISZ("jitPack", "--owner", "sireum", "--repo", "kekinian", "--lib", "cli")).
+    at(home).console.run()
+  r match {
+    case r: Os.Proc.Result.Normal =>
+      println(r.out)
+      println(r.err)
+      if (!r.ok) {
+        eprintln(s"Exit code: ${r.exitCode}")
+      }
+    case r: Os.Proc.Result.Exception =>
+      eprintln(s"Exception: ${r.err}")
+    case _: Os.Proc.Result.Timeout =>
+      eprintln("Timeout")
+      eprintln()
+  }
+  println()
+}
+
 
 def ghpack(): Unit = {
   val repository = m2()
