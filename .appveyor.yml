@@ -9,8 +9,9 @@ init:
 clone_folder: c:\sireum
 
 cache:
-  - bin\win\java
   - bin\scala
+  - bin\win\graal
+  - bin\win\java
   - bin\win\z3
 
 install:
