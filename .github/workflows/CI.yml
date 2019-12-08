@@ -42,3 +42,10 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
           bin\build.cmd test
+
+  skip:
+    runs-on: ubuntu-latest
+    if: "contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[skip action]')"
+    steps:
+      - run: |
+          echo Skipped
