@@ -1,6 +1,6 @@
 version: 1.0.{build}
 
-image: Visual Studio 2019
+image: Visual Studio 2017
 
 init:
   - cmd: git config --global core.autocrlf true
@@ -18,6 +18,6 @@ install:
   - git submodule update --init --recursive
 
 build_script:
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - bin\build.cmd jitpack native
   - bin\win\upx.exe -9 bin\win\sireum.exe

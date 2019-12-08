@@ -38,8 +38,7 @@ jobs:
         uses: actions/checkout@v2-beta
       - name: Test
         shell: cmd
-        run: |
+        run: | # call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           cd /d %GITHUB_WORKSPACE%
-          # call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           git submodule update --init --recursive
-          bin\build.cmd test # native
+          bin\build.cmd test
