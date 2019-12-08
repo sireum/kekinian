@@ -14,7 +14,8 @@ build:
       if [[ ! `git show -s HEAD | grep -F -q "[skip shippable]"` ]]; then
         mkdir -p $HOME/.coursier &&
         git submodule update --init --recursive &&
-        bin/build.cmd test;
+        bin/build.cmd test native &&
+        bin/linux/upx -9 bin/linux/sireum;
       fi
   post_ci:
   on_success:
@@ -22,6 +23,7 @@ build:
   push:
   cache: true
   cache_dir_list:
+    - $SHIPPABLE_BUILD_DIR/bin/linux/graal
     - $SHIPPABLE_BUILD_DIR/bin/linux/java
+    - $SHIPPABLE_BUILD_DIR/bin/linux/z3
     - $SHIPPABLE_BUILD_DIR/bin/scala
-    - $SHIPPABLE_BUILD_DIR/bin/z3
