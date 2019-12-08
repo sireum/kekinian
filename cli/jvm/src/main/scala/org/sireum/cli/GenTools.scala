@@ -226,11 +226,28 @@ object GenTools {
       }
 
       def jdkTable: Predef.String = {
-        val (jdkClassPath, jdkSourcePath) = (
-          (for (p <- (javaHome / "jre" / "lib").list if p.string.value.endsWith(".jar")) yield
-            s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n"),
-          s"""            <root url="jar://${normalizePath(javaHome)}/src.zip!/" type="simple" />"""
+        val modules: Set[String] = Set ++ ISZ(
+          "java.base", "java.compiler", "java.datatransfer", "java.desktop", "java.instrument", "java.logging",
+          "java.management", "java.management.rmi", "java.naming", "java.net.http", "java.prefs", "java.rmi",
+          "java.scripting", "java.se", "java.security.jgss", "java.security.sasl", "java.smartcardio",
+          "java.sql", "java.sql.rowset", "java.transaction.xa", "java.xml", "java.xml.crypto", "javafx.base",
+          "javafx.controls", "javafx.fxml", "javafx.graphics", "javafx.media", "javafx.swing", "javafx.web",
+          "jdk.accessibility", "jdk.aot", "jdk.attach", "jdk.charsets", "jdk.compiler", "jdk.crypto.cryptoki",
+          "jdk.crypto.ec", "jdk.dynalink", "jdk.editpad", "jdk.hotspot.agent", "jdk.httpserver", "jdk.internal.ed",
+          "jdk.internal.jvmstat", "jdk.internal.le", "jdk.internal.opt", "jdk.internal.vm.ci",
+          "jdk.internal.vm.compiler", "jdk.internal.vm.compiler.management", "jdk.jartool", "jdk.javadoc",
+          "jdk.jcmd", "jdk.jconsole", "jdk.jdeps", "jdk.jdi", "jdk.jdwp.agent", "jdk.jfr", "jdk.jlink", "jdk.jshell",
+          "jdk.jsobject", "jdk.jstatd", "jdk.localedata", "jdk.management", "jdk.management.agent",
+          "jdk.management.jfr", "jdk.naming.dns", "jdk.naming.rmi", "jdk.net", "jdk.pack", "jdk.rmic",
+          "jdk.scripting.nashorn", "jdk.scripting.nashorn.shell", "jdk.sctp", "jdk.security.auth",
+          "jdk.security.jgss", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom", "jdk.zipfs",
+          "org.openjsse"
         )
+        val (jdkClassPath, jdkSourcePath) =
+          ( (for (m <- modules.elements) yield
+               s"""            <root url="jrt://${normalizePath(javaHome)}!/$m" type="simple" />""").elements.mkString("\n"),
+            (for (m <- modules.elements) yield
+               s"""            <root url="jar://${normalizePath(javaHome)}/lib/src.zip!/$m" type="simple" />""").elements.mkString("\n"))
         lazy val ideaLibs = (for (p <- Os.Path.walk(ideaLibDir, F, T, f => f.string.value.endsWith(".jar")))
           yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
@@ -250,7 +267,9 @@ object GenTools {
                |      <homePath value="$ideaDir" />
                |      <roots>
                |        <annotationsPath>
-               |          <root type="composite" />
+               |          <root type="composite">
+               |            <root url="jar://$$APPLICATION_HOME_DIR$$/plugins/java/lib/jdkAnnotations.jar!/" type="simple" />
+               |          </root>
                |        </annotationsPath>
                |        <classPath>
                |          <root type="composite">
