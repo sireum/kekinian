@@ -142,9 +142,21 @@ def build(): Unit = {
   if (!didBuild) {
     didBuild = T
     println("Building ...")
+    def buildStamp: String = {
+      val rStatus = Os.proc(ISZ("git", "status", "--porcelain")).at(home).run()
+      if (rStatus.exitCode != 0) {
+        return "n/a"
+      }
+      val r = ops.StringOps(Os.proc(ISZ("git", "log", "-n", "1", "--date=format:%Y%m%d", "--pretty=format:%cd.%h")).runCheck().out).trim
+      return if (ops.StringOps(rStatus.out).trim == "") r else s"$r*"
+    }
+    val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
+    val oldCli = cli.read
     touche()
+    cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
     Os.proc(ISZ(mill.string, "build")).at(home).console.runCheck()
     touche()
+    cli.writeOver(oldCli)
     println()
   }
 }

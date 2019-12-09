@@ -46,7 +46,8 @@ val main = Group(
   description = "",
   header =
     st"""Sireum: A High-Assurance System Engineering Platform
-        |(c) 2019, SAnToS Laboratory, Kansas State University""".render,
+        |(c) 2019, SAnToS Laboratory, Kansas State University
+        |Build yyyymmdd.sha""".render,
   unlisted = F,
   subs = ISZ(
     hamr,
