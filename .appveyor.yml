@@ -21,3 +21,4 @@ build_script:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - bin\build.cmd jitpack native
   - bin\win\upx.exe -9 bin\win\sireum.exe
+  - bin\win\sireum.exe

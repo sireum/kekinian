@@ -15,6 +15,7 @@ build:
         mkdir -p $HOME/.coursier &&
         git submodule update --init --recursive &&
         bin/build.cmd test;
+        bin/sireum
       fi
   post_ci:
   on_success:

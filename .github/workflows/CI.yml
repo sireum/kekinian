@@ -16,6 +16,7 @@ jobs:
           git submodule update --init --recursive
           bin/build.cmd test native
           bin/linux/upx -9 bin/linux/sireum
+          bin/linux/sireum
 
   build-mac:
     runs-on: macOS-latest
@@ -29,6 +30,7 @@ jobs:
           git submodule update --init --recursive
           bin/build.cmd test native
           bin/mac/upx -9 bin/mac/sireum
+          bin/mac/sireum
 
   build-windows:
     runs-on: windows-latest
@@ -42,6 +44,7 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
           bin\build.cmd test
+          bin\sireum
 
   skip:
     runs-on: ubuntu-latest
