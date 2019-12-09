@@ -273,7 +273,7 @@ To have the codebase and its test suites recompiled upon changes, run:
 It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
 
 First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites)
-(note: `native-image` for Windows requires env setup using Visual Studio 2019 Community's `C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat`); 
+(note: `native-image` for Windows requires Visual Studio 2017 or 2019); 
 then, to build Sireum native executable:
 
 * **macOS/Linux**:
@@ -284,9 +284,19 @@ then, to build Sireum native executable:
 
 * **Windows**:
 
-  ```cmd
-  %SIREUM_HOME%\bin\build.cmd native
-  ```
+  * Visual Studio 2017 Community
+  
+    ```cmd
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    %SIREUM_HOME%\bin\build.cmd native
+    ```
+
+  * Visual Studio 2019 Community
+  
+    ```cmd
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+    %SIREUM_HOME%\bin\build.cmd native
+    ```
   
 To run:
 
@@ -303,7 +313,7 @@ To run:
   ```
   
 * **Windows**:
-
+  
   ```cmd
   %SIREUM_HOME%\bin\win\sireum.exe
   ```
