@@ -94,7 +94,9 @@ object Cli {
     help: String,
     args: ISZ[String],
     sourcepath: ISZ[String],
-    timeout: Z
+    timeout: Z,
+    logPc: B,
+    logVc: B
   ) extends SireumTopOption
 
   @datatype class SlangRunOption(
@@ -621,10 +623,16 @@ import Cli._
           |                           strings)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)
-          |-h, --help               Display this information""".render
+          |-h, --help               Display this information
+          |
+          |Logging Options:
+          |    --log-pc             Display path conditions before each statement
+          |    --log-vc             Display all verification conditions""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var timeout: Z = 2
+    var logPc: B = false
+    var logVc: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -645,6 +653,18 @@ import Cli._
              case Some(v) => timeout = v
              case _ => return None()
            }
+         } else if (arg == "--log-pc") {
+           val o: Option[B] = { j = j - 1; Some(!logPc) }
+           o match {
+             case Some(v) => logPc = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-vc") {
+           val o: Option[B] = { j = j - 1; Some(!logVc) }
+           o match {
+             case Some(v) => logVc = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -654,7 +674,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, logPc, logVc))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

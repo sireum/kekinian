@@ -41,7 +41,7 @@ object Logika {
       return 0
     }
 
-    val config = logika.Logika.Config(3, HashMap.empty, o.timeout)
+    val config = logika.Logika.Config(3, HashMap.empty, o.timeout, o.logPc, o.logVc)
 
     for (arg <- o.args) {
       val f = Os.path(arg)
