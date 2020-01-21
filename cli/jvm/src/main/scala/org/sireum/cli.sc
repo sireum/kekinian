@@ -1,6 +1,6 @@
 // #Sireum
 /*
- Copyright (c) 2019, Robby, Kansas State University
+ Copyright (c) 2020, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ val main = Group(
   description = "",
   header =
     st"""Sireum: A High-Assurance System Engineering Platform
-        |(c) 2019, SAnToS Laboratory, Kansas State University
+        |(c) 2020, SAnToS Laboratory, Kansas State University
         |Build yyyymmdd.sha""".render,
   unlisted = F,
   subs = ISZ(
