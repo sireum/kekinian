@@ -119,11 +119,11 @@ fi
 #
 : ${Z3_VERSION=$(getVersion "z3")}
 if [[ "${PLATFORM}" == "mac" ]]; then
-  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/Z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-osx-10.14.2.zip
+  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-osx-10.14.6.zip
 elif [[ "${PLATFORM}" == "linux" ]]; then
-  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/Z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-ubuntu-14.04.zip
+  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-ubuntu-16.04.zip
 elif [[ "${PLATFORM}" == "win" ]]; then
-  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/Z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-win.zip
+  Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-win.zip
 fi
 mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
 cd ${SIREUM_HOME}/bin/${PLATFORM}
