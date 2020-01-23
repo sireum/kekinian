@@ -86,7 +86,7 @@ if ($z3_update) {
   $z3_drop = "$cache_dir\z3-$z3_version-x64-win.zip"
   if (!(Test-Path "$z3_drop")) {
     "Please wait while downloading Z3 $z3_version ... "
-    $z3_url = "https://github.com/Z3Prover/z3/releases/download/Z3-$z3_version/z3-$z3_version-x64-win.zip"
+    $z3_url = "https://github.com/Z3Prover/z3/releases/download/z3-$z3_version/z3-$z3_version-x64-win.zip"
     Invoke-WebRequest -Uri "$z3_url" -OutFile "$z3_drop"
   }
   "Extracting Z3 $z3_version ... "
