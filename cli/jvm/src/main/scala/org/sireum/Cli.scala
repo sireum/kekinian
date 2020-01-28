@@ -2,7 +2,7 @@
 // @formatter:off
 
 /*
- Copyright (c) 2019, Robby, Kansas State University
+ Copyright (c) 2020, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -96,6 +96,7 @@ object Cli {
     sourcepath: ISZ[String],
     timeout: Z,
     logPc: B,
+    logRawPc: B,
     logVc: B
   ) extends SireumTopOption
 
@@ -627,11 +628,13 @@ import Cli._
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
+          |    --log-raw-pc         Display raw path conditions before each statement
           |    --log-vc             Display all verification conditions""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var timeout: Z = 2
     var logPc: B = false
+    var logRawPc: B = false
     var logVc: B = false
     var j = i
     var isOption = T
@@ -659,6 +662,12 @@ import Cli._
              case Some(v) => logPc = v
              case _ => return None()
            }
+         } else if (arg == "--log-raw-pc") {
+           val o: Option[B] = { j = j - 1; Some(!logRawPc) }
+           o match {
+             case Some(v) => logRawPc = v
+             case _ => return None()
+           }
          } else if (arg == "--log-vc") {
            val o: Option[B] = { j = j - 1; Some(!logVc) }
            o match {
@@ -674,7 +683,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, logPc, logVc))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, logPc, logRawPc, logVc))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
