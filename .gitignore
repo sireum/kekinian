@@ -45,3 +45,6 @@ mill-standalone
 /bin/mac/fmide.app
 /bin/linux/fmide
 /bin/win/fmide
+/bin/win/clion
+/bin/mac/clion
+/bin/linux/clion
