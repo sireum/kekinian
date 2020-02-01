@@ -25,16 +25,7 @@ import org.sireum._
 
 val homeBin: Os.Path = Os.slashDir.up.canon
 val home = homeBin.up.canon
-@strictpure def p2Args(install: B): ISZ[String] = ISZ[String](
-  "-application",
-  "org.eclipse.equinox.p2.director",
-  "-repository",
-  "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master/",
-  if (install) "-installIU" else "-uninstallIU",
-  "org.sireum.aadl.osate.hamr.feature.feature.group"
-)
-val envs = ISZ[(String, String)]("PATH" ~>
-  s"${Os.env("PATH").get}${Os.pathSep}${Os.env("JAVA_HOME").get}${Os.fileSep}bin")
+
 var platformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
 
 for (r <- GitHub.repo("loonwerks", "formal-methods-workbench").releases.take(1); a <- r.assets) {
@@ -68,10 +59,6 @@ def linux(): Unit = {
   println(s"Extracting ${f.name} ...")
   Os.proc(ISZ("tar", "xfz", f.string)).at(d).runCheck()
   println()
-  println(s"Installing HAMR plugin ...")
-  Os.proc((d / "fmide").string +: p2Args(F)).env(envs).runCheck()
-  Os.proc((d / "fmide").string +: p2Args(T)).env(envs).runCheck()
-  println()
   println(s"FMIDE is installed at $d")
 }
 
@@ -83,11 +70,7 @@ def mac(): Unit = {
   homeBinMac.mkdirAll()
   println(s"Extracting ${f.name} ...")
   Os.proc(ISZ("tar", "xfz", f.string)).at(homeBinMac).runCheck()
-  (homeBinMac / "com.collins.fmw.ide.app").moveTo(d)
-  println()
-  println(s"Installing HAMR plugin ...")
-  Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args(F)).env(envs).runCheck()
-  Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args(T)).env(envs).runCheck()
+  (homeBinMac / "com.collins.trustedsystems.fmw.ide.app").moveTo(d)
   println()
   println(s"FMIDE is installed at $d")
 }
@@ -99,10 +82,6 @@ def win(): Unit = {
   d.mkdirAll()
   println(s"Extracting ${f.name} ...")
   f.unzipTo(d)
-  println()
-  println(s"Installing HAMR plugin ...")
-  Os.proc((d / "fmide.exe").string +: p2Args(F)).env(envs).runCheck()
-  Os.proc((d / "fmide.exe").string +: p2Args(T)).env(envs).runCheck()
   println()
   println(s"FMIDE is installed at $d")
 }
