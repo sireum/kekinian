@@ -426,18 +426,18 @@ object CTranspiler {
 
             t.name.ids.map(_.value.value) match {
               case ISZ("MS") if t.typeArgs.size.toInt == 2 =>
-                val it = toTyped(t.typeArgs(0))
-                val et = toTyped(t.typeArgs(1))
+                val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
+                val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
                 addS(AST.Typed.msName, AST.Typed.isName, it, et)
               case ISZ("IS") if t.typeArgs.size.toInt == 2 =>
-                val it = toTyped(t.typeArgs(0))
-                val et = toTyped(t.typeArgs(1))
+                val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
+                val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
                 addS(AST.Typed.isName, AST.Typed.msName, it, et)
               case ISZ("ISZ") if t.typeArgs.size.toInt == 1 =>
-                val et = toTyped(t.typeArgs(0))
+                val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
                 addS(AST.Typed.isName, AST.Typed.msName, AST.Typed.z, et)
               case ISZ("MSZ") if t.typeArgs.size.toInt == 1 =>
-                val et = toTyped(t.typeArgs(0))
+                val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
                 addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, et)
               case ISZ("ZS") if t.typeArgs.size.toInt == 0 =>
                 addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, AST.Typed.z)
@@ -578,11 +578,18 @@ object CTranspiler {
     }
   }
 
-  def toTyped(t: AST.Type): AST.Typed = {
-    t match {
-      case t: AST.Type.Named => AST.Typed.Name(t.name.ids.map(_.value), t.typeArgs.map(toTyped))
-      case t: AST.Type.Tuple => AST.Typed.Tuple(t.args.map(toTyped))
-      case t: AST.Type.Fun => AST.Typed.Fun(t.isPure, t.isByName, t.args.map(toTyped), toTyped(t.ret))
+  def toTyped(th: TypeHierarchy, tpe: AST.Type): AST.Typed = {
+    def rec(t: AST.Type): AST.Typed = {
+      t match {
+        case t: AST.Type.Named =>
+          val ids = t.name.ids.map(_.value)
+          val tids = AST.Typed.sireumName ++ ids
+          if (!th.typeMap.contains(ids) && th.typeMap.contains(tids)) AST.Typed.Name(tids, t.typeArgs.map(rec))
+          else AST.Typed.Name(ids, t.typeArgs.map(rec))
+        case t: AST.Type.Tuple => AST.Typed.Tuple(t.args.map(rec))
+        case t: AST.Type.Fun => AST.Typed.Fun(t.isPure, t.isByName, t.args.map(rec), rec(t.ret))
+      }
     }
+    rec(tpe)
   }
 }
