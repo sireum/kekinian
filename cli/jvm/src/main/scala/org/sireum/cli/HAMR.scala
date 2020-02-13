@@ -48,7 +48,8 @@ object HAMR {
     val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
       inputFile.get.read
     } else {
-      eprintln("Input file not found.  Expecting exactly 1")
+      val fname: String = if(inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
+      eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
       return -1
     }
 
