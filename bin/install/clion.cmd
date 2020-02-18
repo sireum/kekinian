@@ -24,7 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 
-val clionVersion = "2019.3.3"
+val clionVersion = "2019.3.4"
 
 val url = s"https://download.jetbrains.com/cpp"
 
