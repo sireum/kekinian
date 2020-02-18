@@ -133,6 +133,8 @@ object hamr extends mill.Module {
   
   object codegen extends Codegen.Module with runtime.testProvider {
 
+    object bin extends BinModule
+    
     object act extends Act.Module {
       final override def airObject = air
 
