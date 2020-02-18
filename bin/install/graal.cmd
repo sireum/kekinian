@@ -28,7 +28,7 @@ def usage(): Unit = {
   println("Usage: ( mac | linux | win )*")
 }
 
-val graalVersion = "19.3.1"
+val graalVersion = "20.0.0"
 
 val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
