@@ -66,7 +66,8 @@ def mac(): Unit = {
 
   ver.writeOver(clionVersion)
 
-  println("... done!")
+  println()
+  println(s"CLion is installed at $clionDir")
 }
 
 def linux(): Unit = {
@@ -95,7 +96,8 @@ def linux(): Unit = {
 
   ver.writeOver(clionVersion)
 
-  println("... done!")
+  println()
+  println(s"CLion is installed at $clionDir")
 }
 
 def win(): Unit = {
@@ -124,7 +126,8 @@ def win(): Unit = {
 
   ver.writeOver(clionVersion)
 
-  println("... done!")
+  println()
+  println(s"CLion is installed at $clionDir")
 }
 
 def platform(p: String): Unit = {
