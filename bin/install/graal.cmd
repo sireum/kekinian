@@ -139,6 +139,15 @@ def win(): Unit = {
   cache.unzipTo(platformDir)
   (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
 
+  val nativeBundle = s"native-image-installable-svm-java11-windows-amd64-$graalVersion.jar"
+  val nativeCache = Os.home / "Downloads" / "sireum" / nativeBundle
+  if (!nativeCache.exists) {
+    println(s"Downloading Graal's native-image ...")
+    nativeCache.downloadFrom(s"$url/$nativeBundle")
+  }
+
+  Os.proc(ISZ((graalDir / "bin" / "gu.cmd").string, "install", "--file", nativeCache.string)).console.runCheck()
+
   ver.writeOver(graalVersion)
 
   println("... done!")
