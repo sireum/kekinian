@@ -44,7 +44,7 @@ def download(kind: Os.Kind.Type): Os.Path = {
   val (name, url) = platformNameUrlMap.get(kind).get
   val r = Os.home / "Downloads" / "sireum" / name
   if (!r.exists) {
-    println(s"Downloading $name from $url ...")
+    println(s"Downloading $url ...")
     r.downloadFrom(url)
     println()
   }
