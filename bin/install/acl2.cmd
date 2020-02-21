@@ -5,7 +5,7 @@ if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                               
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
   rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"                                                #
+  exec "${SIREUM_HOME}/bin/sireum" slang run -s "$0" "$@"                                                #
 fi                                                                                                          #
 :BOF
 setlocal
@@ -14,7 +14,7 @@ if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypa
 if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
 if not exist "%~dp0..\sireum.jar" call "%~dp0..\init.bat"
-"%~dp0..\sireum.bat" slang run -s -n "%0" %*
+"%~dp0..\sireum.bat" slang run -s "%0" %*
 exit /B %errorlevel%
 :native
 %~dpnx0.com %*
@@ -62,7 +62,7 @@ def ccl(p: String): Unit = {
   if (cclDir.exists) {
     cclDir.removeAll()
   }
-  println(s"Extracting Clozure Common Lisp ...")
+  println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
 
   ver.writeOver(cclVersion)
@@ -95,7 +95,7 @@ def acl2(p: String): Unit = {
   if (acl2Dir.exists) {
     acl2Dir.removeAll()
   }
-  println(s"Extracting acl2 ...")
+  println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
   (platformDir / s"acl2-$acl2Version").moveTo(acl2Dir)
 
@@ -136,10 +136,8 @@ def platform(p: String): Unit = {
 
 if (Os.cliArgs.nonEmpty) {
   Z(Os.cliArgs(0)) match {
-    case Some(n) =>
-      cores = n
-      ops.ISZOps(Os.cliArgs).drop(1)
-    case _ => Os.cliArgs
+    case Some(n) => cores = n
+    case _ =>
   }
 }
 

@@ -5,7 +5,7 @@ if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                               
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
   rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run -s -n "$0" "$@"                                                #
+  exec "${SIREUM_HOME}/bin/sireum" slang run -s "$0" "$@"                                                #
 fi                                                                                                          #
 :BOF
 setlocal
@@ -14,7 +14,7 @@ if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypa
 if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
 if not exist "%~dp0..\sireum.jar" call "%~dp0..\init.bat"
-"%~dp0..\sireum.bat" slang run -s -n "%0" %*
+"%~dp0..\sireum.bat" slang run -s "%0" %*
 exit /B %errorlevel%
 :native
 %~dpnx0.com %*
@@ -58,7 +58,7 @@ def mac(): Unit = {
   if (graalDir.exists) {
     graalDir.removeAll()
   }
-  println(s"Extracting Graal ...")
+  println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
   (platformDir / s"graalvm-ce-java11-$graalVersion" / "Contents" / "Home").moveTo(graalDir)
   (platformDir / s"graalvm-ce-java11-$graalVersion").removeAll()
@@ -97,7 +97,7 @@ def linux(): Unit = {
   if (graalDir.exists) {
     graalDir.removeAll()
   }
-  println(s"Extracting Graal ...")
+  println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
   (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
 
@@ -135,7 +135,7 @@ def win(): Unit = {
   if (graalDir.exists) {
     graalDir.removeAll()
   }
-  println(s"Extracting Graal ...")
+  println(s"Extracting $cache ...")
   cache.unzipTo(platformDir)
   (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
 

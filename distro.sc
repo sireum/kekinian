@@ -194,7 +194,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         os.copy(zipPath, pluginsDir / s"${p.id}.jar")
         println("done!")
       } else {
-        print(s"Extracting ${p.id} plugin ... ")
+        print(s"Extracting ${p.id} plugin from $zipPath ... ")
         %%(pwd7z, 'x, "-y", zipPath)(pluginsDir)
         println("done!")
       }
