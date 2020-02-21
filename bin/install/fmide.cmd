@@ -31,11 +31,11 @@ var platformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
 for (r <- GitHub.repo("loonwerks", "formal-methods-workbench").releases.take(1); a <- r.assets) {
   val aNameOps = ops.StringOps(a.name)
   val p = (a.name, a.url)
-  if (aNameOps.contains("win32")) {
+  if (aNameOps.contains("win32") && !platformNameUrlMap.contains(Os.Kind.Win)) {
     platformNameUrlMap = platformNameUrlMap + Os.Kind.Win ~> p
-  } else if (aNameOps.contains("linux")) {
+  } else if (aNameOps.contains("linux") && !platformNameUrlMap.contains(Os.Kind.Linux)) {
     platformNameUrlMap = platformNameUrlMap + Os.Kind.Linux ~> p
-  } else if (aNameOps.contains("macos")) {
+  } else if (aNameOps.contains("macos") && !platformNameUrlMap.contains(Os.Kind.Mac)) {
     platformNameUrlMap = platformNameUrlMap + Os.Kind.Mac ~> p
   }
 }
@@ -44,7 +44,7 @@ def download(kind: Os.Kind.Type): Os.Path = {
   val (name, url) = platformNameUrlMap.get(kind).get
   val r = Os.home / "Downloads" / "sireum" / name
   if (!r.exists) {
-    println(s"Downloading $name ...")
+    println(s"Downloading $name from $url ...")
     r.downloadFrom(url)
     println()
   }
