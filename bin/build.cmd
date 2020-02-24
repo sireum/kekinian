@@ -200,7 +200,7 @@ def tipe(): Unit = {
   if (!didTipe) {
     didTipe = T
     println("Slang type checking ...")
-    val excludes = "hamr/arsit/jvm/src/test/results,hamr/act/jvm/src/test/result,hamr/codegen/jvm/src/test/result"
+    val excludes = "hamr/codegen/arsit/resources,hamr/codegen/jvm/src/test/result"
     val excludedDirs = Set ++ ISZ[String]("bin", "out", "distro", "resources")
     val sourcepath: ISZ[Os.Path] = for (p <- home.list if !excludedDirs.contains(p.name)) yield p
     Os.proc(ISZ("java", "-jar", sireumJar.string,
@@ -323,8 +323,8 @@ def m2(): Os.Path = {
   m2s = m2s ++ (for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
     yield ISZ("hamr", pkg, plat, "m2")) // air
   m2s = m2s :+ ISZ("hamr", "phantom", "m2") // phantom
-  m2s = m2s ++ (for (pkg <- ISZ("act", "arsit"); plat <- ISZ("shared", "jvm"))
-    yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit
+  m2s = m2s ++ (for (pkg <- ISZ("act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
+    yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit, art
   m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
   m2s = m2s :+ ISZ("cli", "m2")
 

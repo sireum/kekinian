@@ -32,6 +32,7 @@ import $file.alir.Alir
 import $file.transpilers.Transpilers
 import $file.logika.Logika
 import $file.hamr.air.Air
+import $file.hamr.codegen.art.Art
 import $file.hamr.codegen.Codegen
 import $file.hamr.codegen.act.Act
 import $file.hamr.codegen.arsit.Arsit
@@ -150,6 +151,11 @@ object hamr extends mill.Module {
     final override def actObject = act    
     final override def airObject = air
     final override def arsitObject = arsit
+
+    object art extends Art.Module {
+      final override def libraryObject = runtime.library
+      final override def testObject = runtime.test
+    }
   }
 }
 
