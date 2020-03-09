@@ -44,13 +44,15 @@ def findAssets(): Unit = {
     if (releaseTagNameOpt == Some(r.tagName) || (first && releaseTagNameOpt.isEmpty)) {
       for (a <- r.assets) {
         val aNameOps = ops.StringOps(a.name)
-        val p = (a.name, a.url)
-        if (aNameOps.contains("win32") && !platformNameUrlMap.contains(Os.Kind.Win)) {
-          platformNameUrlMap = platformNameUrlMap + Os.Kind.Win ~> p
-        } else if (aNameOps.contains("linux") && !platformNameUrlMap.contains(Os.Kind.Linux)) {
-          platformNameUrlMap = platformNameUrlMap + Os.Kind.Linux ~> p
-        } else if (aNameOps.contains("macos") && !platformNameUrlMap.contains(Os.Kind.Mac)) {
-          platformNameUrlMap = platformNameUrlMap + Os.Kind.Mac ~> p
+        if (aNameOps.startsWith("com.collins.trustedsystems.fmw.")) {
+          val p = (a.name, a.url)
+          if (aNameOps.contains("win32") && !platformNameUrlMap.contains(Os.Kind.Win)) {
+            platformNameUrlMap = platformNameUrlMap + Os.Kind.Win ~> p
+          } else if (aNameOps.contains("linux") && !platformNameUrlMap.contains(Os.Kind.Linux)) {
+            platformNameUrlMap = platformNameUrlMap + Os.Kind.Linux ~> p
+          } else if (aNameOps.contains("macos") && !platformNameUrlMap.contains(Os.Kind.Mac)) {
+            platformNameUrlMap = platformNameUrlMap + Os.Kind.Mac ~> p
+          }
         }
       }
     }
