@@ -113,7 +113,7 @@ object Init {
         val javaVersion = versions.get("org.sireum.version.zulu").get
         if (!javaVer.exists || javaVer.read != javaVersion) {
           printInstall()
-          println(s"Please wait while downloading ZuluFX $javaVersion ...")
+          println(s"Please wait while downloading Zulu JDK $javaVersion ...")
           val javaUrl = s"https://cdn.azul.com/zulu/bin/zulu$javaVersion-win_x64.zip"
           javaName = s"1.8-zulu-$javaVersion"
           val temp = Os.temp()

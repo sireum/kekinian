@@ -186,7 +186,7 @@ fi
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
   exit
 fi
-JAVA_NAME="ZuluFX"
+JAVA_NAME="Zulu JDK"
 if [[ -z ${JAVA_VERSION} ]]; then
   JAVA_VERSION=$(getVersion "zulu")
 fi
