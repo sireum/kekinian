@@ -29,10 +29,16 @@ import org.sireum._
 
 object Logika {
 
+  val TODO: Z = -1
+  val INVALID_SCRIPT_FILE: Z = -2
+  val ILL_FORMED_SCRIPT_FILE: Z = -3
+  val INVALID_CHAR_WIDTH: Z = -4
+  val INVALID_INT_WIDTH: Z = -5
+
   def run(o: Cli.LogikaVerifierOption): Z = {
     if (o.sourcepath.nonEmpty) {
       eprintln("Logika sourcepath support is coming soon")
-      return -1
+      return TODO
     }
 
     if (o.args.isEmpty) {
@@ -41,7 +47,32 @@ object Logika {
       return 0
     }
 
-    val config = logika.Logika.Config(3, HashMap.empty, o.timeout, o.logPc, o.logRawPc, o.logVc)
+    o.charBitWidth match {
+      case z"8" =>
+      case z"16" =>
+      case z"32" =>
+      case _ =>
+        eprintln(s"C (character) bit-width has to be 8, 16, or 32 (instead of ${o.charBitWidth})")
+        return INVALID_CHAR_WIDTH
+    }
+
+    o.intBitWidth match {
+      case z"0" =>
+      case z"8" =>
+      case z"16" =>
+      case z"32" =>
+      case z"64" =>
+      case _ =>
+        eprintln(s"Z (integer) bit-width has to be 0 (arbitrary-precision), 8, 16, 32, or 64 (instead of ${o.intBitWidth})")
+        return INVALID_INT_WIDTH
+    }
+
+    if (o.intBitWidth != 0) {
+      eprintln("Non-zero integer bit-width support is coming soon")
+      return TODO
+    }
+
+    val config = logika.Logika.Config(3, HashMap.empty, o.timeout, o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc)
 
     for (arg <- o.args) {
       val f = Os.path(arg)
@@ -52,10 +83,10 @@ object Logika {
         }
         val reporter = message.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config,
-          (th: lang.tipe.TypeHierarchy) => logika.Z3(z3Exe , th), reporter)
+          (th: lang.tipe.TypeHierarchy) => logika.Z3(z3Exe , th, config.charBitWidth, config.intBitWidth), reporter)
         reporter.printMessages()
-        if (reporter.hasIssue) {
-          return -1
+        if (reporter.hasError) {
+          return ILL_FORMED_SCRIPT_FILE
         } else {
           println("Logika verified!")
           println()
@@ -63,7 +94,7 @@ object Logika {
         }
       } else {
         eprintln(s"$arg is not a Slang script file")
-        return -1
+        return INVALID_SCRIPT_FILE
       }
     }
 

@@ -95,6 +95,8 @@ object Cli {
     args: ISZ[String],
     sourcepath: ISZ[String],
     timeout: Z,
+    charBitWidth: Z,
+    intBitWidth: Z,
     logPc: B,
     logRawPc: B,
     logVc: B
@@ -626,6 +628,14 @@ import Cli._
           |                           default is 2)
           |-h, --help               Display this information
           |
+          |Bit-width Options:
+          |    --c-bitwidth         Bit-width representation for C (character) values
+          |                           (expected 8, 16, or 32) (expects an integer; default
+          |                           is 32)
+          |    --z-bitwidth         Bit-width representation for Z (integer) values
+          |                           (expected 0, 8, 16, 32, 64) (expects an integer;
+          |                           default is 0)
+          |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
           |    --log-raw-pc         Display raw path conditions before each statement
@@ -633,6 +643,8 @@ import Cli._
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var timeout: Z = 2
+    var charBitWidth: Z = 32
+    var intBitWidth: Z = 0
     var logPc: B = false
     var logRawPc: B = false
     var logVc: B = false
@@ -654,6 +666,18 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else if (arg == "--c-bitwidth") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => charBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--z-bitwidth") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => intBitWidth = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -683,7 +707,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, logPc, logRawPc, logVc))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, charBitWidth, intBitWidth, logPc, logRawPc, logVc))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
