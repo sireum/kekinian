@@ -17,25 +17,25 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/bin/linux/java
-          key: ${{ runner.os }}-java
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Z3
         id: cache-z3
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/bin/linux/z3
-          key: ${{ runner.os }}-z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/bin/scala
-          key: ${{ runner.os }}-scala
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/cache/coursier
-          key: ${{ runner.os }}-coursier
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
@@ -58,25 +58,25 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/bin/mac/java
-          key: ${{ runner.os }}-java
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Z3
         id: cache-z3
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/bin/mac/z3
-          key: ${{ runner.os }}-z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/bin/scala
-          key: ${{ runner.os }}-scala
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}/cache/coursier
-          key: ${{ runner.os }}-coursier
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
@@ -99,25 +99,25 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}\bin\win\java
-          key: ${{ runner.os }}-java
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Z3
         id: cache-z3
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}\bin\win\z3
-          key: ${{ runner.os }}-z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}\bin\scala
-          key: ${{ runner.os }}-scala
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v1
         with:
           path: ${{ env.workspace }}\cache\coursier
-          key: ${{ runner.os }}-coursier
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Test
         shell: cmd
         run: | # call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
