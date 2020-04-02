@@ -67,11 +67,6 @@ object Logika {
         return INVALID_INT_WIDTH
     }
 
-    if (o.intBitWidth != 0) {
-      eprintln("Non-zero integer bit-width support is coming soon")
-      return TODO
-    }
-
     val config = logika.Logika.Config(3, HashMap.empty, o.timeout, o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc)
 
     for (arg <- o.args) {
@@ -82,8 +77,8 @@ object Logika {
           case _ => "z3"
         }
         val reporter = message.Reporter.create
-        logika.Logika.checkWorksheet(Some(f.value), f.read, config,
-          (th: lang.tipe.TypeHierarchy) => logika.Z3(z3Exe , th, config.charBitWidth, config.intBitWidth), reporter)
+        logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
+            logika.Smt2Impl(z3Exe, logika.Smt2Impl.z3ArgF _, th, config.charBitWidth, config.intBitWidth), reporter)
         reporter.printMessages()
         if (reporter.hasError) {
           return ILL_FORMED_SCRIPT_FILE
