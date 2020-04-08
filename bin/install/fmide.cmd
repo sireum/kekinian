@@ -28,6 +28,7 @@ val home = homeBin.up.canon
 
 var platformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
 var releaseTagNameOpt: Option[String] = None()
+val useLast: B = T
 
 Os.cliArgs.size match {
   case z"0" =>
@@ -46,11 +47,11 @@ def findAssets(): Unit = {
         val aNameOps = ops.StringOps(a.name)
         if (aNameOps.startsWith("com.collins.trustedsystems.fmw.")) {
           val p = (a.name, a.url)
-          if (aNameOps.contains("win32") && !platformNameUrlMap.contains(Os.Kind.Win)) {
+          if (aNameOps.contains("win32") && (useLast || !platformNameUrlMap.contains(Os.Kind.Win))) {
             platformNameUrlMap = platformNameUrlMap + Os.Kind.Win ~> p
-          } else if (aNameOps.contains("linux") && !platformNameUrlMap.contains(Os.Kind.Linux)) {
+          } else if (aNameOps.contains("linux") && (useLast || !platformNameUrlMap.contains(Os.Kind.Linux))) {
             platformNameUrlMap = platformNameUrlMap + Os.Kind.Linux ~> p
-          } else if (aNameOps.contains("macos") && !platformNameUrlMap.contains(Os.Kind.Mac)) {
+          } else if (aNameOps.contains("macos") && (useLast || !platformNameUrlMap.contains(Os.Kind.Mac))) {
             platformNameUrlMap = platformNameUrlMap + Os.Kind.Mac ~> p
           }
         }
