@@ -11,7 +11,7 @@ object distro {
     def version(isDev: Boolean): String = if (isDev) devVer else ver
   }
 
-  val delPlugins = Seq("android", "gradle", "Groovy", "Kotlin")
+  val delPlugins = Seq("android", "Groovy", "Kotlin")
   val pluginPrefix = "org.sireum.version.plugin."
   val properties = org.sireum.mill.SireumModule.properties
 
@@ -211,9 +211,9 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         val k = content.indexOf("</string>", j)
         content.substring(0, j) + s"<string>SireumIVE$devSuffix" + content.substring(k)
       case "win" =>
-        s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\r\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\r\n" + content
+        s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\r\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\r\nidea.log.path=$${user.home}/.SireumIVE$devSuffix/log\r\nidea.plugins.path=$${user.home}/.SireumIVE$devSuffix/plugins\r\n" + content
       case "linux" =>
-        s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\n" + content
+        s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\nidea.log.path=$${user.home}/.SireumIVE$devSuffix/log\nidea.plugins.path=$${user.home}/.SireumIVE$devSuffix/plugins\n" + content
     }
     os.remove.all(p)
     os.write(p, newContent)

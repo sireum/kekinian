@@ -424,7 +424,7 @@ object GenTools {
         }
       }
       val configOptions =
-        if (scala.util.Properties.isMac) Os.home / "Library" / "Preferences" / s"SireumIVE$devSuffix" / "options"
+        if (scala.util.Properties.isMac) Os.home / "Library" / "Application Support" / "JetBrains" / s"SireumIVE$devSuffix" / "options"
         else Os.home / s".SireumIVE$devSuffix" / "config" / "options"
       configOptions.mkdirAll()
       val jdkTableXml = configOptions / "jdk.table.xml"
