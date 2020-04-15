@@ -35,7 +35,8 @@ object SlangRunner {
   val HomeNotFound: Z = -1
   val NativeUnavailable: Z = -2
   val InvalidOutput: Z = -3
-  val GraalError: Z = -4
+  val IllFormed: Z = -4
+  val GraalError: Z = -5
 
   def run(o: SlangRunOption): Z = {
     if (o.args.isEmpty) {
@@ -137,10 +138,13 @@ object SlangRunner {
       case Some(in) => p.input(in)
       case _ =>
     }
-    var r = p.runCheck()
+    var r = p.run()
     outputOpt match {
       case Some(path) => path.writeOver(r.out)
       case _ =>
+    }
+    if (!r.ok) {
+      return IllFormed
     }
     if (o.nativ) {
       val nativeName = s"${script.name}.com"
