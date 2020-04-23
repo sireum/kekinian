@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2019, Robby, Kansas State University
+ Copyright (c) 2020, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -167,9 +167,9 @@ object SlangTipe {
             if (!isSlang) {
               for (firstLine <- path.readLineStream.take(1).toISZ.elements) {
                 isSlang = firstLine.value
-                  .replaceAllLiterally(" ", "")
-                  .replaceAllLiterally("\t", "")
-                  .replaceAllLiterally("\r", "")
+                  .replace(" ", "")
+                  .replace("\t", "")
+                  .replace("\r", "")
                   .contains("#Sireum")
               }
             }

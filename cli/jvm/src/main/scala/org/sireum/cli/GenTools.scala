@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2018, Robby, Kansas State University
+ Copyright (c) 2020, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -178,7 +178,7 @@ object GenTools {
       val isWin = Os.isWin
 
       def uriPathSep(s: Predef.String): Predef.String =
-        if (isWin) s.replaceAllLiterally("\\", "/") else s
+        if (isWin) s.replace("\\", "/") else s
 
       val devSuffix = if (isDev) "" else "-dev"
 
