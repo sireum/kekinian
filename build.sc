@@ -132,18 +132,26 @@ object hamr extends mill.Module {
     final override def libraryObject = runtime.library
   }
   
-  object codegen extends Codegen.Module with runtime.testProvider {
+  object codegen extends Codegen.Module.Codegen with runtime.testProvider {
 
     object bin extends BinModule
-    
+
+    object common extends Codegen.Module.Common {
+      final override def airObject = air
+    }
+
     object act extends Act.Module {
       final override def airObject = air
+
+      final override def commonObject = common
 
       object bin extends BinModule
     }
 
     object arsit extends Arsit.Module {
       final override def airObject = air
+
+      final override def commonObject = common
 
       object bin extends BinModule
     }
