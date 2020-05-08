@@ -148,6 +148,7 @@ jobs:
           set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           bin\build.cmd test
       - name: Configure Pagefile
         uses: al-cheb/configure-pagefile-action@v1.2
