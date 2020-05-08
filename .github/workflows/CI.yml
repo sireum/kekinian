@@ -36,12 +36,21 @@ jobs:
         with:
           path: ${{ env.workspace }}/cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.workspace }}/bin/linux/graal
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          bin/build.cmd test native
+          bin/build.cmd test
+      - name: Build Native
+        run: |
+          bin/build.cmd native
           bin/linux/upx -9 bin/linux/sireum
           bin/linux/sireum
 
@@ -77,12 +86,21 @@ jobs:
         with:
           path: ${{ env.workspace }}/cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.workspace }}/bin/mac/graal
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          bin/build.cmd test native
+          bin/build.cmd test
+      - name: Build Native
+        run: |
+          bin/build.cmd native
           bin/mac/upx -9 bin/mac/sireum
           bin/mac/sireum
 
@@ -118,13 +136,27 @@ jobs:
         with:
           path: ${{ env.workspace }}\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.workspace }}\bin\win\graal
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
       - name: Test
         shell: cmd
-        run: | # call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        run: |
           set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
           bin\build.cmd test
+      - name: Configure Pagefile
+        uses: al-cheb/configure-pagefile-action@v1.2
+      - name: Build Native
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          call bin\build.cmd native
+          bin\win\upx.exe -9 bin\win\sireum.exe
           bin\sireum
 
   skip:
