@@ -152,6 +152,9 @@ jobs:
           bin\build.cmd test
       - name: Configure Pagefile
         uses: al-cheb/configure-pagefile-action@v1.2
+        with:
+          minimum-size: 8GB
+          maximum-size: 16GB
       - name: Build Native
         shell: cmd
         run: |
