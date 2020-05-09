@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
 
-  build-ubuntu:
+  ci-ubuntu:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
     steps:
@@ -47,14 +47,12 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          bin/build.cmd test
-      - name: Build Native
-        run: |
           bin/build.cmd native
+          bin/build.cmd test
           bin/linux/upx -9 bin/linux/sireum
           bin/linux/sireum
 
-  build-mac:
+  ci-mac:
     runs-on: macOS-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
     steps:
@@ -97,14 +95,12 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          bin/build.cmd test
-      - name: Build Native
-        run: |
           bin/build.cmd native
+          bin/build.cmd test
           bin/mac/upx -9 bin/mac/sireum
           bin/mac/sireum
 
-  build-windows:
+  ci-windows:
     runs-on: windows-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
     steps:
@@ -142,6 +138,11 @@ jobs:
         with:
           path: ${{ env.workspace }}\bin\win\graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
+      - name: Configure Pagefile
+        uses: al-cheb/configure-pagefile-action@v1.2
+        with:
+          minimum-size: 8GB
+          maximum-size: 16GB
       - name: Test
         shell: cmd
         run: |
@@ -149,17 +150,8 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          bin\build.cmd test
-      - name: Configure Pagefile
-        uses: al-cheb/configure-pagefile-action@v1.2
-        with:
-          minimum-size: 8GB
-          maximum-size: 16GB
-      - name: Build Native
-        shell: cmd
-        run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call bin\build.cmd native
+          bin\build.cmd test
           bin\win\upx.exe -9 bin\win\sireum.exe
           bin\sireum
 
