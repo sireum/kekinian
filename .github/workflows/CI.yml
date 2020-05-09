@@ -151,7 +151,7 @@ jobs:
           git submodule update --init --recursive
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call bin\build.cmd native
-          bin\build.cmd test
+          call bin\build.cmd test
           bin\win\upx.exe -9 bin\win\sireum.exe
           bin\sireum
 
