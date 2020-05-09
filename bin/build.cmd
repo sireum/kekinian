@@ -28,13 +28,14 @@ else                                                                            
 fi                                                                                                          #
 :BOF
 setlocal
+set SIREUM_HOME=%~dp0../
 call "%~dp0init.bat"
+if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
+if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
 set NEWER=False
 if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
 if "%NEWER%" == "True" goto native
 del "%~dpnx0.com" > nul 2>&1
-if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
-if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
 "%~dp0sireum.bat" slang run -s -n "%0" %*
 exit /B %errorlevel%
 :native
