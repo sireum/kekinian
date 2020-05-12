@@ -84,11 +84,10 @@ def touchePath(path: Os.Path): Unit = {
   val content = path.read
   val lineSep: String = if (Os.isWin) "\r\n" else "\n"
   val sops = ops.StringOps(content)
-  if (sops.endsWith(lineSep)) {
-    path.writeOver(ops.StringOps(content).trim)
-  } else {
-    path.writeOver(s"$content$lineSep")
-  }
+  val newContent: String =
+    if (sops.endsWith(lineSep)) ops.StringOps(content).trim
+    else s"$content$lineSep"
+  path.writeOver(newContent)
 }
 
 
@@ -118,7 +117,7 @@ def buildMill(): Unit = {
       p.mklink(target)
     }
   }
-  val millBuild = homeBin / "mill-build"
+  val millBuild = home / "build"
   symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
   symlink(millBuildBin / "sireum.jar", homeBin / "sireum.jar")
@@ -398,7 +397,7 @@ def project(): Unit = {
   build()
   println("Generating IVE project ...")
   if (!Os.isWin) {
-    (homeBin / "mill-build" / "bin" / "build.cmd").slash(ISZ("dev"))
+    (home / "build" / "bin" / "build.cmd").slash(ISZ("dev"))
   }
   Os.proc(ISZ(sireum.string, "tools", "ivegen", "-f", "-m", "mill", "-n", home.name, ".")).at(home.up).console.runCheck()
 }

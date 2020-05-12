@@ -39,13 +39,13 @@ import $file.hamr.codegen.arsit.Arsit
 import $file.hamr.phantom.Phantom
 import $file.cli.Cli
 import $file.distro
-import mill.scalalib.ScalaModule
 import org.sireum.mill.SireumModule
 
 trait BinModule extends mill.scalalib.ScalaModule {
   final override def scalaVersion = SireumModule.scalaVersion
   final override def moduleDeps = Seq(runtime.library.jvm)
   final override def repositories = super.repositories ++ SireumModule.repositories
+  final override def sources = T.sources(millSourcePath / up / "bin")
 }
 
 object runtime extends mill.Module {
@@ -179,11 +179,12 @@ object cli extends Cli.Module {
 
 object bin extends BinModule {
 
-  object `mill-build` extends mill.Module {
-    object bin extends BinModule
-  }
 }
 
+object buildModule extends mill.Module {
+  override def millSourcePath = super.millSourcePath / up / "build"
+  object bin extends BinModule
+}
 
 def build() = T.command {
   val jar = os.pwd / 'bin / "sireum.jar"

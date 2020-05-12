@@ -10,9 +10,9 @@
 [submodule "alir"]
 	path = alir
 	url = https://github.com/sireum/alir
-[submodule "bin/mill-build"]
-	path = bin/mill-build
-	url = https://github.com/sireum/mill-build
+[submodule "build"]
+	path = build
+	url = https://github.com/sireum/build
 [submodule "logika"]
 	path = logika
 	url = https://github.com/sireum/logika
