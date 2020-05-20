@@ -32,9 +32,13 @@ val useLast: B = T
 
 Os.cliArgs.size match {
   case z"0" =>
-  case z"1" => releaseTagNameOpt = Some(Os.cliArgs(0))
+  case z"1" =>
+    Os.cliArgs(0) match {
+      case string"nightly" =>
+      case tagName => releaseTagNameOpt = Some(tagName)
+    }
   case _ =>
-    println("Usage: fmide.cmd [tag-name]")
+    println("Usage: fmide.cmd [<tag-name> | nightly]")
     Os.exit(-1)
 }
 
