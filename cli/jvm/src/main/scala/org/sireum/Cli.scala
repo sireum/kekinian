@@ -95,6 +95,7 @@ object Cli {
     args: ISZ[String],
     sourcepath: ISZ[String],
     timeout: Z,
+    unroll: B,
     charBitWidth: Z,
     intBitWidth: Z,
     logPc: B,
@@ -626,6 +627,8 @@ import Cli._
           |                           strings)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)
+          |    --unroll             Enable loop unrolling when loop modifies clause is
+          |                           unspecified
           |-h, --help               Display this information
           |
           |Bit-width Options:
@@ -643,6 +646,7 @@ import Cli._
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var timeout: Z = 2
+    var unroll: B = false
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
     var logPc: B = false
@@ -666,6 +670,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else if (arg == "--unroll") {
+           val o: Option[B] = { j = j - 1; Some(!unroll) }
+           o match {
+             case Some(v) => unroll = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -707,7 +717,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, charBitWidth, intBitWidth, logPc, logRawPc, logVc))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, charBitWidth, intBitWidth, logPc, logRawPc, logVc))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
