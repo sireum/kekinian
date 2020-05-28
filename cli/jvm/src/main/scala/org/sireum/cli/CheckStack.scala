@@ -35,7 +35,7 @@ object CheckStack {
       return 0
     }
 
-    if (!Sireum.homeFound) {
+    if (!SireumApi.homeFound) {
       return tools.CheckStack.NO_SIREUM_HOME
     }
 
@@ -44,7 +44,7 @@ object CheckStack {
       case _ => ops.StringOps(o.arch.name).firstToLower
     }
 
-    return tools.CheckStack.run(Sireum.homeOpt.get,
+    return tools.CheckStack.run(SireumApi.homeOpt.get,
       SireumApi.versions.getOrElse("org.sireum.version.checkstack", "v5.6"),
       o.args.map((s: String) => Os.path(s)), o.objdump.get, arch)
   }
