@@ -172,7 +172,12 @@ object Cli {
     traits: ISZ[String]
   ) extends SireumTopOption
 
-  @enum object Arch {
+  @enum object CheckStackMode {
+    'Dotsu
+    'Bin
+  }
+
+  @enum object CheckStackArch {
     'Amd64
     'X86
     'Aarch64
@@ -193,8 +198,9 @@ object Cli {
   @datatype class CheckstackOption(
     help: String,
     args: ISZ[String],
+    mode: CheckStackMode.Type,
     objdump: Option[String],
-    arch: Arch.Type
+    arch: CheckStackArch.Type
   ) extends SireumTopOption
 
   @datatype class CligenOption(
@@ -1341,35 +1347,54 @@ import Cli._
     return Some(BcgenOption(help, parseArguments(args, j), mode, isLittleEndian, packageName, name, license, outputDir, traits))
   }
 
-  def parseArchH(arg: String): Option[Arch.Type] = {
+  def parseCheckStackModeH(arg: String): Option[CheckStackMode.Type] = {
     arg.native match {
-      case "amd64" => return Some(Arch.Amd64)
-      case "x86" => return Some(Arch.X86)
-      case "aarch64" => return Some(Arch.Aarch64)
-      case "arm" => return Some(Arch.Arm)
-      case "powerpc" => return Some(Arch.Powerpc)
-      case "openrisc" => return Some(Arch.Openrisc)
-      case "mips" => return Some(Arch.Mips)
-      case "mips64" => return Some(Arch.Mips64)
-      case "m68k" => return Some(Arch.M68k)
-      case "ia64" => return Some(Arch.Ia64)
-      case "nios2" => return Some(Arch.Nios2)
-      case "parisc" => return Some(Arch.Parisc)
-      case "s390x" => return Some(Arch.S390x)
-      case "sh64" => return Some(Arch.Sh64)
-      case "sparc" => return Some(Arch.Sparc)
+      case "dotsu" => return Some(CheckStackMode.Dotsu)
+      case "bin" => return Some(CheckStackMode.Bin)
+      case s =>
+        eprintln(s"Expecting one of the following: { dotsu, bin }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseCheckStackMode(args: ISZ[String], i: Z): Option[CheckStackMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { dotsu, bin }, but none found.")
+      return None()
+    }
+    val r = parseCheckStackModeH(args(i))
+    return r
+  }
+
+  def parseCheckStackArchH(arg: String): Option[CheckStackArch.Type] = {
+    arg.native match {
+      case "amd64" => return Some(CheckStackArch.Amd64)
+      case "x86" => return Some(CheckStackArch.X86)
+      case "aarch64" => return Some(CheckStackArch.Aarch64)
+      case "arm" => return Some(CheckStackArch.Arm)
+      case "powerpc" => return Some(CheckStackArch.Powerpc)
+      case "openrisc" => return Some(CheckStackArch.Openrisc)
+      case "mips" => return Some(CheckStackArch.Mips)
+      case "mips64" => return Some(CheckStackArch.Mips64)
+      case "m68k" => return Some(CheckStackArch.M68k)
+      case "ia64" => return Some(CheckStackArch.Ia64)
+      case "nios2" => return Some(CheckStackArch.Nios2)
+      case "parisc" => return Some(CheckStackArch.Parisc)
+      case "s390x" => return Some(CheckStackArch.S390x)
+      case "sh64" => return Some(CheckStackArch.Sh64)
+      case "sparc" => return Some(CheckStackArch.Sparc)
       case s =>
         eprintln(s"Expecting one of the following: { amd64, x86, aarch64, arm, powerpc, openrisc, mips, mips64, m68k, ia64, nios2, parisc, s390x, sh64, sparc }, but found '$s'.")
         return None()
     }
   }
 
-  def parseArch(args: ISZ[String], i: Z): Option[Arch.Type] = {
+  def parseCheckStackArch(args: ISZ[String], i: Z): Option[CheckStackArch.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { amd64, x86, aarch64, arm, powerpc, openrisc, mips, mips64, m68k, ia64, nios2, parisc, s390x, sh64, sparc }, but none found.")
       return None()
     }
-    val r = parseArchH(args(i))
+    val r = parseCheckStackArchH(args(i))
     return r
   }
 
@@ -1380,16 +1405,21 @@ import Cli._
           |Usage: <option>* ( <file> | <dir> )*
           |
           |Available Options:
+          |-m, --mode               Analysis mode (expects one of { dotsu, bin }; default:
+          |                           dotsu)
+          |-h, --help               Display this information
+          |
+          |Binary Mode Options:
           |-o, --objdump            Name of object file dumper (expects a string; default
           |                           is "objdump")
           |-a, --arch               Target architecture (expects one of { amd64, x86,
           |                           aarch64, arm, powerpc, openrisc, mips, mips64, m68k,
           |                           ia64, nios2, parisc, s390x, sh64, sparc }; default:
-          |                           amd64)
-          |-h, --help               Display this information""".render
+          |                           amd64)""".render
 
+    var mode: CheckStackMode.Type = CheckStackMode.Dotsu
     var objdump: Option[String] = Some("objdump")
-    var arch: Arch.Type = Arch.Amd64
+    var arch: CheckStackArch.Type = CheckStackArch.Amd64
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1398,14 +1428,20 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-o" || arg == "--objdump") {
+        } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[CheckStackMode.Type] = parseCheckStackMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--objdump") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => objdump = v
              case _ => return None()
            }
          } else if (arg == "-a" || arg == "--arch") {
-           val o: Option[Arch.Type] = parseArch(args, j + 1)
+           val o: Option[CheckStackArch.Type] = parseCheckStackArch(args, j + 1)
            o match {
              case Some(v) => arch = v
              case _ => return None()
@@ -1419,7 +1455,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CheckstackOption(help, parseArguments(args, j), objdump, arch))
+    return Some(CheckstackOption(help, parseArguments(args, j), mode, objdump, arch))
   }
 
   def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {

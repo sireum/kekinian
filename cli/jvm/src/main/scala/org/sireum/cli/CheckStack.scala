@@ -40,12 +40,12 @@ object CheckStack {
     }
 
     val arch: String = o.arch match {
-      case Cli.Arch.Amd64 => "x86_64"
+      case Cli.CheckStackArch.Amd64 => "x86_64"
       case _ => ops.StringOps(o.arch.name).firstToLower
     }
 
     return tools.CheckStack.run(SireumApi.homeOpt.get,
       SireumApi.versions.getOrElse("org.sireum.version.checkstack", "v5.6"),
-      o.args.map((s: String) => Os.path(s)), o.objdump.get, arch)
+      o.args.map((s: String) => Os.path(s)), o.mode == Cli.CheckStackMode.Bin, o.objdump.get, arch)
   }
 }
