@@ -48,7 +48,7 @@ import org.sireum._
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup        | project      | bin          | native
+        |Usage: ( setup        | project      | fresh        | native
         |       | tipe         | compile      | test         | test-js
         |       | touche       | touche-lib   | touche-slang | touche-transpilers
         |       | regen-cliopt | regen-slang  | regen-logika | regen-cli
@@ -138,7 +138,7 @@ def buildMill(): Unit = {
 }
 
 
-def build(): Unit = {
+def build(fresh: B): Unit = {
   if (!didBuild) {
     didBuild = T
     println("Building ...")
@@ -153,9 +153,16 @@ def build(): Unit = {
     val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
     val oldCli = cli.read
     cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
-    touche()
+    if (fresh) {
+      (home / "out").removeAll()
+      (Os.home / ".mill").removeAll()
+    } else {
+      touche()
+    }
     val r = Os.proc(ISZ(mill.string, "build")).at(home).console.run()
-    touche()
+    if (!fresh) {
+      touche()
+    }
     cli.writeOver(oldCli)
     if (r.exitCode != 0) {
       Os.exit(r.exitCode)
@@ -176,7 +183,7 @@ def nativ(): Unit = {
     case Os.Kind.Win => ISZ("--static")
     case _ => halt("Unsupported operating system")
   }
-  build()
+  build(F)
   println("Building native ...")
   val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
       "-jar", sireumJar.string, (platDir / "sireum").string)).console.bufferErr.run()
@@ -394,7 +401,7 @@ def ghpack(): Unit = {
 }
 
 def project(): Unit = {
-  build()
+  build(F)
   println("Generating IVE project ...")
   if (!Os.isWin) {
     (home / "build" / "bin" / "build.cmd").slash(ISZ("dev"))
@@ -405,7 +412,7 @@ def project(): Unit = {
 
 def setup(): Unit = {
   println("Setup ...")
-  build()
+  build(F)
   Os.proc(ISZ(mill.string, "IVE")).at(home).console.run()
   project()
   Os.kind match {
@@ -438,11 +445,11 @@ if (!(home / "runtime" / "build.sc").exists) {
 buildMill()
 
 if (Os.cliArgs.isEmpty) {
-  build()
+  build(F)
 } else {
   for (i <- 0 until Os.cliArgs.size) {
     Os.cliArgs(i) match {
-      case string"bin" => build()
+      case string"fresh" => build(T)
       case string"native" => nativ()
       case string"setup" => setup()
       case string"project" => project()
