@@ -172,6 +172,31 @@ object Cli {
     traits: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object Arch {
+    'Amd64
+    'X86
+    'Aarch64
+    'Arm
+    'Powerpc
+    'Openrisc
+    'Mips
+    'Mips64
+    'M68k
+    'Ia64
+    'Nios2
+    'Parisc
+    'S390x
+    'Sh64
+    'Sparc
+  }
+
+  @datatype class CheckstackOption(
+    help: String,
+    args: ISZ[String],
+    objdump: Option[String],
+    arch: Arch.Type
+  ) extends SireumTopOption
+
   @datatype class CligenOption(
     help: String,
     args: ISZ[String],
@@ -1167,6 +1192,7 @@ import Cli._
             |
             |Available modes:
             |bcgen                    Bit encoder/decoder generator
+            |checkstack               Native function stack size check tool
             |cligen                   Command-line interface (CLI) generator
             |ivegen                   Sireum IVE project generator
             |sergen                   De/Serializer generator
@@ -1174,9 +1200,10 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "cligen", "ivegen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "sergen", "transgen"))
     opt match {
       case Some(string"bcgen") => parseBcgen(args, i + 1)
+      case Some(string"checkstack") => parseCheckstack(args, i + 1)
       case Some(string"cligen") => parseCligen(args, i + 1)
       case Some(string"ivegen") => parseIvegen(args, i + 1)
       case Some(string"sergen") => parseSergen(args, i + 1)
@@ -1312,6 +1339,87 @@ import Cli._
       }
     }
     return Some(BcgenOption(help, parseArguments(args, j), mode, isLittleEndian, packageName, name, license, outputDir, traits))
+  }
+
+  def parseArchH(arg: String): Option[Arch.Type] = {
+    arg.native match {
+      case "amd64" => return Some(Arch.Amd64)
+      case "x86" => return Some(Arch.X86)
+      case "aarch64" => return Some(Arch.Aarch64)
+      case "arm" => return Some(Arch.Arm)
+      case "powerpc" => return Some(Arch.Powerpc)
+      case "openrisc" => return Some(Arch.Openrisc)
+      case "mips" => return Some(Arch.Mips)
+      case "mips64" => return Some(Arch.Mips64)
+      case "m68k" => return Some(Arch.M68k)
+      case "ia64" => return Some(Arch.Ia64)
+      case "nios2" => return Some(Arch.Nios2)
+      case "parisc" => return Some(Arch.Parisc)
+      case "s390x" => return Some(Arch.S390x)
+      case "sh64" => return Some(Arch.Sh64)
+      case "sparc" => return Some(Arch.Sparc)
+      case s =>
+        eprintln(s"Expecting one of the following: { amd64, x86, aarch64, arm, powerpc, openrisc, mips, mips64, m68k, ia64, nios2, parisc, s390x, sh64, sparc }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseArch(args: ISZ[String], i: Z): Option[Arch.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { amd64, x86, aarch64, arm, powerpc, openrisc, mips, mips64, m68k, ia64, nios2, parisc, s390x, sh64, sparc }, but none found.")
+      return None()
+    }
+    val r = parseArchH(args(i))
+    return r
+  }
+
+  def parseCheckstack(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum CheckStack
+          |
+          |Usage: <option>* ( <file> | <dir> )*
+          |
+          |Available Options:
+          |-o, --objdump            Name of object file dumper (expects a string; default
+          |                           is "objdump")
+          |-a, --arch               Target architecture (expects one of { amd64, x86,
+          |                           aarch64, arm, powerpc, openrisc, mips, mips64, m68k,
+          |                           ia64, nios2, parisc, s390x, sh64, sparc }; default:
+          |                           amd64)
+          |-h, --help               Display this information""".render
+
+    var objdump: Option[String] = Some("objdump")
+    var arch: Arch.Type = Arch.Amd64
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-o" || arg == "--objdump") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => objdump = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--arch") {
+           val o: Option[Arch.Type] = parseArch(args, j + 1)
+           o match {
+             case Some(v) => arch = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(CheckstackOption(help, parseArguments(args, j), objdump, arch))
   }
 
   def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {

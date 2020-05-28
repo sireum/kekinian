@@ -133,7 +133,7 @@ object GenTools {
       outTemp.removeAll()
       JSON.toCliOpt(configText) match {
         case Either.Left(config) =>
-          val out = CliGenJvm(lOpt, config, src, dest, o.packageName, o.name, first, second)
+          val out = CliGenJvm.run(lOpt, config, src, dest, o.packageName, o.name, first, second)
           dest.writeOver(out)
           println(s"Wrote $dest")
           0
@@ -473,7 +473,7 @@ object GenTools {
         val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
         val packageNameOpt: Option[ISZ[String]] = if (o.packageName.isEmpty) None() else Some(o.packageName)
-        SerializerGenJvm(T, mode, lOpt, srcs, dest, packageNameOpt, Some(String(name)), reporter) match {
+        SerializerGenJvm.run(T, mode, lOpt, srcs, dest, packageNameOpt, Some(String(name)), reporter) match {
           case Some(out) =>
             dest.writeOver(out)
             println(s"Wrote $dest")
@@ -520,7 +520,7 @@ object GenTools {
         }
         val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
-        TransformerGenJvm(T, mode, lOpt, src, dest, Some(String(name)), reporter) match {
+        TransformerGenJvm.run(T, mode, lOpt, src, dest, Some(String(name)), reporter) match {
           case Some(out) =>
             dest.writeOver(out)
             println(s"Wrote $dest")

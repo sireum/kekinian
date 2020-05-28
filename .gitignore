@@ -48,4 +48,6 @@ mill-standalone
 /bin/win/clion
 /bin/mac/clion
 /bin/linux/clion
+/bin/linux/.checkstack
+/bin/linux/.checkstack.ver
 /bin/*.sc

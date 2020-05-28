@@ -41,6 +41,7 @@ object Sireum {
           case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o).toInt
           case Some(o: Cli.CTranspilerOption) => cli.CTranspiler.run(o).toInt
           case Some(o: Cli.BcgenOption) => cli.GenTools.bcGen(o).toInt
+          case Some(o: Cli.CheckstackOption) => cli.CheckStack.run(o).toInt
           case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o).toInt
           case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
           case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt
@@ -54,8 +55,8 @@ object Sireum {
     }
   }
 
-  def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): Seq[Os.Path] = {
-    var r = Vector[Os.Path]()
+  def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): ISZ[Os.Path] = {
+    var r = ISZ[Os.Path]()
     for (p <- paths) {
       r = r :+ paths2fileOpt(pathFor, ISZ(p), checkExist).get
     }
@@ -95,7 +96,9 @@ object Sireum {
 
   lazy val isNative: B = Os_Ext.isNative
 
-  lazy val info: Init.Info = Init.info($internal.Macro.version, versions)
+  lazy val version: String = $internal.Macro.version
+
+  lazy val initInfo: Init.Info = Init.info(version, versions)
 
   lazy val homeOpt: Option[Os.Path] = {
     var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
@@ -121,7 +124,7 @@ object Sireum {
       rOpt = homeOpt.map(_ / "bin" / platform / "java")
       rOpt match {
         case Some(r) if r.exists =>
-        case _ if isNative => rOpt = Some(info.javaHome)
+        case _ if isNative => rOpt = Some(initInfo.javaHome)
         case _ => rOpt = None()
       }
     }
@@ -134,7 +137,7 @@ object Sireum {
       rOpt = homeOpt.map(_ / "bin" / "scala")
       rOpt match {
         case Some(r) if r.exists =>
-        case _ if isNative => rOpt = Some(info.scalaHome)
+        case _ if isNative => rOpt = Some(initInfo.scalaHome)
         case _ => rOpt = None()
       }
     }
@@ -144,7 +147,7 @@ object Sireum {
   lazy val scalacPluginJar: Os.Path = {
     val r = homeOpt match {
       case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
-      case _ if isNative => info.scalacPlugin
+      case _ if isNative => initInfo.scalacPlugin
       case _ => homeNotFound()
     }
     if (!r.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
@@ -163,7 +166,7 @@ object Sireum {
 
   lazy val sireumJar: Os.Path = homeOpt match {
     case Some(home) => home / "bin" / "sireum.jar"
-    case _ if isNative => info.sireumJar
+    case _ if isNative => initInfo.sireumJar
     case _ => homeNotFound()
   }
 
