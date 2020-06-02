@@ -187,6 +187,29 @@ object CTranspiler {
         stopTime()
         println()
       }
+      println("Reading cmake include files ...")
+      startTime()
+    }
+
+    var cmakeIncludes: ISZ[String] = ISZ()
+    for (ci <- o.cmakeIncludes) {
+      val f = Os.path(ci.value)
+      if (!f.exists) {
+        eprintln(s"File $ci does not exist.")
+        return InvalidFile
+      } else if (!f.isFile) {
+        eprintln(s"Path $ci is not a file.")
+        return InvalidFile
+      }
+      val p = readFile(f)
+      cmakeIncludes = cmakeIncludes :+ p._2
+    }
+
+    if (o.verbose) {
+      if (o.cmakeIncludes.nonEmpty) {
+        stopTime()
+        println()
+      }
       println("Reading sourcepath files ...")
       startTime()
     }
@@ -513,7 +536,8 @@ object CTranspiler {
       forLoopOpt = o.unroll,
       stackSize = o.stackSize.get,
       libOnly = o.libOnly,
-      stableTypeId = o.stableTypeId
+      stableTypeId = o.stableTypeId,
+      cmakeIncludes = cmakeIncludes
     )
 
     val trans = StaticTranspiler(config, tsr)

@@ -133,24 +133,25 @@ object Cli {
     sourcepath: ISZ[String],
     output: Option[String],
     verbose: B,
-    projectName: Option[String],
     apps: ISZ[String],
-    unroll: B,
-    fingerprint: Z,
     bitWidth: Z,
-    maxStringSize: Z,
-    maxArraySize: Z,
-    customArraySizes: ISZ[String],
-    customConstants: ISZ[String],
-    plugins: ISZ[String],
-    exts: ISZ[String],
-    forwarding: ISZ[String],
+    projectName: Option[String],
     stackSize: Option[String],
-    excludeBuild: ISZ[String],
+    customArraySizes: ISZ[String],
+    maxArraySize: Z,
+    maxStringSize: Z,
+    cmakeIncludes: ISZ[String],
+    exts: ISZ[String],
     libOnly: B,
+    excludeBuild: ISZ[String],
+    plugins: ISZ[String],
+    fingerprint: Z,
     stableTypeId: B,
+    unroll: B,
     save: Option[String],
-    load: Option[String]
+    load: Option[String],
+    customConstants: ISZ[String],
+    forwarding: ISZ[String]
   ) extends SireumTopOption
 
   @enum object BitCodecMode {
@@ -984,67 +985,82 @@ import Cli._
           |-h, --help               Display this information
           |
           |Configuration Options:
-          |-n, --name               Project name (expects a string; default is "main")
           |-a, --apps               @app fully qualified names (expects a string separated
           |                           by ",")
-          |-u, --unroll             Enable for-loop unrolling
-          |-f, --fingerprint        Generic entity fingerprinting size (expects an
-          |                           integer; default is 3)
           |-b, --bits               Default bit-width for unbounded integer types (e.g.,
           |                           Z) (expects one of { 64, 32, 16, 8 })
-          |    --string-size        Maximum string size (expects an integer; default is
-          |                           100)
-          |    --sequence-size      Default maximum sequence size (expects an integer;
-          |                           default is 100)
+          |-n, --name               Project name (expects a string; default is "main")
+          |-z, --stack-size         Maximum stack size in bytes (expects a string; default
+          |                           is "16 * 1024 * 1024")
+          |
+          |Array Bounds Options:
           |-q, --sequence           Custom maximum sequence sizes, each in the form of
           |                           <type>=<size>, where <type> is either IS[,], MS[,],
           |                           ISZ[], MSZ[], or ZS with fully qualified index and
           |                           element types where applicable (expects a string
           |                           separated by ";")
-          |-c, --constants          Custom constant for object variables, each in the form
-          |                           of <name>=<lit>, where <name> is a qualified name of
-          |                           an object var and <lit> is a Slang literal
-          |                           expression (expects a string separated by ";")
-          |-p, --plugins            Plugin fully qualified names (expects a string
-          |                           separated by ",")
+          |    --sequence-size      Default maximum sequence size (expects an integer;
+          |                           default is 100)
+          |    --string-size        Maximum string size (expects an integer; default is
+          |                           100)
+          |
+          |CMake Options:
+          |    --cmake-includes     Files to embed in generated CMakeLists.txt (expects
+          |                           path strings)
           |-e, --exts               Extension file paths (expects path strings)
-          |-w, --forward            Object forwarding, each in form of <name>=<name>,
-          |                           where <name> is a fully qualified name of an object
-          |                           (expects a string separated by ",")
-          |-z, --stack-size         Maximum stack size in bytes (expects a string; default
-          |                           is "16 * 1024 * 1024")
+          |-l, --lib-only           Only generate library definition in CMake file
           |-x, --exclude-build      Type/method fully qualified names to exclude in the
           |                           generated CMake file (expects a string separated by
           |                           ",")
-          |-l, --lib-only           Only generate library definition in CMake file
+          |
+          |Extensibility Options:
+          |-p, --plugins            Plugin fully qualified names (expects a string
+          |                           separated by ",")
+          |
+          |Name Mangling Options:
+          |-f, --fingerprint        Generic entity fingerprinting size (expects an
+          |                           integer; default is 3)
           |-i, --stable-type-id     Enable stable type id
+          |
+          |Optimizations Options:
+          |-u, --unroll             Enable for-loop unrolling on constant bounds
           |
           |Persistence Options:
           |    --save               Path to save type information to (outline should not
           |                           be enabled) (expects a path)
-          |    --load               Path to load type information from (expects a path)""".render
+          |    --load               Path to load type information from (expects a path)
+          |
+          |Substitutions Options:
+          |-c, --constants          Custom constant for object variables, each in the form
+          |                           of <name>=<lit>, where <name> is a qualified name of
+          |                           an object var and <lit> is a Slang literal
+          |                           expression (expects a string separated by ";")
+          |-w, --forward            Object forwarding, each in form of <name>=<name>,
+          |                           where <name> is a fully qualified name of an object
+          |                           (expects a string separated by ",")""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var output: Option[String] = Some("out")
     var verbose: B = false
-    var projectName: Option[String] = Some("main")
     var apps: ISZ[String] = ISZ[String]()
-    var unroll: B = false
-    var fingerprint: Z = 3
     var bitWidth: Z = 64
-    var maxStringSize: Z = 100
-    var maxArraySize: Z = 100
-    var customArraySizes: ISZ[String] = ISZ[String]()
-    var customConstants: ISZ[String] = ISZ[String]()
-    var plugins: ISZ[String] = ISZ[String]()
-    var exts: ISZ[String] = ISZ[String]()
-    var forwarding: ISZ[String] = ISZ[String]()
+    var projectName: Option[String] = Some("main")
     var stackSize: Option[String] = Some("16 * 1024 * 1024")
-    var excludeBuild: ISZ[String] = ISZ[String]()
+    var customArraySizes: ISZ[String] = ISZ[String]()
+    var maxArraySize: Z = 100
+    var maxStringSize: Z = 100
+    var cmakeIncludes: ISZ[String] = ISZ[String]()
+    var exts: ISZ[String] = ISZ[String]()
     var libOnly: B = false
+    var excludeBuild: ISZ[String] = ISZ[String]()
+    var plugins: ISZ[String] = ISZ[String]()
+    var fingerprint: Z = 3
     var stableTypeId: B = false
+    var unroll: B = false
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
+    var customConstants: ISZ[String] = ISZ[String]()
+    var forwarding: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1071,28 +1087,10 @@ import Cli._
              case Some(v) => verbose = v
              case _ => return None()
            }
-         } else if (arg == "-n" || arg == "--name") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => projectName = v
-             case _ => return None()
-           }
          } else if (arg == "-a" || arg == "--apps") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => apps = v
-             case _ => return None()
-           }
-         } else if (arg == "-u" || arg == "--unroll") {
-           val o: Option[B] = { j = j - 1; Some(!unroll) }
-           o match {
-             case Some(v) => unroll = v
-             case _ => return None()
-           }
-         } else if (arg == "-f" || arg == "--fingerprint") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), Some(64))
-           o match {
-             case Some(v) => fingerprint = v
              case _ => return None()
            }
          } else if (arg == "-b" || arg == "--bits") {
@@ -1101,46 +1099,10 @@ import Cli._
              case Some(v) => bitWidth = v
              case _ => return None()
            }
-         } else if (arg == "--string-size") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => maxStringSize = v
-             case _ => return None()
-           }
-         } else if (arg == "--sequence-size") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
-           o match {
-             case Some(v) => maxArraySize = v
-             case _ => return None()
-           }
-         } else if (arg == "-q" || arg == "--sequence") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
-           o match {
-             case Some(v) => customArraySizes = v
-             case _ => return None()
-           }
-         } else if (arg == "-c" || arg == "--constants") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
-           o match {
-             case Some(v) => customConstants = v
-             case _ => return None()
-           }
-         } else if (arg == "-p" || arg == "--plugins") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => plugins = v
-             case _ => return None()
-           }
-         } else if (arg == "-e" || arg == "--exts") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => exts = v
-             case _ => return None()
-           }
-         } else if (arg == "-w" || arg == "--forward") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => forwarding = v
+             case Some(v) => projectName = v
              case _ => return None()
            }
          } else if (arg == "-z" || arg == "--stack-size") {
@@ -1149,10 +1111,34 @@ import Cli._
              case Some(v) => stackSize = v
              case _ => return None()
            }
-         } else if (arg == "-x" || arg == "--exclude-build") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+         } else if (arg == "-q" || arg == "--sequence") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
-             case Some(v) => excludeBuild = v
+             case Some(v) => customArraySizes = v
+             case _ => return None()
+           }
+         } else if (arg == "--sequence-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxArraySize = v
+             case _ => return None()
+           }
+         } else if (arg == "--string-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxStringSize = v
+             case _ => return None()
+           }
+         } else if (arg == "--cmake-includes") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => cmakeIncludes = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--exts") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => exts = v
              case _ => return None()
            }
          } else if (arg == "-l" || arg == "--lib-only") {
@@ -1161,10 +1147,34 @@ import Cli._
              case Some(v) => libOnly = v
              case _ => return None()
            }
+         } else if (arg == "-x" || arg == "--exclude-build") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => excludeBuild = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--plugins") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => plugins = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--fingerprint") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), Some(64))
+           o match {
+             case Some(v) => fingerprint = v
+             case _ => return None()
+           }
          } else if (arg == "-i" || arg == "--stable-type-id") {
            val o: Option[B] = { j = j - 1; Some(!stableTypeId) }
            o match {
              case Some(v) => stableTypeId = v
+             case _ => return None()
+           }
+         } else if (arg == "-u" || arg == "--unroll") {
+           val o: Option[B] = { j = j - 1; Some(!unroll) }
+           o match {
+             case Some(v) => unroll = v
              case _ => return None()
            }
          } else if (arg == "--save") {
@@ -1179,6 +1189,18 @@ import Cli._
              case Some(v) => load = v
              case _ => return None()
            }
+         } else if (arg == "-c" || arg == "--constants") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => customConstants = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--forward") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => forwarding = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -1188,7 +1210,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, projectName, apps, unroll, fingerprint, bitWidth, maxStringSize, maxArraySize, customArraySizes, customConstants, plugins, exts, forwarding, stackSize, excludeBuild, libOnly, stableTypeId, save, load))
+    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

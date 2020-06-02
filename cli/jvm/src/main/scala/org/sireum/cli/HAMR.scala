@@ -177,7 +177,8 @@ object HAMR {
         libOnly = ao.libOnly,
         stableTypeId = ao.stableTypeId,
         save = ao.save,
-        load = ao.load
+        load = ao.load,
+        cmakeIncludes = ISZ()
       )
       
       val result = CTranspiler.run(to)
