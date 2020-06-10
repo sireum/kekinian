@@ -169,17 +169,28 @@ object CTranspiler {
     }
 
     var exts: ISZ[StaticTranspiler.ExtFile] = ISZ()
+
+    def extRec(rel: ISZ[String], p: Os.Path, force: B): B = {
+      if (!p.exists) {
+        eprintln(s"File $p does not exist.")
+        return F
+      } else if (p.isDir) {
+        for (f <- p.list) {
+          extRec(rel :+ p.name, f, F)
+        }
+      }
+      if (force || p.ext === "c" || p.ext === "h") {
+        val (uriOpt, content) = readFile(p)
+        exts = exts :+ StaticTranspiler.ExtFile(rel, uriOpt.get, content)
+      }
+      return T
+    }
+
     for (ext <- o.exts) {
       val f = Os.path(ext.value)
-      if (!f.exists) {
-        eprintln(s"File $ext does not exist.")
-        return InvalidFile
-      } else if (!f.isFile) {
-        eprintln(s"Path $ext is not a file.")
+      if (!extRec(ISZ(), f, T)) {
         return InvalidFile
       }
-      val p = readFile(f)
-      exts = exts :+ StaticTranspiler.ExtFile(p._1.get, p._2)
     }
 
     if (o.verbose) {
