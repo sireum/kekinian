@@ -1005,8 +1005,10 @@ import Cli._
           |                           100)
           |
           |CMake Options:
-          |    --cmake-includes     Files to embed in generated CMakeLists.txt (expects
-          |                           path strings)
+          |    --cmake-includes     Files to embed in generated CMakeLists.txt (can
+          |                           optionally use a preceeding - or + to indicate
+          |                           before/after library/app definitions; defaults to -)
+          |                           (expects path strings)
           |-e, --exts               Extension directory or file paths (expects path
           |                           strings)
           |-l, --lib-only           Only generate library definition in CMake file

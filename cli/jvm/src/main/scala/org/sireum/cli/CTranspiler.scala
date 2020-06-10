@@ -203,8 +203,17 @@ object CTranspiler {
     }
 
     var cmakeIncludes: ISZ[String] = ISZ()
+    var cmakePlusIncludes: ISZ[String] = ISZ()
     for (ci <- o.cmakeIncludes) {
-      val f = Os.path(ci.value)
+      val ciOps = ops.StringOps(ci.value)
+      val (plus, path): (B, String) = if (ciOps.startsWith("+")) {
+        (T, ciOps.substring(1, ciOps.size))
+      } else if (ciOps.startsWith("-")) {
+        (F, ciOps.substring(1, ciOps.size))
+      } else {
+        (T, ciOps.s)
+      }
+      val f = Os.path(path)
       if (!f.exists) {
         eprintln(s"File $ci does not exist.")
         return InvalidFile
@@ -212,8 +221,12 @@ object CTranspiler {
         eprintln(s"Path $ci is not a file.")
         return InvalidFile
       }
-      val p = readFile(f)
-      cmakeIncludes = cmakeIncludes :+ p._2
+      val content = readFile(f)._2
+      if (plus) {
+        cmakeIncludes = cmakeIncludes :+ content
+      } else {
+        cmakePlusIncludes = cmakePlusIncludes :+ content
+      }
     }
 
     if (o.verbose) {
@@ -548,7 +561,8 @@ object CTranspiler {
       stackSize = o.stackSize.get,
       libOnly = o.libOnly,
       stableTypeId = o.stableTypeId,
-      cmakeIncludes = cmakeIncludes
+      cmakeIncludes = cmakeIncludes,
+      cmakePlusIncludes = cmakePlusIncludes
     )
 
     val trans = StaticTranspiler(config, tsr)
