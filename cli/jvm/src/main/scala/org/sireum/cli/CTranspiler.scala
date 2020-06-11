@@ -211,21 +211,21 @@ object CTranspiler {
       } else if (ciOps.startsWith("-")) {
         (F, ciOps.substring(1, ciOps.size))
       } else {
-        (T, ciOps.s)
+        (F, ciOps.s)
       }
       val f = Os.path(path)
       if (!f.exists) {
-        eprintln(s"File $ci does not exist.")
+        eprintln(s"File $path does not exist.")
         return InvalidFile
       } else if (!f.isFile) {
-        eprintln(s"Path $ci is not a file.")
+        eprintln(s"Path $path is not a file.")
         return InvalidFile
       }
       val content = readFile(f)._2
       if (plus) {
-        cmakeIncludes = cmakeIncludes :+ content
-      } else {
         cmakePlusIncludes = cmakePlusIncludes :+ content
+      } else {
+        cmakeIncludes = cmakeIncludes :+ content
       }
     }
 
