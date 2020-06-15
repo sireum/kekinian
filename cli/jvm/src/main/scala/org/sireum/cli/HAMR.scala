@@ -89,7 +89,6 @@ object HAMR {
               embedArt: B,
               devicesAsThreads: B,
               //
-              ipcMechanism: Option[Cli.HamrIpcMechanism.Type],
               slangAuxCodeDir: ISZ[Predef.String],
               slangOutputCDirectory: Option[Predef.String],
               excludeComponentImpl: B,
@@ -102,8 +101,6 @@ object HAMR {
               aadlRootDir: Option[Predef.String]
              ): Int = {
 
-    val _ipcMechanism = if(ipcMechanism.isEmpty) { Cli.HamrIpcMechanism.MessageQueue } else { ipcMechanism.get }
-
     val o = Cli.HamrCodeGenOption("", ISZ(), F,
       verbose,
       platform,
@@ -112,7 +109,6 @@ object HAMR {
       embedArt,
       devicesAsThreads,
       //
-      _ipcMechanism,
       slangAuxCodeDir.map(f => org.sireum.String(f)),
       slangOutputCDirectory.map(f => org.sireum.String(f)),
       excludeComponentImpl,
@@ -138,7 +134,7 @@ object HAMR {
       packageName = o.packageName,
       embedArt = o.embedArt,
       devicesAsThreads = o.devicesAsThreads,
-      ipc = CodeGenIpcMechanism.byName(o.ipc.name).get,
+      ipc = CodeGenIpcMechanism.SharedMemory,
       slangAuxCodeDirs = o.slangAuxCodeDirs,
       slangOutputCDir = o.slangOutputCDir,
       excludeComponentImpl = o.excludeComponentImpl,
@@ -178,21 +174,15 @@ object HAMR {
         stableTypeId = ao.stableTypeId,
         save = ao.save,
         load = ao.load,
-        cmakeIncludes = ISZ()
+        cmakeIncludes = ao.cmakeIncludes
       )
       
-      val result = CTranspiler.run(to)
-      if(result == 0 && o.platform == Cli.HamrPlatform.SeL4) {
-        val cmake = Os.path(ao.output.get) / "CMakeLists.txt"
-        if(cmake.exists) {
-          cmake.writeAppend("\n\nadd_definitions(-DCAMKES)\n")
-        }
-      } 
-      
+      val result: Z = CTranspiler.run(to)
+
       return result
     }
     
-    val results = CodeGen.codeGen(model, ops, reporter, transpile _ )
+    val results: CodeGenResults = CodeGen.codeGen(model, ops, reporter, transpile _ )
     
     return if(reporter.hasError) 1 else 0
   }

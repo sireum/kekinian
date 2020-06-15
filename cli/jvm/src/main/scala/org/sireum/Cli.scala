@@ -48,11 +48,6 @@ object Cli {
     'SeL4_TB
   }
 
-  @enum object HamrIpcMechanism {
-    'SharedMemory
-    'MessageQueue
-  }
-
   @datatype class HamrCodeGenOption(
     help: String,
     args: ISZ[String],
@@ -63,7 +58,6 @@ object Cli {
     packageName: Option[String],
     embedArt: B,
     devicesAsThreads: B,
-    ipc: HamrIpcMechanism.Type,
     slangAuxCodeDirs: ISZ[String],
     slangOutputCDir: Option[String],
     excludeComponentImpl: B,
@@ -334,25 +328,6 @@ import Cli._
     return r
   }
 
-  def parseHamrIpcMechanismH(arg: String): Option[HamrIpcMechanism.Type] = {
-    arg.native match {
-      case "SharedMemory" => return Some(HamrIpcMechanism.SharedMemory)
-      case "MessageQueue" => return Some(HamrIpcMechanism.MessageQueue)
-      case s =>
-        eprintln(s"Expecting one of the following: { SharedMemory, MessageQueue }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseHamrIpcMechanism(args: ISZ[String], i: Z): Option[HamrIpcMechanism.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { SharedMemory, MessageQueue }, but none found.")
-      return None()
-    }
-    val r = parseHamrIpcMechanismH(args(i))
-    return r
-  }
-
   def parseHamrCodeGen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Code Generator
@@ -376,9 +351,6 @@ import Cli._
           |    --devices-as-thread  Treat AADL devices as threads
           |
           |Transpiler Options:
-          |    --ipc-mechanism      IPC communication mechanism (requires 'trans' option)
-          |                           (expects one of { SharedMemory, MessageQueue };
-          |                           default: SharedMemory)
           |    --slang-aux-code-dirs
           |                          Auxiliary C source code directory (expects path
           |                           strings)
@@ -409,7 +381,6 @@ import Cli._
     var packageName: Option[String] = None[String]()
     var embedArt: B = false
     var devicesAsThreads: B = false
-    var ipc: HamrIpcMechanism.Type = HamrIpcMechanism.SharedMemory
     var slangAuxCodeDirs: ISZ[String] = ISZ[String]()
     var slangOutputCDir: Option[String] = None[String]()
     var excludeComponentImpl: B = false
@@ -467,12 +438,6 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!devicesAsThreads) }
            o match {
              case Some(v) => devicesAsThreads = v
-             case _ => return None()
-           }
-         } else if (arg == "--ipc-mechanism") {
-           val o: Option[HamrIpcMechanism.Type] = parseHamrIpcMechanism(args, j + 1)
-           o match {
-             case Some(v) => ipc = v
              case _ => return None()
            }
          } else if (arg == "--slang-aux-code-dirs") {
@@ -538,7 +503,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, ipc, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir))
+    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir))
   }
 
   def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
