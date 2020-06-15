@@ -492,11 +492,10 @@ object GenTools {
     try {
       o.args.size match {
         case z"0" => println(o.help); return 0
-        case z"1" =>
-        case _ => println(s"Expecting one argument, but found ${o.args.size}."); return -1
+        case _ =>
       }
       val lOpt = path2fileOpt("license file", o.license, T)
-      val src = paths2fileOpt("Slang file", o.args, T).get
+      val sources = paths2files("Slang file", o.args, T)
       val destDir = path2fileOpt("output directory", o.outputDir, T).get
       if (!destDir.isDir) error(s"Path $destDir is not a directory")
       for (m <- o.modes) {
@@ -520,7 +519,7 @@ object GenTools {
         }
         val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
-        TransformerGenJvm.run(T, mode, lOpt, src, dest, Some(String(name)), reporter) match {
+        TransformerGenJvm.run(T, mode, lOpt, sources, Some(String(name)), reporter) match {
           case Some(out) =>
             dest.writeOver(out)
             println(s"Wrote $dest")

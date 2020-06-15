@@ -67,7 +67,7 @@ object Logika {
         return INVALID_INT_WIDTH
     }
 
-    val config = logika.Logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc)
+    val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc)
 
     for (arg <- o.args) {
       val f = Os.path(arg)
