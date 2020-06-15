@@ -37,6 +37,7 @@ import $file.hamr.codegen.Codegen
 import $file.hamr.codegen.act.Act
 import $file.hamr.codegen.arsit.Arsit
 import $file.hamr.phantom.Phantom
+import $file.server.Server
 import $file.cli.Cli
 import $file.distro
 import org.sireum.mill.SireumModule
@@ -168,7 +169,7 @@ object hamr extends mill.Module {
 }
 
 
-object cli extends Cli.Module {
+object server extends Server.Module {
   final override def alirObject = alir
   final override def transpilersCObject = transpilers.c
   final override def toolsObject = tools
@@ -177,9 +178,15 @@ object cli extends Cli.Module {
   final override def hamrCodegenObject = hamr.codegen
 }
 
+
+object cli extends Cli.Module {
+  final override def serverObject = server
+}
+
 object bin extends BinModule {
 
 }
+
 
 object buildModule extends mill.Module {
   override def millSourcePath = super.millSourcePath / up / "build"

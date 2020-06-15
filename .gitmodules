@@ -28,3 +28,6 @@
 [submodule "hamr/codegen"]
 	path = hamr/codegen
 	url = https://github.com/sireum/hamr-codegen.git
+[submodule "server"]
+	path = server
+	url = https://github.com/sireum/server

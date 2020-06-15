@@ -40,23 +40,17 @@ trait Module extends JvmPublishOnly {
     Developers.jason
   )
   final override def crossDeps =
-    if (isSourceDep) Seq(alirObject, transpilersCObject, toolsObject, logikaObject, hamrCodegenObject)
+    if (isSourceDep) Seq(serverObject)
     else Seq()
 
   final override def ivyDeps = T {
     if (isSourceDep) Agg.empty
     else Agg(
-      jpLatest(isCross = false, "sireum", "alir"),
-      jpLatest(isCross = false, "sireum", "transpilers", "c"),
-      jpLatest(isCross = false, "sireum", "tools"),
-      jpLatest(isCross = false, "sireum", "logika"),
-      jpLatest(isCross = false, "sireum", "phantom")
+      jpLatest(isCross = false, "sireum", "server"),
     )
   }
 
-  final override def deps =
-    if (isSourceDep) Seq(phantomObject)
-    else Seq()
+  final override def deps = Seq()
 
   final override def testFrameworks = Seq()
 
@@ -68,17 +62,7 @@ trait Module extends JvmPublishOnly {
     ivy"org.sireum::scalac-plugin:$scalacPluginVersion"
   )
 
-  def alirObject: CrossJvmJsPublish
-
-  def transpilersCObject: CrossJvmJsPublish
-
-  def toolsObject: CrossJvmJsPublish
-
-  def logikaObject: CrossJvmJsPublish
-
-  def phantomObject: JvmPublish
-  
-  def hamrCodegenObject: CrossJvmJsPublish
+  def serverObject: CrossJvmJsPublish
 
   final override def mainClass = Some("org.sireum.Sireum")
 
