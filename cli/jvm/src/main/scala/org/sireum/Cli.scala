@@ -190,12 +190,21 @@ object Cli {
     'Sparc
   }
 
+  @enum object CheckStackFormat {
+    'Plain
+    'Csv
+    'Html
+    'Md
+    'Rst
+  }
+
   @datatype class CheckstackOption(
     help: String,
     args: ISZ[String],
     mode: CheckStackMode.Type,
     objdump: Option[String],
-    arch: CheckStackArch.Type
+    arch: CheckStackArch.Type,
+    format: CheckStackFormat.Type
   ) extends SireumTopOption
 
   @datatype class CligenOption(
@@ -1388,6 +1397,28 @@ import Cli._
     return r
   }
 
+  def parseCheckStackFormatH(arg: String): Option[CheckStackFormat.Type] = {
+    arg.native match {
+      case "plain" => return Some(CheckStackFormat.Plain)
+      case "csv" => return Some(CheckStackFormat.Csv)
+      case "html" => return Some(CheckStackFormat.Html)
+      case "md" => return Some(CheckStackFormat.Md)
+      case "rst" => return Some(CheckStackFormat.Rst)
+      case s =>
+        eprintln(s"Expecting one of the following: { plain, csv, html, md, rst }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseCheckStackFormat(args: ISZ[String], i: Z): Option[CheckStackFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { plain, csv, html, md, rst }, but none found.")
+      return None()
+    }
+    val r = parseCheckStackFormatH(args(i))
+    return r
+  }
+
   def parseCheckstack(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum CheckStack
@@ -1405,11 +1436,16 @@ import Cli._
           |-a, --arch               Target architecture (expects one of { amd64, x86,
           |                           aarch64, arm, powerpc, openrisc, mips, mips64, m68k,
           |                           ia64, nios2, parisc, s390x, sh64, sparc }; default:
-          |                           amd64)""".render
+          |                           amd64)
+          |
+          |Output Mode Options:
+          |-f, --format             Output format (expects one of { plain, csv, html, md,
+          |                           rst }; default: plain)""".render
 
     var mode: CheckStackMode.Type = CheckStackMode.Dotsu
     var objdump: Option[String] = Some("objdump")
     var arch: CheckStackArch.Type = CheckStackArch.Amd64
+    var format: CheckStackFormat.Type = CheckStackFormat.Plain
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1436,6 +1472,12 @@ import Cli._
              case Some(v) => arch = v
              case _ => return None()
            }
+         } else if (arg == "-f" || arg == "--format") {
+           val o: Option[CheckStackFormat.Type] = parseCheckStackFormat(args, j + 1)
+           o match {
+             case Some(v) => format = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -1445,7 +1487,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CheckstackOption(help, parseArguments(args, j), mode, objdump, arch))
+    return Some(CheckstackOption(help, parseArguments(args, j), mode, objdump, arch, format))
   }
 
   def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {

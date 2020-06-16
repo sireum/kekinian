@@ -44,8 +44,16 @@ object CheckStack {
       case _ => ops.StringOps(o.arch.name).firstToLower
     }
 
+    val format: tools.CheckStack.Format.Type = o.format match {
+      case Cli.CheckStackFormat.Plain => tools.CheckStack.Format.Plain
+      case Cli.CheckStackFormat.Html => tools.CheckStack.Format.Html
+      case Cli.CheckStackFormat.Md => tools.CheckStack.Format.Md
+      case Cli.CheckStackFormat.Rst => tools.CheckStack.Format.Rst
+      case Cli.CheckStackFormat.Csv => tools.CheckStack.Format.Csv
+    }
+
     return tools.CheckStack.run(SireumApi.homeOpt.get,
       SireumApi.versions.getOrElse("org.sireum.version.checkstack", "v5.6"),
-      o.args.map((s: String) => Os.path(s)), o.mode == Cli.CheckStackMode.Bin, o.objdump.get, arch)
+      o.args.map((s: String) => Os.path(s)), o.mode == Cli.CheckStackMode.Bin, o.objdump.get, arch, format)
   }
 }
