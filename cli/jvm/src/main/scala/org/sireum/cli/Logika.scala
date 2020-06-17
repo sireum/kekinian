@@ -76,7 +76,7 @@ object Logika {
           case Some(home) => (home / "bin" / Sireum.platform / "z3" / "bin" / (if (Os.isWin) "z3.exe" else "z3")).value
           case _ => "z3"
         }
-        val reporter = message.Reporter.create
+        val reporter = logika.Logika.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
             logika.Smt2Impl(z3Exe, logika.Smt2Impl.z3ArgF _, th, config.charBitWidth, config.intBitWidth), reporter)
         reporter.printMessages()
