@@ -41,6 +41,14 @@ val hamr = Group(
   subs = ISZ(codegen.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool)
 )
 
+val x = Group(
+  name = "x",
+  description = "Experimental",
+  header = "Sireum eXperimental",
+  unlisted = T,
+  subs = ISZ(server.cli.serverTool)
+)
+
 val main = Group(
   name = "sireum",
   description = "",
@@ -53,6 +61,8 @@ val main = Group(
     hamr,
     logika.cli.group,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
-    tools.cli.group)
+    tools.cli.group,
+    x
+  )
 )
 println(org.sireum.cli.JSON.fromCliOpt(main, T))

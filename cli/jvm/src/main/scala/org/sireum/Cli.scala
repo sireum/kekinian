@@ -264,6 +264,12 @@ object Cli {
     license: Option[String],
     outputDir: Option[String]
   ) extends SireumTopOption
+
+  @datatype class ServerOption(
+    help: String,
+    args: ISZ[String],
+    logika: Z
+  ) extends SireumTopOption
 }
 
 import Cli._
@@ -284,12 +290,13 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("hamr", "logika", "slang", "tools"))
+    val opt = select("sireum", args, i, ISZ("hamr", "logika", "slang", "tools", "x"))
     opt match {
       case Some(string"hamr") => parseHamr(args, i + 1)
       case Some(string"logika") => parseLogika(args, i + 1)
       case Some(string"slang") => parseSlang(args, i + 1)
       case Some(string"tools") => parseTools(args, i + 1)
+      case Some(string"x") => parseX(args, i + 1)
       case _ => return None()
     }
   }
@@ -1897,6 +1904,61 @@ import Cli._
       }
     }
     return Some(TransgenOption(help, parseArguments(args, j), modes, name, license, outputDir))
+  }
+
+  def parseX(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum eXperimental
+            |
+            |Available modes:
+            |server                   Sireum server""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("x", args, i, ISZ("server"))
+    opt match {
+      case Some(string"server") => parseServer(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Server
+          |
+          |Usage: <option>*
+          |
+          |Available Options:
+          |-l, --logika             Number of Logika workers (expects an integer; default
+          |                           is 1)
+          |-h, --help               Display this information""".render
+
+    var logika: Z = 1
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-l" || arg == "--logika") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => logika = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(ServerOption(help, parseArguments(args, j), logika))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
