@@ -132,7 +132,7 @@ elif [[ "${PLATFORM}" == "linux" ]]; then
 elif [[ "${PLATFORM}" == "win" ]]; then
   Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-win.zip
 fi
-if [[ ! -z Z3_DROP_URL ]]; then
+if [[ ! -z "${Z3_DROP_URL}" ]]; then
   mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
   cd ${SIREUM_HOME}/bin/${PLATFORM}
   Z3_DROP="${Z3_DROP_URL##*/}"
