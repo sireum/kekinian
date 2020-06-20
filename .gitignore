@@ -13,6 +13,7 @@ mill-standalone
 /bin/win/java
 /bin/mac/java
 /bin/linux/java
+/bin/linux/arm/java
 /bin/scala
 /bin/sireum.jar
 /bin/.sireum-win.jar
@@ -26,6 +27,7 @@ mill-standalone
 /bin/linux/z3
 /bin/win/idea
 /bin/linux/idea
+/bin/linux/arm/idea
 /bin/mac/idea
 /bin/mill
 /bin/mill.bat
