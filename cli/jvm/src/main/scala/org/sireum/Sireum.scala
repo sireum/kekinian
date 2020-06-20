@@ -91,6 +91,7 @@ object Sireum {
     Os.kind match {
       case Os.Kind.Win => "win"
       case Os.Kind.Linux => "linux"
+      case Os.Kind.LinuxArm => "linux/arm"
       case Os.Kind.Mac => "mac"
       case Os.Kind.Unsupported => "unsupported"
     }
