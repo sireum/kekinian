@@ -17,7 +17,11 @@ elif [ "$(uname)" = "Darwin" ]; then                                            
   fi                                                                                                        #
 elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                                                   #
   if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
-    export PATH="${SIREUM_HOME}/bin/linux/java/bin":"${SIREUM_HOME}/bin/linux/z3/bin":"$PATH"               #
+    if [[ "$$(uname -m)" == "aarch64" ]]; then                                                              #
+      export PATH="${SIREUM_HOME}/bin/linux/arm/java/bin":"$PATH"                                           #
+    else                                                                                                    #
+      export PATH="${SIREUM_HOME}/bin/linux/java/bin":"${SIREUM_HOME}/bin/linux/z3/bin":"$PATH"             #
+    fi                                                                                                      #
   fi                                                                                                        #
 fi                                                                                                          #
 if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
