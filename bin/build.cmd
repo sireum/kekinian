@@ -75,6 +75,7 @@ var didBuild = F
 val platform: String = Os.kind match {
   case Os.Kind.Win => "win"
   case Os.Kind.Linux => "linux"
+  case Os.Kind.LinuxArm => "linux/arm"
   case Os.Kind.Mac => "mac"
   case _ => "unsupported"
 }
@@ -127,7 +128,9 @@ def buildMill(): Unit = {
   symlink(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
   val millBuildBinPlatform = millBuildBin / platform
   symlink(millBuildBinPlatform / "java", homeBin / platform / "java")
-  symlink(millBuildBinPlatform / "z3", homeBin / platform / "z3")
+  if ((homeBin / platform / "z3").exists) {
+    symlink(millBuildBinPlatform / "z3", homeBin / platform / "z3")
+  }
   val millBuildLib = millBuild / "lib"
   for (p <- (home / "lib").list) {
     symlink(millBuildLib / p.name, p)

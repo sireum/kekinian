@@ -22,10 +22,14 @@ elif [[ "$(uname)" == "Darwin" ]]; then
     JAVA="${JAVA_HOME}/bin/java"
   fi
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-  PLATFORM="linux"
+  if [[ "$(dpkg --print-architecture)" == "arm64" ]]; then
+    PLATFORM="linux/arm"
+  else
+    PLATFORM="linux"
+  fi
   SIREUM_JAR="${SIREUM_HOME}/bin/sireum.jar"
   if [[ -z ${SIREUM_PROVIDED_JAVA} ]]; then
-    export JAVA_HOME="${SIREUM_HOME}/bin/linux/java"
+    export JAVA_HOME="${SIREUM_HOME}/bin/${PLATFORM}/java"
     JAVA="${JAVA_HOME}/bin/java"
   fi
 fi

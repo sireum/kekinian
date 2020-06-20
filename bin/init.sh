@@ -35,9 +35,16 @@ elif [[ "$(uname)" == "Darwin" ]]; then
     PLATFORM=mac
   fi
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
-  Z7="${SIREUM_HOME}/bin/linux/7za"
-  if [[ -z "${PLATFORM}" ]]; then
-    PLATFORM=linux
+  if [[ "$(uname -m)" == "aarch64" ]]; then
+    Z7="${SIREUM_HOME}/bin/linux/arm/7za"
+    if [[ -z "${PLATFORM}" ]]; then
+      PLATFORM=linux/arm
+    fi
+  else
+    Z7="${SIREUM_HOME}/bin/linux/7za"
+    if [[ -z "${PLATFORM}" ]]; then
+      PLATFORM=linux
+    fi
   fi
 else
   >&2 echo "Sireum does not support: $(uname)."
@@ -125,29 +132,30 @@ elif [[ "${PLATFORM}" == "linux" ]]; then
 elif [[ "${PLATFORM}" == "win" ]]; then
   Z3_DROP_URL=https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-win.zip
 fi
-mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
-cd ${SIREUM_HOME}/bin/${PLATFORM}
-Z3_DROP="${Z3_DROP_URL##*/}"
-grep -q ${Z3_VERSION} z3/VER &> /dev/null && Z3_UPDATE=false || Z3_UPDATE=true
-if [[ ! -d "z3" ]] || [[ "${Z3_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${Z3_DROP} ]]; then
-    echo "Please wait while downloading Z3 ${Z3_VERSION} ..."
-    $(download ${SIREUM_CACHE}/${Z3_DROP} ${Z3_DROP_URL})
-  fi
-  echo "Extracting Z3 ${Z3_VERSION} ..."
-  $(uncompress ${SIREUM_CACHE}/${Z3_DROP})
-  echo
-  rm -fR z3
-  mv z3-* z3
-  if [[ -d "z3/bin" ]]; then
-    echo "${Z3_VERSION}" > z3/VER
-    chmod +x z3/bin/*
-  else
-    >&2 echo "Could not install Z3 ${Z3_VERSION}."
-    exit 1
+if [[ ! -z Z3_DROP_URL ]]; then
+  mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
+  cd ${SIREUM_HOME}/bin/${PLATFORM}
+  Z3_DROP="${Z3_DROP_URL##*/}"
+  grep -q ${Z3_VERSION} z3/VER &> /dev/null && Z3_UPDATE=false || Z3_UPDATE=true
+  if [[ ! -d "z3" ]] || [[ "${Z3_UPDATE}" = "true" ]]; then
+    if [[ ! -f ${SIREUM_CACHE}/${Z3_DROP} ]]; then
+      echo "Please wait while downloading Z3 ${Z3_VERSION} ..."
+      $(download ${SIREUM_CACHE}/${Z3_DROP} ${Z3_DROP_URL})
+    fi
+    echo "Extracting Z3 ${Z3_VERSION} ..."
+    $(uncompress ${SIREUM_CACHE}/${Z3_DROP})
+    echo
+    rm -fR z3
+    mv z3-* z3
+    if [[ -d "z3/bin" ]]; then
+      echo "${Z3_VERSION}" > z3/VER
+      chmod +x z3/bin/*
+    else
+      >&2 echo "Could not install Z3 ${Z3_VERSION}."
+      exit 1
+    fi
   fi
 fi
-
 
 #
 # Scala
@@ -188,15 +196,22 @@ if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
 fi
 JAVA_NAME="Zulu JDK"
 if [[ -z ${JAVA_VERSION} ]]; then
-  JAVA_VERSION=$(getVersion "zulu")
+  if [[ "${PLATFORM}" == "linux/arm" ]]; then
+    JAVA_VERSION=$(getVersion "zulu.arm")
+  else
+    JAVA_VERSION=$(getVersion "zulu")
+  fi
 fi
 if [[ "${PLATFORM}" == "mac" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.tar.gz
+elif [[ "${PLATFORM}" == "linux/arm" ]]; then
+  JAVA_DROP_URL=https://cdn.azul.com/zulu-embedded/bin/zulu${JAVA_VERSION}-linux_aarch64.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
 elif [[ "${PLATFORM}" == "win" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 fi
+mkdir -p ${PLATFORM}
 cd ${PLATFORM}
 JAVA_DROP="${JAVA_DROP_URL##*/}"
 JAVA_DIR="${JAVA_DROP%.*}"
