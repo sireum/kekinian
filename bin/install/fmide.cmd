@@ -25,7 +25,23 @@ import org.sireum._
 
 val homeBin: Os.Path = Os.slashDir.up.canon
 val home = homeBin.up.canon
-
+val updateSite = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master"
+val featureId = "org.sireum.aadl.osate.hamr.feature.feature.group"
+val p2Args = ISZ[String](
+  "-nosplash",
+  "-console",
+  "-consoleLog",
+  "-application",
+  "org.eclipse.equinox.p2.director",
+  "-repository",
+  updateSite,
+  "-installIU",
+  featureId,
+  "-uninstallIU",
+  featureId
+)
+val envs = ISZ[(String, String)]("PATH" ~>
+  s"${Os.env("PATH").get}${Os.pathSep}${Os.env("JAVA_HOME").get}${Os.fileSep}bin")
 var platformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
 var releaseTagNameOpt: Option[String] = None()
 val useLast: B = T
@@ -92,6 +108,11 @@ def linux(): Unit = {
   println(s"Extracting $f ...")
   Os.proc(ISZ("tar", "xfz", f.string)).at(d).runCheck()
   println()
+  if (releaseTagNameOpt.isEmpty) {
+    println(s"Updating HAMR plugin ...")
+    Os.proc((d / "fmide").string +: p2Args).env(envs).runCheck()
+    println()
+  }
   println(s"FMIDE is installed at $d")
 }
 
@@ -107,6 +128,11 @@ def mac(): Unit = {
     p.moveTo(d)
   }
   println()
+  if (releaseTagNameOpt.isEmpty) {
+    println(s"Updating HAMR plugin ...")
+    Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args).env(envs).runCheck()
+    println()
+  }
   println(s"FMIDE is installed at $d")
 }
 
@@ -118,6 +144,11 @@ def win(): Unit = {
   println(s"Extracting $f ...")
   f.unzipTo(d)
   println()
+  if (releaseTagNameOpt.isEmpty) {
+    println(s"Updating HAMR plugin ...")
+    Os.proc((d / "fmide.exe").string +: p2Args).env(envs).runCheck()
+    println()
+  }
   println(s"FMIDE is installed at $d")
 }
 
