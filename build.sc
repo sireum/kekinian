@@ -212,7 +212,7 @@ def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boole
   build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   for (platform <- platforms.split(',')) {
-    require((platform == "mac") == scala.util.Properties.isMac, "Cannot build macOS distro on non-mac")
+    require((platform != "mac") || scala.util.Properties.isMac, "Cannot build macOS distro on non-mac")
     val shouldClone = platform match {
       case "mac" => false
       case _ => if (scala.util.Properties.isWin) true else clone

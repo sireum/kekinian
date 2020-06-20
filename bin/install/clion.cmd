@@ -28,11 +28,15 @@ val clionVersion = "2020.1.2"
 
 val url = s"https://download.jetbrains.com/cpp"
 
-val homeBin: Os.Path = Os.slashDir.up.canon
+val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
-
+val versions = (home / "versions.properties").properties
+val jbrVer = versions.get("org.sireum.version.jbr").get
+val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
+val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
+val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
 
 def mac(): Unit = {
   val platformDir = homeBin / "mac"
@@ -70,8 +74,8 @@ def mac(): Unit = {
   println(s"CLion is installed at $clionDir")
 }
 
-def linux(): Unit = {
-  val platformDir = homeBin / "linux"
+def linux(isArm: B): Unit = {
+  val platformDir: Os.Path = if (isArm) homeBin / "linux" / "arm" else homeBin / "linux"
   val clionDir = platformDir / "clion"
   val ver = clionDir / "VER"
 
@@ -93,6 +97,29 @@ def linux(): Unit = {
   println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
   (platformDir / s"clion-$clionVersion").moveTo(clionDir)
+
+  if (isArm) {
+    val clionsh = clionDir / "bin" / "clion.sh"
+    println(s"Patching $clionsh ... ")
+    clionsh.writeOver(ops.StringOps(clionsh.read).replaceAllLiterally("\"x86_64\"", "\"aarch64\""))
+
+    val jbrCache = Os.home / "Downloads" / "sireum" / "idea" / jbrFilename
+    if (!jbrCache.exists) {
+      jbrCache.up.mkdirAll()
+      println(s"Downloading from $jbrUrl ...")
+      jbrCache.downloadFrom(jbrUrl)
+    }
+    println(s"Replacing ${clionDir / "jbr"} ...")
+    (clionDir / "jbr").removeAll()
+    Os.proc(ISZ("tar", "xfz", jbrCache.string)).at(clionDir).console.runCheck()
+
+    val clionVersionOps = ops.StringOps(clionVersion)
+    val clionMajorVersion = clionVersionOps.substring(0, clionVersionOps.lastIndexOf('.'))
+    val config = Os.home / ".config" / "JetBrains" / s"CLion$clionMajorVersion" / "idea.properties"
+    config.up.mkdirAll()
+    config.writeOver(s"idea.filewatcher.executable.path=${platformDir / "fsnotifier"}")
+    println(s"Wrote $config")
+  }
 
   ver.writeOver(clionVersion)
 
@@ -130,18 +157,10 @@ def win(): Unit = {
   println(s"CLion is installed at $clionDir")
 }
 
-def platform(p: String): Unit = {
-  p match {
-    case string"mac" => mac()
-    case string"linux" => linux()
-    case string"win" => win()
-    case _ =>
-  }
-}
-
 Os.kind match {
   case Os.Kind.Mac => mac()
-  case Os.Kind.Linux => linux()
+  case Os.Kind.Linux => linux(F)
+  case Os.Kind.LinuxArm => linux(T)
   case Os.Kind.Win => win()
   case _ =>
     eprintln("Unsupported platform")

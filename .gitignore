@@ -40,6 +40,7 @@ mill-standalone
 /bin/win/graal
 /bin/mac/graal
 /bin/linux/graal
+/bin/linux/arm/graal
 /bin/mac/ccl
 /bin/linux/ccl
 /bin/mac/acl2
@@ -50,6 +51,7 @@ mill-standalone
 /bin/win/clion
 /bin/mac/clion
 /bin/linux/clion
+/bin/linux/arm/clion
 /bin/linux/.checkstack
 /bin/linux/.checkstack.ver
 /bin/*.sc

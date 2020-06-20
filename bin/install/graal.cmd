@@ -25,7 +25,7 @@ import org.sireum._
 
 
 def usage(): Unit = {
-  println("Usage: ( mac | linux | win )*")
+  println("Usage: ( mac | linux | linux/arm | win )*")
 }
 
 val graalVersion = "20.1.0"
@@ -115,6 +115,44 @@ def linux(): Unit = {
   println("... done!")
 }
 
+def linuxArm(): Unit = {
+  val platformDir = homeBin / "linux" / "arm"
+  val graalDir = platformDir / "graal"
+  val ver = graalDir / "VER"
+
+  if (ver.exists && ver.read == graalVersion) {
+    return
+  }
+
+  val bundle = s"graalvm-ce-java11-linux-aarch64-$graalVersion.tar.gz"
+  val cache = Os.home / "Downloads" / "sireum" / bundle
+
+  if (!cache.exists) {
+    cache.up.mkdirAll()
+    println(s"Downloading Graal $graalVersion ...")
+    cache.downloadFrom(s"$url/$bundle")
+  }
+  if (graalDir.exists) {
+    graalDir.removeAll()
+  }
+  println(s"Extracting $cache ...")
+  Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
+  (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
+
+  val nativeBundle = s"native-image-installable-svm-java11-linux-aarch64-$graalVersion.jar"
+  val nativeCache = Os.home / "Downloads" / "sireum" / nativeBundle
+  if (!nativeCache.exists) {
+    println(s"Downloading Graal's native-image ...")
+    nativeCache.downloadFrom(s"$url/$nativeBundle")
+  }
+
+  Os.proc(ISZ((graalDir / "bin" / "gu").string, "install", "--file", nativeCache.string)).console.runCheck()
+
+  ver.writeOver(graalVersion)
+
+  println("... done!")
+}
+
 def win(): Unit = {
   val platformDir = homeBin / "win"
   val graalDir = platformDir / "graal"
@@ -157,6 +195,7 @@ def platform(p: String): Unit = {
   p match {
     case string"mac" => mac()
     case string"linux" => linux()
+    case string"linux/arm" => linuxArm()
     case string"win" => win()
     case string"-h" => usage()
     case _ =>
@@ -170,6 +209,7 @@ if (Os.cliArgs.isEmpty) {
   Os.kind match {
     case Os.Kind.Mac => platform("mac")
     case Os.Kind.Linux => platform("linux")
+    case Os.Kind.LinuxArm => platform("linux/arm")
     case Os.Kind.Win => platform("win")
     case _ => platform("???")
   }

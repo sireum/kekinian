@@ -4,7 +4,7 @@ import java.util.jar.JarInputStream
 
 import ammonite.ops._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object distro {
   final case class Plugin(id: String, isDev: Boolean, isJar: Boolean, devVer: String, ver: String) {
@@ -35,7 +35,7 @@ object distro {
     "icon_CE_512@2x.png",
     "idea_logo_background.png",
   )
-  val ideaExtMap = Map("mac" -> ".dmg", "win" -> ".win.zip", "linux" -> ".tar.gz")
+  val ideaExtMap = Map("mac" -> ".dmg", "win" -> ".win.zip", "linux" -> ".tar.gz", "linux/arm" -> ".tar.gz")
 
   val cacheDir: Path = {
     Option(System.getenv("SIREUM_CACHE")) match {
@@ -69,8 +69,9 @@ object distro {
       RelPath(Vector("bin", "win", "idea"), 0),
       RelPath(Vector("bin", "win", "java"), 0),
       RelPath(Vector("bin", "win", "z3"), 0),
-      RelPath(Vector("bin", "install", "graal.cmd"), 0),
+      RelPath(Vector("bin", "install", "clion.cmd"), 0),
       RelPath(Vector("bin", "install", "fmide.cmd"), 0),
+      RelPath(Vector("bin", "install", "graal.cmd"), 0),
       RelPath(Vector("bin", "mill.bat"), 0),
       RelPath(Vector("bin", "sireum.bat"), 0),
       RelPath(Vector("bin", "sireum.jar"), 0),
@@ -87,9 +88,27 @@ object distro {
       RelPath(Vector("bin", "linux", "java"), 0),
       RelPath(Vector("bin", "linux", "z3"), 0),
       RelPath(Vector("bin", "linux", "sireum"), 0),
-      RelPath(Vector("bin", "install", "graal.cmd"), 0),
-      RelPath(Vector("bin", "install", "fmide.cmd"), 0),
       RelPath(Vector("bin", "install", "acl2.cmd"), 0),
+      RelPath(Vector("bin", "install", "clion.cmd"), 0),
+      RelPath(Vector("bin", "install", "fmide.cmd"), 0),
+      RelPath(Vector("bin", "install", "graal.cmd"), 0),
+      RelPath(Vector("bin", "mill"), 0),
+      RelPath(Vector("bin", "sireum"), 0),
+      RelPath(Vector("bin", "sireum.jar"), 0),
+      RelPath(Vector("bin", "slang-run.sh"), 0),
+      RelPath(Vector("bin", "VER"), 0),
+      RelPath(Vector("lib"), 0),
+      RelPath(Vector("license.txt"), 0),
+      RelPath(Vector("versions.properties"), 0),
+      RelPath(Vector("setup"), 1)
+    ),
+    "linux/arm" -> Seq(
+      RelPath(Vector("bin", "scala"), 0),
+      RelPath(Vector("bin", "linux", "arm", "fsnotifier"), 0),
+      RelPath(Vector("bin", "linux", "arm", "idea"), 0),
+      RelPath(Vector("bin", "linux", "arm", "java"), 0),
+      RelPath(Vector("bin", "install", "clion.cmd"), 0),
+      RelPath(Vector("bin", "install", "graal.cmd"), 0),
       RelPath(Vector("bin", "mill"), 0),
       RelPath(Vector("bin", "sireum"), 0),
       RelPath(Vector("bin", "sireum.jar"), 0),
@@ -106,8 +125,9 @@ object distro {
       RelPath(Vector("bin", "mac", "java"), 0),
       RelPath(Vector("bin", "mac", "z3"), 0),
       RelPath(Vector("bin", "mac", "sireum"), 0),
-      RelPath(Vector("bin", "install", "graal.cmd"), 0),
+      RelPath(Vector("bin", "install", "clion.cmd"), 0),
       RelPath(Vector("bin", "install", "fmide.cmd"), 0),
+      RelPath(Vector("bin", "install", "graal.cmd"), 0),
       RelPath(Vector("bin", "mill"), 0),
       RelPath(Vector("bin", "sireum"), 0),
       RelPath(Vector("bin", "sireum.jar"), 0),
@@ -136,7 +156,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
   import distro._
 
   val devSuffix = if (isDev) "-dev" else ""
-  val ideaDir = os.pwd / 'bin / platform / 'idea
+  val ideaDir = os.pwd / 'bin / RelPath(platform) / 'idea
   val sireumAppDir = ideaDir / s"IVE.app"
 
   val pluginsDir =
@@ -158,10 +178,22 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     if (isDev) devVer else ver
   }
 
+  val jbrVer = {
+    val (devVer, ver) = devRelVer("org.sireum.version.jbr")
+    if (isDev) devVer else ver
+  }
+
+  val jbrBuildVer = {
+    val (devVer, ver) = devRelVer("org.sireum.version.jbr.build")
+    if (isDev) devVer else ver
+  }
+
   val z7: RelPath = {
     val (plat, exe): (String, String) =
       if (scala.util.Properties.isMac) ("mac", "7za")
-      else if (scala.util.Properties.isLinux) ("linux", "7za")
+      else if (scala.util.Properties.isLinux)
+        if (%%("uname", "-m")(pwd).out == "aarch64") ("linux/arm", "7za")
+        else ("linux", "7za")
       else if (scala.util.Properties.isWin) ("win", "7za.exe")
       else ("unsupported", "")
     RelPath(Array("bin", plat, exe), 0)
@@ -212,7 +244,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         content.substring(0, j) + s"<string>SireumIVE$devSuffix" + content.substring(k)
       case "win" =>
         s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\r\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\r\nidea.log.path=$${user.home}/.SireumIVE$devSuffix/log\r\nidea.plugins.path=$${user.home}/.SireumIVE$devSuffix/plugins\r\n" + content
-      case "linux" =>
+      case "linux" | "linux/arm" =>
         s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\nidea.log.path=$${user.home}/.SireumIVE$devSuffix/log\nidea.plugins.path=$${user.home}/.SireumIVE$devSuffix/plugins\n" + content
     }
     os.remove.all(p)
@@ -356,7 +388,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       case "win" =>
         if (isDev) (ideaDir / 'bin, "idea-dev.ico", "idea.ico")
         else (ideaDir / 'bin, "idea.ico", "idea.ico")
-      case "linux" =>
+      case "linux" | "linux/arm" =>
         if (isDev) {
           os.copy.over(iconsPath / "idea-dev.svg", ideaDir / 'bin / "idea.svg")
           (ideaDir / 'bin, "idea-dev.png", "idea.png")
@@ -410,7 +442,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     os.remove.all(ideaDir)
     platform match {
       case "mac" => setupMac(ideaDrop)
-      case "linux" => setupLinux(ideaDrop)
+      case "linux" | "linux/arm" => setupLinux(ideaDrop)
       case "win" => setupWin(ideaDrop)
     }
     val sireumJar = pluginsDir / "sireum-kekinian-intellij" / 'lib / "sireum.jar"
@@ -463,8 +495,30 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     patchIdeaProperties(ideaDir / 'bin / "idea.properties")
     patchVMOptions(ideaDir / 'bin / "idea64.vmoptions")
     os.remove(ideaDir / 'bin / "idea.vmoptions")
-    os.move(ideaDir / 'bin / "idea.sh", ideaDir / 'bin / "IVE.sh")
-    mkLink(ideaDir / 'bin / "idea.sh", "IVE.sh")
+    val ideash = ideaDir / 'bin / "idea.sh"
+    if (platform == "linux/arm") {
+      println(s"Patching $ideash ...")
+      write.over(ideash, read(ideash).replace(""""x86_64"""", """"aarch64""""))
+      val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
+      val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
+      val jbrDrop = ideaCacheDir / jbrFilename
+      if (!os.exists(jbrDrop)) {
+        print(s"Downloading from $jbrUrl ... ")
+        %%('curl, "-JLso", jbrFilename, jbrUrl)(ideaCacheDir)
+        println("done!")
+      }
+      println(s"Replacing ${ideaDir / "jbr"} ...")
+      os.remove.all(ideaDir / "jbr")
+      %%('tar, 'xfz, jbrDrop)(ideaDir)
+
+      if (!sfx) {
+        val config = os.home / s".SireumIVE$devSuffix" / "config" / "idea.properties"
+        os.write.over(config, s"idea.filewatcher.executable.path=${os.pwd / 'bin / RelPath(platform) / "fsnotifier"}")
+        println(s"Wrote $config")
+      }
+    }
+    os.move(ideash, ideaDir / 'bin / "IVE.sh")
+    mkLink(ideash, "IVE.sh")
   }
 
   def setupWin(ideaDrop: Path): Unit = {
@@ -503,11 +557,12 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
   }
 
   def pack(): Unit = {
+    val plat = platform.replace("/", "-")
     val sfxSuffix = if (platform == "win") ".exe" else ".sfx"
-    val r = pwd / 'distro / s"$platform$devSuffix$sfxSuffix"
+    val r = pwd / 'distro / s"$plat$devSuffix$sfxSuffix"
     os.remove.all(r)
     print(s"Packaging $r ... ")
-    val distro7z = s"$platform.7z"
+    val distro7z = s"$plat.7z"
     val setupDir = pwd / 'distro / (if (isDev) 'dev else 'release)
     val setups = os.list(setupDir)
     val shouldClone = clone || scala.util.Properties.isWin
@@ -526,7 +581,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       (dir, dir)
     }
     try {
-      val sfx = repoDir / 'distro / s"$platform$devSuffix$sfxSuffix"
+      val sfx = repoDir / 'distro / s"$plat$devSuffix$sfxSuffix"
       val cmd = Seq[os.Shellable](repoDir / z7, 'a, distro7z) ++
         distroMap(platform).map(rp => RelPath(distroDir.last) / rp: os.Shellable)
       os.proc(cmd: _*).call(cwd = distroDir / os.up)
@@ -534,7 +589,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
         case "win" =>
           merge(sfx, repoDir / 'bin / 'win / "7z.sfx", distroDir / os.up / "config.txt", distroDir / os.up / distro7z)
         case _ =>
-          merge(sfx, repoDir / 'bin / platform / "7z.sfx", distroDir / os.up / distro7z)
+          merge(sfx, repoDir / 'bin / RelPath(platform) / "7z.sfx", distroDir / os.up / distro7z)
       }
       os.remove(distroDir / os.up / distro7z)
       println("done!")

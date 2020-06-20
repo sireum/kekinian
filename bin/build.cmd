@@ -447,6 +447,11 @@ def setup(): Unit = {
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
       println(s"Mill can be found at ${homeBin / "mill"}")
+    case Os.Kind.LinuxArm =>
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "arm" / "idea" / "bin" / "IVE.sh"}")
+      println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "arm" / "java"}")
+      println(s"Scala is available at ${homeBin / "scala"}")
+      println(s"Mill can be found at ${homeBin / "mill"}")
     case Os.Kind.Mac =>
       println(s"Sireum-dev IVE can now be launched by running ${homeBin / "mac" / "idea" / "IVE.app"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "mac" / "java"}")
