@@ -1,0 +1,25 @@
+language: c
+
+arch:
+  - arm64
+
+os: linux
+
+cache:
+  directories:
+    - bin/linux/arm/java
+    - bin/linux/arm/graal
+    - bin/scala
+
+jobs:
+  include:
+    - stage: build
+      env: CI_SCRIPT=.ci/test.sh
+    - stage: build
+      env: CI_SCRIPT=.ci/linux-arm-native.sh
+
+script:
+  - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
+  - unset JVM_OPTS
+  - travis_wait 35 .ci/build.sh
+  - "$CI_SCRIPT"
