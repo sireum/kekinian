@@ -123,7 +123,7 @@ def linux(isArm: B): Unit = {
       println(configContent)
     } else {
       config.up.mkdirAll()
-      config.writeOver(s"idea.filewatcher.executable.path=${platformDir / "fsnotifier"}")
+      config.writeOver(configContent)
       println(s"Wrote $config")
     }
   }
