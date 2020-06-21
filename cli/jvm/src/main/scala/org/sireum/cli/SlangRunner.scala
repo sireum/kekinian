@@ -160,6 +160,7 @@ object SlangRunner {
       val flags: ISZ[String] = Os.kind match {
         case Os.Kind.Mac => ISZ("--no-server")
         case Os.Kind.Linux => ISZ("--no-server", "--static")
+        case Os.Kind.LinuxArm => ISZ("--no-server", "--static")
         case Os.Kind.Win => ISZ("--static")
         case _ => return 0
       }

@@ -251,10 +251,10 @@ def test(): Unit = {
   println()
 
   println("Running jvm tests ...")
-  Os.proc(ISZ(mill.string, "all",
+  Os.proc(ISZ[String](mill.string, "all",
     "runtime.library.jvm.tests",
-    "tools.jvm.tests",
-    "logika.jvm.tests")).at(home).console.runCheck()
+    "tools.jvm.tests"
+    ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).console.runCheck()
   println()
 }
 

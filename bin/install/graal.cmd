@@ -209,6 +209,7 @@ if (Os.cliArgs.isEmpty) {
   Os.kind match {
     case Os.Kind.Mac => platform("mac")
     case Os.Kind.Linux => platform("linux")
+    case Os.Kind.LinuxArm => platform("linux/arm")
     case Os.Kind.Win => platform("win")
     case _ => platform("???")
   }
