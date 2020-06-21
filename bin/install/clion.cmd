@@ -102,6 +102,7 @@ def linux(isArm: B): Unit = {
     val clionsh = clionDir / "bin" / "clion.sh"
     println(s"Patching $clionsh ... ")
     clionsh.writeOver(ops.StringOps(clionsh.read).replaceAllLiterally("\"x86_64\"", "\"aarch64\""))
+    clionsh.chmod("+x")
 
     val jbrCache = Os.home / "Downloads" / "sireum" / "idea" / jbrFilename
     if (!jbrCache.exists) {
@@ -116,9 +117,15 @@ def linux(isArm: B): Unit = {
     val clionVersionOps = ops.StringOps(clionVersion)
     val clionMajorVersion = clionVersionOps.substring(0, clionVersionOps.lastIndexOf('.'))
     val config = Os.home / ".config" / "JetBrains" / s"CLion$clionMajorVersion" / "idea.properties"
-    config.up.mkdirAll()
-    config.writeOver(s"idea.filewatcher.executable.path=${platformDir / "fsnotifier"}")
-    println(s"Wrote $config")
+    val configContent = s"idea.filewatcher.executable.path=${platformDir / "fsnotifier"}"
+    if (config.exists) {
+      println(s"Please ensure the following line is in the existing $config")
+      println(configContent)
+    } else {
+      config.up.mkdirAll()
+      config.writeOver(s"idea.filewatcher.executable.path=${platformDir / "fsnotifier"}")
+      println(s"Wrote $config")
+    }
   }
 
   ver.writeOver(clionVersion)

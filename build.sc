@@ -199,7 +199,6 @@ def build() = T.command {
 }
 
 def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
-  build()()
   println(s"Using cache at ${distro.distro.cacheDir}")
   for (platform <- platforms.split(',')) {
     require((platform == "mac") == scala.util.Properties.isMac, "Cannot setup macOS IVE on non-mac")
@@ -231,8 +230,10 @@ def jitPack(owner: String, repo: String, lib: String = "", hash: String = "") = 
 private def currPlatform: String = {
   import scala.util.{Properties => ps}
   if (ps.isMac) "mac"
-  else if (ps.isLinux) "linux"
-  else if (ps.isWin) "win"
+  else if (ps.isLinux) {
+    val arch = %%("uname", "-m")(os.pwd).out.trim 
+    if (arch == "aarch64") "linux/arm" else "linux"
+  } else if (ps.isWin) "win"
   else throw new UnsupportedOperationException("Unsupported platform")
 }
 

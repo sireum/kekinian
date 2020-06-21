@@ -11,7 +11,7 @@ object distro {
     def version(isDev: Boolean): String = if (isDev) devVer else ver
   }
 
-  val delPlugins = Seq("android", "Groovy", "Kotlin")
+  val delPlugins = Seq("android", "Kotlin")
   val pluginPrefix = "org.sireum.version.plugin."
   val properties = org.sireum.mill.SireumModule.properties
 
@@ -108,7 +108,6 @@ object distro {
       RelPath(Vector("bin", "linux", "arm", "idea"), 0),
       RelPath(Vector("bin", "linux", "arm", "java"), 0),
       RelPath(Vector("bin", "install", "clion.cmd"), 0),
-      RelPath(Vector("bin", "install", "graal.cmd"), 0),
       RelPath(Vector("bin", "mill"), 0),
       RelPath(Vector("bin", "sireum"), 0),
       RelPath(Vector("bin", "sireum.jar"), 0),
@@ -192,11 +191,11 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     val (plat, exe): (String, String) =
       if (scala.util.Properties.isMac) ("mac", "7za")
       else if (scala.util.Properties.isLinux)
-        if (%%("uname", "-m")(pwd).out == "aarch64") ("linux/arm", "7za")
+        if (%%("uname", "-m")(pwd).out.trim == "aarch64") ("linux/arm", "7za")
         else ("linux", "7za")
       else if (scala.util.Properties.isWin) ("win", "7za.exe")
       else ("unsupported", "")
-    RelPath(Array("bin", plat, exe), 0)
+    RelPath("bin") / RelPath(plat) / exe
   }
   val pwd7z = os.pwd / z7
 
@@ -512,9 +511,17 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       %%('tar, 'xfz, jbrDrop)(ideaDir)
 
       if (!sfx) {
-        val config = os.home / s".SireumIVE$devSuffix" / "config" / "idea.properties"
-        os.write.over(config, s"idea.filewatcher.executable.path=${os.pwd / 'bin / RelPath(platform) / "fsnotifier"}")
-        println(s"Wrote $config")
+        val ideaMajorVer = ideaVer.substring(0, ideaVer.lastIndexOf('.'))
+        val config = os.home / ".config" / "JetBrains" / s"IdeaIC$ideaMajorVer" / "idea.properties"
+        val configContent = s"idea.filewatcher.executable.path=${os.pwd / 'bin / RelPath(platform) / "fsnotifier"}"
+        if (os.exists(config)) {
+          println(s"Please ensure the following line is in the existing $config")
+          println(configContent)
+        } else {
+          mkdir(config / os.up)
+          os.write.over(config, configContent)
+          println(s"Wrote $config")
+        }
       }
     }
     os.move(ideash, ideaDir / 'bin / "IVE.sh")

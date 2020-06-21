@@ -187,6 +187,7 @@ def nativ(): Unit = {
   val flags: ISZ[String] = Os.kind match {
     case Os.Kind.Mac => ISZ("--no-server")
     case Os.Kind.Linux => ISZ("--static", "--no-server")
+    case Os.Kind.LinuxArm => ISZ("--static", "--no-server")
     case Os.Kind.Win => ISZ("--static")
     case _ => halt("Unsupported operating system")
   }
@@ -421,12 +422,11 @@ def ghpack(): Unit = {
   }
 }
 
-def project(): Unit = {
-  build(F)
-  println("Generating IVE project ...")
-  if (!Os.isWin) {
-    (home / "build" / "bin" / "build.cmd").slash(ISZ("dev"))
+def project(skipBuild: B): Unit = {
+  if (!skipBuild) {
+    build(F)
   }
+  println("Generating IVE project ...")
   Os.proc(ISZ(sireum.string, "tools", "ivegen", "-f", "-m", "mill", "-n", home.name, ".")).at(home.up).console.runCheck()
 }
 
@@ -435,7 +435,7 @@ def setup(): Unit = {
   println("Setup ...")
   build(F)
   Os.proc(ISZ(mill.string, "IVE")).at(home).console.run()
-  project()
+  project(T)
   Os.kind match {
     case Os.Kind.Win =>
       println(s"Sireum-dev IVE can now be launched by running ${homeBin / "win" / "idea" / "bin" / "IVE.exe"}")
@@ -478,7 +478,7 @@ if (Os.cliArgs.isEmpty) {
       case string"fresh" => build(T)
       case string"native" => nativ()
       case string"setup" => setup()
-      case string"project" => project()
+      case string"project" => project(F)
       case string"tipe" => tipe()
       case string"compile" => compile()
       case string"test" => test()
