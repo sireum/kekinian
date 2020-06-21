@@ -76,12 +76,16 @@ var didTipe = F
 var didCompile = F
 var didM2 = F
 var didBuild = F
-val platform: String = Os.kind match {
-  case Os.Kind.Win => "win"
-  case Os.Kind.Linux => "linux"
-  case Os.Kind.LinuxArm => "linux/arm"
-  case Os.Kind.Mac => "mac"
-  case _ => "unsupported"
+
+
+def platform: String = {
+  Os.kind match {
+    case Os.Kind.Win => return "win"
+    case Os.Kind.Linux => return "linux"
+    case Os.Kind.LinuxArm => return "linux/arm"
+    case Os.Kind.Mac => return "mac"
+    case _ => return "unsupported"
+  }
 }
 
 
