@@ -14,7 +14,9 @@ cache:
 jobs:
   include:
     - stage: build
-      env: CI_SCRIPT=.ci/test.sh
+      env: CI_SCRIPT=.ci/test-runtime-others.sh
+    - stage: build
+      env: CI_SCRIPT=.ci/test-slang-frontend.sh
     - stage: build
       env: CI_SCRIPT=.ci/linux-arm-native.sh
 
