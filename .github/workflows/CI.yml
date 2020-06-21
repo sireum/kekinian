@@ -47,10 +47,8 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          bin/build.cmd native
-          bin/build.cmd test
-          bin/linux/upx -9 bin/linux/sireum
-          bin/linux/sireum
+          .ci/build.sh test
+          .ci/linux-native.sh
 
   ci-mac:
     runs-on: macOS-latest
@@ -95,10 +93,8 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          bin/build.cmd native
-          bin/build.cmd test
-          bin/mac/upx -9 bin/mac/sireum
-          bin/mac/sireum
+          .ci/build.sh test
+          .ci/linux-mac.sh
 
   ci-windows:
     runs-on: windows-latest
@@ -150,10 +146,8 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          call bin\build.cmd native
-          call bin\build.cmd test
-          bin\win\upx.exe -9 bin\win\sireum.exe
-          bin\sireum
+          call .ci\build.bat test
+          call .ci\win-native.bat
 
   skip:
     runs-on: ubuntu-latest
