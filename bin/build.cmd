@@ -146,7 +146,7 @@ def buildMill(): Unit = {
   val homeBinMill = homeBin / "mill"
   val homeBinMillBat = homeBin / "mill.bat"
   if (Os.kind == Os.Kind.LinuxArm && !homeBinMillBat.exists) {
-    println("Downloading mill ...")
+    println("Please wait while downloading mill ...")
     homeBinMillBat.downloadFrom("http://files.sireum.org/mill-standalone")
     homeBinMill.write("#!/bin/sh\n")
     homeBinMill.writeAppendU8s(homeBinMillBat.readU8s)
@@ -156,6 +156,7 @@ def buildMill(): Unit = {
     val currVer = st"${(millVers, "-")}-${sireumModule.lastModified}".render
     val ver = home / "build" / "VER"
     ver.writeOver(currVer)
+    println()
   } else {
     (millBuildBin / "build.cmd").slash(ISZ())
     copyIfNewer(millBuild / "mill-standalone", homeBinMill)
