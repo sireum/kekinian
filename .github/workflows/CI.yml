@@ -94,7 +94,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
           .ci/build.sh test
-          .ci/linux-mac.sh
+          .ci/mac-native.sh
 
   ci-windows:
     runs-on: windows-latest
