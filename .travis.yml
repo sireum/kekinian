@@ -23,5 +23,4 @@ jobs:
 script:
   - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "skip travis" && exit 0 ; fi
   - unset JVM_OPTS
-  - travis_wait 35 .ci/build.sh
-  - "$CI_SCRIPT"
+  - travis_wait 50 "$CI_SCRIPT"
