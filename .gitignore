@@ -56,4 +56,12 @@ mill-standalone
 /bin/linux/.checkstack.ver
 /bin/*.sc
 stale_outputs_checked
-
+/bin/mac/opam
+/bin/linux/opam
+/bin/linux/arm/opam
+/bin/mac/.opam
+/bin/linux/.opam
+/bin/linux/arm/.opam
+/bin/mac/compcert
+/bin/linux/compcert
+/bin/linux/arm/compcert
