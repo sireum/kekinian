@@ -64,6 +64,7 @@ object Cli {
     bitWidth: Z,
     maxStringSize: Z,
     maxArraySize: Z,
+    runTranspiler: B,
     camkesOutputDir: Option[String],
     camkesAuxCodeDirs: ISZ[String],
     aadlRootDir: Option[String]
@@ -379,6 +380,7 @@ import Cli._
           |                           100)
           |    --max-array-size     Default maximum sequence size (expects an integer;
           |                           default is 100)
+          |    --run-transpiler     Run Transpiler during HAMR Codegen
           |
           |CAmkES Options:
           |-o, --camkes-output-dir    
@@ -403,6 +405,7 @@ import Cli._
     var bitWidth: Z = 64
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
+    var runTranspiler: B = true
     var camkesOutputDir: Option[String] = Some(".")
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var aadlRootDir: Option[String] = None[String]()
@@ -492,6 +495,12 @@ import Cli._
              case Some(v) => maxArraySize = v
              case _ => return None()
            }
+         } else if (arg == "--run-transpiler") {
+           val o: Option[B] = { j = j - 1; Some(!runTranspiler) }
+           o match {
+             case Some(v) => runTranspiler = v
+             case _ => return None()
+           }
          } else if (arg == "-o" || arg == "--camkes-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -519,7 +528,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir))
+    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir))
   }
 
   def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {

@@ -101,24 +101,29 @@ object HAMR {
               aadlRootDir: Option[Predef.String]
              ): Int = {
 
-    val o = Cli.HamrCodeGenOption("", ISZ(), F,
-      verbose,
-      platform,
-      slangOutputDir.map(f => org.sireum.String(f)),
-      slangPackageName.map(f => org.sireum.String(f)),
-      embedArt,
-      devicesAsThreads,
+    val o = Cli.HamrCodeGenOption(
+      help = "",
+      args = ISZ(),
+      json = F,
       //
-      slangAuxCodeDir.map(f => org.sireum.String(f)),
-      slangOutputCDirectory.map(f => org.sireum.String(f)),
-      excludeComponentImpl,
-      bitWidth,
-      maxStringSize,
-      maxArraySize,
+      verbose = verbose,
+      platform = platform,
+      outputDir = slangOutputDir.map(f => org.sireum.String(f)),
+      packageName = slangPackageName.map(f => org.sireum.String(f)),
+      embedArt = embedArt,
+      devicesAsThreads = devicesAsThreads,
       //
-      camkesOutputDirectory.map(f => org.sireum.String(f)),
-      camkesAuxCodeDirs.map(f => org.sireum.String(f)),
-      aadlRootDir.map(f => org.sireum.String(f))
+      slangAuxCodeDirs = slangAuxCodeDir.map(f => org.sireum.String(f)),
+      slangOutputCDir = slangOutputCDirectory.map(f => org.sireum.String(f)),
+      excludeComponentImpl = excludeComponentImpl,
+      bitWidth = bitWidth,
+      maxStringSize = maxStringSize,
+      maxArraySize = maxArraySize,
+      runTranspiler = T,
+      //
+      camkesOutputDir = camkesOutputDirectory.map(f => org.sireum.String(f)),
+      camkesAuxCodeDirs = camkesAuxCodeDirs.map(f => org.sireum.String(f)),
+      aadlRootDir = aadlRootDir.map(f => org.sireum.String(f))
     )
 
     return codeGen(model, o)
@@ -141,6 +146,7 @@ object HAMR {
       bitWidth = o.bitWidth,
       maxStringSize = o.maxStringSize,
       maxArraySize = o.maxArraySize,
+      runTranspiler = o.runTranspiler,
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
       aadlRootDir = o.aadlRootDir
