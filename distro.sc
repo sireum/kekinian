@@ -11,7 +11,7 @@ object distro {
     def version(isDev: Boolean): String = if (isDev) devVer else ver
   }
 
-  val delPlugins = Seq("android", "Kotlin")
+  val delPlugins = Seq("android", "Kotlin", "smali")
   val pluginPrefix = "org.sireum.version.plugin."
   val properties = org.sireum.mill.SireumModule.properties
 
