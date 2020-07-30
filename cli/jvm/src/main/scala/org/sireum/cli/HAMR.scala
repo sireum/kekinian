@@ -123,7 +123,9 @@ object HAMR {
       //
       camkesOutputDir = camkesOutputDirectory.map(f => org.sireum.String(f)),
       camkesAuxCodeDirs = camkesAuxCodeDirs.map(f => org.sireum.String(f)),
-      aadlRootDir = aadlRootDir.map(f => org.sireum.String(f))
+      aadlRootDir = aadlRootDir.map(f => org.sireum.String(f)),
+
+      experimentalOptions = ISZ()
     )
 
     return codeGen(model, o)
@@ -149,7 +151,8 @@ object HAMR {
       runTranspiler = o.runTranspiler,
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
-      aadlRootDir = o.aadlRootDir
+      aadlRootDir = o.aadlRootDir,
+      experimentalOptions = o.experimentalOptions
     )
     
     var reporter = Reporter.create

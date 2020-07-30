@@ -67,7 +67,8 @@ object Cli {
     runTranspiler: B,
     camkesOutputDir: Option[String],
     camkesAuxCodeDirs: ISZ[String],
-    aadlRootDir: Option[String]
+    aadlRootDir: Option[String],
+    experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
   @enum object PhantomMode {
@@ -390,7 +391,11 @@ import Cli._
           |                          Directories containing C files to be included in
           |                           CAmkES build (expects path strings)
           |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
-          |                           path)""".render
+          |                           path)
+          |
+          |Experimental Options:
+          |    --experimental-options
+          |                           (expects a string separated by ";")""".render
 
     var json: B = false
     var verbose: B = false
@@ -409,6 +414,7 @@ import Cli._
     var camkesOutputDir: Option[String] = Some(".")
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var aadlRootDir: Option[String] = None[String]()
+    var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -519,6 +525,12 @@ import Cli._
              case Some(v) => aadlRootDir = v
              case _ => return None()
            }
+         } else if (arg == "--experimental-options") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => experimentalOptions = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -528,7 +540,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir))
+    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
   def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
