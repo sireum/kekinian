@@ -34,6 +34,7 @@ object Logika {
   val ILL_FORMED_SCRIPT_FILE: Z = -3
   val INVALID_CHAR_WIDTH: Z = -4
   val INVALID_INT_WIDTH: Z = -5
+  val INVALID_VC_DIR: Z = -6
 
   def run(o: Cli.LogikaVerifierOption): Z = {
     if (o.sourcepath.nonEmpty) {
@@ -67,7 +68,18 @@ object Logika {
         return INVALID_INT_WIDTH
     }
 
-    val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc)
+    o.logVcDir match {
+      case Some(p) =>
+        val path = Os.path(p)
+        if (path.exists && !path.isDir) {
+          eprintln(s"$p is not a directory")
+          return INVALID_VC_DIR
+        }
+      case _ =>
+    }
+
+    val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
+      o.logRawPc, o.logVc, o.logVcDir)
 
     for (arg <- o.args) {
       val f = Os.path(arg)

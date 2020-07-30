@@ -96,7 +96,8 @@ object Cli {
     intBitWidth: Z,
     logPc: B,
     logRawPc: B,
-    logVc: B
+    logVc: B,
+    logVcDir: Option[String]
   ) extends SireumTopOption
 
   @datatype class SlangRunOption(
@@ -676,7 +677,9 @@ import Cli._
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
           |    --log-raw-pc         Display raw path conditions before each statement
-          |    --log-vc             Display all verification conditions""".render
+          |    --log-vc             Display all verification conditions
+          |    --log-vc-dir         Write all verification conditions in a directory
+          |                           (expects a path)""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var timeout: Z = 2
@@ -686,6 +689,7 @@ import Cli._
     var logPc: B = false
     var logRawPc: B = false
     var logVc: B = false
+    var logVcDir: Option[String] = None[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -742,6 +746,12 @@ import Cli._
              case Some(v) => logVc = v
              case _ => return None()
            }
+         } else if (arg == "--log-vc-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => logVcDir = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -751,7 +761,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, charBitWidth, intBitWidth, logPc, logRawPc, logVc))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, charBitWidth, intBitWidth, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
