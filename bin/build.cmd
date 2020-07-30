@@ -76,7 +76,8 @@ var didTipe = F
 var didCompile = F
 var didM2 = F
 var didBuild = F
-
+val versions = (home / "versions.properties").properties
+val cache = Os.home / "Downloads" / "sireum"
 
 def platform: String = {
   Os.kind match {
@@ -88,6 +89,86 @@ def platform: String = {
   }
 }
 
+def installZ3(): Unit = {
+  val version = versions.get("org.sireum.version.z3").get
+  val dir = homeBin / platform / "z3"
+  val ver = dir / "VER"
+
+  if (ver.exists && ver.read == version) {
+    return
+  }
+
+  val filename: String = Os.kind match {
+    case Os.Kind.Win => s"z3-$version-x64-win.zip"
+    case Os.Kind.Linux => s"z3-$version-x64-ubuntu-16.04.zip"
+    case Os.Kind.Mac => s"z3-$version-x64-osx-10.14.6.zip"
+    case _ => return
+  }
+
+  val bundle = cache / filename
+
+  if (!bundle.exists) {
+    println(s"Please wait while downloading Z3 $version ...")
+    bundle.up.mkdirAll()
+    bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
+    println()
+  }
+
+  println("Extracting Z3 ...")
+  bundle.unzipTo(dir.up)
+  println()
+
+  for (p <- dir.up.list if ops.StringOps(p.name).startsWith("z3-")) {
+    dir.removeAll()
+    p.moveTo(dir)
+  }
+
+  Os.kind match {
+    case Os.Kind.Linux => (dir / "bin" / "z3").chmod("+x")
+    case Os.Kind.Mac => (dir / "bin" / "z3").chmod("+x")
+    case _ =>
+  }
+
+  ver.writeOver(version)
+}
+
+def installCVC4(): Unit = {
+  val version = versions.get("org.sireum.version.cvc4").get
+  val exe = homeBin / platform / "cvc4"
+  val ver = homeBin / platform / ".cvc4.ver"
+
+  if (ver.exists && ver.read == version) {
+    return
+  }
+
+  val filename: String = Os.kind match {
+    case Os.Kind.Win => s"cvc4-$version-win64-opt.exe"
+    case Os.Kind.Linux => s"cvc4-$version-x86_64-linux-opt"
+    case Os.Kind.Mac => s"cvc4-$version-macos-opt"
+    case _ => return
+  }
+
+  val drop = cache / filename
+
+  if (!drop.exists) {
+    println(s"Please wait while downloading CVC4 $version ...")
+    drop.up.mkdirAll()
+    drop.downloadFrom(s"https://github.com/CVC4/CVC4/releases/download/$version/$filename")
+    println()
+  }
+
+  println("Installing CVC4 ...")
+  drop.copyOverTo(exe)
+  println()
+
+  Os.kind match {
+    case Os.Kind.Linux => exe.chmod("+x")
+    case Os.Kind.Mac => exe.chmod("+x")
+    case _ =>
+  }
+
+  ver.writeOver(version)
+}
 
 def touchePath(path: Os.Path): Unit = {
   val content = path.read
@@ -477,6 +558,8 @@ if (!(home / "runtime" / "build.sc").exists) {
   Os.exit(-1)
 }
 
+installZ3()
+installCVC4()
 buildMill()
 
 if (Os.cliArgs.isEmpty) {

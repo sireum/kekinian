@@ -73,33 +73,6 @@ if (!(Test-Path "$scalac_plugin_lib")) {
 }
 
 
-$z3_version = $properties["org.sireum.version.z3"]
-$z3_ver_path = "$sireum_home\bin\win\z3\VER"
-$z3_update = $TRUE
-if (Test-Path "$z3_ver_path") {
-  $z3_ver = Get-Content "$z3_ver_path"
-  if ($z3_ver -Eq $z3_version) {
-    $z3_update = $FALSE
-  }
-}
-if ($z3_update) {
-  $z3_drop = "$cache_dir\z3-$z3_version-x64-win.zip"
-  if (!(Test-Path "$z3_drop")) {
-    "Please wait while downloading Z3 $z3_version ... "
-    $z3_url = "https://github.com/Z3Prover/z3/releases/download/z3-$z3_version/z3-$z3_version-x64-win.zip"
-    Invoke-WebRequest -Uri "$z3_url" -OutFile "$z3_drop"
-  }
-  "Extracting Z3 $z3_version ... "
-  Expand-Archive "$z3_drop" -DestinationPath "$sireum_home\bin\win"
-  ""
-  if (Test-Path "$sireum_home\bin\win\z3") {
-    Remove-Item -Path "$sireum_home\bin\win\z3" -Recurse -Force
-  }
-  Move "$sireum_home\bin\win\z3-$z3_version-x64-win" "$sireum_home\bin\win\z3"
-  "$z3_version" | Set-Content "$z3_ver_path"
-}
-
-
 if ($Env:SIREUM_PROVIDED_SCALA) {
   Exit
 }

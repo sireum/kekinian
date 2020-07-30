@@ -25,6 +25,12 @@ mill-standalone
 /bin/win/z3
 /bin/mac/z3
 /bin/linux/z3
+/bin/win/cvc4
+/bin/mac/cvc4
+/bin/linux/cvc4
+/bin/win/.cvc4.ver
+/bin/mac/.cvc4.ver
+/bin/linux/.cvc4.ver
 /bin/win/idea
 /bin/linux/idea
 /bin/linux/arm/idea
