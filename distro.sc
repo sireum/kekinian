@@ -458,6 +458,14 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     else os.symlink(p, target)
   }
 
+  def deleteSources(): Unit = {
+    for (p <- os.walk(ideaDir)) {
+      if (p.last.endsWith(".java") || p.last.endsWith(".scala")) {
+        os.remove.all(p)
+      }
+    }
+  }
+
   def deletePlugins(): Unit = {
     for (p <- delPlugins) {
       print(s"Removing $p plugin ... ")
@@ -474,6 +482,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     %%('cp, "-R", appPath, sireumAppDir)(pwd)
     %%("hdiutil", "eject", dirPath)(pwd)
     println("done!")
+    deleteSources()
     deletePlugins()
     extractPlugins()
     patchIcon()
@@ -486,6 +495,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     val ideaDirParent = ideaDir / os.up
     %%('tar, 'xfz, ideaDrop)(ideaDirParent)
     os.move(os.list(ideaDirParent).find(p => p.last.startsWith("idea-IC-")).get, ideaDir)
+    deleteSources()
     println("done!")
     deletePlugins()
     extractPlugins()
@@ -532,6 +542,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
     os.makeDir.all(ideaDir)
     %%(pwd7z, 'x, "-y", ideaDrop)(ideaDir)
     os.remove.all(ideaDir / '$PLUGINSDIR)
+    deleteSources()
     println("done!")
     deletePlugins()
     extractPlugins()
