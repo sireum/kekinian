@@ -134,7 +134,7 @@ def installZ3(): Unit = {
 
 def installCVC4(): Unit = {
   val version = versions.get("org.sireum.version.cvc4").get
-  val exe = homeBin / platform / "cvc4"
+  val exe = homeBin / platform / (if (Os.isWin) "cvc4.exe" else "cvc4")
   val ver = homeBin / platform / ".cvc4.ver"
 
   if (ver.exists && ver.read == version) {
