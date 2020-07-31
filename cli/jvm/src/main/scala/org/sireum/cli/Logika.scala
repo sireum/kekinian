@@ -68,45 +68,69 @@ object Logika {
         return INVALID_INT_WIDTH
     }
 
-    o.logVcDir match {
-      case Some(p) =>
-        val path = Os.path(p)
-        if (path.exists && !path.isDir) {
-          eprintln(s"$p is not a directory")
-          return INVALID_VC_DIR
-        }
-      case _ =>
+    val (smt2, argsF): (String, Z => ISZ[String] @pure) =
+      o.solver match {
+        case Cli.LogikaSolver.Z3 => ("z3", logika.Smt2Impl.z3ArgF _)
+        case Cli.LogikaSolver.Cvc4 => ("cvc4", logika.Smt2Impl.cvc4ArgF _)
+      }
+    val smt2Exe: String = Sireum.homeOpt match {
+      case Some(home) =>
+        val p: Os.Path =
+          if (o.solver == Cli.LogikaSolver.Cvc4) home / "bin" / Sireum.platform / (if (Os.isWin) s"$smt2.exe" else smt2)
+          else home / "bin" / Sireum.platform / smt2 / "bin" / (if (Os.isWin) s"$smt2.exe" else smt2)
+        if (p.exists) p.value else smt2
+      case _ => smt2
     }
-
-    val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
-      o.logRawPc, o.logVc, o.logVcDir)
+    var status = T
+    var code = z"0"
 
     for (arg <- o.args) {
+      if (o.args.size > 1) {
+        println(s"Verifying $arg ...")
+      }
+
+      val outputDir: Option[String] =
+        o.logVcDir match {
+          case Some(d) => Some(s"$d${Os.fileSep}${Os.path(arg).name}")
+          case _ => None()
+        }
+      outputDir match {
+        case Some(p) =>
+          val path = Os.path(p)
+          if (path.exists && !path.isDir) {
+            eprintln(s"$p is not a directory")
+            return INVALID_VC_DIR
+          }
+        case _ =>
+      }
+      val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
+        o.logRawPc, o.logVc, outputDir)
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
-        val z3Exe: String = Sireum.homeOpt match {
-          case Some(home) =>
-            val p = home / "bin" / Sireum.platform / "z3" / "bin" / (if (Os.isWin) "z3.exe" else "z3")
-            if (p.exists) p.value else "z3"
-          case _ => "z3"
-        }
         val reporter = logika.Logika.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl(z3Exe, logika.Smt2Impl.z3ArgF _, th, config.charBitWidth, config.intBitWidth), reporter)
+            logika.Smt2Impl(o.solver == Cli.LogikaSolver.Z3, smt2Exe, argsF, th, config.charBitWidth,
+              config.intBitWidth), reporter)
         reporter.printMessages()
         if (reporter.hasError) {
-          return ILL_FORMED_SCRIPT_FILE
-        } else {
-          println("Logika verified!")
-          println()
-          return 0
+          code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
+        }
+        if (reporter.hasIssue) {
+          status = F
         }
       } else {
         eprintln(s"$arg is not a Slang script file")
         return INVALID_SCRIPT_FILE
       }
+      if (o.args.size > 1) {
+        println()
+      }
     }
 
-    return 0
+    if (status) {
+      println("Logika verified!")
+    }
+
+    return code
   }
 }

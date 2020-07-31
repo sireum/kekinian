@@ -86,12 +86,18 @@ object Cli {
     output: Option[String]
   ) extends SireumTopOption
 
+  @enum object LogikaSolver {
+    'Z3
+    'Cvc4
+  }
+
   @datatype class LogikaVerifierOption(
     help: String,
     args: ISZ[String],
     sourcepath: ISZ[String],
     timeout: Z,
     unroll: B,
+    solver: LogikaSolver.Type,
     charBitWidth: Z,
     intBitWidth: Z,
     logPc: B,
@@ -651,6 +657,25 @@ import Cli._
     }
   }
 
+  def parseLogikaSolverH(arg: String): Option[LogikaSolver.Type] = {
+    arg.native match {
+      case "z3" => return Some(LogikaSolver.Z3)
+      case "cvc4" => return Some(LogikaSolver.Cvc4)
+      case s =>
+        eprintln(s"Expecting one of the following: { z3, cvc4 }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseLogikaSolver(args: ISZ[String], i: Z): Option[LogikaSolver.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { z3, cvc4 }, but none found.")
+      return None()
+    }
+    val r = parseLogikaSolverH(args(i))
+    return r
+  }
+
   def parseLogikaVerifier(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Logika Verifier for Slang
@@ -664,6 +689,7 @@ import Cli._
           |                           default is 2)
           |    --unroll             Enable loop unrolling when loop modifies clause is
           |                           unspecified
+          |-m, --solver             Smt2 solver (expects one of { z3, cvc4 }; default: z3)
           |-h, --help               Display this information
           |
           |Bit-width Options:
@@ -684,6 +710,7 @@ import Cli._
     var sourcepath: ISZ[String] = ISZ[String]()
     var timeout: Z = 2
     var unroll: B = false
+    var solver: LogikaSolver.Type = LogikaSolver.Z3
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
     var logPc: B = false
@@ -714,6 +741,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!unroll) }
            o match {
              case Some(v) => unroll = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--solver") {
+           val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
+           o match {
+             case Some(v) => solver = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -761,7 +794,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, charBitWidth, intBitWidth, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, solver, charBitWidth, intBitWidth, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
