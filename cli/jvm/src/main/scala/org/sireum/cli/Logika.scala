@@ -104,13 +104,12 @@ object Logika {
         case _ =>
       }
       val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
-        o.logRawPc, o.logVc, outputDir)
+        o.logRawPc, o.logVc, outputDir, o.splitAll, o.splitBinary, o.splitIf, o.splitMatch, F)
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl(o.solver == Cli.LogikaSolver.Z3, smt2Exe, argsF, th, config.charBitWidth,
-              config.intBitWidth), reporter)
+            logika.Smt2Impl(smt2Exe, argsF, th, config.charBitWidth, config.intBitWidth), reporter)
         reporter.printMessages()
         if (reporter.hasError) {
           code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code

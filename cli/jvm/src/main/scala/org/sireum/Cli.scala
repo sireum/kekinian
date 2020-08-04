@@ -100,6 +100,10 @@ object Cli {
     solver: LogikaSolver.Type,
     charBitWidth: Z,
     intBitWidth: Z,
+    splitAll: B,
+    splitBinary: B,
+    splitIf: B,
+    splitMatch: B,
     logPc: B,
     logRawPc: B,
     logVc: B,
@@ -700,6 +704,12 @@ import Cli._
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
           |                           default is 0)
           |
+          |Path Splitting Options:
+          |    --split-all          Split all
+          |    --split-bin          Split conditional binary expression
+          |    --split-if           Split if-conditional expression and statement
+          |    --split-match        Split match expression and statement
+          |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
           |    --log-raw-pc         Display raw path conditions before each statement
@@ -713,6 +723,10 @@ import Cli._
     var solver: LogikaSolver.Type = LogikaSolver.Z3
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
+    var splitAll: B = false
+    var splitBinary: B = false
+    var splitIf: B = false
+    var splitMatch: B = false
     var logPc: B = false
     var logRawPc: B = false
     var logVc: B = false
@@ -761,6 +775,30 @@ import Cli._
              case Some(v) => intBitWidth = v
              case _ => return None()
            }
+         } else if (arg == "--split-all") {
+           val o: Option[B] = { j = j - 1; Some(!splitAll) }
+           o match {
+             case Some(v) => splitAll = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-bin") {
+           val o: Option[B] = { j = j - 1; Some(!splitBinary) }
+           o match {
+             case Some(v) => splitBinary = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-if") {
+           val o: Option[B] = { j = j - 1; Some(!splitIf) }
+           o match {
+             case Some(v) => splitIf = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-match") {
+           val o: Option[B] = { j = j - 1; Some(!splitMatch) }
+           o match {
+             case Some(v) => splitMatch = v
+             case _ => return None()
+           }
          } else if (arg == "--log-pc") {
            val o: Option[B] = { j = j - 1; Some(!logPc) }
            o match {
@@ -794,7 +832,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, solver, charBitWidth, intBitWidth, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, solver, charBitWidth, intBitWidth, splitAll, splitBinary, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
