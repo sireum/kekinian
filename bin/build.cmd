@@ -302,7 +302,7 @@ def tipe(): Unit = {
   if (!didTipe) {
     didTipe = T
     println("Slang type checking ...")
-    val excludes = "hamr/codegen/arsit/resources,hamr/codegen/jvm/src/test/result"
+    val excludes = "hamr/codegen/arsit/resources,hamr/codegen/arsit/jvm/src/test/results,hamr/codegen/jvm/src/test/result"
     val excludedDirs = Set ++ ISZ[String]("bin", "out", "distro", "resources")
     val sourcepath: ISZ[Os.Path] = for (p <- home.list if !excludedDirs.contains(p.name)) yield p
     Os.proc(ISZ("java", "-jar", sireumJar.string,

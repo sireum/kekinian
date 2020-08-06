@@ -31,6 +31,7 @@ import org.sireum.message._
 import org.sireum.Os.Path
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.codegen._
+import org.sireum.hamr.codegen.common.containers.TranspilerConfig
 
 object HAMR {
 
