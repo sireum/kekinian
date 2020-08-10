@@ -104,7 +104,7 @@ object Logika {
         case _ =>
       }
       val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
-        o.logRawPc, o.logVc, outputDir, o.splitAll, o.splitBinary, o.splitIf, o.splitMatch, F)
+        o.logRawPc, o.logVc, outputDir, o.splitAll, o.splitBinary, o.splitIf, o.splitMatch, o.splitContract)
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
