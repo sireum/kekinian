@@ -57,7 +57,8 @@ def usage(): Unit = {
         |       | touche       | touche-lib   | touche-slang | touche-transpilers
         |       | regen-slang  | regen-logika | regen-air    | regen-act
         |       | regen-server | regen-cliopt | regen-cli
-        |       | m2           | jitpack      | ghpack                            )*
+        |       | m2           | jitpack      | ghpack
+        |       | cvc4         | z3                                               )*
       """.render)
 }
 
@@ -79,8 +80,8 @@ var didBuild = F
 val versions = (home / "versions.properties").properties
 val cache = Os.home / "Downloads" / "sireum"
 
-def platform: String = {
-  Os.kind match {
+def platformKind(kind: Os.Kind.Type): String = {
+  kind match {
     case Os.Kind.Win => return "win"
     case Os.Kind.Linux => return "linux"
     case Os.Kind.LinuxArm => return "linux/arm"
@@ -89,16 +90,21 @@ def platform: String = {
   }
 }
 
-def installZ3(): Unit = {
+def platform: String = {
+  return platformKind(Os.kind)
+}
+
+
+def installZ3(kind: Os.Kind.Type): Unit = {
   val version = versions.get("org.sireum.version.z3").get
-  val dir = homeBin / platform / "z3"
+  val dir = homeBin / platformKind(kind) / "z3"
   val ver = dir / "VER"
 
   if (ver.exists && ver.read == version) {
     return
   }
 
-  val filename: String = Os.kind match {
+  val filename: String = kind match {
     case Os.Kind.Win => s"z3-$version-x64-win.zip"
     case Os.Kind.Linux => s"z3-$version-x64-ubuntu-16.04.zip"
     case Os.Kind.Mac => s"z3-$version-x64-osx-10.14.6.zip"
@@ -123,7 +129,7 @@ def installZ3(): Unit = {
     p.moveTo(dir)
   }
 
-  Os.kind match {
+  kind match {
     case Os.Kind.Linux => (dir / "bin" / "z3").chmod("+x")
     case Os.Kind.Mac => (dir / "bin" / "z3").chmod("+x")
     case _ =>
@@ -132,16 +138,32 @@ def installZ3(): Unit = {
   ver.writeOver(version)
 }
 
-def installCVC4(): Unit = {
+
+def z3(): Unit = {
+  println("Installing Z3 for macOS ...")
+  println()
+  installZ3(Os.Kind.Mac)
+
+  println("Installing Z3 for Linux ...")
+  println()
+  installZ3(Os.Kind.Linux)
+
+  println("Installing Z3 for Windows ...")
+  println()
+  installZ3(Os.Kind.Win)
+}
+
+
+def installCVC4(kind: Os.Kind.Type): Unit = {
   val version = versions.get("org.sireum.version.cvc4").get
-  val exe = homeBin / platform / (if (Os.isWin) "cvc4.exe" else "cvc4")
-  val ver = homeBin / platform / ".cvc4.ver"
+  val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) "cvc4.exe" else "cvc4")
+  val ver = homeBin / platformKind(kind) / ".cvc4.ver"
 
   if (ver.exists && ver.read == version) {
     return
   }
 
-  val filename: String = Os.kind match {
+  val filename: String = kind match {
     case Os.Kind.Win => s"cvc4-$version-win64-opt.exe"
     case Os.Kind.Linux => s"cvc4-$version-x86_64-linux-opt"
     case Os.Kind.Mac => s"cvc4-$version-macos-opt"
@@ -157,17 +179,32 @@ def installCVC4(): Unit = {
     println()
   }
 
-  println("Installing CVC4 ...")
+  println("Copying CVC4 ...")
   drop.copyOverTo(exe)
   println()
 
-  Os.kind match {
+  kind match {
     case Os.Kind.Linux => exe.chmod("+x")
     case Os.Kind.Mac => exe.chmod("+x")
     case _ =>
   }
 
   ver.writeOver(version)
+}
+
+
+def cvc4(): Unit = {
+  println("Installing CVC4 for macOS ...")
+  println()
+  installCVC4(Os.Kind.Mac)
+
+  println("Installing CVC4 for Linux ...")
+  println()
+  installCVC4(Os.Kind.Linux)
+
+  println("Installing CVC4 for Windows ...")
+  println()
+  installCVC4(Os.Kind.Win)
 }
 
 def touchePath(path: Os.Path): Unit = {
@@ -558,8 +595,8 @@ if (!(home / "runtime" / "build.sc").exists) {
   Os.exit(-1)
 }
 
-installZ3()
-installCVC4()
+installZ3(Os.kind)
+installCVC4(Os.kind)
 buildMill()
 
 if (Os.cliArgs.isEmpty) {
@@ -589,6 +626,8 @@ if (Os.cliArgs.isEmpty) {
       case string"m2" => m2()
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
+      case string"cvc4" => cvc4()
+      case string"z3" => z3()
       case string"-h" => usage()
       case string"--help" => usage()
       case cmd =>
