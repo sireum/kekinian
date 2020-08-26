@@ -101,7 +101,6 @@ object Cli {
     charBitWidth: Z,
     intBitWidth: Z,
     splitAll: B,
-    splitBinary: B,
     splitIf: B,
     splitMatch: B,
     splitContract: B,
@@ -707,7 +706,6 @@ import Cli._
           |
           |Path Splitting Options:
           |    --split-all          Split all
-          |    --split-bin          Split on conditional binary expressions
           |    --split-if           Split on if-conditional expressions and statements
           |    --split-match        Split on match expressions and statements
           |    --split-contract     Split on contract cases
@@ -726,7 +724,6 @@ import Cli._
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
     var splitAll: B = false
-    var splitBinary: B = false
     var splitIf: B = false
     var splitMatch: B = false
     var splitContract: B = false
@@ -784,12 +781,6 @@ import Cli._
              case Some(v) => splitAll = v
              case _ => return None()
            }
-         } else if (arg == "--split-bin") {
-           val o: Option[B] = { j = j - 1; Some(!splitBinary) }
-           o match {
-             case Some(v) => splitBinary = v
-             case _ => return None()
-           }
          } else if (arg == "--split-if") {
            val o: Option[B] = { j = j - 1; Some(!splitIf) }
            o match {
@@ -841,7 +832,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, solver, charBitWidth, intBitWidth, splitAll, splitBinary, splitIf, splitMatch, splitContract, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, solver, charBitWidth, intBitWidth, splitAll, splitIf, splitMatch, splitContract, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
