@@ -156,7 +156,9 @@ object GenTools {
     } else {
       val HomeNotFound = -1
       val JavaOrScalaNotFound = -2
-      val InvalidDir = -3
+      val IdeaNotFound = -3
+      val InvalidDir = -4
+
 
       val d = path2fileOpt("project parent folder", Some(o.args(0)), F).get
       if (!d.exists) {
@@ -172,6 +174,10 @@ object GenTools {
 
       if (!homeFound) return HomeNotFound
       if (!(javaFound && scalaFound)) return JavaOrScalaNotFound
+      if (!ideaDir.exists) {
+        eprintln("Sireum IVE is not installed")
+        return IdeaNotFound
+      }
       val home = homeOpt.get
       val javaHome = javaHomeOpt.get
       val scalaHome = scalaHomeOpt.get
@@ -238,6 +244,7 @@ object GenTools {
           "jdk.security.jgss", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom", "jdk.zipfs",
           "org.openjsse"
         )
+
         val (jdkClassPath, jdkSourcePath) =
           ( (for (m <- modules.elements) yield
                s"""            <root url="jrt://${normalizePath(javaHome)}!/$m" type="simple" />""").elements.mkString("\n"),
@@ -253,74 +260,68 @@ object GenTools {
           yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
 
-        def ideaOpt: Option[String] = if (ideaDir.exists) {
-          Some(
-            s"""    <jdk version="2">
-               |      <name value="Sireum$devSuffix" />
-               |      <type value="IDEA JDK" />
-               |      <version value="$javaVer" />
-               |      <homePath value="$ideaDir" />
-               |      <roots>
-               |        <annotationsPath>
-               |          <root type="composite">
-               |            <root url="jar://$$APPLICATION_HOME_DIR$$/plugins/java/lib/jdkAnnotations.jar!/" type="simple" />
-               |          </root>
-               |        </annotationsPath>
-               |        <classPath>
-               |          <root type="composite">
-               |$jdkClassPath
-               |$ideaLibs
-               |          </root>
-               |        </classPath>
-               |        <javadocPath>
-               |          <root type="composite" />
-               |        </javadocPath>
-               |        <sourcePath>
-               |          <root type="composite">
-               |$jdkSourcePath
-               |          </root>
-               |        </sourcePath>
-               |      </roots>
-               |      <additional sdk="Java">
-               |        <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
-               |      </additional>
-               |    </jdk>""".stripMargin)
-        } else {
-          None()
-        }
+        def idea: String =
+          s"""    <jdk version="2">
+             |      <name value="Sireum$devSuffix" />
+             |      <type value="IDEA JDK" />
+             |      <version value="$javaVer" />
+             |      <homePath value="$ideaDir" />
+             |      <roots>
+             |        <annotationsPath>
+             |          <root type="composite">
+             |            <root url="jar://$$APPLICATION_HOME_DIR$$/plugins/java/lib/jdkAnnotations.jar!/" type="simple" />
+             |          </root>
+             |        </annotationsPath>
+             |        <classPath>
+             |          <root type="composite">
+             |$jdkClassPath
+             |$ideaLibs
+             |          </root>
+             |        </classPath>
+             |        <javadocPath>
+             |          <root type="composite" />
+             |        </javadocPath>
+             |        <sourcePath>
+             |          <root type="composite">
+             |$jdkSourcePath
+             |          </root>
+             |        </sourcePath>
+             |      </roots>
+             |      <additional sdk="Java">
+             |        <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
+             |      </additional>
+             |    </jdk>""".stripMargin
 
-        def ideaScalaOpt: Option[String] = if (ideaDir.exists) {
-          Some(
-            s"""    <jdk version="2">
-               |      <name value="Sireum$devSuffix (with Scala Plugin)" />
-               |      <type value="IDEA JDK" />
-               |      <version value="$javaVer" />
-               |      <homePath value="$ideaDir" />
-               |      <roots>
-               |        <annotationsPath>
-               |          <root type="composite" />
-               |        </annotationsPath>
-               |        <classPath>
-               |          <root type="composite">
-               |$jdkClassPath
-               |$ideaLibs
-               |$ideaJavaLibs
-               |$ideaScalaLibs
-               |          </root>
-               |        </classPath>
-               |        <javadocPath>
-               |          <root type="composite" />
-               |        </javadocPath>
-               |        <sourcePath>
-               |          <root type="composite">
-               |$jdkSourcePath
-               |          </root>
-               |        </sourcePath>
-               |      </roots>
-               |    </jdk>""".stripMargin)
-        } else {
-          None()
-        }
+
+        def ideaScala: String =
+          s"""    <jdk version="2">
+             |      <name value="Sireum$devSuffix (with Scala Plugin)" />
+             |      <type value="IDEA JDK" />
+             |      <version value="$javaVer" />
+             |      <homePath value="$ideaDir" />
+             |      <roots>
+             |        <annotationsPath>
+             |          <root type="composite" />
+             |        </annotationsPath>
+             |        <classPath>
+             |          <root type="composite">
+             |$jdkClassPath
+             |$ideaLibs
+             |$ideaJavaLibs
+             |$ideaScalaLibs
+             |          </root>
+             |        </classPath>
+             |        <javadocPath>
+             |          <root type="composite" />
+             |        </javadocPath>
+             |        <sourcePath>
+             |          <root type="composite">
+             |$jdkSourcePath
+             |          </root>
+             |        </sourcePath>
+             |      </roots>
+             |    </jdk>""".stripMargin
+
         st"""<application>
             |  <component name="ProjectJdkTable">
             |    <jdk version="2">
@@ -350,8 +351,8 @@ object GenTools {
             |      </roots>
             |      <additional />
             |    </jdk>
-            |$ideaOpt
-            |$ideaScalaOpt
+            |$idea
+            |$ideaScala
             |    <additional sdk="Java">
             |      <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
             |    </additional>
