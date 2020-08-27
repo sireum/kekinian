@@ -95,15 +95,16 @@ object Cli {
     help: String,
     args: ISZ[String],
     sourcepath: ISZ[String],
-    timeout: Z,
     unroll: B,
-    solver: LogikaSolver.Type,
     charBitWidth: Z,
     intBitWidth: Z,
     splitAll: B,
     splitIf: B,
     splitMatch: B,
     splitContract: B,
+    timeout: Z,
+    simplify: B,
+    solver: LogikaSolver.Type,
     logPc: B,
     logRawPc: B,
     logVc: B,
@@ -689,11 +690,8 @@ import Cli._
           |Available Options:
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
-          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           default is 2)
           |    --unroll             Enable loop unrolling when loop modifies clause is
           |                           unspecified
-          |-m, --solver             Smt2 solver (expects one of { z3, cvc4 }; default: z3)
           |-h, --help               Display this information
           |
           |Bit-width Options:
@@ -710,6 +708,12 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |    --split-contract     Split on contract cases
           |
+          |SMT2 Options:
+          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
+          |                           default is 2)
+          |    --simplify           Simplify SMT2 query
+          |-m, --solver             Smt2 solver (expects one of { z3, cvc4 }; default: z3)
+          |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
           |    --log-raw-pc         Display raw path conditions before each statement
@@ -718,15 +722,16 @@ import Cli._
           |                           (expects a path)""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
-    var timeout: Z = 2
     var unroll: B = false
-    var solver: LogikaSolver.Type = LogikaSolver.Z3
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
     var splitAll: B = false
     var splitIf: B = false
     var splitMatch: B = false
     var splitContract: B = false
+    var timeout: Z = 2
+    var simplify: B = false
+    var solver: LogikaSolver.Type = LogikaSolver.Z3
     var logPc: B = false
     var logRawPc: B = false
     var logVc: B = false
@@ -745,22 +750,10 @@ import Cli._
              case Some(v) => sourcepath = v
              case _ => return None()
            }
-         } else if (arg == "-t" || arg == "--timeout") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => timeout = v
-             case _ => return None()
-           }
          } else if (arg == "--unroll") {
            val o: Option[B] = { j = j - 1; Some(!unroll) }
            o match {
              case Some(v) => unroll = v
-             case _ => return None()
-           }
-         } else if (arg == "-m" || arg == "--solver") {
-           val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
-           o match {
-             case Some(v) => solver = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -799,6 +792,24 @@ import Cli._
              case Some(v) => splitContract = v
              case _ => return None()
            }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else if (arg == "--simplify") {
+           val o: Option[B] = { j = j - 1; Some(!simplify) }
+           o match {
+             case Some(v) => simplify = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--solver") {
+           val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
+           o match {
+             case Some(v) => solver = v
+             case _ => return None()
+           }
          } else if (arg == "--log-pc") {
            val o: Option[B] = { j = j - 1; Some(!logPc) }
            o match {
@@ -832,7 +843,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, timeout, unroll, solver, charBitWidth, intBitWidth, splitAll, splitIf, splitMatch, splitContract, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, splitAll, splitIf, splitMatch, splitContract, timeout, simplify, solver, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
