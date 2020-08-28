@@ -68,19 +68,6 @@ object Logika {
         return INVALID_INT_WIDTH
     }
 
-    val (smt2, argsF): (String, Z => ISZ[String] @pure) =
-      o.solver match {
-        case Cli.LogikaSolver.Z3 => ("z3", logika.Smt2Impl.z3ArgF _)
-        case Cli.LogikaSolver.Cvc4 => ("cvc4", logika.Smt2Impl.cvc4ArgF _)
-      }
-    val smt2Exe: String = Sireum.homeOpt match {
-      case Some(home) =>
-        val p: Os.Path =
-          if (o.solver == Cli.LogikaSolver.Cvc4) home / "bin" / Sireum.platform / (if (Os.isWin) s"$smt2.exe" else smt2)
-          else home / "bin" / Sireum.platform / smt2 / "bin" / (if (Os.isWin) s"$smt2.exe" else smt2)
-        if (p.exists) p.value else smt2
-      case _ => smt2
-    }
     var status = T
     var code = z"0"
 
@@ -103,13 +90,34 @@ object Logika {
           }
         case _ =>
       }
-      val config = logika.Config(3, HashMap.empty, o.timeout, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
+      var smt2Configs = ISZ[logika.Smt2Config]()
+      if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
+        val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
+        Sireum.homeOpt match {
+          case Some(home) =>
+            val p: Os.Path = home / "bin" / Sireum.platform / "z3" / "bin" / exeFilename
+            smt2Configs = smt2Configs :+ logika.Z3Config(p.string, o.timeout * 1000)
+          case _ =>
+            smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename, o.timeout * 1000)
+        }
+      }
+      if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Cvc4) {
+        val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
+        Sireum.homeOpt match {
+          case Some(home) =>
+            val p: Os.Path = home / "bin" / Sireum.platform / exeFilename
+            smt2Configs = smt2Configs :+ logika.Cvc4Config(p.string, o.timeout * 1000)
+          case _ =>
+            smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename, o.timeout * 1000)
+        }
+      }
+      val config = logika.Config(smt2Configs, 3, HashMap.empty, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
         o.logRawPc, o.logVc, outputDir, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify)
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl(smt2Exe, argsF, th, config.charBitWidth, config.intBitWidth, config.simplifiedQuery), reporter)
+            logika.Smt2Impl(smt2Configs, th, config.charBitWidth, config.intBitWidth, config.simplifiedQuery), reporter)
         reporter.printMessages()
         if (reporter.hasError) {
           code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code

@@ -87,6 +87,7 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object LogikaSolver {
+    'All
     'Z3
     'Cvc4
   }
@@ -99,12 +100,12 @@ object Cli {
     charBitWidth: Z,
     intBitWidth: Z,
     splitAll: B,
+    splitContract: B,
     splitIf: B,
     splitMatch: B,
-    splitContract: B,
-    timeout: Z,
     simplify: B,
     solver: LogikaSolver.Type,
+    timeout: Z,
     logPc: B,
     logRawPc: B,
     logVc: B,
@@ -664,17 +665,18 @@ import Cli._
 
   def parseLogikaSolverH(arg: String): Option[LogikaSolver.Type] = {
     arg.native match {
+      case "all" => return Some(LogikaSolver.All)
       case "z3" => return Some(LogikaSolver.Z3)
       case "cvc4" => return Some(LogikaSolver.Cvc4)
       case s =>
-        eprintln(s"Expecting one of the following: { z3, cvc4 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { all, z3, cvc4 }, but found '$s'.")
         return None()
     }
   }
 
   def parseLogikaSolver(args: ISZ[String], i: Z): Option[LogikaSolver.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { z3, cvc4 }, but none found.")
+      eprintln("Expecting one of the following: { all, z3, cvc4 }, but none found.")
       return None()
     }
     val r = parseLogikaSolverH(args(i))
@@ -704,15 +706,16 @@ import Cli._
           |
           |Path Splitting Options:
           |    --split-all          Split all
+          |    --split-contract     Split on contract cases
           |    --split-if           Split on if-conditional expressions and statements
           |    --split-match        Split on match expressions and statements
-          |    --split-contract     Split on contract cases
           |
           |SMT2 Options:
+          |    --simplify           Simplify SMT2 query
+          |-m, --solver             Smt2 solver (expects one of { all, z3, cvc4 };
+          |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)
-          |    --simplify           Simplify SMT2 query
-          |-m, --solver             Smt2 solver (expects one of { z3, cvc4 }; default: z3)
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
@@ -726,12 +729,12 @@ import Cli._
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
     var splitAll: B = false
+    var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var splitContract: B = false
-    var timeout: Z = 2
     var simplify: B = false
-    var solver: LogikaSolver.Type = LogikaSolver.Z3
+    var solver: LogikaSolver.Type = LogikaSolver.All
+    var timeout: Z = 2
     var logPc: B = false
     var logRawPc: B = false
     var logVc: B = false
@@ -774,6 +777,12 @@ import Cli._
              case Some(v) => splitAll = v
              case _ => return None()
            }
+         } else if (arg == "--split-contract") {
+           val o: Option[B] = { j = j - 1; Some(!splitContract) }
+           o match {
+             case Some(v) => splitContract = v
+             case _ => return None()
+           }
          } else if (arg == "--split-if") {
            val o: Option[B] = { j = j - 1; Some(!splitIf) }
            o match {
@@ -786,18 +795,6 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--split-contract") {
-           val o: Option[B] = { j = j - 1; Some(!splitContract) }
-           o match {
-             case Some(v) => splitContract = v
-             case _ => return None()
-           }
-         } else if (arg == "-t" || arg == "--timeout") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => timeout = v
-             case _ => return None()
-           }
          } else if (arg == "--simplify") {
            val o: Option[B] = { j = j - 1; Some(!simplify) }
            o match {
@@ -808,6 +805,12 @@ import Cli._
            val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
            o match {
              case Some(v) => solver = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => timeout = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -843,7 +846,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, splitAll, splitIf, splitMatch, splitContract, timeout, simplify, solver, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
