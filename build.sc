@@ -195,7 +195,9 @@ object buildModule extends mill.Module {
 
 def build() = T.command {
   val jar = os.pwd / 'bin / "sireum.jar"
-  os.copy(cli.assembly().path, jar, replaceExisting = true, copyAttributes = true)
+  val p = cli.assembly().path
+  os.proc("java", "-cp", jar, "org.sireum.tools.ScalaGraal", p).call()
+  os.copy(p, jar, replaceExisting = true, copyAttributes = true)
 }
 
 def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {

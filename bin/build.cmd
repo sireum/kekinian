@@ -298,7 +298,6 @@ def build(fresh: B): Unit = {
     if (r.exitCode != 0) {
       Os.exit(r.exitCode)
     }
-    Os.proc(ISZ("java", "-cp", sireumJar.string, "org.sireum.tools.ScalaGraal", sireumJar.string)).runCheck()
     println()
   }
 }
@@ -319,7 +318,7 @@ def nativ(): Unit = {
   build(F)
   println("Building native ...")
   val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
-      "-jar", sireumJar.string, (platDir / "sireum").string)).console.bufferErr.run()
+      "--report-unsupported-elements-at-runtime", "-jar", sireumJar.string, (platDir / "sireum").string)).console.bufferErr.run()
   if (r.exitCode != 0) {
     for (line <- ops.StringOps(r.err).split((c: C) => c === '\n') if !ops.StringOps(line).startsWith("warning: unknown anonymous info")) {
       eprintln(line)
