@@ -298,6 +298,7 @@ def build(fresh: B): Unit = {
     if (r.exitCode != 0) {
       Os.exit(r.exitCode)
     }
+    Os.proc(ISZ("java", "-cp", sireumJar.string, "org.sireum.tools.ScalaGraal", sireumJar.string)).runCheck()
     println()
   }
 }
