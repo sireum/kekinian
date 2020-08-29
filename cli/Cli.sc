@@ -66,5 +66,9 @@ trait Module extends JvmPublishOnly {
 
   final override def mainClass = Some("org.sireum.Sireum")
 
+  final override def prependShellScript: T[String] = T {
+    ""
+  }
+
   object tests extends Tests
 }
