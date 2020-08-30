@@ -49,7 +49,7 @@ object GenTools {
     if (!destDir.isDir) error(s"Path $destDir is not a directory")
     val outTemp = Os.temp()
     val r = SlangRunner.run(Cli.SlangRunOption("", ISZ(src.value), None(),
-      Some(outTemp.string), F, F, F))
+      Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(outTemp.read)
       return r
@@ -124,7 +124,7 @@ object GenTools {
       }
       val outTemp = Os.temp()
       val r = SlangRunner.run(Cli.SlangRunOption("", ISZ(src.value), None(),
-        Some(outTemp.string), T, F, F))
+        Some(outTemp.string), F, F))
       if (r != 0) {
         eprintln(s"Could not run ${o.args(0)}")
         return r

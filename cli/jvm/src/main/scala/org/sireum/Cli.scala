@@ -117,7 +117,6 @@ object Cli {
     args: ISZ[String],
     input: Option[String],
     output: Option[String],
-    server: B,
     transformed: B,
     nativ: B
   ) extends SireumTopOption
@@ -880,14 +879,12 @@ import Cli._
           |-i, --input              Input file for stdin (default: <slang-file>.txt, if
           |                           any) (expects a path)
           |-o, --output             Output file for stdin & stderr (expects a path)
-          |-s, --no-server          Disable Scala compile server
           |-t, --transformed        Show Scala transformed tree
           |-n, --native             Generate native executable
           |-h, --help               Display this information""".render
 
     var input: Option[String] = None[String]()
     var output: Option[String] = None[String]()
-    var server: B = false
     var transformed: B = false
     var nativ: B = false
     var j = i
@@ -908,12 +905,6 @@ import Cli._
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => output = v
-             case _ => return None()
-           }
-         } else if (arg == "-s" || arg == "--no-server") {
-           val o: Option[B] = { j = j - 1; Some(!server) }
-           o match {
-             case Some(v) => server = v
              case _ => return None()
            }
          } else if (arg == "-t" || arg == "--transformed") {
@@ -937,7 +928,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangRunOption(help, parseArguments(args, j), input, output, server, transformed, nativ))
+    return Some(SlangRunOption(help, parseArguments(args, j), input, output, transformed, nativ))
   }
 
   def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
