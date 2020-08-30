@@ -81,7 +81,7 @@ object SlangRunner {
     val wd = Os.tempDir()
     wd.removeOnExit()
     val scriptHome = script.up.canon
-    val sc = scriptHome / s"anon$$${script.name}"
+    val sc = wd / s"anon$$${script.name}"
     var content = script.read
     val contentOps = ops.StringOps(content)
     if (contentOps.startsWith("::#!")) {
@@ -102,7 +102,6 @@ object SlangRunner {
           |    new $$anon()
           |  }
           |}""".render)
-    sc.removeOnExit()
     val sJar: Os.Path =
       if (Os.isWin && (sireumJar.up / ".sireum-win.jar").exists) sireumJar.up / ".sireum-win.jar"
       else sireumJar
