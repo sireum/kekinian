@@ -1,2 +1,2 @@
 @echo off
-%~dp0sireum.bat slang run -s %*
+%~dp0sireum.bat slang run %*
