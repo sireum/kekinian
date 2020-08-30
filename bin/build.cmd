@@ -28,7 +28,7 @@ if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                               
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
   rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run -n "$0" "$@"                                                #
+  exec "${SIREUM_HOME}/bin/sireum" slang run -n "$0" "$@"                                                   #
 fi                                                                                                          #
 :BOF
 setlocal
