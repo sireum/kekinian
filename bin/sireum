@@ -35,8 +35,8 @@ elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
 fi
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
 if [[ -f ${NATIVE} ]] && [[ ${NATIVE} -nt ${SIREUM_JAR} ]]; then
-  exec "${NATIVE}" $*
+  exec "${NATIVE}" "$@"
 else
   rm -fR "${NATIVE}"
-  exec "${JAVA}" ${JAVA_OPTS} -jar "${SIREUM_JAR}" $*
+  exec "${JAVA}" ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
 fi
