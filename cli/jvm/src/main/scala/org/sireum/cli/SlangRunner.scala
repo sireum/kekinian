@@ -163,7 +163,7 @@ object SlangRunner {
         case _ => return 0
       }
       command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time",
-        "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name, nativeName)
+        "--report-unsupported-elements-at-runtime", "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name, nativeName)
       r = Os.proc(command).at(jarFile.up).console.bufferErr.run()
       if (r.exitCode != 0) {
         for (line <- ops.StringOps(r.err).split((c: C) => c === '\n') if !ops.StringOps(line).startsWith("warning: unknown anonymous info")) {
