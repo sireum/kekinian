@@ -44,13 +44,9 @@ object SlangRunner {
       println()
       return 0
     }
-    val javaExe: Os.Path = javaHomeOpt match {
-      case Some(javaHome) => javaHome / "bin" / (if (Os.isWin) "java.exe" else "java")
-      case _ => Os.Path.Impl(if (Os.isWin) "java.exe" else "java")
-    }
-    val scalacExe: Os.Path = scalaHomeOpt match {
-      case Some(scalaHome) => scalaHome / "bin" / (if (Os.isWin) "scalac.bat" else "scalac")
-      case _ => Os.Path.Impl(if (Os.isWin) "scalac.bat" else "scalac")
+    val scalaExe: Os.Path = scalaHomeOpt match {
+      case Some(scalaHome) => scalaHome / "bin" / (if (Os.isWin) "scala.bat" else "scala")
+      case _ => Os.Path.Impl(if (Os.isWin) "scala.bat" else "scala")
     }
     val inputOpt = path2fileOpt("input", o.input, T)
     var outputOpt: Option[Os.Path] = None()
@@ -78,84 +74,59 @@ object SlangRunner {
         case _ => T
       }
     val script = path2fileOpt("Slang script", Some(o.args(0).value), T).get
-    val wd = Os.tempDir()
-    wd.removeOnExit()
-    val scriptHome = script.up.canon
-    val sc = wd / s"anon$$${script.name}"
-    var content = script.read
-    val contentOps = ops.StringOps(content)
-    if (contentOps.startsWith("::#!")) {
-      val i = contentOps.stringIndexOf("::!#")
-      if (i >= 0) {
-        content = contentOps.substring(i + 4, content.size)
-      }
-    }
-    sc.writeOver(
-      st"""// #Sireum
-          |import org.sireum._
-          |object Main {
-          |  def main(args: scala.Array[Predef.String]): scala.Unit = {
-          |    final class $$anon {
-          |      _root_.org.sireum.App.args = _root_.org.sireum.ISZ(((args.map(((s) => _root_.org.sireum.String(s.trim)))).toIndexedSeq: _*));
-          |      $content
-          |    };
-          |    new $$anon()
-          |  }
-          |}""".render)
+    val wd = script.up
     val sJar: Os.Path =
       if (Os.isWin && (sireumJar.up / ".sireum-win.jar").exists) sireumJar.up / ".sireum-win.jar"
       else sireumJar
     var command: ISZ[String] = ISZ(
-      scalacExe.string,
+      scalaExe.string,
       "-bootclasspath",
       sJar.string,
       s"-Xplugin:$scalacPluginJar",
       "-classpath",
-      s"$scriptHome${Os.pathSep}$sJar",
+      s"$wd${Os.pathSep}$sJar",
       "-sourcepath",
-      scriptHome.string,
+      wd.string,
       "-unchecked",
       "-feature",
+      "-howtorun:script",
       "-deprecation"
     )
+    if (o.nativ) {
+      command = command :+ "-save"
+    }
     if (o.transformed) {
       command = command :+ "-Xprint:sireum"
     }
-    command = command :+ sc.string
+    command = command :+ script.string
+    for (i <- 1 until o.args.size) {
+      command :+= o.args(i)
+    }
     val inOpt: Option[String] = inputOpt match {
       case Some(f) => Some(f.read)
       case _ =>
-        val p = script.up / s"${script.name}.txt"
+        val p = wd / s"${script.name}.txt"
         if (p.exists) Some(p.read) else None()
     }
-    var env = ISZ("SLASH_DIR" ~> script.up.string)
+    val jarFile = wd / s"${script.name}.jar"
+    var env = ISZ("SLASH_DIR" ~> wd.string)
     val nativeImage: Os.Path = {
       val niName: String = if (Os.isWin) "native-image.cmd" else "native-image"
       homeOpt match {
         case Some(home) =>
-          env = env :+ "SIREUM_HOME" ~> home.string
           val p = home / "bin" / platform / "graal" / "bin" / niName
           if (p.isFile) p else Os.path(niName)
         case _ => Os.path(niName)
       }
     }
-    var p = Os.proc(command).at(wd).env(env).console
-    var r = p.run()
-    if (!r.ok) {
-      return IllFormed
+    scalaHomeOpt match {
+      case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
+      case _ =>
     }
-    (wd / "META-INF").mkdir()
-    (wd / "META-INF" / "MANIFEST.MF").writeOver(
-      st"""Manifest-Version: 1.0
-          |Created-By: Slang Runner
-          |Main-Class: Main
-          |""".render
-    )
-    val jarFile = script.up / s"${script.name}.jar"
-    wd.zipTo(jarFile)
-    jarFile.removeOnExit()
-    p = Os.proc(ISZ[String](javaExe.string, "-classpath", s"$jarFile${Os.pathSep}$sJar", "Main") ++
-      (for (i <- 1 until o.args.size) yield o.args(i))).env(env).at(Os.cwd)
+    var p = Os.proc(command).at(Os.cwd).env(env)
+    if (jarFile.exists) {
+      jarFile.removeOnExit()
+    }
     if (isConsole) {
       p = p.console
     } else {
@@ -165,7 +136,7 @@ object SlangRunner {
       case Some(in) => p.input(in)
       case _ =>
     }
-    r = p.run()
+    var r = p.run()
     outputOpt match {
       case Some(path) => path.writeOver(r.out)
       case _ =>
@@ -175,7 +146,7 @@ object SlangRunner {
     }
     if (o.nativ) {
       val nativeName = s"${script.name}.com"
-      val nativ = script.up / nativeName
+      val nativ = wd / nativeName
       if (nativ.exists && nativ.lastModified > script.lastModified) {
         return 0
       }
@@ -192,27 +163,27 @@ object SlangRunner {
         case _ => return 0
       }
       command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time",
-        "--report-unsupported-elements-at-runtime", "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name, nativeName)
+        "--no-fallback", "-cp", sJar.string, "-jar", jarFile.name, nativeName)
       r = Os.proc(command).at(jarFile.up).console.bufferErr.run()
       if (r.exitCode != 0) {
         for (line <- ops.StringOps(r.err).split((c: C) => c === '\n') if !ops.StringOps(line).startsWith("warning: unknown anonymous info")) {
           eprintln(line)
         }
       }
-      for (f <- scriptHome.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
+      for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()
       }
-      (scriptHome / s"$nativeName.o").removeAll()
-      if ((scriptHome / s"$nativeName.exe").exists) {
-        (scriptHome / s"$nativeName.exe").moveOverTo(scriptHome / nativeName)
+      (wd / s"$nativeName.o").removeAll()
+      if ((wd / s"$nativeName.exe").exists) {
+        (wd / s"$nativeName.exe").moveOverTo(wd / nativeName)
       }
-      if ((scriptHome / s"${script.name}.jar").exists) {
-        (scriptHome / s"${script.name}.jar").removeAll()
+      if ((wd / s"${script.name}.jar").exists) {
+        (wd / s"${script.name}.jar").removeAll()
       }
       if (r.ok) {
         return 0
       } else {
-        (scriptHome / s"$nativeName.exe").removeAll()
+        (wd / s"$nativeName.exe").removeAll()
         eprintln(s"Failed to generate native executable $nativ, exit code: ${r.exitCode}")
         eprint(r.err)
         return GraalError
