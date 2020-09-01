@@ -57,7 +57,7 @@ def usage(): Unit = {
         |       | touche       | touche-lib   | touche-slang | touche-transpilers
         |       | regen-slang  | regen-logika | regen-air    | regen-act
         |       | regen-server | regen-cliopt | regen-cli
-        |       | m2           | jitpack      | ghpack
+        |       | bloop        | m2           | jitpack      | ghpack
         |       | cvc4         | z3                                               )*
       """.render)
 }
@@ -266,6 +266,19 @@ def buildMill(): Unit = {
   (millBuildBin / "build.cmd").slash(ISZ())
   copyIfNewer(millBuild / "mill-standalone", homeBinMill)
   copyIfNewer(millBuild / "mill-standalone.bat", homeBinMillBat)
+}
+
+
+def bloop(): Unit = {
+  val bloopImport = "\n\nimport $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`"
+  val buildFile = home / "build.sc"
+  val old = buildFile.read
+  buildFile.writeAppend(bloopImport)
+  val r = Os.proc(ISZ(mill.string, "mill.contrib.Bloop/install")).at(home).console.run()
+  buildFile.writeOver(old)
+  if (!r.ok) {
+    Os.exit(r.exitCode)
+  }
 }
 
 
@@ -623,6 +636,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-act" => regenAct()
       case string"regen-server" => regenServer()
       case string"regen-cli" => regenCli()
+      case string"bloop" => bloop()
       case string"m2" => m2()
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()

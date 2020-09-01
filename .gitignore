@@ -3,6 +3,7 @@
 /.bloop
 /.metals
 /.bsp
+/.vscode
 /bsp.log
 out
 Scratch.scala
