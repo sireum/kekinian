@@ -99,6 +99,7 @@ object Cli {
     unroll: B,
     charBitWidth: Z,
     intBitWidth: Z,
+    dontSplitFunQuant: B,
     splitAll: B,
     splitContract: B,
     splitIf: B,
@@ -704,6 +705,8 @@ import Cli._
           |                           default is 0)
           |
           |Path Splitting Options:
+          |    --dont-split-pfq     Do not force splitting in quantifiers and proof
+          |                           functions derived from @strictpure methods
           |    --split-all          Split all
           |    --split-contract     Split on contract cases
           |    --split-if           Split on if-conditional expressions and statements
@@ -727,6 +730,7 @@ import Cli._
     var unroll: B = false
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
+    var dontSplitFunQuant: B = false
     var splitAll: B = false
     var splitContract: B = false
     var splitIf: B = false
@@ -768,6 +772,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => intBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--dont-split-pfq") {
+           val o: Option[B] = { j = j - 1; Some(!dontSplitFunQuant) }
+           o match {
+             case Some(v) => dontSplitFunQuant = v
              case _ => return None()
            }
          } else if (arg == "--split-all") {
@@ -845,7 +855,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

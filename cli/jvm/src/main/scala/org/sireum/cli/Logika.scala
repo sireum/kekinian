@@ -112,7 +112,8 @@ object Logika {
         }
       }
       val config = logika.Config(smt2Configs, 3, HashMap.empty, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
-        o.logRawPc, o.logVc, outputDir, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify)
+        o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract,
+        o.simplify)
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
