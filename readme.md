@@ -25,7 +25,13 @@ itself (and analyses on top of it) are written using Slang.
 
 Slang programs run on the JVM (Java 8+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
-via [Graal](http://graalvm.org) and also via compilation to C. 
+via [Graal](http://graalvm.org) targeting macOS, Linux, and Windows on amd64, and
+Linux on aarch64.
+
+In addition, the Slang-to-C [transpiler](https://github.com/sireum/transpilers)
+can compile a subset of Slang -- Slang Embedded, which does not include 
+closure and recursive types, can be compiled to C without
+garbage-collection at runtime. 
 The generated C code is both Slang source-traceable and 
 in the form that is structurally close to the Slang source; 
 in addition to `gcc` and `clang`, it can also be compiled using the 
@@ -229,9 +235,12 @@ directory of `SIREUM_HOME`.
 
 ### Sireum Kekinian Development
 
+#### Using Sireum IVE
+
 Sireum is best developed (browsed/edited) by using Sireum IVE itself. 
 The `build.cmd setup` command above setup IVE for Sireum development.
-If you want to re-run just the IVE project re-generation, do the following in 
+If you want to re-run just the IVE project re-generation (e.g., when 
+there are upgrades to some library dependencies), do the following in 
 a terminal:
 
 * **macOS/Linux**:
@@ -273,13 +282,60 @@ To have the codebase and its test suites recompiled upon changes, run:
   ```cmd
   %SIREUM_HOME%\bin\build.cmd
   ```
+  
+#### Using Scala Metals
 
-#### Sireum Native Executable
+An alternative development environment is [Scala Metals](https://scalameta.org/metals/).
+Below are the instruction steps on how to set it up with [VSCode](https://code.visualstudio.com/):
+
+1. Prepare Sireum:
+
+   * macOS/Linux
+   
+     ```
+     git clone --recursive https://github.com/sireum/kekinian
+     kekinian/bin/build.cmd
+     ``` 
+   
+   * Windows
+   
+     ```
+     git clone --recursive https://github.com/sireum/kekinian
+     kekinian\bin\build.cmd
+     ``` 
+
+2. Set the `SIREUM_HOME` environment variable (user-wide) to the absolute path of `kekinian`
+
+3. Install VSCode with the [Scala Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals).
+   
+4. Set the following Metals' settings in VSCode:
+
+   * `Java Home`
+   
+     * **macOS**: set to the absolute path of `kekinian\bin\mac\java`.
+     
+     * **Linux**: set to the absolute path of `kekinian\bin\linux\java`.
+     
+     * **Windows**: set to the absolute path of `kekinian/bin/win/java`.
+
+   * `Mill Script`
+     
+     * **macOS/Linux**: set to the absolute path of `kekinian/bin/mill` .
+     
+     * **Windows**: set to the absolute path of `kekinian\bin\mill.bat`.
+   
+4. Open the `kekinian` folder in VSCode, and import the build
+   when asked (also available as `Metals: Import build` in the command 
+   palette).
+
+5. Run `Metals: Recompile Workspace` in the command palette.
+
+### Sireum Native Executable via Graal
 
 It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
 
 First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites)
-(note: `native-image` for Windows requires Visual Studio 2017 or 2019); 
+(note: `native-image` for Windows requires Visual Studio Community 2017 or 2019); 
 then, to build Sireum native executable:
 
 * **macOS/Linux**:
