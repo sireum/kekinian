@@ -47,9 +47,8 @@ via [Graal](http://graalvm.org) targeting macOS, Linux, and Windows on amd64, an
 Linux on aarch64.
 
 In addition, the Slang-to-C [transpiler](https://github.com/sireum/transpilers)
-can compile a subset of Slang -- Slang Embedded, which does not include 
-closure and recursive types, can be compiled to C without
-garbage-collection at runtime. 
+can compile a subset of Slang -- Slang Embedded (excluding closure and recursive
+types), to C without garbage-collection at runtime. 
 The generated C code is both Slang source-traceable and 
 in the form that is structurally close to the Slang source; 
 in addition to `gcc` and `clang`, it can also be compiled using the 
