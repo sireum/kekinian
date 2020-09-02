@@ -4,6 +4,24 @@
 | :---: | :---: | :---: | 
 | <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>aarch64: linux</sup></sub> | <sub><sup>maven package repository</sup></sub> |
 
+* [Overview](#overview)
+* [Installing](#installing)
+  * [Binary Distributions](#binary-distributions)
+  * [Git Source Distribution](#git-source-distribution)
+    * [Requirements](#requirements)
+    * [Setup](#setup)
+* [Using Sireum IVE](#using-sireum-ive)
+  * [Slang Script Example Project](#slang-script-example-project)
+  * [Learning Slang](#learning-slang)
+  * [Slang App Example Mill Project](#slang-app-example-mill-project)
+* [Sireum Kekinian Development](#sireum-kekinian-development)
+  * [Using Sireum IVE](#using-sireum-ive)
+  * [Using Scala Metals](#using-scala-metals)
+* [Sireum Native Executable via Graal](#sireum-native-executable-via-graal)
+---
+
+## Overview
+
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
 core components are being built using the Sireum programming language -- Slang.
 
