@@ -10,13 +10,13 @@
   * [Git Source Distribution](#git-source-distribution)
     * [Requirements](#requirements)
     * [Setup](#setup)
+* [Learning Slang by Examples](#learning-slang-by-examples)
 * [Using Sireum IVE](#using-sireum-ive)
   * [Slang Script Example Project](#slang-script-example-project)
-  * [Learning Slang](#learning-slang)
   * [Slang App Example Mill Project](#slang-app-example-mill-project)
 * [Sireum Kekinian Development](#sireum-kekinian-development)
-  * [Using Sireum IVE](#using-sireum-ive)
-  * [Using Scala Metals](#using-scala-metals)
+  * [Sireum IVE](#sireum-ive)
+  * [Scala Metals](#scala-metals)
 * [Sireum Native Executable via Graal](#sireum-native-executable-via-graal)
 ---
 
@@ -169,6 +169,13 @@ If rebuilding Sireum somehow failed, try cleaning the repo:
   
 and re-run `build.cmd setup`.
 
+## Learning Slang by Examples
+
+If you would like to learn Slang quickly, you can read and use the IVE to experiment
+with several examples designed to highlight various Slang language features:
+
+https://github.com/sireum/slang-by-examples
+
 ## Using Sireum IVE
 
 ### Slang Script Example Project
@@ -209,14 +216,6 @@ To run the script, click on the green ► button at the top-left part of the edi
 (or click on the green ► button on the right side of "Run script.sc" at
 the top-right part of the window).
 
-#### Learning Slang
-
-If you would like to learn Slang quickly, you can read and use the IVE to experiment
-with several examples designed to highlight various Slang language features:
-
-https://github.com/sireum/slang-by-examples
-
-
 ### Slang App Example [Mill](https://www.lihaoyi.com/mill/) Project
 
 To generate a "hello world" Slang app project in the current directory
@@ -253,7 +252,7 @@ directory of `SIREUM_HOME`.
 
 ### Sireum Kekinian Development
 
-#### Using Sireum IVE
+#### Sireum IVE
 
 Sireum is best developed (browsed/edited) by using Sireum IVE itself. 
 The `build.cmd setup` command above setup IVE for Sireum development.
@@ -301,7 +300,7 @@ To have the codebase and its test suites recompiled upon changes, run:
   %SIREUM_HOME%\bin\build.cmd
   ```
   
-#### Using Scala Metals
+#### Scala Metals
 
 An alternative development environment is [Scala Metals](https://scalameta.org/metals/).
 Below are the instruction steps on how to set it up with [VSCode](https://code.visualstudio.com/):
