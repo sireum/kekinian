@@ -56,6 +56,13 @@ in addition to `gcc` and `clang`, it can also be compiled using the
 [CompCert](http://compcert.inria.fr/) Verified C Compiler 
 to provide a high-assurance toolchain for program correctness down to machine code.
 
+Furthermore, Slang can also be used as a universal shell scripting language 
+-- [Slash](https://github.com/sireum/slang-by-examples), which can run
+on macOS, Linux, Windows, and others where JVM runtime is available.
+Slash powers many of the shell scripts for developing Kekinian itself.
+As Slash is Slang, Slash scripts can be compiled to native via Graal, which speeds 
+things up by virtue of having no JVM boot up time.
+
 ## Installing
 
 Sireum is available as pre-built binaries/installers or from source.
@@ -171,8 +178,8 @@ and re-run `build.cmd setup`.
 
 ## Learning Slang by Examples
 
-If you would like to learn Slang quickly, you can read and use the IVE to experiment
-with several examples designed to highlight various Slang language features:
+If you would like to learn Slang quickly, you can read and use [Sireum IVE](#using-sireum-ive) 
+to experiment with several examples designed to highlight various Slang language features:
 
 https://github.com/sireum/slang-by-examples
 
