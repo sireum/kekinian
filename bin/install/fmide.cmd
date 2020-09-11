@@ -25,9 +25,15 @@ import org.sireum._
 
 val homeBin: Os.Path = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val updateSite = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master"
-val featureId = "org.sireum.aadl.osate.hamr.feature.feature.group"
-val p2Args = ISZ[String](
+
+val eclipseRelease = "2019-12"
+val hamrUpdateSite = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master"
+val hamrFeatureId = "org.sireum.aadl.osate.hamr.feature.feature.group"
+
+val metalsUpdateSite = s"https://download.eclipse.org/releases/$eclipseRelease,http://scalameta.org/metals-eclipse/update"
+val metalsFeatureId = "lsp.scala.feature.feature.group"
+
+@strictpure def p2Args(uninstall: B, updateSite: String, featureId: String): ISZ[String] = ISZ[String](
   "-nosplash",
   "-console",
   "-consoleLog",
@@ -37,11 +43,13 @@ val p2Args = ISZ[String](
   updateSite,
   "-installIU",
   featureId,
-  "-uninstallIU",
-  featureId
-)
+) ++ (if (uninstall) ISZ[String]("-uninstallIU", featureId) else ISZ[String]())
+
+val hamrP2Args = p2Args(T, hamrUpdateSite, hamrFeatureId)
+val metalsP2Args = p2Args(F, metalsUpdateSite, metalsFeatureId)
+
 val envs = ISZ[(String, String)]("PATH" ~>
-  s"${Os.env("PATH").get}${Os.pathSep}${Os.env("JAVA_HOME").get}${Os.fileSep}bin")
+  s"${Os.env("JAVA_HOME").get}${Os.fileSep}bin${Os.pathSep}${Os.env("PATH").get}")
 var platformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
 var releaseTagNameOpt: Option[String] = None()
 val useLast: B = T
@@ -110,9 +118,12 @@ def linux(): Unit = {
   println()
   if (releaseTagNameOpt.isEmpty) {
     println(s"Updating HAMR plugin ...")
-    Os.proc((d / "fmide").string +: p2Args).env(envs).runCheck()
+    Os.proc((d / "fmide").string +: hamrP2Args).env(envs).runCheck()
     println()
   }
+  println(s"Installing Scala Metals plugin ...")
+  Os.proc((d / "fmide").string +: metalsP2Args).env(envs).runCheck()
+  println()
   println(s"FMIDE is installed at $d")
 }
 
@@ -130,9 +141,12 @@ def mac(): Unit = {
   println()
   if (releaseTagNameOpt.isEmpty) {
     println(s"Updating HAMR plugin ...")
-    Os.proc((d / "Contents" / "MacOS" / "fmide").string +: p2Args).env(envs).runCheck()
+    Os.proc((d / "Contents" / "MacOS" / "fmide").string +: hamrP2Args).env(envs).runCheck()
     println()
   }
+  println(s"Installing Scala Metals plugin ...")
+  Os.proc((d / "Contents" / "MacOS" / "fmide").string +: metalsP2Args).env(envs).runCheck()
+  println()
   println(s"FMIDE is installed at $d")
 }
 
@@ -146,9 +160,12 @@ def win(): Unit = {
   println()
   if (releaseTagNameOpt.isEmpty) {
     println(s"Updating HAMR plugin ...")
-    Os.proc((d / "fmide.exe").string +: p2Args).env(envs).runCheck()
+    Os.proc((d / "fmide.exe").string +: hamrP2Args).env(envs).runCheck()
     println()
   }
+  println(s"Installing Scala Metals plugin ...")
+  Os.proc((d / "fmide.exe").string +: metalsP2Args).env(envs).runCheck()
+  println()
   println(s"FMIDE is installed at $d")
 }
 
