@@ -5,6 +5,7 @@
 /.bsp
 /.vscode
 /bsp.log
+/.metadata
 out
 Scratch.scala
 Scratch.sc
