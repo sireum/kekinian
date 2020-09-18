@@ -47,7 +47,7 @@ via [Graal](http://graalvm.org) targeting macOS, Linux, and Windows on amd64, an
 Linux on aarch64.
 
 In addition, the Slang-to-C [transpiler](https://github.com/sireum/transpilers)
-can compile a subset of Slang -- Slang Embedded (which excludes closures and 
+can compile a subset of Slang -- Slang Embedded (which excludes, e.g., closures and 
 recursive types), to C99 without garbage-collection at runtime. 
 The generated C code is both Slang source-traceable and 
 in the form that is structurally close to the Slang source; 
@@ -56,8 +56,8 @@ in addition to `gcc` and `clang`, it can also be compiled using the
 to provide a high-assurance toolchain for program correctness down to machine code.
 
 On all compilation targets (e.g., JVM, C, Javascript, etc.), Slang provides extension
-method facilities that extend its language features and to integrate with existing
-platform-specific libraries and/or legacy code.
+method facilities that can extend its language features and integrate with other 
+programming languages, platform-specific libraries, and existing/legacy code.
 
 Furthermore, Slang can also be used as a universal shell scripting language 
 -- [Slash](https://github.com/sireum/slang-by-examples), which can run
@@ -312,7 +312,8 @@ To have the codebase and its test suites recompiled upon changes, run:
   
 #### Scala Metals
 
-An alternative development environment is [Scala Metals](https://scalameta.org/metals/).
+An alternative development environment is [Scala Metals](https://scalameta.org/metals/) that
+supports various editors/IDEs.
 Below are the instruction steps on how to set it up with [VSCode](https://code.visualstudio.com/):
 
 1. Prepare Sireum:
@@ -359,7 +360,7 @@ Below are the instruction steps on how to set it up with [VSCode](https://code.v
 
 ### Sireum Native Executable via Graal
 
-It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
+It is recommended to compile Sireum (and Slash build scripts) to native as it removes JVM boot up time.
 
 First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/reference-manual/native-image/#prerequisites)
 (note: `native-image` for Windows requires Visual Studio Community 2017 or 2019); 
