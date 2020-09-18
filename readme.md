@@ -55,6 +55,10 @@ in addition to `gcc` and `clang`, it can also be compiled using the
 [CompCert](http://compcert.inria.fr/) Verified C Compiler 
 to provide a high-assurance toolchain for program correctness down to machine code.
 
+On all compilation targets (e.g., JVM, C, Javascript, etc.), Slang provides extension
+method facilities that extend its language features and to integrate with existing
+platform-specific libraries and/or legacy code.
+
 Furthermore, Slang can also be used as a universal shell scripting language 
 -- [Slash](https://github.com/sireum/slang-by-examples), which can run
 on macOS, Linux, Windows, and others where JVM runtime is available.
@@ -125,7 +129,7 @@ RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
 
 #### Requirements:
 
-* **macOS**: none
+* **macOS**: `curl` and `git`
 
 * **Linux** (amd64, aarch64): `curl` and `git`
 
@@ -357,7 +361,7 @@ Below are the instruction steps on how to set it up with [VSCode](https://code.v
 
 It is recommended to compile Sireum and its [Slash](https://github.com/sireum/slang-by-examples/blob/master/src/slash.cmd) build scripts to native as it speeds up build tasks.
 
-First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/docs/reference-manual/aot-compilation/#prerequisites)
+First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/reference-manual/native-image/#prerequisites)
 (note: `native-image` for Windows requires Visual Studio Community 2017 or 2019); 
 then, to build Sireum native executable:
 
