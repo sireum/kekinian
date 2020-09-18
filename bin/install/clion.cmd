@@ -24,7 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 
-val clionVersion = "2020.2.1"
+val clionVersion = "2020.2.3"
 
 val url = s"https://download.jetbrains.com/cpp"
 
@@ -37,6 +37,12 @@ val jbrVer = versions.get("org.sireum.version.jbr").get
 val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
 val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
 val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
+
+def deleteSources(dir: Os.Path): Unit = {
+  for (f <- Os.Path.walk(dir, F, F, (p: Os.Path) => ops.StringOps(p.name).endsWith(".java") || ops.StringOps(p.name).endsWith(".scala"))) {
+    f.removeAll()
+  }
+}
 
 def mac(): Unit = {
   val platformDir = homeBin / "mac"
@@ -67,6 +73,8 @@ def mac(): Unit = {
   clionDir.mkdirAll()
   appPath.copyTo(clionAppDir)
   Os.proc(ISZ("hdiutil", "eject", dirPath.string)).runCheck()
+
+  deleteSources(clionDir)
 
   ver.writeOver(clionVersion)
 
@@ -128,6 +136,8 @@ def linux(isArm: B): Unit = {
     }
   }
 
+  deleteSources(clionDir)
+
   ver.writeOver(clionVersion)
 
   println()
@@ -157,6 +167,8 @@ def win(): Unit = {
   println(s"Extracting $cache ...")
   clionDir.mkdirAll()
   cache.unzipTo(clionDir)
+
+  deleteSources(clionDir)
 
   ver.writeOver(clionVersion)
 
