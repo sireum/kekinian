@@ -340,11 +340,11 @@ Below are the instruction steps on how to set it up with [VSCode](https://code.v
 
    * `Java Home`
    
-     * **macOS**: set to the absolute path of `kekinian\bin\mac\java`.
+     * **macOS**: set to the absolute path of `kekinian/bin/mac/java`.
      
-     * **Linux**: set to the absolute path of `kekinian\bin\linux\java`.
+     * **Linux**: set to the absolute path of `kekinian/bin/linux/java`.
      
-     * **Windows**: set to the absolute path of `kekinian/bin/win/java`.
+     * **Windows**: set to the absolute path of `kekinian\bin\win\java`.
 
    * `Mill Script`
      
