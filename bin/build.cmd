@@ -4,7 +4,7 @@ export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                        
 if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                                                #
   SIREUM_PROVIDED_JAVA=true                                                                                 #
 fi                                                                                                          #
-"${SIREUM_HOME}/bin/init.sh"                                                                                #
+"${SIREUM_HOME}/bin/init.sh" || exit $?                                                                     #
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                                                 #
   export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})                                                 #
   if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
@@ -33,7 +33,7 @@ fi                                                                              
 :BOF
 setlocal
 set SIREUM_HOME=%~dp0../
-call "%~dp0init.bat"
+call "%~dp0init.bat" || exit /B %errorlevel%
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
 set NEWER=False
@@ -114,13 +114,13 @@ def installZ3(kind: Os.Kind.Type): Unit = {
   val bundle = cache / filename
 
   if (!bundle.exists) {
-    println(s"Please wait while downloading Z3 $version ...")
+    print(s"Please wait while downloading Z3 $version ...")
     bundle.up.mkdirAll()
     bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
     println()
   }
 
-  println("Extracting Z3 ...")
+  print("Extracting Z3 ...")
   bundle.unzipTo(dir.up)
   println()
 
@@ -173,15 +173,13 @@ def installCVC4(kind: Os.Kind.Type): Unit = {
   val drop = cache / filename
 
   if (!drop.exists) {
-    println(s"Please wait while downloading CVC4 $version ...")
+    print(s"Please wait while downloading CVC4 $version ...")
     drop.up.mkdirAll()
     drop.downloadFrom(s"https://github.com/CVC4/CVC4/releases/download/$version/$filename")
     println()
   }
 
-  println("Copying CVC4 ...")
   drop.copyOverTo(exe)
-  println()
 
   kind match {
     case Os.Kind.Linux => exe.chmod("+x")
