@@ -73,3 +73,4 @@ stale_outputs_checked
 /bin/mac/compcert
 /bin/linux/compcert
 /bin/linux/arm/compcert
+/resources/vagrant/.vagrant

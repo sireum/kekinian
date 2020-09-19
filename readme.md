@@ -10,6 +10,7 @@
   * [Git Source Distribution](#git-source-distribution)
     * [Requirements](#requirements)
     * [Setup](#setup)
+  * [Using Vagrant and VirtualBox](#using-vagrant-and-virtualbox)
 * [Learning Slang by Examples](#learning-slang-by-examples)
 * [Using Sireum IVE](#using-sireum-ive)
   * [Slang Script Example Project](#slang-script-example-project)
@@ -133,18 +134,20 @@ RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
 
 * **Linux** (amd64, aarch64): `curl` and `git`
 
+  * [Docker](resources/docker): [sireum/ci:latest](https://hub.docker.com/r/sireum/ci)
+
 * **Windows**, either: 
   
   * [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)); or
   
   * [WSL2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) (Linux requirements apply)
-
+ 
 
 #### Setup
 
 In a console terminal:
 
-* **macOs/Linux**:
+* **macOS/Linux**:
 
   ```bash
   git clone --recursive https://github.com/sireum/kekinian
@@ -178,6 +181,40 @@ If rebuilding Sireum somehow failed, try cleaning the repo:
   ```
   
 and re-run `build.cmd setup`.
+
+
+### Using Vagrant and VirtualBox
+
+By using [Vagrant](https://www.vagrantup.com/), you can automatically provision a 
+[VirtualBox](https://www.virtualbox.org) [Xubuntu](https://xubuntu.org/) 
+virtual machine (VM) with Sireum set up as follows:
+
+1. Download the [resources/vagrant](resources/vagrant) folder as an archive
+   ([link](https://downgit.github.io/#/home?url=https://github.com/sireum/kekinian/tree/master/resources/vagrant&fileName=sireum-vagrant&rootDirectory=sireum-vagrant)) 
+   and uncompress it.
+
+2. If desired, modify the [Vagrantfile](resources/vagrant/Vagrantfile) to customize the number of CPUs (default: 4),
+   RAM (default: 16GB), and VRAM (default: 64MB).
+   Note that the disk size defaults to 64GB, which is derived from the [bento/ubuntu](https://app.vagrantup.com/bento)
+   base box.
+  
+3. Run the following in a terminal console inside the uncompressed directory:
+
+   * **macOS/Linux**:
+   
+     ```bash
+     bash setup.sh
+     ```
+   
+   * **Windows**:
+
+     ```cmd
+     setup.bat
+     ```
+   
+Once the VM has been provisioned successfully, you can log in as the user `vagrant` with default password `vagrant`.
+Sireum is installed in `/home/vagrant/Sireum`, which the `SIREUM_HOME` environment variable is set to.
+
 
 ## Learning Slang by Examples
 
