@@ -114,13 +114,12 @@ def installZ3(kind: Os.Kind.Type): Unit = {
   val bundle = cache / filename
 
   if (!bundle.exists) {
-    print(s"Please wait while downloading Z3 $version ...")
+    println(s"Please wait while downloading Z3 $version ...")
     bundle.up.mkdirAll()
     bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
-    println()
   }
 
-  print("Extracting Z3 ...")
+  println("Extracting Z3 ...")
   bundle.unzipTo(dir.up)
   println()
 
@@ -173,13 +172,13 @@ def installCVC4(kind: Os.Kind.Type): Unit = {
   val drop = cache / filename
 
   if (!drop.exists) {
-    print(s"Please wait while downloading CVC4 $version ...")
+    println(s"Please wait while downloading CVC4 $version ...")
     drop.up.mkdirAll()
     drop.downloadFrom(s"https://github.com/CVC4/CVC4/releases/download/$version/$filename")
-    println()
   }
 
   drop.copyOverTo(exe)
+  println()
 
   kind match {
     case Os.Kind.Linux => exe.chmod("+x")
