@@ -10,7 +10,7 @@
   * [Git Source Distribution](#git-source-distribution)
     * [Requirements](#requirements)
     * [Setup](#setup)
-  * [Using Vagrant and VirtualBox](#using-vagrant-and-virtualbox)
+    * [Using Vagrant and VirtualBox](#using-vagrant-and-virtualbox)
 * [Learning Slang by Examples](#learning-slang-by-examples)
 * [Using Sireum IVE](#using-sireum-ive)
   * [Slang Script Example Project](#slang-script-example-project)
@@ -183,7 +183,7 @@ If rebuilding Sireum somehow failed, try cleaning the repo:
 and re-run `build.cmd setup`.
 
 
-### Using Vagrant and VirtualBox
+#### Using Vagrant and VirtualBox
 
 By using [Vagrant](https://www.vagrantup.com/), you can automatically provision a 
 [VirtualBox](https://www.virtualbox.org) [Xubuntu](https://xubuntu.org/) 
@@ -197,6 +197,11 @@ virtual machine (VM) with Sireum set up as follows:
    RAM (default: 16GB), and VRAM (default: 64MB).
    Note that the disk size defaults to 64GB, which is derived from the [bento/ubuntu](https://app.vagrantup.com/bento)
    base box.
+   Moreover, it installs
+   [FMW](https://github.com/loonwerks/formal-methods-workbench), 
+   [CLion](https://www.jetbrains.com/clion), and 
+   [CompCert](http://compcert.inria.fr) by default.
+   These can be adjusted by commenting out lines that start with `bin/install/` in the [Vagrantfile](resources/vagrant/Vagrantfile).
   
 3. Run the following in a terminal console inside the uncompressed directory:
 
