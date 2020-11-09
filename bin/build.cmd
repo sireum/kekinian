@@ -492,6 +492,7 @@ def m2(): Os.Path = {
   m2s = m2s ++ (for (pkg <- ISZ("act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
     yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit, art
   m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("server", plat, "m2")) // server
   m2s = m2s :+ ISZ("cli", "m2")
 
   println(s"Publishing local m2 ...")
