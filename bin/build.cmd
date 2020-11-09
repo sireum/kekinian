@@ -489,7 +489,7 @@ def m2(): Os.Path = {
   m2s = m2s ++ (for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
     yield ISZ("hamr", pkg, plat, "m2")) // air
   m2s = m2s :+ ISZ("hamr", "phantom", "m2") // phantom
-  m2s = m2s ++ (for (pkg <- ISZ("act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
+  m2s = m2s ++ (for (pkg <- ISZ("common", "act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
     yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit, art
   m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
   m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("server", plat, "m2")) // server
