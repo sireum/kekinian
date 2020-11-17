@@ -28,7 +28,10 @@ def usage(): Unit = {
   println("Usage: ( mac | linux | linux/arm | win )*")
 }
 
-val graalVersion: String = if (Os.kind == Os.Kind.LinuxArm) "20.1.0" else "20.2.0"
+val graalVersion: String = Os.kind match {
+  case Os.Kind.LinuxArm => "20.1.0"
+  case _ => "20.3.0"
+}
 
 val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
