@@ -9,34 +9,34 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2-beta
+        uses: actions/checkout@v2
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/linux/java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Z3
         id: cache-z3
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/linux/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/scala
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/linux/graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
@@ -53,34 +53,34 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2-beta
+        uses: actions/checkout@v2
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/mac/java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Z3
         id: cache-z3
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/mac/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/scala
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin/mac/graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
@@ -97,34 +97,34 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2-beta
+        uses: actions/checkout@v2
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin\win\java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Z3
         id: cache-z3
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin\win\z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin\scala
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: bin\win\graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
