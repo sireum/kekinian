@@ -289,7 +289,7 @@ def build(fresh: B): Unit = {
         return "n/a"
       }
       val r = ops.StringOps(Os.proc(ISZ("git", "log", "-n", "1", "--date=format:%Y%m%d", "--pretty=format:%cd.%h")).at(home).runCheck().out).trim
-      return if (ops.StringOps(rStatus.out).trim == "") r else s"$r*"
+      return if (ops.StringOps(rStatus.out).trim === "") r else s"$r*"
     }
     val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
     val oldCli = cli.read
