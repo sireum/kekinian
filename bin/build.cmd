@@ -328,7 +328,8 @@ def nativ(): Unit = {
   build(F)
   println("Building native ...")
   val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
-      "--report-unsupported-elements-at-runtime", "-jar", sireumJar.string, (platDir / "sireum").string)).console.bufferErr.run()
+      "--report-unsupported-elements-at-runtime", "-H:+ReportExceptionStackTraces", "-H:-DeadlockWatchdogExitOnTimeout",
+      "-H:DeadlockWatchdogInterval=0", "-jar", sireumJar.string, (platDir / "sireum").string)).console.bufferErr.run()
   if (r.exitCode != 0) {
     for (line <- ops.StringOps(r.err).split((c: C) => c === '\n') if !ops.StringOps(line).startsWith("warning: unknown anonymous info")) {
       eprintln(line)
