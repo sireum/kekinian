@@ -35,6 +35,7 @@ object Logika {
   val INVALID_CHAR_WIDTH: Z = -4
   val INVALID_INT_WIDTH: Z = -5
   val INVALID_VC_DIR: Z = -6
+  val INVALID_RAM_DIR: Z = -7
 
   def run(o: Cli.LogikaVerifierOption): Z = {
     if (o.sourcepath.nonEmpty) {
@@ -91,12 +92,35 @@ object Logika {
         case _ =>
       }
       var smt2Configs = ISZ[logika.Smt2Config]()
+      val rfOpt: Option[Os.Path] = o.ramFolder match {
+        case Some(rf) =>
+          val rfp = Os.path(rf)
+          if (rfp.isDir) {
+            Some(rfp)
+          } else {
+            eprintln(s"$rf is not a directory")
+            return INVALID_RAM_DIR
+          }
+        case _ => None()
+      }
       if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Cvc4) {
         val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
         Sireum.homeOpt match {
           case Some(home) =>
             val p: Os.Path = home / "bin" / Sireum.platform / exeFilename
-            smt2Configs = smt2Configs :+ logika.Cvc4Config(p.string, o.timeout * 1000)
+            val exe: String = rfOpt match {
+              case Some(rfp) =>
+                val d = rfp / "sireum"
+                d.mkdirAll()
+                val f = d / p.name
+                if (!(f.isFile && f.length == p.length)) {
+                  f.removeAll()
+                  p.copyOverTo(f)
+                }
+                f.string
+              case _ => p.string
+            }
+            smt2Configs = smt2Configs :+ logika.Cvc4Config(exe, o.timeout * 1000)
           case _ =>
             smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename, o.timeout * 1000)
         }
@@ -106,7 +130,19 @@ object Logika {
         Sireum.homeOpt match {
           case Some(home) =>
             val p: Os.Path = home / "bin" / Sireum.platform / "z3" / "bin" / exeFilename
-            smt2Configs = smt2Configs :+ logika.Z3Config(p.string, o.timeout * 1000)
+            val exe: String = rfOpt match {
+              case Some(rfp) =>
+                val d = rfp / "sireum"
+                d.mkdirAll()
+                val f = d / p.name
+                if (!(f.isFile && f.length == p.length)) {
+                  f.removeAll()
+                  p.copyOverTo(f)
+                }
+                f.string
+              case _ => p.string
+            }
+            smt2Configs = smt2Configs :+ logika.Z3Config(exe, o.timeout * 1000)
           case _ =>
             smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename, o.timeout * 1000)
         }

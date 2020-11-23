@@ -95,19 +95,20 @@ object Cli {
   @datatype class LogikaVerifierOption(
     help: String,
     args: ISZ[String],
-    par: B,
     sourcepath: ISZ[String],
     unroll: B,
     charBitWidth: Z,
     intBitWidth: Z,
+    simplify: B,
+    solver: LogikaSolver.Type,
+    timeout: Z,
+    par: B,
+    ramFolder: Option[String],
     dontSplitFunQuant: B,
     splitAll: B,
     splitContract: B,
     splitIf: B,
     splitMatch: B,
-    simplify: B,
-    solver: LogikaSolver.Type,
-    timeout: Z,
     logPc: B,
     logRawPc: B,
     logVc: B,
@@ -297,7 +298,7 @@ import Cli._
       println(
         st"""Sireum: A High-Assurance System Engineering Platform
             |(c) 2020, SAnToS Laboratory, Kansas State University
-            |Build yyyymmdd.sha
+            |Build 20201123.4579652*
             |
             |Available modes:
             |hamr                     HAMR Tools
@@ -691,7 +692,6 @@ import Cli._
           |Usage: <option>* [<slang-file>]
           |
           |Available Options:
-          |-p, --par                Enable parallelization
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --unroll             Enable loop unrolling when loop modifies clause is
@@ -706,6 +706,18 @@ import Cli._
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
           |                           default is 0)
           |
+          |SMT2 Options:
+          |    --simplify           Simplify SMT2 query
+          |-m, --solver             Smt2 solver (expects one of { all, cvc4, z3 };
+          |                           default: all)
+          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
+          |                           default is 2)
+          |
+          |Optimizations Options:
+          |-p, --par                Enable parallelization
+          |    --ram-folder         RAM folder to temporarily store various artifacts
+          |                           (e.g., SMT2 solvers) (expects a path)
+          |
           |Path Splitting Options:
           |    --dont-split-pfq     Do not force splitting in quantifiers and proof
           |                           functions derived from @strictpure methods
@@ -714,13 +726,6 @@ import Cli._
           |    --split-if           Split on if-conditional expressions and statements
           |    --split-match        Split on match expressions and statements
           |
-          |SMT2 Options:
-          |    --simplify           Simplify SMT2 query
-          |-m, --solver             Smt2 solver (expects one of { all, cvc4, z3 };
-          |                           default: all)
-          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           default is 2)
-          |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
           |    --log-raw-pc         Display raw path conditions before each statement
@@ -728,19 +733,20 @@ import Cli._
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)""".render
 
-    var par: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
+    var simplify: B = false
+    var solver: LogikaSolver.Type = LogikaSolver.All
+    var timeout: Z = 2
+    var par: B = false
+    var ramFolder: Option[String] = None[String]()
     var dontSplitFunQuant: B = false
     var splitAll: B = false
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var simplify: B = false
-    var solver: LogikaSolver.Type = LogikaSolver.All
-    var timeout: Z = 2
     var logPc: B = false
     var logRawPc: B = false
     var logVc: B = false
@@ -753,13 +759,7 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
-           o match {
-             case Some(v) => par = v
-             case _ => return None()
-           }
-         } else if (arg == "-s" || arg == "--sourcepath") {
+        } else if (arg == "-s" || arg == "--sourcepath") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => sourcepath = v
@@ -781,6 +781,36 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => intBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--simplify") {
+           val o: Option[B] = { j = j - 1; Some(!simplify) }
+           o match {
+             case Some(v) => simplify = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--solver") {
+           val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
+           o match {
+             case Some(v) => solver = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--par") {
+           val o: Option[B] = { j = j - 1; Some(!par) }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "--ram-folder") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => ramFolder = v
              case _ => return None()
            }
          } else if (arg == "--dont-split-pfq") {
@@ -811,24 +841,6 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!splitMatch) }
            o match {
              case Some(v) => splitMatch = v
-             case _ => return None()
-           }
-         } else if (arg == "--simplify") {
-           val o: Option[B] = { j = j - 1; Some(!simplify) }
-           o match {
-             case Some(v) => simplify = v
-             case _ => return None()
-           }
-         } else if (arg == "-m" || arg == "--solver") {
-           val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
-           o match {
-             case Some(v) => solver = v
-             case _ => return None()
-           }
-         } else if (arg == "-t" || arg == "--timeout") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => timeout = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -864,7 +876,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), par, sourcepath, unroll, charBitWidth, intBitWidth, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
