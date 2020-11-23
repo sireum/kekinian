@@ -88,8 +88,8 @@ object Cli {
 
   @enum object LogikaSolver {
     'All
-    'Z3
     'Cvc4
+    'Z3
   }
 
   @datatype class LogikaVerifierOption(
@@ -666,17 +666,17 @@ import Cli._
   def parseLogikaSolverH(arg: String): Option[LogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(LogikaSolver.All)
-      case "z3" => return Some(LogikaSolver.Z3)
       case "cvc4" => return Some(LogikaSolver.Cvc4)
+      case "z3" => return Some(LogikaSolver.Z3)
       case s =>
-        eprintln(s"Expecting one of the following: { all, z3, cvc4 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { all, cvc4, z3 }, but found '$s'.")
         return None()
     }
   }
 
   def parseLogikaSolver(args: ISZ[String], i: Z): Option[LogikaSolver.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, z3, cvc4 }, but none found.")
+      eprintln("Expecting one of the following: { all, cvc4, z3 }, but none found.")
       return None()
     }
     val r = parseLogikaSolverH(args(i))
@@ -714,7 +714,7 @@ import Cli._
           |
           |SMT2 Options:
           |    --simplify           Simplify SMT2 query
-          |-m, --solver             Smt2 solver (expects one of { all, z3, cvc4 };
+          |-m, --solver             Smt2 solver (expects one of { all, cvc4, z3 };
           |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)

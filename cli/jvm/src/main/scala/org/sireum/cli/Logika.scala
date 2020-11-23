@@ -91,16 +91,6 @@ object Logika {
         case _ =>
       }
       var smt2Configs = ISZ[logika.Smt2Config]()
-      if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
-        val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
-        Sireum.homeOpt match {
-          case Some(home) =>
-            val p: Os.Path = home / "bin" / Sireum.platform / "z3" / "bin" / exeFilename
-            smt2Configs = smt2Configs :+ logika.Z3Config(p.string, o.timeout * 1000)
-          case _ =>
-            smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename, o.timeout * 1000)
-        }
-      }
       if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Cvc4) {
         val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
         Sireum.homeOpt match {
@@ -109,6 +99,16 @@ object Logika {
             smt2Configs = smt2Configs :+ logika.Cvc4Config(p.string, o.timeout * 1000)
           case _ =>
             smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename, o.timeout * 1000)
+        }
+      }
+      if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
+        val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
+        Sireum.homeOpt match {
+          case Some(home) =>
+            val p: Os.Path = home / "bin" / Sireum.platform / "z3" / "bin" / exeFilename
+            smt2Configs = smt2Configs :+ logika.Z3Config(p.string, o.timeout * 1000)
+          case _ =>
+            smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename, o.timeout * 1000)
         }
       }
       val config = logika.Config(smt2Configs, 3, HashMap.empty, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
