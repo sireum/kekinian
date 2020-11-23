@@ -95,6 +95,7 @@ object Cli {
   @datatype class LogikaVerifierOption(
     help: String,
     args: ISZ[String],
+    par: B,
     sourcepath: ISZ[String],
     unroll: B,
     charBitWidth: Z,
@@ -690,6 +691,7 @@ import Cli._
           |Usage: <option>* [<slang-file>]
           |
           |Available Options:
+          |-p, --par                Enable parallelization
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --unroll             Enable loop unrolling when loop modifies clause is
@@ -726,6 +728,7 @@ import Cli._
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)""".render
 
+    var par: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var charBitWidth: Z = 32
@@ -750,7 +753,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-s" || arg == "--sourcepath") {
+        } else if (arg == "-p" || arg == "--par") {
+           val o: Option[B] = { j = j - 1; Some(!par) }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--sourcepath") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => sourcepath = v
@@ -855,7 +864,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sourcepath, unroll, charBitWidth, intBitWidth, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), par, sourcepath, unroll, charBitWidth, intBitWidth, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

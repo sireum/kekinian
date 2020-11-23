@@ -118,7 +118,8 @@ object Logika {
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl(smt2Configs, th, config.charBitWidth, config.intBitWidth, config.simplifiedQuery), reporter)
+            logika.Smt2Impl(smt2Configs, th, config.charBitWidth, config.intBitWidth, config.simplifiedQuery), reporter,
+            o.par)
         reporter.printMessages()
         if (reporter.hasError) {
           code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
