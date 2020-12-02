@@ -303,8 +303,7 @@ def build(fresh: B): Unit = {
     } else {
       touche()
     }
-    val r = Os.proc(ISZ(mill.string, "build")).at(home).
-      console.run()
+    val r = Os.proc(ISZ(mill.string, "build")).at(home).errLineAction(filterCompile _).console.run()
     if (!fresh) {
       touche()
     }
@@ -332,8 +331,8 @@ def nativ(): Unit = {
   build(F)
   println("Building native ...")
   val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
-      "--report-unsupported-elements-at-runtime", "-H:+ReportExceptionStackTraces", "-H:-DeadlockWatchdogExitOnTimeout",
-      "-H:DeadlockWatchdogInterval=0", "-jar", sireumJar.string, (platDir / "sireum").string)).console.run()
+    "--report-unsupported-elements-at-runtime", "-H:+ReportExceptionStackTraces", "-H:-DeadlockWatchdogExitOnTimeout",
+    "-H:DeadlockWatchdogInterval=0", "-jar", sireumJar.string, (platDir / "sireum").string)).console.run()
   (platDir / "sireum.o").removeAll()
   for (f <- platDir.list if ops.StringOps(f.name).startsWith("sireum.") && !ops.StringOps(f.name).endsWith(".exe")) {
     f.removeAll()
@@ -369,7 +368,7 @@ def compile(): Unit = {
     tipe()
     println("Compiling ...")
     Os.proc(ISZ(mill.string, "all", "cli.tests.compile", "server.js.tests.compile")).at(home).
-      console.runCheck()
+      errLineAction(filterCompile _).console.runCheck()
     println()
   }
 }
@@ -383,15 +382,15 @@ def test(): Unit = {
     "slang.parser.shared.tests",
     "slang.frontend.shared.tests",
     "alir.shared.tests")).at(home).
-    console.runCheck()
+    errLineAction(filterCompile _).console.runCheck()
   println()
 
   println("Running jvm tests ...")
   Os.proc(ISZ[String](mill.string, "all",
     "runtime.library.jvm.tests",
     "tools.jvm.tests"
-    ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).
-    console.runCheck()
+  ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).
+    errLineAction(filterCompile _).console.runCheck()
   println()
 }
 
@@ -403,7 +402,7 @@ def testJs(): Unit = {
     "slang.parser.js.tests",
     "slang.frontend.js.tests",
     "alir.js.tests")).at(home).env(ISZ("NODEJS_MAX_HEAP" ~> "4096")).
-    console.runCheck()
+    errLineAction(filterCompile _).console.runCheck()
 }
 
 
@@ -508,7 +507,7 @@ def m2(): Os.Path = {
   }
 
   Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
-    at(home).console.runCheck()
+    at(home).errLineAction(filterCompile _).console.runCheck()
   println("Artifacts")
   for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
     println(s"* $p")
@@ -576,7 +575,7 @@ def project(skipBuild: B): Unit = {
 def setup(): Unit = {
   println("Setup ...")
   build(F)
-  Os.proc(ISZ(mill.string, "IVE")).at(home).console.run()
+  Os.proc(ISZ(mill.string, "IVE")).at(home).errLineAction(filterCompile _).console.run()
   project(T)
   Os.kind match {
     case Os.Kind.Win =>
