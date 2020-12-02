@@ -166,12 +166,7 @@ object SlangRunner {
         "--report-unsupported-elements-at-runtime", "--no-fallback", "-H:+ReportExceptionStackTraces",
         "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "-cp", sJar.string,
         "-jar", jarFile.name, nativeName)
-      r = Os.proc(command).at(jarFile.up).console.bufferErr.run()
-      if (r.exitCode != 0) {
-        for (line <- ops.StringOps(r.err).split((c: C) => c === '\n') if !ops.StringOps(line).startsWith("warning: unknown anonymous info")) {
-          eprintln(line)
-        }
-      }
+      r = Os.proc(command).at(jarFile.up).console.run()
       for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()
       }
