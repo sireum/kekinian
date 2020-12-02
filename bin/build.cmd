@@ -94,6 +94,10 @@ def platform: String = {
   return platformKind(Os.kind)
 }
 
+@pure def filterCompile(line: String): B = {
+  val lineOps = ops.StringOps(line)
+  return !(lineOps.contains("sun.misc.Unsafe") || lineOps.contains("-source 8"))
+}
 
 def installZ3(kind: Os.Kind.Type): Unit = {
   val version = versions.get("org.sireum.version.z3").get
@@ -214,7 +218,6 @@ def touchePath(path: Os.Path): Unit = {
   path.writeOver(newContent)
 }
 
-
 def touche(): Unit = {
   touchePath(libFiles)
   touchePath(slangFiles)
@@ -300,7 +303,8 @@ def build(fresh: B): Unit = {
     } else {
       touche()
     }
-    val r = Os.proc(ISZ(mill.string, "build")).at(home).console.run()
+    val r = Os.proc(ISZ(mill.string, "build")).at(home).
+      outLineAction(filterCompile _).errLineAction(filterCompile _).console.run()
     if (!fresh) {
       touche()
     }
@@ -369,7 +373,8 @@ def compile(): Unit = {
     }
     tipe()
     println("Compiling ...")
-    Os.proc(ISZ(mill.string, "all", "cli.tests.compile", "alir.js.tests.compile")).at(home).console.runCheck()
+    Os.proc(ISZ(mill.string, "all", "cli.tests.compile", "server.js.tests.compile")).at(home).
+      outLineAction(filterCompile _).errLineAction(filterCompile _).console.runCheck()
     println()
   }
 }
@@ -382,14 +387,16 @@ def test(): Unit = {
     "runtime.library.shared.tests",
     "slang.parser.shared.tests",
     "slang.frontend.shared.tests",
-    "alir.shared.tests")).at(home).console.runCheck()
+    "alir.shared.tests")).at(home).
+    outLineAction(filterCompile _).errLineAction(filterCompile _).console.runCheck()
   println()
 
   println("Running jvm tests ...")
   Os.proc(ISZ[String](mill.string, "all",
     "runtime.library.jvm.tests",
     "tools.jvm.tests"
-    ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).console.runCheck()
+    ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).
+    outLineAction(filterCompile _).errLineAction(filterCompile _).console.runCheck()
   println()
 }
 
@@ -400,7 +407,8 @@ def testJs(): Unit = {
     "runtime.library.js.tests",
     "slang.parser.js.tests",
     "slang.frontend.js.tests",
-    "alir.js.tests")).at(home).env(ISZ("NODEJS_MAX_HEAP" ~> "4096")).console.runCheck()
+    "alir.js.tests")).at(home).env(ISZ("NODEJS_MAX_HEAP" ~> "4096")).
+    outLineAction(filterCompile _).errLineAction(filterCompile _).console.runCheck()
 }
 
 
@@ -505,7 +513,7 @@ def m2(): Os.Path = {
   }
 
   Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
-    at(home).console.runCheck()
+    at(home).outLineAction(filterCompile _).errLineAction(filterCompile _).console.runCheck()
   println("Artifacts")
   for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
     println(s"* $p")
@@ -573,7 +581,7 @@ def project(skipBuild: B): Unit = {
 def setup(): Unit = {
   println("Setup ...")
   build(F)
-  Os.proc(ISZ(mill.string, "IVE")).at(home).console.run()
+  Os.proc(ISZ(mill.string, "IVE")).at(home).outLineAction(filterCompile _).errLineAction(filterCompile _).console.run()
   project(T)
   Os.kind match {
     case Os.Kind.Win =>
