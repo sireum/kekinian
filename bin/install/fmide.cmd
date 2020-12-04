@@ -122,10 +122,10 @@ def linux(): Unit = {
   Os.proc(ISZ("tar", "xfz", f.string)).at(d).runCheck()
   println()
   val dFmide = (d / "fmide").string
-  println("Updating BriefCASE plugin ...")
-  Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
-  println()
   if (fmwReleaseTagNameOpt.isEmpty) {
+    println("Updating BriefCASE plugin ...")
+    Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
+    println()
     println(s"Updating HAMR plugin ...")
     Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
     println()
@@ -149,10 +149,10 @@ def mac(): Unit = {
   }
   println()
   val dFmide = (d / "Contents" / "MacOS" / "fmide").string
-  println("Updating BriefCASE plugin ...")
-  Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
-  println()
   if (fmwReleaseTagNameOpt.isEmpty) {
+    println("Updating BriefCASE plugin ...")
+    Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
+    println()
     println(s"Updating HAMR plugin ...")
     Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
     println()
@@ -172,10 +172,10 @@ def win(): Unit = {
   f.unzipTo(d)
   println()
   val dFmide = (d / "fmide").string
-  println("Updating BriefCASE plugin ...")
-  Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
-  println()
   if (fmwReleaseTagNameOpt.isEmpty) {
+    println("Updating BriefCASE plugin ...")
+    Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
+    println()
     println(s"Updating HAMR plugin ...")
     Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
     println()
