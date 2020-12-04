@@ -1,10 +1,11 @@
-# Sireum: A High-Assurance System Engineering Platform
+# Sireum: A High Assurance System Engineering Platform
 
 | [![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) | [![Build Status](https://travis-ci.org/sireum/kekinian.svg?branch=master)](https://travis-ci.org/sireum/kekinian) | [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian) |
 | :---: | :---: | :---: | 
 | <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>aarch64: linux</sup></sub> | <sub><sup>maven package repository</sup></sub> |
 
 * [Overview](#overview)
+* [Available Products](#available-products)
 * [Installing](#installing)
   * [Binary Distributions](#binary-distributions)
   * [Git Source Distribution](#git-source-distribution)
@@ -66,6 +67,10 @@ on macOS, Linux, Windows, and others where JVM runtime is available.
 Slash powers many of the shell scripts for developing Kekinian itself.
 As Slash is Slang, Slash scripts can be compiled to native via Graal, which speeds 
 things up by virtue of having no JVM boot up time.
+
+## Available Products
+
+* [HAMR](http://hamr.sireum.org): A **H**igh **A**ssurance **M**odel-based **R**apid engineering of embedded systems
 
 ## Installing
 
@@ -166,7 +171,16 @@ Set the `SIREUM_HOME` env var to the `kekinian` path above.
 To update later on, simply do a `git pull --recurse-submodules` and re-run 
 `build.cmd setup` (or simply `build.cmd` to rebuild Sireum CLI tools).
 
-If rebuilding Sireum somehow failed, try cleaning the repo:
+Occasionally, there might be new API used in `build.cmd` that is available 
+in the pre-built binary online but not in your local copy.
+This issue happens because `build.cmd` uses Sireum itself, hence it is a
+bootstraping issue.
+This issue typically manifests by `build.cmd` failing to compile/execute 
+due to missing methods/classes.
+In that case, first delete your local `sireum.jar` in the `bin` directory and 
+then re-run `build.cmd setup`.
+
+If rebuilding Sireum somehow failed still, try cleaning the repo:
 
 * **macOS/Linux**:
 
@@ -452,4 +466,4 @@ To run:
   
 Note that once the native version is available (and has a newer timestamp),
 `sireum` and `sireum.bat` in `bin` call the native version. 
- This is also similar for `build.cmd` in `bin` and `bin/mill-build/bin`.
+ This is also similar for `build.cmd` in `bin` and `build/bin`.
