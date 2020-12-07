@@ -82,7 +82,7 @@ object GenTools {
                 case Cli.BitCodecMode.Json => BitCodecGen.Output.Json
                 case Cli.BitCodecMode.Dot => BitCodecGen.Output.Dot
               }
-              val r = BitCodecGen.gen(output, !o.isLittleEndian, lOpt.map(_.read), src.name,
+              val r = BitCodecGen.gen(output, !o.isLittleEndian, o.isMutable, lOpt.map(_.read), src.name,
                 o.packageName, o.name.get, text, o.traits, spec, org.sireum.bitcodec.JSON.Printer.printSpec(spec),
                 program, prev, reporter)
               if (reporter.hasIssue) {
@@ -371,6 +371,17 @@ object GenTools {
            |</application>""".stripMargin
       }
 
+      def projectDefault: Predef.String =
+        s"""<application>
+           |  <component name="ProjectManager">
+           |    <defaultProject>
+           |      <component name="uidesigner-configuration">
+           |        <option name="INSTRUMENT_CLASSES" value="false" />
+           |      </component>
+           |    </defaultProject>
+           |  </component>
+           |</application>""".stripMargin
+
       (Os.home / s".SireumIVE$devSuffix-sandbox").mkdirAll()
 
       val projectName = o.projectName.get
@@ -426,6 +437,7 @@ object GenTools {
       val jdkTableXml = configOptions / "jdk.table.xml"
       val applicationLibrariesXml = configOptions / "applicationLibraries.xml"
       val fileTypesXml = configOptions / "filetypes.xml"
+      val projectDefaultXml = configOptions / "project.default.xml"
       if (o.force || !jdkTableXml.exists) {
         println(s"Generated $jdkTableXml")
         jdkTableXml.writeOver(jdkTable)
@@ -437,6 +449,10 @@ object GenTools {
       if (o.force || !fileTypesXml.exists) {
         println(s"Generated $fileTypesXml")
         fileTypesXml.writeOver(fileTypes)
+      }
+      if (o.force || !projectDefaultXml.exists) {
+        println(s"Generated $projectDefaultXml")
+        projectDefaultXml.writeOver(projectDefault)
       }
       println(s"Generated Sireum IVE project at $project")
       0
