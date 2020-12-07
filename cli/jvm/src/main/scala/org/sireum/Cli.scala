@@ -177,6 +177,7 @@ object Cli {
     args: ISZ[String],
     mode: ISZ[BitCodecMode.Type],
     isLittleEndian: B,
+    isMutable: B,
     packageName: ISZ[String],
     name: Option[String],
     license: Option[String],
@@ -298,7 +299,7 @@ import Cli._
       println(
         st"""Sireum: A High-Assurance System Engineering Platform
             |(c) 2020, SAnToS Laboratory, Kansas State University
-            |Build yyyymmdd.sha
+            |Build 20201204.420627e*
             |
             |Available modes:
             |hamr                     HAMR Tools
@@ -1409,6 +1410,7 @@ import Cli._
           |-m, --mode               Generated codec unit mode (expects one or more of {
           |                           program, script, json, dot }; default: program)
           |    --little             Generate little-endian bitcodec instead of big-endian
+          |    --mutable            Use MS instead of IS on decode methods
           |-p, --package            Package name for the codec (expects a string separated
           |                           by ".")
           |-n, --name               Object and filename for the codec (script always uses
@@ -1424,6 +1426,7 @@ import Cli._
 
     var mode: ISZ[BitCodecMode.Type] = ISZ(BitCodecMode.Program)
     var isLittleEndian: B = false
+    var isMutable: B = false
     var packageName: ISZ[String] = ISZ[String]()
     var name: Option[String] = Some("BitCodec")
     var license: Option[String] = None[String]()
@@ -1447,6 +1450,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!isLittleEndian) }
            o match {
              case Some(v) => isLittleEndian = v
+             case _ => return None()
+           }
+         } else if (arg == "--mutable") {
+           val o: Option[B] = { j = j - 1; Some(!isMutable) }
+           o match {
+             case Some(v) => isMutable = v
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--package") {
@@ -1488,7 +1497,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(BcgenOption(help, parseArguments(args, j), mode, isLittleEndian, packageName, name, license, outputDir, traits))
+    return Some(BcgenOption(help, parseArguments(args, j), mode, isLittleEndian, isMutable, packageName, name, license, outputDir, traits))
   }
 
   def parseCheckStackModeH(arg: String): Option[CheckStackMode.Type] = {
