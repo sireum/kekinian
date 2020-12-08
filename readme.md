@@ -2,7 +2,7 @@
 
 | [![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) | [![Build Status](https://travis-ci.org/sireum/kekinian.svg?branch=master)](https://travis-ci.org/sireum/kekinian) | [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian) |
 | :---: | :---: | :---: | 
-| <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>aarch64: linux</sup></sub> | <sub><sup>maven package repository</sup></sub> |
+| <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>aarch64: linux</sup></sub> | <sub><sup>maven: `org.sireum.kekinian:cli_2.13:<tag-or-hash>`</sup></sub> |
 
 * [Overview](#overview)
 * [Available Products](#available-products)
@@ -31,7 +31,7 @@ Slang is an OO/FP programming language with contract and proof languages
 designed for formal verification and analyses; that is, it serves as the basis for the next generation
 [Logika](http://logika.sireum.org) verifier and proof checker, as well as for other
 formal method-based analysis techniques.
-It is currently a subset of Scala 2.x with different memory models 
+It is currently a subset of Scala 2.13 with different memory models 
 enabled via Scala's 
 [macro](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/scala/org/sireum/%24internal/Macro.scala) 
 and  [compiler plugin](https://github.com/sireum/scalac-plugin) 
@@ -63,14 +63,14 @@ programming languages, platform-specific libraries, and existing/legacy code.
 
 Furthermore, Slang can also be used as a universal shell scripting language 
 -- [Slash](https://github.com/sireum/slang-by-examples), which can run
-on macOS, Linux, Windows, and others where JVM runtime is available.
+on macOS, Linux, Windows, and others where a JVM runtime is available.
 Slash powers many of the shell scripts for developing Kekinian itself.
 As Slash is Slang, Slash scripts can be compiled to native via Graal, which speeds 
 things up by virtue of having no JVM boot up time.
 
 ## Available Products
 
-* [HAMR](http://hamr.sireum.org): A **H**igh **A**ssurance **M**odel-based **R**apid engineering of embedded systems
+* [HAMR](http://hamr.sireum.org): A **H**igh **A**ssurance **M**odel-based **R**apid Engineering of Embedded Systems
 
 ## Installing
 
@@ -78,6 +78,8 @@ Sireum is available as pre-built binaries/installers or from source.
 The main advantage of using the source distribution is that updates
 can be done incrementally while the binary distribution requires complete
 re-installation. On the other hand, source distribution requires more setup.
+As Sireum is currently in its early active development phase, it is highly
+recommended to use the source distribution.
 
 ### Binary Distributions
 
@@ -146,7 +148,6 @@ RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
   * [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)); or
   
   * [WSL2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) (Linux requirements apply)
- 
 
 #### Setup
 
