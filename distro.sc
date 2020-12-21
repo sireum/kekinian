@@ -388,8 +388,13 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
           (sireumAppDir / 'Contents / 'Resources, "idea.icns", "idea.icns")
         }
       case "win" =>
-        if (isDev) (ideaDir / 'bin, "idea-dev.ico", "idea.ico")
-        else (ideaDir / 'bin, "idea.ico", "idea.ico")
+        if (isDev) {
+          os.copy.over(iconsPath / "idea-dev.svg", ideaDir / 'bin / "idea.svg")
+          (ideaDir / 'bin, "idea-dev.ico", "idea.ico")
+        } else {
+          os.copy.over(iconsPath / "idea.svg", ideaDir / 'bin / "idea.svg")
+          (ideaDir / 'bin, "idea_CE.ico", "idea.ico")
+        }
       case "linux" | "linux/arm" =>
         if (isDev) {
           os.copy.over(iconsPath / "idea-dev.svg", ideaDir / 'bin / "idea.svg")
