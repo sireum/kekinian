@@ -46,7 +46,7 @@ def ccl(p: String): Unit = {
   val cclDir = platformDir / "ccl"
   val ver = cclDir / "VER"
 
-  if (ver.exists && ver.read == cclVersion) {
+  if (ver.exists && ver.read === cclVersion) {
     return
   }
 
@@ -77,10 +77,10 @@ def acl2(p: String): Unit = {
 
   val platformDir = homeBin / p
   val acl2Dir = platformDir / "acl2"
-  val cclExe = platformDir / "ccl" / (if (p == "linux") "lx86cl64" else "dx86cl64")
+  val cclExe = platformDir / "ccl" / (if (p === "linux") "lx86cl64" else "dx86cl64")
   val ver = acl2Dir / "VER"
 
-  if (ver.exists && ver.read == acl2Version) {
+  if (ver.exists && ver.read === acl2Version) {
     return
   }
 

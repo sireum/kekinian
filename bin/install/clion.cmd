@@ -50,7 +50,7 @@ def mac(): Unit = {
   val clionAppDir = clionDir / "CLion.app"
   val ver = clionDir / "VER"
 
-  if (ver.exists && ver.read == clionVersion) {
+  if (ver.exists && ver.read === clionVersion) {
     return
   }
 
@@ -87,7 +87,7 @@ def linux(isArm: B): Unit = {
   val clionDir = platformDir / "clion"
   val ver = clionDir / "VER"
 
-  if (ver.exists && ver.read == clionVersion) {
+  if (ver.exists && ver.read === clionVersion) {
     return
   }
 
@@ -149,7 +149,7 @@ def win(): Unit = {
   val clionDir = platformDir / "clion"
   val ver = clionDir / "VER"
 
-  if (ver.exists && ver.read == clionVersion) {
+  if (ver.exists && ver.read === clionVersion) {
     return
   }
 

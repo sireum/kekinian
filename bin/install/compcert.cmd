@@ -106,7 +106,7 @@ def mac(): Unit = {
   val compcertDir = platformDir / "compcert"
   val ver = compcertDir / "VER"
 
-  if (ver.exists && ver.read == compcertVersion) {
+  if (ver.exists && ver.read === compcertVersion) {
     return
   }
 
@@ -129,7 +129,7 @@ def linux(isArm: B): Unit = {
   val compcertDir = platformDir / "compcert"
   val ver = compcertDir / "VER"
 
-  if (ver.exists && ver.read == compcertVersion) {
+  if (ver.exists && ver.read === compcertVersion) {
     return
   }
 

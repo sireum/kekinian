@@ -46,7 +46,7 @@ def mac(): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read == graalVersion) {
+  if (ver.exists && ver.read === graalVersion) {
     return
   }
 
@@ -85,7 +85,7 @@ def linux(): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read == graalVersion) {
+  if (ver.exists && ver.read === graalVersion) {
     return
   }
 
@@ -123,7 +123,7 @@ def linuxArm(): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read == graalVersion) {
+  if (ver.exists && ver.read === graalVersion) {
     return
   }
 
@@ -161,7 +161,7 @@ def win(): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read == graalVersion) {
+  if (ver.exists && ver.read === graalVersion) {
     return
   }
 
