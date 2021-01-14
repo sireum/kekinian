@@ -438,10 +438,12 @@ def regenLogika(): Unit = {
 def regenAir(): Unit = {
   val airRootPath = home / "hamr" / "air"
   val airPackagePath = airRootPath / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "ir"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
-    "-m", "immutable,mutable", s"${airPackagePath / "AadlAST.scala"}")).at(airPackagePath).console.run()
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l", s"${airRootPath / "license.txt"}",
-    "-m", "json,msgpack", s"${airPackagePath / "AadlAST.scala"}")).at(airPackagePath).console.run()
+  val asts: ISZ[String] = ISZ("AadlAST.scala", "BlessAST.scala", "Emv2AST.scala", "SmfAST.scala")
+
+  Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
+    "-m", "immutable,mutable") ++ asts).at(airPackagePath).console.run()
+  Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l", s"${airRootPath / "license.txt"}",
+    "-m", "json,msgpack") ++ asts).at(airPackagePath).console.run()
 }
 
 
