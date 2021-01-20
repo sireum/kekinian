@@ -30,7 +30,7 @@ def usage(): Unit = {
 
 val graalVersion: String = Os.kind match {
   case Os.Kind.LinuxArm => "20.1.0"
-  case _ => "20.3.0"
+  case _ => "21.0.0"
 }
 
 val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
