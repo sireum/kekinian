@@ -120,9 +120,9 @@ object Logika {
                 f.string
               case _ => p.string
             }
-            smt2Configs = smt2Configs :+ logika.Cvc4Config(exe, o.timeout * 1000)
+            smt2Configs = smt2Configs :+ logika.Cvc4Config(exe)
           case _ =>
-            smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename, o.timeout * 1000)
+            smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename)
         }
       }
       if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
@@ -142,20 +142,20 @@ object Logika {
                 f.string
               case _ => p.string
             }
-            smt2Configs = smt2Configs :+ logika.Z3Config(exe, o.timeout * 1000)
+            smt2Configs = smt2Configs :+ logika.Z3Config(exe)
           case _ =>
-            smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename, o.timeout * 1000)
+            smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename)
         }
       }
-      val config = logika.Config(smt2Configs, 3, HashMap.empty, o.unroll, o.charBitWidth, o.intBitWidth, o.logPc,
-        o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract,
-        o.simplify)
+      val config = logika.Config(smt2Configs, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
+        o.intBitWidth, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
+        o.splitMatch, o.splitContract, o.simplify)
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
         logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl(smt2Configs, th, config.charBitWidth, config.intBitWidth, config.simplifiedQuery), reporter,
-            o.par)
+            logika.Smt2Impl(smt2Configs, th, config.timeoutInMs, config.charBitWidth, config.intBitWidth,
+              config.simplifiedQuery), reporter, o.par)
         reporter.printMessages()
         if (reporter.hasError) {
           code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
