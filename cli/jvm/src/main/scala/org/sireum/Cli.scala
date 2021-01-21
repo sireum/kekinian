@@ -298,7 +298,7 @@ import Cli._
     if (i >= args.size) {
       println(
         st"""Sireum: A High-Assurance System Engineering Platform
-            |(c) 2020, SAnToS Laboratory, Kansas State University
+            |(c) SAnToS Laboratory, Kansas State University
             |Build yyyymmdd.sha
             |
             |Available modes:
