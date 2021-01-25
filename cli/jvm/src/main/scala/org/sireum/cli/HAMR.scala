@@ -99,7 +99,9 @@ object HAMR {
               //
               camkesOutputDirectory: Option[Predef.String],
               camkesAuxCodeDirs: ISZ[Predef.String],
-              aadlRootDir: Option[Predef.String]
+              aadlRootDir: Option[Predef.String],
+              //
+              experimentalOptions: ISZ[Predef.String]
              ): Int = {
 
     val o = Cli.HamrCodeGenOption(
@@ -125,8 +127,8 @@ object HAMR {
       camkesOutputDir = camkesOutputDirectory.map(f => org.sireum.String(f)),
       camkesAuxCodeDirs = camkesAuxCodeDirs.map(f => org.sireum.String(f)),
       aadlRootDir = aadlRootDir.map(f => org.sireum.String(f)),
-
-      experimentalOptions = ISZ()
+      //
+      experimentalOptions = experimentalOptions.map(f => org.sireum.String(f))
     )
 
     return codeGen(model, o)
