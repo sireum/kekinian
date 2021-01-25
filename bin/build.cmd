@@ -388,7 +388,8 @@ def test(): Unit = {
   println("Running jvm tests ...")
   Os.proc(ISZ[String](mill.string, "all",
     "runtime.library.jvm.tests",
-    "tools.jvm.tests"
+    "tools.jvm.tests",
+    "server.jvm.tests"
   ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).
     errLineAction(filterCompile _).console.runCheck()
   println()
