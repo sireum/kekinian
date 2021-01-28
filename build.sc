@@ -176,6 +176,7 @@ object server extends Server.Module {
   final override def logikaObject = logika
   final override def phantomObject = hamr.phantom
   final override def hamrCodegenObject = hamr.codegen
+  final override def testObject = runtime.test
 }
 
 
