@@ -192,8 +192,18 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
 
   val z7: RelPath = {
     val (plat, exe): (String, String) =
-      if (scala.util.Properties.isMac) ("mac", "7za")
-      else if (scala.util.Properties.isLinux)
+      if (scala.util.Properties.isMac) {
+        val ver = %%("sw_vers", "-productVersion")(pwd).out.trim
+        if (ver.substring(0, ver.indexOf('.')).toInt >= 11) {
+          %%(os.pwd / 'bin / 'mac / 'upx, "-d", os.pwd / 'bin / 'mac / "7za")(pwd)
+        }
+        Runtime.getRuntime().addShutdownHook(new Thread {
+          override def run(): Unit = {
+            %%('git, 'checkout, os.pwd / 'bin / 'mac / "7za")(pwd)
+          }
+        })
+        ("mac", "7za")
+      } else if (scala.util.Properties.isLinux)
         if (%%("uname", "-m")(pwd).out.trim == "aarch64") ("linux/arm", "7za")
         else ("linux", "7za")
       else if (scala.util.Properties.isWin) ("win", "7za.exe")
