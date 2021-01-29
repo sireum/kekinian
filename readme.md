@@ -153,15 +153,7 @@ RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
 
 In a console terminal:
 
-* **macOS Big Sur (11.x)**:
-
-  ```bash
-  git clone --recursive https://github.com/sireum/kekinian
-  kekinian/bin/mac/upx kekinian/bin/mac/7za -d
-  kekinian/bin/build.cmd setup  # for non-POSIX shell, prefix with sh
-  ```
-
-* **Linux/macOS before Big Sur**:
+* **macOS/Linux**:
 
   ```bash
   git clone --recursive https://github.com/sireum/kekinian
