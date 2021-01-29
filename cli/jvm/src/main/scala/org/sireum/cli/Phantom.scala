@@ -31,15 +31,32 @@ import org.sireum.Cli.PhantomOption
 object Phantom {
 
   def run(o: PhantomOption): Z = {
+
+    // TODO: the kekinian part of phantom should probably just be responsible for
+    //       installing/updating OSATE.  The osate-plugin part should be responsible
+    //       for checking/processing the rest of the options/arguments so we probably
+    //       don't need to do anything with them here
+
     o.args.size match {
-      case z"0" => println(o.help); return 0
-      case z"1" =>
+      case z"0" => // ok
+      case z"1" => // ok
       case _ =>
-        addError("Too many arguments provided. Expecting a single system implementation")
+        addError("Too many arguments provided. Expecting a single project directory")
         return -1
     }
 
-    val projects = o.projects.map { it =>
+    val osate: Option[Os.Path] = o.osate match {
+      case Some(d) =>
+        val cand = Os.path(d)
+        if(!cand.exists || !cand.isDir) {
+          addError(s"Path for OSATE does not exist or isn't a directory: ${cand.value}")
+          return -1
+        }
+        Some(cand)
+      case _ => None()
+    }
+
+    val projects: ISZ[Os.Path] = o.projects.map { it =>
       val f = Os.path(it)
       if(!f.exists) {
         addError(s"${it.value} is not a valid directory")
@@ -48,41 +65,38 @@ object Phantom {
       f
     }
 
-    val mainPackage : String = if(o.main.nonEmpty) {
-      o.main.get
-    } else {
-      projects(0).list(0).name
-    }
-
-    val (serializeType, outExt) = o.mode match {
-      case Cli.PhantomMode.Json => (T, ".json")
-      case _ =>
-        addWarning("Currently only JSON is supported.  Using that instead.")
-        (T, ".json")
-    }
-
-    val impl : String = o.args(0)
-
-    val outFile: Os.Path = if (o.output.nonEmpty) {
-      val f = Os.path(o.output.get)
-      if(f.exists && f.isDir) {
-        addError(s"$f is a directory.  Should be the name for the generated $serializeType file.")
+    val projectDir: Option[Os.Path] = if(o.args.nonEmpty) {
+      val p = Os.path(o.args(0))
+      if(!p.exists || !p.isDir) {
+        addError(s"${p.value} is not a directory")
         return -1
       }
-      f
+      Some(p)
     } else {
-      Os.path(projects(0).value.value + impl.value + outExt)
+      None()
     }
 
-    val osateDirOpt: Option[Os.Path] = o.osate match {
-      case Some(d) => Some(Os.path(d))
-      case _ => None()
+    def getKey(name: String): String = {
+      val cand = org.sireum.hamr.phantom.cli.phantomTool.opts.filter(f => f.name == name)
+      if (cand.isEmpty || cand.size > 1) { halt(s"Issue arose when looking up longKey for ${name}") }
+      return cand(0).longKey
     }
 
-    return org.sireum.hamr.phantom.Phantom.run(serializeType, osateDirOpt, projects, mainPackage, outFile, o.args(0))
-    0
+    if (projectDir.nonEmpty == (projects.nonEmpty && o.main.nonEmpty && o.impl.nonEmpty)) {
+      addError(s"Must supply a project directory or values for options: ${getKey("projects")}, ${getKey("main")}, and ${getKey("impl")}")
+      return -1
+    }
+
+    return org.sireum.hamr.phantom.Phantom.run(
+      mode = o.mode.string,
+      osate = osate,
+      projects = projects,
+      main = o.main,
+      impl = o.impl,
+      output = o.output,
+      projectDir = projectDir)
   }
 
-  def addError(s: String): Unit = { Console.err.println(s"Error: $s") }
+  def addError(s: String): Unit = { Console.err.println(s"Error: $s. Pass '-h' for usage info.") }
   def addWarning(s: String): Unit = { Console.out.println(s"Warning: $s") }
 }

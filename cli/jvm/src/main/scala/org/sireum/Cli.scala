@@ -2,7 +2,7 @@
 // @formatter:off
 
 /*
- Copyright (c) 2020, Robby, Kansas State University
+ Copyright (c) 2021, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -83,6 +83,7 @@ object Cli {
     osate: Option[String],
     projects: ISZ[String],
     main: Option[String],
+    impl: Option[String],
     output: Option[String]
   ) extends SireumTopOption
 
@@ -582,22 +583,31 @@ import Cli._
     val help =
       st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
           |
-          |Usage: <option>* <system-name>
+          |Usage: ${st"""<option>* <project-directory>?
+                  |
+                  |Either:
+                  | - point to a directory containing a .project or .system file, or
+                  | - populate the 'projects', 'main-package', and 'sys-impl' options""".render}
           |
           |Available Options:
           |-m, --mode               Serialization method (expects one of { json, msgpack
           |                           }; default: json)
-          |-e, --osate              OSATE installation path (expects a path)
-          |-p, --projects           OSATE project folders (expects path strings; default
-          |                           is ".")
-          |-a, --main-package       AADL main package file (expects a string)
-          |-o, --output             AIR output file path (expects a path)
+          |-o, --osate              Existing OSATE installation path, otherwise an
+          |                           internal version of OSATE will be used (expects a
+          |                           path)
+          |-p, --projects           OSATE project directories, each must contain an OSATE
+          |                           '.project' file (expects path strings)
+          |-a, --main-package       AADL main package file that contains a system
+          |                           implementation. (expects a path)
+          |-s, --sys-impl           Name of the system implementation. (expects a string)
+          |-f, --output-file        AIR output file path (expects a path)
           |-h, --help               Display this information""".render
 
     var mode: PhantomMode.Type = PhantomMode.Json
     var osate: Option[String] = None[String]()
-    var projects: ISZ[String] = ISZ(".")
+    var projects: ISZ[String] = ISZ[String]()
     var main: Option[String] = None[String]()
+    var impl: Option[String] = None[String]()
     var output: Option[String] = None[String]()
     var j = i
     var isOption = T
@@ -613,7 +623,7 @@ import Cli._
              case Some(v) => mode = v
              case _ => return None()
            }
-         } else if (arg == "-e" || arg == "--osate") {
+         } else if (arg == "-o" || arg == "--osate") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => osate = v
@@ -626,12 +636,18 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-a" || arg == "--main-package") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
+           val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => main = v
              case _ => return None()
            }
-         } else if (arg == "-o" || arg == "--output") {
+         } else if (arg == "-s" || arg == "--sys-impl") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => impl = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--output-file") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => output = v
@@ -646,7 +662,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PhantomOption(help, parseArguments(args, j), mode, osate, projects, main, output))
+    return Some(PhantomOption(help, parseArguments(args, j), mode, osate, projects, main, impl, output))
   }
 
   def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
