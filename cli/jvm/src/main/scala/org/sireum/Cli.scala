@@ -79,6 +79,7 @@ object Cli {
   @datatype class PhantomOption(
     help: String,
     args: ISZ[String],
+    update: B,
     mode: PhantomMode.Type,
     osate: Option[String],
     projects: ISZ[String],
@@ -590,6 +591,7 @@ import Cli._
                   | - populate the 'projects', 'main-package', and 'sys-impl' options""".render}
           |
           |Available Options:
+          |-u, --update             Update Sireum OSATE plugins if installed
           |-m, --mode               Serialization method (expects one of { json, msgpack
           |                           }; default: json)
           |-o, --osate              Existing OSATE installation path, otherwise an
@@ -603,6 +605,7 @@ import Cli._
           |-f, --output-file        AIR output file path (expects a path)
           |-h, --help               Display this information""".render
 
+    var update: B = false
     var mode: PhantomMode.Type = PhantomMode.Json
     var osate: Option[String] = None[String]()
     var projects: ISZ[String] = ISZ[String]()
@@ -617,7 +620,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-m" || arg == "--mode") {
+        } else if (arg == "-u" || arg == "--update") {
+           val o: Option[B] = { j = j - 1; Some(!update) }
+           o match {
+             case Some(v) => update = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
            val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
            o match {
              case Some(v) => mode = v
@@ -662,7 +671,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PhantomOption(help, parseArguments(args, j), mode, osate, projects, main, impl, output))
+    return Some(PhantomOption(help, parseArguments(args, j), update, mode, osate, projects, main, impl, output))
   }
 
   def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {

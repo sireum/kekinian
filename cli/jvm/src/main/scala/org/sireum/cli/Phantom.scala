@@ -32,11 +32,6 @@ object Phantom {
 
   def run(o: PhantomOption): Z = {
 
-    // TODO: the kekinian part of phantom should probably just be responsible for
-    //       installing/updating OSATE.  The osate-plugin part should be responsible
-    //       for checking/processing the rest of the options/arguments so we probably
-    //       don't need to do anything with them here
-
     o.args.size match {
       case z"0" => // ok
       case z"1" => // ok
@@ -49,7 +44,7 @@ object Phantom {
       case Some(d) =>
         val cand = Os.path(d)
         if(!cand.exists || !cand.isDir) {
-          addError(s"Path for OSATE does not exist or isn't a directory: ${cand.value}")
+          addError(s"Path for OSATE does not exist or isn't a directory: ${d}")
           return -1
         }
         Some(cand)
@@ -57,16 +52,27 @@ object Phantom {
     }
 
     val projects: ISZ[Os.Path] = o.projects.map { it =>
-      val f = Os.path(it)
+      val f = Os.path(it).canon
       if(!f.exists) {
-        addError(s"${it.value} is not a valid directory")
+        addError(s"${it} is not a valid directory")
         return -1
       }
       f
     }
 
+    val main: Option[Os.Path] = o.main match {
+      case Some(m) =>
+        val f = Os.path(m).canon
+        if(!f.exists) {
+          addError(s"${m} is not file")
+          return -1
+        }
+        Some(f)
+      case _ => None()
+    }
+
     val projectDir: Option[Os.Path] = if(o.args.nonEmpty) {
-      val p = Os.path(o.args(0))
+      val p = Os.path(o.args(0)).canon
       if(!p.exists || !p.isDir) {
         addError(s"${p.value} is not a directory")
         return -1
@@ -76,24 +82,30 @@ object Phantom {
       None()
     }
 
+    val output: Option[Os.Path] = o.output match {
+      case Some(m) => Some(Os.path(m).canon)
+      case _ => None()
+    }
+
     def getKey(name: String): String = {
       val cand = org.sireum.hamr.phantom.cli.phantomTool.opts.filter(f => f.name == name)
       if (cand.isEmpty || cand.size > 1) { halt(s"Issue arose when looking up longKey for ${name}") }
       return cand(0).longKey
     }
 
-    if (projectDir.nonEmpty == (projects.nonEmpty && o.main.nonEmpty && o.impl.nonEmpty)) {
+    if (projectDir.nonEmpty == (projects.nonEmpty && main.nonEmpty && o.impl.nonEmpty)) {
       addError(s"Must supply a project directory or values for options: ${getKey("projects")}, ${getKey("main")}, and ${getKey("impl")}")
       return -1
     }
 
     return org.sireum.hamr.phantom.Phantom.run(
-      mode = o.mode.string,
+      update = o.update,
+      mode = ops.StringOps(o.mode.string).firstToLower,
       osate = osate,
       projects = projects,
-      main = o.main,
+      main = main,
       impl = o.impl,
-      output = o.output,
+      output = output,
       projectDir = projectDir)
   }
 
