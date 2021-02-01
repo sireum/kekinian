@@ -49,7 +49,7 @@ object Sireum {
           case Some(o: Cli.HamrCodeGenOption) => cli.HAMR.codeGen(o).toInt
           case Some(o: Cli.PhantomOption) => cli.Phantom.run(o).toInt
           case Some(o: Cli.LogikaVerifierOption) => cli.Logika.run(o).toInt
-          case Some(o: Cli.ServerOption) => server.Server.run(o.logika).toInt
+          case Some(o: Cli.ServerOption) => server.Server.run(o.message == Cli.ServerMessage.Msgpack, o.logika).toInt
           case Some(_: Cli.HelpOption) => 0
           case _ => -1
         })

@@ -285,9 +285,15 @@ object Cli {
     outputDir: Option[String]
   ) extends SireumTopOption
 
+  @enum object ServerMessage {
+    'Msgpack
+    'Json
+  }
+
   @datatype class ServerOption(
     help: String,
     args: ISZ[String],
+    message: ServerMessage.Type,
     logika: Z
   ) extends SireumTopOption
 }
@@ -2095,6 +2101,25 @@ import Cli._
     }
   }
 
+  def parseServerMessageH(arg: String): Option[ServerMessage.Type] = {
+    arg.native match {
+      case "msgpack" => return Some(ServerMessage.Msgpack)
+      case "json" => return Some(ServerMessage.Json)
+      case s =>
+        eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseServerMessage(args: ISZ[String], i: Z): Option[ServerMessage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { msgpack, json }, but none found.")
+      return None()
+    }
+    val r = parseServerMessageH(args(i))
+    return r
+  }
+
   def parseServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Server
@@ -2102,10 +2127,13 @@ import Cli._
           |Usage: <option>*
           |
           |Available Options:
+          |-m, --message            Message format (expects one of { msgpack, json };
+          |                           default: msgpack)
           |-l, --logika             Number of Logika workers (expects an integer; default
           |                           is 1)
           |-h, --help               Display this information""".render
 
+    var message: ServerMessage.Type = ServerMessage.Msgpack
     var logika: Z = 1
     var j = i
     var isOption = T
@@ -2115,7 +2143,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-l" || arg == "--logika") {
+        } else if (arg == "-m" || arg == "--message") {
+           val o: Option[ServerMessage.Type] = parseServerMessage(args, j + 1)
+           o match {
+             case Some(v) => message = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--logika") {
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => logika = v
@@ -2130,7 +2164,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(ServerOption(help, parseArguments(args, j), logika))
+    return Some(ServerOption(help, parseArguments(args, j), message, logika))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

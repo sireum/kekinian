@@ -460,7 +460,7 @@ def regenServer(): Unit = {
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.server.protocol", "-l",
-    s"${home / "license.txt"}", "-m", "msgpack",
+    s"${home / "license.txt"}", "-m", "msgpack,json",
     s"${protocolPackagePath / "Message.scala"}",
     s"${logikaPackagePath / "State.scala"}",
     s"${logikaPackagePath / "Config.scala"}",
