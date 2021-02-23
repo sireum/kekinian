@@ -6,6 +6,6 @@ if [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
     $SIREUM_HOME/bin/install/graal.cmd
     $SIREUM_HOME/bin/build.cmd
     $SIREUM_HOME/bin/linux/arm/upx -9 bin/build.cmd.com
-    $SIREUM_HOME/bin/linux/arm/sireum
+    $SIREUM_HOME/bin/sireum
   fi
 fi
