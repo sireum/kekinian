@@ -110,8 +110,8 @@ def installZ3(kind: Os.Kind.Type): Unit = {
 
   val filename: String = kind match {
     case Os.Kind.Win => s"z3-$version-x64-win.zip"
-    case Os.Kind.Linux => s"z3-$version-x64-ubuntu-16.04.zip"
-    case Os.Kind.Mac => s"z3-$version-x64-osx-10.14.6.zip"
+    case Os.Kind.Linux => s"z3-$version-x64-ubuntu-18.04.zip"
+    case Os.Kind.Mac => s"z3-$version-x64-osx-10.15.7.zip"
     case _ => return
   }
 
