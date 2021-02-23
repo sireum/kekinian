@@ -24,6 +24,14 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+function versionNorm {
+  printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' ')
+}
+
+function cleanup {
+  cd ${SIREUM_HOME} && git checkout bin/mac/7za &>/dev/null && true
+}
+
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   Z7="${SIREUM_HOME}/bin/win/7za.exe"
   if [[ -z "${PLATFORM}" ]]; then
@@ -31,6 +39,10 @@ if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   fi
 elif [[ "$(uname)" == "Darwin" ]]; then
   Z7="${SIREUM_HOME}/bin/mac/7za"
+  if [ $(versionNorm `sw_vers -productVersion`) -ge $(versionNorm 11) ]; then
+    ${SIREUM_HOME}/bin/mac/upx -d $Z7 &>/dev/null && true
+    trap cleanup EXIT
+  fi
   if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=mac
   fi
