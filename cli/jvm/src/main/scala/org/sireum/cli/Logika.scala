@@ -153,9 +153,13 @@ object Logika {
       val f = Os.path(arg)
       if (f.isFile && f.ext.value != ".sc") {
         val reporter = logika.Logika.Reporter.create
-        logika.Logika.checkWorksheet(Some(f.value), f.read, config, (th: lang.tipe.TypeHierarchy) =>
+        val content = f.read
+        val hasLogika =
+          try { content.value.linesIterator.next().replace(" ", "").replace("\t", "").contains("#Logika") }
+          catch { case _: NoSuchElementException => false }
+        logika.Logika.checkWorksheet(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
             logika.Smt2Impl(smt2Configs, th,  logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
-              config.intBitWidth, config.simplifiedQuery), reporter, o.par)
+              config.intBitWidth, config.simplifiedQuery), reporter, o.par, hasLogika)
         reporter.printMessages()
         if (reporter.hasError) {
           code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
