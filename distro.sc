@@ -462,7 +462,7 @@ class distro(platform: String, isDev: Boolean, sfx: Boolean, clone: Boolean) {
       case "linux" | "linux/arm" => setupLinux(ideaDrop)
       case "win" => setupWin(ideaDrop)
     }
-    val sireumJar = pluginsDir / "sireum-kekinian-intellij" / 'lib / "sireum.jar"
+    val sireumJar = pluginsDir / "sireum-intellij-plugin" / 'lib / "sireum.jar"
     val link = (pwd / 'bin / "sireum.jar").relativeTo(sireumJar / os.up)
     os.remove.all(sireumJar)
     mkLink(sireumJar, link)
