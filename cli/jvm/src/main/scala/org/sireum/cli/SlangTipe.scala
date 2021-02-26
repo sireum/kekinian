@@ -402,7 +402,7 @@ object SlangTipe {
         startTime()
       }
 
-      Parser.parseTopUnit[TopUnit](slangFile._2._2, F, T, F, slangFile._2._1, reporter) match {
+      Parser.parseTopUnit[TopUnit](slangFile._2._2, T, F, slangFile._2._1, reporter) match {
         case Some(p: TopUnit.Program) =>
           val p2 = FrontEnd.checkWorksheet(thOpt, p, reporter)
           if (reporter.hasIssue) {

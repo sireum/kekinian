@@ -415,7 +415,7 @@ object CTranspiler {
         startTime()
       }
 
-      Parser.parseTopUnit[AST.TopUnit.Program](slangFile._2._2, F, T, F, slangFile._2._1, reporter) match {
+      Parser.parseTopUnit[AST.TopUnit.Program](slangFile._2._2, T, F, slangFile._2._1, reporter) match {
         case Some(p: AST.TopUnit.Program) =>
           val p2 = FrontEnd.checkWorksheet(thOpt, p, reporter)
           if (reporter.hasIssue) {

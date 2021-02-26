@@ -56,7 +56,7 @@ object GenTools {
     }
     val reporter = Reporter.create
     val text = src.read
-    Parser.parseTopUnit[ast.TopUnit.Program](text, F, T, F, Some(src.value), reporter) match {
+    Parser.parseTopUnit[ast.TopUnit.Program](text, T, F, Some(src.value), reporter) match {
       case Some(p) if !reporter.hasIssue =>
         val (_, program) = FrontEnd.checkWorksheet(None(), p, reporter)
         if (reporter.hasIssue) {
@@ -536,7 +536,7 @@ object GenTools {
         }
         val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
-        TransformerGenJvm.run(T, mode, lOpt, sources, Some(String(name)), reporter) match {
+        TransformerGenJvm.run(mode, lOpt, sources, Some(String(name)), reporter) match {
           case Some(out) =>
             dest.writeOver(out)
             println(s"Wrote $dest")
