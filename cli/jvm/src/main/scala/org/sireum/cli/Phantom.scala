@@ -93,22 +93,42 @@ object Phantom {
       return cand(0).longKey
     }
 
-    if (projectDir.nonEmpty == (projects.nonEmpty && main.nonEmpty && o.impl.nonEmpty)) {
-      addError(s"Must supply a project directory or values for options: ${getKey("projects")}, ${getKey("main")}, and ${getKey("impl")}")
+    // directory supplied via arg, or options filled in, but not both
+    val dirOrProj = projectDir.nonEmpty != (projects.nonEmpty && main.nonEmpty && o.impl.nonEmpty)
+
+    val justInstall = o.update && projectDir.isEmpty && (projects.isEmpty && main.isEmpty && o.impl.isEmpty)
+
+    if(!justInstall && !dirOrProj) {
+      println(o.help)
       return -1
     }
 
-    return org.sireum.hamr.phantom.Phantom.run(
-      update = o.update,
-      mode = ops.StringOps(o.mode.string).firstToLower,
-      osate = osate,
-      projects = projects,
-      main = main,
-      impl = o.impl,
-      output = output,
-      projectDir = projectDir)
+    val ret: Z = org.sireum.hamr.phantom.Phantom.getOsateExe(osate) match {
+      case Some(osateExe) =>
+        var ret: Z = 0
+        if(o.update || !org.sireum.hamr.phantom.Phantom.pluginsInstalled(osateExe)) {
+          ret = org.sireum.hamr.phantom.Phantom.update(osateExe)
+        }
+
+        if(ret == 0 && dirOrProj) {
+          ret = org.sireum.hamr.phantom.Phantom.execute(
+            osateExe = osateExe,
+            mode = ops.StringOps(o.mode.string).firstToLower,
+            projects = projects,
+            main = main,
+            impl = o.impl,
+            output = output,
+            projectDir = projectDir)
+        }
+
+        ret
+
+      case _ => -1
+    }
+
+    return ret
   }
 
-  def addError(s: String): Unit = { Console.err.println(s"Error: $s. Pass '-h' for usage info.") }
+  def addError(s: String): Unit = { Console.err.println(s"Error: $s.") }
   def addWarning(s: String): Unit = { Console.out.println(s"Warning: $s") }
 }
