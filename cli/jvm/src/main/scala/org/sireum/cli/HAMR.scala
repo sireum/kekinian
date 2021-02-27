@@ -54,15 +54,7 @@ object HAMR {
       return -1
     }
 
-    val model: Aadl = if (o.json) {
-      irJSON.toAadl(input) match {
-        case Either.Left(m) => m
-        case Either.Right(m) =>
-          eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
-          return -1
-      }
-    }
-    else {
+    val model: Aadl = if (o.msgpack) {
       org.sireum.conversions.String.fromBase64(input) match {
         case Either.Left(u) =>
           irMsgPack.toAadl(u) match {
@@ -76,7 +68,14 @@ object HAMR {
           return -1
       }
     }
-
+      else {
+        irJSON.toAadl(input) match {
+          case Either.Left(m) => m
+          case Either.Right(m) =>
+            eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
+            return -1
+        }
+      }
     return codeGen(model, o)
   }
 
@@ -87,7 +86,7 @@ object HAMR {
               platform: Cli.HamrPlatform.Type,
               slangOutputDir: Option[Predef.String],
               slangPackageName: Option[Predef.String],
-              embedArt: B,
+              noEmbedArt: B,
               devicesAsThreads: B,
               //
               slangAuxCodeDir: ISZ[Predef.String],
@@ -96,6 +95,7 @@ object HAMR {
               bitWidth: Int,
               maxStringSize: Int,
               maxArraySize: Int,
+              runTranspiler: B,
               //
               camkesOutputDirectory: Option[Predef.String],
               camkesAuxCodeDirs: ISZ[Predef.String],
@@ -107,13 +107,14 @@ object HAMR {
     val o = Cli.HamrCodeGenOption(
       help = "",
       args = ISZ(),
-      json = F,
       //
+      msgpack = F, // not relevant since in-memory AIR being used
       verbose = verbose,
       platform = platform,
+      //
       outputDir = slangOutputDir.map(f => org.sireum.String(f)),
       packageName = slangPackageName.map(f => org.sireum.String(f)),
-      embedArt = embedArt,
+      noEmbedArt = noEmbedArt,
       devicesAsThreads = devicesAsThreads,
       //
       slangAuxCodeDirs = slangAuxCodeDir.map(f => org.sireum.String(f)),
@@ -122,7 +123,7 @@ object HAMR {
       bitWidth = bitWidth,
       maxStringSize = maxStringSize,
       maxArraySize = maxArraySize,
-      runTranspiler = T,
+      runTranspiler = runTranspiler,
       //
       camkesOutputDir = camkesOutputDirectory.map(f => org.sireum.String(f)),
       camkesAuxCodeDirs = camkesAuxCodeDirs.map(f => org.sireum.String(f)),
@@ -137,14 +138,17 @@ object HAMR {
   def codeGen(model: Aadl, o: Cli.HamrCodeGenOption): Int = {
 
     val ops = CodeGenConfig(
-      verbose = o.verbose,
       writeOutResources = T,
+      ipc = CodeGenIpcMechanism.SharedMemory,
+      //
+      verbose = o.verbose,
       platform = CodeGenPlatform.byName(o.platform.name).get,
+      //
       slangOutputDir = o.outputDir,
       packageName = o.packageName,
-      embedArt = o.embedArt,
+      noEmbedArt = o.noEmbedArt,
       devicesAsThreads = o.devicesAsThreads,
-      ipc = CodeGenIpcMechanism.SharedMemory,
+      //
       slangAuxCodeDirs = o.slangAuxCodeDirs,
       slangOutputCDir = o.slangOutputCDir,
       excludeComponentImpl = o.excludeComponentImpl,
@@ -152,9 +156,11 @@ object HAMR {
       maxStringSize = o.maxStringSize,
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
+      //
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
       aadlRootDir = o.aadlRootDir,
+      //
       experimentalOptions = o.experimentalOptions
     )
     

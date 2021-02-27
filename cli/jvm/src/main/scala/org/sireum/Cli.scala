@@ -51,12 +51,12 @@ object Cli {
   @datatype class HamrCodeGenOption(
     help: String,
     args: ISZ[String],
-    json: B,
+    msgpack: B,
     verbose: B,
     platform: HamrPlatform.Type,
     outputDir: Option[String],
     packageName: Option[String],
-    embedArt: B,
+    noEmbedArt: B,
     devicesAsThreads: B,
     slangAuxCodeDirs: ISZ[String],
     slangOutputCDir: Option[String],
@@ -80,8 +80,8 @@ object Cli {
     help: String,
     args: ISZ[String],
     update: B,
-    mode: PhantomMode.Type,
     osate: Option[String],
+    mode: PhantomMode.Type,
     projects: ISZ[String],
     main: Option[String],
     impl: Option[String],
@@ -333,14 +333,14 @@ import Cli._
         st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems
             |
             |Available modes:
-            |code-gen                 Generate code from AADL IR
+            |codegen                 
             |phantom                 """.render
       )
       return Some(HelpOption())
     }
-    val opt = select("hamr", args, i, ISZ("code-gen", "phantom"))
+    val opt = select("hamr", args, i, ISZ("codegen", "phantom"))
     opt match {
-      case Some(string"code-gen") => parseHamrCodeGen(args, i + 1)
+      case Some(string"codegen") => parseHamrCodeGen(args, i + 1)
       case Some(string"phantom") => parsePhantom(args, i + 1)
       case _ => return None()
     }
@@ -372,61 +372,61 @@ import Cli._
 
   def parseHamrCodeGen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
-      st"""Code Generator
+      st"""Generate code from AADL IR (AIR)
           |
           |Usage: <option>* air-file
           |
           |Available Options:
-          |-j, --json               Input serialized using Json (otherwise MsgPack
+          |    --msgpack            Input serialized using Msgpack (otherwise JSON
           |                           assumed)
-          |    --verbose            Enable verbose mode
-          |    --platform           Target platform (expects one of { JVM, Linux, Cygwin,
+          |-v, --verbose            Enable verbose mode
+          |-p, --platform           Target platform (expects one of { JVM, Linux, Cygwin,
           |                           MacOS, seL4, seL4_Only, seL4_TB }; default: JVM)
           |-h, --help               Display this information
           |
           |Slang Options:
           |-o, --output-dir         Output directory for the generated project files
           |                           (expects a path; default is ".")
-          |    --package-name       Base package name for Slang project (output-dir's
+          |-n, --package-name       Base package name for Slang project (output-dir's
           |                           simple name used if not provided) (expects a string)
-          |    --embed-art          Embed ART project files
+          |    --no-embed-art       Do not embed ART project files
           |    --devices-as-thread  Treat AADL devices as threads
           |
           |Transpiler Options:
-          |    --slang-aux-code-dirs
-          |                          Auxiliary C source code directory (expects path
+          |    --aux-code-dirs      Auxiliary C source code directories (expects path
           |                           strings)
-          |    --slang-output-c-dir Output directory for C artifacts (expects a path)
-          |    --exclude-component-impl
-          |                          Exclude Slang component implementations
+          |    --output-c-dir       Output directory for C artifacts (expects a path)
+          |-e, --exclude-component-impl    
+          |                          Exclude Slang component implementations, behavior
+          |                           code written in C
           |-b, --bit-width          Default bit-width for unbounded integer types (e.g.,
           |                           Z) (expects one of { 64, 32, 16, 8 })
-          |    --max-string-size    Maximum string size (expects an integer; default is
-          |                           100)
-          |    --max-array-size     Default maximum sequence size (expects an integer;
-          |                           default is 100)
-          |    --run-transpiler     Run Transpiler during HAMR Codegen
+          |-s, --max-string-size    
+          |                          Size for statically allocated strings (expects an
+          |                           integer; default is 100)
+          |-a, --max-array-size     Default sequence size (e.g., for ISZ, MSZ (expects an
+          |                           integer; default is 100)
+          |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
           |CAmkES Options:
-          |-o, --camkes-output-dir    
-          |                          Output directory for the generated CAmkES project
-          |                           files (expects a path; default is ".")
-          |-a, --camkes-aux-code-dirs    
+          |    --camkes-output-dir  Output directory for the generated CAmkES project
+          |                           files (expects a path)
+          |    --camkes-aux-code-dirs
           |                          Directories containing C files to be included in
           |                           CAmkES build (expects path strings)
           |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
           |                           path)
           |
           |Experimental Options:
-          |    --experimental-options
+          |-x, --experimental-options    
           |                           (expects a string separated by ";")""".render
 
-    var json: B = false
+    var msgpack: B = false
     var verbose: B = false
     var platform: HamrPlatform.Type = HamrPlatform.JVM
     var outputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
-    var embedArt: B = false
+    var noEmbedArt: B = false
     var devicesAsThreads: B = false
     var slangAuxCodeDirs: ISZ[String] = ISZ[String]()
     var slangOutputCDir: Option[String] = None[String]()
@@ -434,8 +434,8 @@ import Cli._
     var bitWidth: Z = 64
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
-    var runTranspiler: B = true
-    var camkesOutputDir: Option[String] = Some(".")
+    var runTranspiler: B = false
+    var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var aadlRootDir: Option[String] = None[String]()
     var experimentalOptions: ISZ[String] = ISZ[String]()
@@ -447,19 +447,19 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-j" || arg == "--json") {
-           val o: Option[B] = { j = j - 1; Some(!json) }
+        } else if (arg == "--msgpack") {
+           val o: Option[B] = { j = j - 1; Some(!msgpack) }
            o match {
-             case Some(v) => json = v
+             case Some(v) => msgpack = v
              case _ => return None()
            }
-         } else if (arg == "--verbose") {
+         } else if (arg == "-v" || arg == "--verbose") {
            val o: Option[B] = { j = j - 1; Some(!verbose) }
            o match {
              case Some(v) => verbose = v
              case _ => return None()
            }
-         } else if (arg == "--platform") {
+         } else if (arg == "-p" || arg == "--platform") {
            val o: Option[HamrPlatform.Type] = parseHamrPlatform(args, j + 1)
            o match {
              case Some(v) => platform = v
@@ -471,16 +471,16 @@ import Cli._
              case Some(v) => outputDir = v
              case _ => return None()
            }
-         } else if (arg == "--package-name") {
+         } else if (arg == "-n" || arg == "--package-name") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => packageName = v
              case _ => return None()
            }
-         } else if (arg == "--embed-art") {
-           val o: Option[B] = { j = j - 1; Some(!embedArt) }
+         } else if (arg == "--no-embed-art") {
+           val o: Option[B] = { j = j - 1; Some(!noEmbedArt) }
            o match {
-             case Some(v) => embedArt = v
+             case Some(v) => noEmbedArt = v
              case _ => return None()
            }
          } else if (arg == "--devices-as-thread") {
@@ -489,19 +489,19 @@ import Cli._
              case Some(v) => devicesAsThreads = v
              case _ => return None()
            }
-         } else if (arg == "--slang-aux-code-dirs") {
+         } else if (arg == "--aux-code-dirs") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => slangAuxCodeDirs = v
              case _ => return None()
            }
-         } else if (arg == "--slang-output-c-dir") {
+         } else if (arg == "--output-c-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => slangOutputCDir = v
              case _ => return None()
            }
-         } else if (arg == "--exclude-component-impl") {
+         } else if (arg == "-e" || arg == "--exclude-component-impl") {
            val o: Option[B] = { j = j - 1; Some(!excludeComponentImpl) }
            o match {
              case Some(v) => excludeComponentImpl = v
@@ -513,31 +513,31 @@ import Cli._
              case Some(v) => bitWidth = v
              case _ => return None()
            }
-         } else if (arg == "--max-string-size") {
+         } else if (arg == "-s" || arg == "--max-string-size") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => maxStringSize = v
              case _ => return None()
            }
-         } else if (arg == "--max-array-size") {
+         } else if (arg == "-a" || arg == "--max-array-size") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => maxArraySize = v
              case _ => return None()
            }
-         } else if (arg == "--run-transpiler") {
+         } else if (arg == "-t" || arg == "--run-transpiler") {
            val o: Option[B] = { j = j - 1; Some(!runTranspiler) }
            o match {
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
-         } else if (arg == "-o" || arg == "--camkes-output-dir") {
+         } else if (arg == "--camkes-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => camkesOutputDir = v
              case _ => return None()
            }
-         } else if (arg == "-a" || arg == "--camkes-aux-code-dirs") {
+         } else if (arg == "--camkes-aux-code-dirs") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => camkesAuxCodeDirs = v
@@ -549,7 +549,7 @@ import Cli._
              case Some(v) => aadlRootDir = v
              case _ => return None()
            }
-         } else if (arg == "--experimental-options") {
+         } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => experimentalOptions = v
@@ -564,7 +564,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(HamrCodeGenOption(help, parseArguments(args, j), json, verbose, platform, outputDir, packageName, embedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(HamrCodeGenOption(help, parseArguments(args, j), msgpack, verbose, platform, outputDir, packageName, noEmbedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
   def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
@@ -590,19 +590,24 @@ import Cli._
     val help =
       st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
           |
-          |Usage: ${st"""<option>* <project-directory>?
+          |Usage: ${st"""
+                  |    phantom --update [--osate <path>]
                   |
-                  |Either:
-                  | - point to a directory containing a .project or .system file, or
-                  | - populate the 'projects', 'main-package', and 'sys-impl' options""".render}
+                  |      Just update/install Sireum OSATE plugins
+                  |
+                  |or: phantom [<options>] [<project-directory>]
+                  |
+                  |      Generate AIR.  Either:
+                  |        - point to a directory containing a .project or .system file, or
+                  |        - populate the 'projects', 'main-package', and 'sys-impl' options""".render}
           |
           |Available Options:
-          |-u, --update             Update Sireum OSATE plugins if installed
-          |-m, --mode               Serialization method (expects one of { json, msgpack
-          |                           }; default: json)
+          |-u, --update             Update (or install) Sireum OSATE plugins
           |-o, --osate              Existing OSATE installation path, otherwise an
           |                           internal version of OSATE will be used (expects a
           |                           path)
+          |-m, --mode               Serialization method (expects one of { json, msgpack
+          |                           }; default: json)
           |-p, --projects           OSATE project directories, each must contain an OSATE
           |                           '.project' file (expects path strings)
           |-a, --main-package       AADL main package file that contains a system
@@ -612,8 +617,8 @@ import Cli._
           |-h, --help               Display this information""".render
 
     var update: B = false
-    var mode: PhantomMode.Type = PhantomMode.Json
     var osate: Option[String] = None[String]()
+    var mode: PhantomMode.Type = PhantomMode.Json
     var projects: ISZ[String] = ISZ[String]()
     var main: Option[String] = None[String]()
     var impl: Option[String] = None[String]()
@@ -632,16 +637,16 @@ import Cli._
              case Some(v) => update = v
              case _ => return None()
            }
-         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
-           o match {
-             case Some(v) => mode = v
-             case _ => return None()
-           }
          } else if (arg == "-o" || arg == "--osate") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => osate = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--projects") {
@@ -677,7 +682,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PhantomOption(help, parseArguments(args, j), update, mode, osate, projects, main, impl, output))
+    return Some(PhantomOption(help, parseArguments(args, j), update, osate, mode, projects, main, impl, output))
   }
 
   def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
