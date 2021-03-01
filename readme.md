@@ -171,6 +171,9 @@ Set the `SIREUM_HOME` env var to the `kekinian` path above.
 
 To update later on, simply do a `git pull --recurse-submodules` and re-run 
 `build.cmd setup` (or simply `build.cmd` to rebuild Sireum CLI tools).
+Note that after a `setup` update, it is best to invalidate IntelliJ's cache files 
+and restart by using IntelliJ's `File -> Invalidate Caches/Restart...` 
+menu item.
 
 Occasionally, there might be new API used in `build.cmd` that is available 
 in the pre-built binary online but not in your local copy.
@@ -195,7 +198,10 @@ If rebuilding Sireum somehow failed still, try cleaning the repo:
   %SIREUM_HOME%\bin\clean.bat
   ```
   
-and re-run `build.cmd setup`.
+The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
+the local git repository.
+
+After cleaning, re-run `git pull --recurse-submodules` and `build.cmd setup`.
 
 
 #### Using Vagrant and VirtualBox
