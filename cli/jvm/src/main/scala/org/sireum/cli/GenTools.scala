@@ -182,6 +182,7 @@ object GenTools {
       val javaHome = javaHomeOpt.get
       val scalaHome = scalaHomeOpt.get
       val isWin = Os.isWin
+      val jbrHome = if (Os.isMac) ideaDir / "jbr" / "Contents" / "Home" else ideaDir / "jbr"
 
       def uriPathSep(s: Predef.String): Predef.String =
         if (isWin) s.replace("\\", "/") else s
@@ -227,7 +228,7 @@ object GenTools {
       }
 
       def jdkTable: Predef.String = {
-        val modules: Set[String] = Set ++ ISZ(
+        val jdkModules: Set[String] = Set ++ ISZ(
           "java.base", "java.compiler", "java.datatransfer", "java.desktop", "java.instrument", "java.logging",
           "java.management", "java.management.rmi", "java.naming", "java.net.http", "java.prefs", "java.rmi",
           "java.scripting", "java.se", "java.security.jgss", "java.security.sasl", "java.smartcardio",
@@ -245,11 +246,29 @@ object GenTools {
           "org.openjsse"
         )
 
+        val jbrModules: Set[String] = Set ++ ISZ(
+          "gluegen.rt", "java.base", "java.compiler", "java.datatransfer", "java.desktop", "java.instrument",
+          "java.logging", "java.management", "java.management.rmi", "java.naming", "java.net.http", "java.prefs",
+          "java.rmi", "java.scripting", "java.se", "java.security.jgss", "java.security.sasl", "java.smartcardio",
+          "java.sql", "java.sql.rowset", "java.transaction.xa", "java.xml", "java.xml.crypto", "jcef",
+          "jdk.accessibility", "jdk.aot", "jdk.attach", "jdk.charsets", "jdk.compiler", "jdk.crypto.cryptoki",
+          "jdk.crypto.ec", "jdk.dynalink", "jdk.hotspot.agent", "jdk.httpserver", "jdk.internal.ed",
+          "jdk.internal.jvmstat", "jdk.internal.le", "jdk.internal.vm.ci", "jdk.internal.vm.compiler",
+          "jdk.internal.vm.compiler.management", "jdk.jdi", "jdk.jdwp.agent", "jdk.jfr", "jdk.jsobject",
+          "jdk.localedata", "jdk.management", "jdk.management.agent", "jdk.management.jfr", "jdk.naming.dns",
+          "jdk.naming.rmi", "jdk.net", "jdk.pack", "jdk.scripting.nashorn", "jdk.scripting.nashorn.shell",
+          "jdk.sctp", "jdk.security.auth", "jdk.security.jgss", "jdk.unsupported", "jdk.xml.dom", "jdk.zipfs",
+          "jogl.all"
+        )
+
         val (jdkClassPath, jdkSourcePath) =
-          ( (for (m <- modules.elements) yield
+          ( (for (m <- jdkModules.elements) yield
                s"""            <root url="jrt://${normalizePath(javaHome)}!/$m" type="simple" />""").elements.mkString("\n"),
-            (for (m <- modules.elements) yield
+            (for (m <- jdkModules.elements) yield
                s"""            <root url="jar://${normalizePath(javaHome)}/lib/src.zip!/$m" type="simple" />""").elements.mkString("\n"))
+        val jbrClassPath =
+          (for (m <- jbrModules.elements) yield
+            s"""            <root url="jrt://${normalizePath(jbrHome)}!/$m" type="simple" />""").elements.mkString("\n")
         lazy val ideaLibs = (for (p <- Os.Path.walk(ideaLibDir, F, T, f => f.string.value.endsWith(".jar")))
           yield
             s"""            <root url="jar://${normalizePath(p)}!/" type="simple" />""").elements.mkString("\n")
@@ -264,7 +283,7 @@ object GenTools {
           s"""    <jdk version="2">
              |      <name value="Sireum$devSuffix" />
              |      <type value="IDEA JDK" />
-             |      <version value="$javaVer" />
+             |      <version value="$jbrVer" />
              |      <homePath value="$ideaDir" />
              |      <roots>
              |        <annotationsPath>
@@ -274,20 +293,17 @@ object GenTools {
              |        </annotationsPath>
              |        <classPath>
              |          <root type="composite">
-             |$jdkClassPath
+             |$jbrClassPath
              |$ideaLibs
              |          </root>
              |        </classPath>
              |        <javadocPath>
-             |          <root type="composite" />
-             |        </javadocPath>
-             |        <sourcePath>
              |          <root type="composite">
-             |$jdkSourcePath
+             |            <root url="https://docs.oracle.com/en/java/javase/15/docs/api/" type="simple" />
              |          </root>
-             |        </sourcePath>
+             |        </javadocPath>
              |      </roots>
-             |      <additional sdk="Java">
+             |      <additional sdk="Jbr">
              |        <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
              |      </additional>
              |    </jdk>""".stripMargin
@@ -297,7 +313,7 @@ object GenTools {
           s"""    <jdk version="2">
              |      <name value="Sireum$devSuffix (with Scala Plugin)" />
              |      <type value="IDEA JDK" />
-             |      <version value="$javaVer" />
+             |      <version value="$jbrVer" />
              |      <homePath value="$ideaDir" />
              |      <roots>
              |        <annotationsPath>
@@ -305,21 +321,21 @@ object GenTools {
              |        </annotationsPath>
              |        <classPath>
              |          <root type="composite">
-             |$jdkClassPath
+             |$jbrClassPath
              |$ideaLibs
              |$ideaJavaLibs
              |$ideaScalaLibs
              |          </root>
              |        </classPath>
              |        <javadocPath>
-             |          <root type="composite" />
-             |        </javadocPath>
-             |        <sourcePath>
              |          <root type="composite">
-             |$jdkSourcePath
+             |            <root url="https://docs.oracle.com/en/java/javase/15/docs/api/" type="simple" />
              |          </root>
-             |        </sourcePath>
+             |        </javadocPath>
              |      </roots>
+             |      <additional sdk="Jbr">
+             |        <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
+             |      </additional>
              |    </jdk>""".stripMargin
 
         st"""<application>
@@ -341,7 +357,9 @@ object GenTools {
             |          </root>
             |        </classPath>
             |        <javadocPath>
-            |          <root type="composite" />
+            |          <root type="composite">
+            |            <root url="https://docs.oracle.com/en/java/javase/15/docs/api/" type="simple" />
+            |          </root>
             |        </javadocPath>
             |        <sourcePath>
             |          <root type="composite">
@@ -351,11 +369,35 @@ object GenTools {
             |      </roots>
             |      <additional />
             |    </jdk>
+            |    <jdk version="2">
+            |      <name value="Jbr" />
+            |      <type value="JavaSDK" />
+            |      <version value="$jbrVer" />
+            |      <homePath value="$jbrHome" />
+            |      <roots>
+            |        <annotationsPath>
+            |          <root type="composite">
+            |            <root url="jar://$$APPLICATION_HOME_DIR$$/lib/jdkAnnotations.jar!/" type="simple" />
+            |          </root>
+            |        </annotationsPath>
+            |        <classPath>
+            |          <root type="composite">
+            |$jbrClassPath
+            |          </root>
+            |        </classPath>
+            |        <javadocPath>
+            |          <root type="composite">
+            |            <root url="https://docs.oracle.com/en/java/javase/11/docs/api/" type="simple" />
+            |          </root>
+            |        </javadocPath>
+            |        <sourcePath>
+            |          <root type="composite" />
+            |        </sourcePath>
+            |      </roots>
+            |      <additional />
+            |    </jdk>
             |$idea
             |$ideaScala
-            |    <additional sdk="Java">
-            |      <option name="mySandboxHome" value="$$USER_HOME$$/.SireumIVE$devSuffix-sandbox" />
-            |    </additional>
             |  </component>
             |</application>""".render.value
       }
