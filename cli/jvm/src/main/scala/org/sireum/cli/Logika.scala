@@ -147,7 +147,7 @@ object Logika {
             smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename)
         }
       }
-      val config = logika.Config(smt2Configs, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
+      val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
         o.intBitWidth, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
         o.splitMatch, o.splitContract, o.simplify)
       val f = Os.path(arg)
