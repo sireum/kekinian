@@ -158,7 +158,7 @@ object Logika {
           try { content.value.linesIterator.next().replace(" ", "").replace("\t", "").contains("#Logika") }
           catch { case _: NoSuchElementException => false }
         logika.Logika.checkFile(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl(smt2Configs, th,  logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
+            logika.Smt2Impl.create(smt2Configs, th,  logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
               config.intBitWidth, config.simplifiedQuery), reporter, o.par, hasLogika)
         reporter.printMessages()
         if (reporter.hasError) {
