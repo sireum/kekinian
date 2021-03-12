@@ -80,7 +80,7 @@ def findAssets(repo: String): Unit = {
   for (r <- GitHub.repo("loonwerks", repo).releases) {
     for (a <- r.assets) {
       val aNameOps = ops.StringOps(a.name)
-      if (aNameOps.startsWith("fmide-")) {
+      if (aNameOps.startsWith("fmide-") || aNameOps.startsWith("com.collins.trustedsystems.fmw.ide-")) {
         if (fmwReleaseTagNameOpt == Some(r.tagName) || (first && fmwReleaseTagNameOpt.isEmpty)) {
           val p = (a.name, a.url)
           if (aNameOps.contains("win32") && (useLast || !fmwPlatformNameUrlMap.contains(Os.Kind.Win))) {
