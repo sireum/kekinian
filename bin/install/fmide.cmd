@@ -80,13 +80,8 @@ def findAssets(repo: String): Unit = {
   for (r <- GitHub.repo("loonwerks", repo).releases) {
     for (a <- r.assets) {
       val aNameOps = ops.StringOps(a.name)
-      if (aNameOps.startsWith("com.collins.trustedsystems.")) {
-        if (aNameOps.contains(".briefcase.repository-")) {
-          if (briefCaseReleaseTagNameOpt == Some(r.tagName) || (first && briefCaseReleaseTagNameOpt.isEmpty)) {
-            briefCaseUrlOpt = Some(a.url)
-            return
-          }
-        } else if (fmwReleaseTagNameOpt == Some(r.tagName) || (first && fmwReleaseTagNameOpt.isEmpty)) {
+      if (aNameOps.startsWith("fmide-")) {
+        if (fmwReleaseTagNameOpt == Some(r.tagName) || (first && fmwReleaseTagNameOpt.isEmpty)) {
           val p = (a.name, a.url)
           if (aNameOps.contains("win32") && (useLast || !fmwPlatformNameUrlMap.contains(Os.Kind.Win))) {
             fmwPlatformNameUrlMap = fmwPlatformNameUrlMap + Os.Kind.Win ~> p
@@ -95,6 +90,11 @@ def findAssets(repo: String): Unit = {
           } else if (aNameOps.contains("macos") && (useLast || !fmwPlatformNameUrlMap.contains(Os.Kind.Mac))) {
             fmwPlatformNameUrlMap = fmwPlatformNameUrlMap + Os.Kind.Mac ~> p
           }
+        }
+      } else if (aNameOps.startsWith("com.collins.trustedsystems.briefcase.repository-")) {
+        if (briefCaseReleaseTagNameOpt == Some(r.tagName) || (first && briefCaseReleaseTagNameOpt.isEmpty)) {
+          briefCaseUrlOpt = Some(a.url)
+          return
         }
       }
     }
