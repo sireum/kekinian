@@ -151,15 +151,13 @@ object Logika {
         o.intBitWidth, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
         o.splitMatch, o.splitContract, o.simplify)
       val f = Os.path(arg)
-      if (f.isFile && f.ext.value != ".sc") {
+      val ext = f.ext.value
+      if (f.isFile && (ext == "sc" || ext == "cmd" )) {
         val reporter = logika.Logika.Reporter.create
         val content = f.read
-        val hasLogika =
-          try { content.value.linesIterator.next().replace(" ", "").replace("\t", "").contains("#Logika") }
-          catch { case _: NoSuchElementException => false }
         logika.Logika.checkFile(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
             logika.Smt2Impl.create(smt2Configs, th,  logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
-              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, hasLogika)
+              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, T)
         reporter.printMessages()
         if (reporter.hasError) {
           code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -168,6 +166,7 @@ object Logika {
           status = F
         }
       } else {
+        eprintln(f.ext.value)
         eprintln(s"$arg is not a Slang script file")
         return INVALID_SCRIPT_FILE
       }
