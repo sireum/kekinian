@@ -324,7 +324,7 @@ object CTranspiler {
       startTime()
     }
 
-    val t = FrontEnd.parseProgramAndGloballyResolve(sources, th.nameMap, th.typeMap)
+    val t = FrontEnd.parseProgramAndGloballyResolve(T, sources, th.nameMap, th.typeMap)
     if (t._1.hasIssue) {
       t._1.printMessages()
       return InvalidSources
@@ -350,7 +350,7 @@ object CTranspiler {
       startTime()
     }
 
-    th = TypeOutliner.checkOutline(th, reporter)
+    th = TypeOutliner.checkOutline(T, th, reporter)
     if (reporter.hasIssue) {
       reporter.printMessages()
       return InvalidSources
@@ -363,7 +363,7 @@ object CTranspiler {
       startTime()
     }
 
-    th = TypeChecker.checkComponents(th, th.nameMap, th.typeMap, reporter)
+    th = TypeChecker.checkComponents(T, th, th.nameMap, th.typeMap, reporter)
 
     if (reporter.hasIssue) {
       reporter.printMessages()
@@ -417,7 +417,7 @@ object CTranspiler {
 
       Parser.parseTopUnit[AST.TopUnit.Program](slangFile._2._2, T, F, slangFile._2._1, reporter) match {
         case Some(p: AST.TopUnit.Program) =>
-          val p2 = FrontEnd.checkWorksheet(thOpt, p, reporter)
+          val p2 = FrontEnd.checkWorksheet(T, thOpt, p, reporter)
           if (reporter.hasIssue) {
             reporter.printMessages()
             return InvalidSlangFiles
