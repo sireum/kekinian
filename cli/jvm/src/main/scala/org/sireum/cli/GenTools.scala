@@ -299,7 +299,7 @@ object GenTools {
              |        </classPath>
              |        <javadocPath>
              |          <root type="composite">
-             |            <root url="https://docs.oracle.com/en/java/javase/15/docs/api/" type="simple" />
+             |            <root url="https://docs.oracle.com/en/java/javase/11/docs/api/" type="simple" />
              |          </root>
              |        </javadocPath>
              |      </roots>
@@ -329,7 +329,7 @@ object GenTools {
              |        </classPath>
              |        <javadocPath>
              |          <root type="composite">
-             |            <root url="https://docs.oracle.com/en/java/javase/15/docs/api/" type="simple" />
+             |            <root url="https://docs.oracle.com/en/java/javase/11/docs/api/" type="simple" />
              |          </root>
              |        </javadocPath>
              |      </roots>
@@ -358,7 +358,7 @@ object GenTools {
             |        </classPath>
             |        <javadocPath>
             |          <root type="composite">
-            |            <root url="https://docs.oracle.com/en/java/javase/15/docs/api/" type="simple" />
+            |            <root url="https://docs.oracle.com/en/java/javase/16/docs/api/" type="simple" />
             |          </root>
             |        </javadocPath>
             |        <sourcePath>
