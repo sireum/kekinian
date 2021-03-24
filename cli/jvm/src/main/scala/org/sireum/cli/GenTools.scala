@@ -532,7 +532,7 @@ object GenTools {
         val dest = destDir / s"$name.scala"
         val reporter = Reporter.create
         val packageNameOpt: Option[ISZ[String]] = if (o.packageName.isEmpty) None() else Some(o.packageName)
-        SerializerGenJvm.run(T, mode, lOpt, srcs, dest, packageNameOpt, Some(String(name)), reporter) match {
+        SerializerGenJvm.run(mode, lOpt, srcs, packageNameOpt, Some(String(name)), reporter) match {
           case Some(out) =>
             dest.writeOver(out)
             println(s"Wrote $dest")
