@@ -46,7 +46,7 @@ trait BinModule extends mill.scalalib.ScalaModule {
   final override def scalaVersion = SireumModule.scalaVersion
   final override def moduleDeps = Seq(runtime.library.jvm)
   final override def repositories = super.repositories ++ SireumModule.repositories
-  final override def sources = T.sources(millSourcePath / up / "bin")
+  override def sources = T.sources(millSourcePath / up / "bin")
 }
 
 object runtime extends mill.Module {
@@ -127,10 +127,16 @@ object hamr extends mill.Module {
   object air extends Air.Module {
     final override def libraryObject = runtime.library
     final override def testObject = runtime.test
+
+    object bin extends BinModule
   }
   
   object phantom extends Phantom.Module {
     final override def libraryObject = runtime.library
+
+    object bin extends BinModule {
+      override def sources = T.sources(millSourcePath / up / up / "bin")
+    }
   }
   
   object codegen extends Codegen.Module.Codegen with runtime.testProvider {
@@ -164,6 +170,8 @@ object hamr extends mill.Module {
     object art extends Art.Module {
       final override def libraryObject = runtime.library
       final override def testObject = runtime.test
+
+      object bin extends BinModule
     }
   }
 }
