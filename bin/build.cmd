@@ -52,13 +52,13 @@ import org.sireum._
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup        | project      | fresh        | native
-        |       | tipe         | compile      | test         | test-js
-        |       | touche       | touche-lib   | touche-slang | touche-transpilers
-        |       | regen-slang  | regen-logika | regen-air    | regen-act
-        |       | regen-server | regen-cliopt | regen-cli
-        |       | bloop        | m2           | jitpack      | ghpack
-        |       | cvc4         | z3                                               )*
+        |Usage: ( setup         | project      | fresh        | native
+        |       | tipe          | compile      | test         | test-js
+        |       | touche        | touche-lib   | touche-slang | touche-transpilers
+        |       | regen-project | regen-slang  | regen-logika | regen-air
+        |       | regen-act     | regen-server | regen-cliopt | regen-cli
+        |       | bloop         | m2           | jitpack      | ghpack
+        |       | cvc4          | z3                                               )*
       """.render)
 }
 
@@ -406,15 +406,16 @@ def testJs(): Unit = {
     errLineAction(filterCompile _).console.runCheck()
 }
 
+def regenProject(): Unit = {
+  val projectPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "project"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.project", "-l",
+    s"${home / "license.txt"}", "-m", "json", s"${projectPackagePath / "Project.scala"}")).at(projectPackagePath).console.run()
+}
 
 def regenCliOpt(): Unit = {
-  if (sireumJar.exists) {
-    val cliPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "cli"
-    Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.cli", "-l",
-      s"${home / "license.txt"}", "-m", "json", s"${cliPackagePath / "CliOpt.scala"}")).at(cliPackagePath).console.run()
-  } else {
-    println(s"Could not find Sireum assembly.")
-  }
+  val cliPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "cli"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.cli", "-l",
+    s"${home / "license.txt"}", "-m", "json", s"${cliPackagePath / "CliOpt.scala"}")).at(cliPackagePath).console.run()
 }
 
 
@@ -633,9 +634,10 @@ if (Os.cliArgs.isEmpty) {
       case string"touche-lib" => touchePath(libFiles)
       case string"touche-slang" => touchePath(slangFiles)
       case string"touche-transpilers" => touchePath(transpilersFiles)
-      case string"regen-cliopt" => regenCliOpt()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
+      case string"regen-project" => regenProject()
+      case string"regen-cliopt" => regenCliOpt()
       case string"regen-air" => regenAir()
       case string"regen-act" => regenAct()
       case string"regen-server" => regenServer()
