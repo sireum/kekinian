@@ -74,3 +74,4 @@ stale_outputs_checked
 /bin/linux/compcert
 /bin/linux/arm/compcert
 /resources/vagrant/.vagrant
+/bin/project.dot*
