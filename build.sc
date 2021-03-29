@@ -92,7 +92,7 @@ object slang extends mill.Module {
 }
 
 object alir extends Alir.Module with runtime.testProvider {
-  final override def frontEndObject = slang.frontend
+  final override def tipeObject = slang.tipe
 
   object bin extends BinModule
 }
@@ -104,6 +104,8 @@ object transpilers extends mill.Module {
   }
 
   object c extends Transpilers.Module.C {
+    final override def frontEndObject = slang.frontend
+
     override val commonObject = common
   }
 
