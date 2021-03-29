@@ -145,6 +145,8 @@ object hamr extends mill.Module {
 
     object common extends Codegen.Module.Common {
       final override def airObject = air
+
+      object bin extends BinModule
     }
 
     object act extends Act.Module {
@@ -185,16 +187,20 @@ object server extends Server.Module {
   final override def phantomObject = hamr.phantom
   final override def hamrCodegenObject = hamr.codegen
   final override def testObject = runtime.test
+
+  object bin extends BinModule
 }
 
 
 object cli extends Cli.Module {
   final override def serverObject = server
+
+  object bin extends BinModule {
+    override def sources = T.sources(millSourcePath / up / up / "bin")
+  }
 }
 
-object bin extends BinModule {
-
-}
+object bin extends BinModule
 
 
 object buildModule extends mill.Module {
