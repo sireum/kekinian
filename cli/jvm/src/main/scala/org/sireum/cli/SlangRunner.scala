@@ -90,7 +90,8 @@ object SlangRunner {
       "-unchecked",
       "-feature",
       "-howtorun:script",
-      "-deprecation"
+      "-deprecation",
+      "-Djava.net.useSystemProxies=true"
     )
     if (o.nativ) {
       command = command :+ "-save"
