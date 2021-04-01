@@ -200,8 +200,8 @@ object Sireum {
       if (Os.kind == Os.Kind.LinuxArm) versions.get("org.sireum.version.zulu.arm").get
       else versions.get("org.sireum.version.zulu").get,
       versions.get("org.sireum.version.jbr").get,
-      versions.get("org.sireum.version.scala").get,
-      versions.get("org.sireum.version.scalac-plugin").get)
+      versions.get("org.scala-lang%scala-compiler%").get,
+      versions.get("org.sireum%%scalac-plugin%").get)
   }
 
   def homeFound: B = {
