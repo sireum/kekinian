@@ -36,7 +36,7 @@ $sireum_bat = "$sireum_home\bin\sireum.bat"
 $versions_properties = "$sireum_home\versions.properties"
 if (!(Test-Path $sireum_jar)) {
   "Please wait while downloading Sireum ..."
-  Invoke-WebRequest -Uri "http://files.sireum.org/sireum" -OutFile "$sireum_jar"
+  Invoke-WebRequest -Uri "https://github.com/sireum/init/releases/download/latest/sireum.jar" -OutFile "$sireum_jar"
   if (!(Test-Path $sireum_bat)) {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum.bat" -OutFile "$sireum_bat"
   }
@@ -57,7 +57,7 @@ foreach($line in $fileContents) {
 }
 
 
-$scalac_plugin_version = $properties["org.sireum.version.scalac-plugin"]
+$scalac_plugin_version = $properties["org.sireum%%scalac-plugin%"]
 New-Item -Type directory -Path "$sireum_home\lib" -Force | Out-Null
 $scalac_plugin_jar = "scalac-plugin-$scalac_plugin_version.jar"
 $scalac_plugin_drop = "$cache_dir\$scalac_plugin_jar"
@@ -76,7 +76,7 @@ if (!(Test-Path "$scalac_plugin_lib")) {
 if ($Env:SIREUM_PROVIDED_SCALA) {
   Exit
 }
-$scala_version = $properties["org.sireum.version.scala"]
+$scala_version = $properties["org.scala-lang%scala-compiler%"]
 $scala_ver_path = "$sireum_home\bin\scala\VER"
 $scala_update = $TRUE
 if (Test-Path "$scala_ver_path") {

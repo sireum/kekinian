@@ -64,7 +64,7 @@ else
 fi
 
 getVersion() {
-  grep "^org.sireum.version.$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
+  grep "^$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
 }
 
 uncompress() {
@@ -101,7 +101,7 @@ SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
-  $(download bin/sireum.jar http://files.sireum.org/sireum)
+  $(download bin/sireum.jar https://github.com/sireum/init/releases/download/latest/sireum.jar)
   chmod +x bin/sireum.jar
   if [[ ! -f bin/sireum ]]; then
     $(download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum)
@@ -117,7 +117,7 @@ fi
 #
 # scalac plugin
 #
-SCALAC_PLUGIN_VER=$(getVersion "scalac-plugin")
+SCALAC_PLUGIN_VER=$(getVersion "org.sireum%%scalac-plugin%")
 cd ${SIREUM_HOME}/bin
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
 SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
@@ -139,7 +139,7 @@ fi
 if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
   exit
 fi
-: ${SCALA_VERSION=$(getVersion "scala")}
+: ${SCALA_VERSION=$(getVersion "org.scala-lang%scala-compiler%")}
 cd ${SIREUM_HOME}/bin
 SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
 SCALA_DROP="${SCALA_DROP_URL##*/}"
@@ -173,9 +173,9 @@ fi
 JAVA_NAME="Zulu JDK"
 if [[ -z ${JAVA_VERSION} ]]; then
   if [[ "${PLATFORM}" == "linux/arm" ]]; then
-    JAVA_VERSION=$(getVersion "zulu.arm")
+    JAVA_VERSION=$(getVersion "org.sireum.version.zulu.arm")
   else
-    JAVA_VERSION=$(getVersion "zulu")
+    JAVA_VERSION=$(getVersion "org.sireum.version.zulu")
   fi
 fi
 if [[ "${PLATFORM}" == "mac" ]]; then
