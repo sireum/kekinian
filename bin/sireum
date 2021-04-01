@@ -38,5 +38,5 @@ if [[ -f ${NATIVE} ]] && [[ ${NATIVE} -nt ${SIREUM_JAR} ]]; then
   exec "${NATIVE}" "$@"
 else
   rm -fR "${NATIVE}"
-  exec "${JAVA}" ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
+  exec "${JAVA}" -Djava.net.useSystemProxies=true ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
 fi
