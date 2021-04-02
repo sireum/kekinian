@@ -573,7 +573,7 @@ def project(skipBuild: B): Unit = {
     build(F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive ${home.canon.name}".at(home.up).console.runCheck()
+  proc"$sireum proyek ive --force ${home.canon.name}".at(home.up).console.runCheck()
 }
 
 
