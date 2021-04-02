@@ -328,7 +328,7 @@ import Cli._
             |Available modes:
             |hamr                     HAMR Tools
             |slang                    Slang tools
-            |proyek                   Project tooling
+            |proyek                   Project tools
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
@@ -1424,22 +1424,21 @@ import Cli._
           |Available Options:
           |-f, --force              Force generation of application-wide configurations
           |                           (e.g., JDK info, etc.)
-          |-j, --json               s"The JSON file to load project definitions from
-          |                           (mutually exclusive with the 'project' option)"
+          |-j, --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
           |-n, --name               Project name (defaults to the directory name of <dir>)
           |                           (expects a string)
           |-o, --out                Output directory name under <dir> (expects a string;
           |                           default is "out")
-          |-p, --project            s"The project.cmd file accepting the 'json' argument
+          |-p, --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>$${Os.fileSep}bin$${Os.fileSep}project.cmd;
-          |                           mutually exclusive with the 'json' option)" (expects
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
-          |-v, --versions           s"The properties file containing version information
-          |                           (defaults to
-          |                           <dir>$${Os.fileSep}versions.properties)" (expects a
-          |                           path)
+          |-v, --versions           The properties file containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects a path)
           |-h, --help               Display this information
           |
           |Ivy Dependencies Options:
