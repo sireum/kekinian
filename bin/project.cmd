@@ -85,7 +85,7 @@ for (p <- projects) {
 if (isDot) {
   val projectDot = homeDir / "project.dot"
   projectDot.writeOver(toDot(project))
-  println(s"Written $projectDot")
+  println(s"Wrote $projectDot")
 } else {
   println(JSON.fromProject(project, T))
 }
