@@ -30,6 +30,7 @@ import org.sireum.hamr.codegen
 import org.sireum.hamr.phantom
 import org.sireum.lang
 import org.sireum.transpilers
+import org.sireum.proyek
 import org.sireum.tools
 
 val hamr = Group(
@@ -61,6 +62,7 @@ val main = Group(
     hamr,
     logika.cli.group,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
+    proyek.cli.group,
     tools.cli.group,
     x
   )

@@ -37,6 +37,7 @@ import $file.hamr.codegen.Codegen
 import $file.hamr.codegen.act.Act
 import $file.hamr.codegen.arsit.Arsit
 import $file.hamr.phantom.Phantom
+import $file.proyek.Proyek
 import $file.server.Server
 import $file.cli.Cli
 import $file.distro
@@ -180,6 +181,14 @@ object hamr extends mill.Module {
   }
 }
 
+object proyek extends Proyek.Module {
+  final override def libraryObject = runtime.library
+
+  object bin extends BinModule {
+    override def sources = T.sources(millSourcePath / up / up / "bin")
+  }
+}
+
 
 object server extends Server.Module {
   final override def alirObject = alir
@@ -188,6 +197,7 @@ object server extends Server.Module {
   final override def logikaObject = logika
   final override def phantomObject = hamr.phantom
   final override def hamrCodegenObject = hamr.codegen
+  final override def proyekObject = proyek
   final override def testObject = runtime.test
 
   object bin extends BinModule

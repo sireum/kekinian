@@ -349,7 +349,7 @@ def tipe(): Unit = {
     didTipe = T
     println("Slang type checking ...")
     val excludes = "hamr/codegen/arsit/resources,hamr/codegen/arsit/jvm/src/test/results,hamr/codegen/jvm/src/test/result"
-    val includedDirs = Set ++ ISZ[String]("alir", "cli", "hamr", "logika", "runtime", "server", "slang", "tools", "transpilers")
+    val includedDirs = Set ++ ISZ[String]("alir", "cli", "hamr", "logika", "proyek", "runtime", "server", "slang", "tools", "transpilers")
     val sourcepath: ISZ[Os.Path] = for (p <- home.list if includedDirs.contains(p.name)) yield p
     Os.proc(ISZ("java", "-jar", sireumJar.string,
       "slang", "tipe", "--verbose", "-r", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
@@ -466,7 +466,7 @@ def regenServer(): Unit = {
     s"${logikaPackagePath / "State.scala"}",
     s"${logikaPackagePath / "Config.scala"}",
     s"${logikaPackagePath / "Smt2Query.scala"}",
-    s"${astPackagePath / "Typed.scala"}",
+    s"${astPackagePath / "Typed.scala"}"
   )).at(protocolPackagePath).console.run()
 }
 
@@ -499,6 +499,7 @@ def m2(): Os.Path = {
   m2s = m2s ++ (for (pkg <- ISZ("common", "act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
     yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit, art
   m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
+  m2s = m2s :+ ISZ("proyek", "m2") // proyek
   m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("server", plat, "m2")) // server
   m2s = m2s :+ ISZ("cli", "m2")
 
@@ -572,7 +573,7 @@ def project(skipBuild: B): Unit = {
     build(F)
   }
   println("Generating IVE project ...")
-  Os.proc(ISZ(sireum.string, "tools", "ivegen", "-f", "-m", "mill", "-n", home.name, ".")).at(home.up).console.runCheck()
+  proc"$sireum proyek ive ${home.canon.name}".at(home.up).console.runCheck()
 }
 
 

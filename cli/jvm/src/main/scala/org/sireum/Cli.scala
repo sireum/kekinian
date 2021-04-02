@@ -168,6 +168,21 @@ object Cli {
     forwarding: ISZ[String]
   ) extends SireumTopOption
 
+  @datatype class IveOption(
+    help: String,
+    args: ISZ[String],
+    force: B,
+    json: Option[String],
+    name: Option[String],
+    outputDirName: Option[String],
+    project: Option[String],
+    versions: Option[String],
+    cache: Option[String],
+    sources: B,
+    docs: B,
+    repositories: ISZ[String]
+  ) extends SireumTopOption
+
   @enum object BitCodecMode {
     'Program
     'Script
@@ -313,15 +328,17 @@ import Cli._
             |Available modes:
             |hamr                     HAMR Tools
             |slang                    Slang tools
+            |proyek                   Project tooling
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("hamr", "logika", "slang", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("hamr", "logika", "slang", "proyek", "tools", "x"))
     opt match {
       case Some(string"hamr") => parseHamr(args, i + 1)
       case Some(string"logika") => parseLogika(args, i + 1)
       case Some(string"slang") => parseSlang(args, i + 1)
+      case Some(string"proyek") => parseProyek(args, i + 1)
       case Some(string"tools") => parseTools(args, i + 1)
       case Some(string"x") => parseX(args, i + 1)
       case _ => return None()
@@ -1379,6 +1396,150 @@ import Cli._
       }
     }
     return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
+  }
+
+  def parseProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Proyek
+            |
+            |Available modes:
+            |ive                      Sireum IVE Proyek""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("proyek", args, i, ISZ("ive"))
+    opt match {
+      case Some(string"ive") => parseIve(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum IVE Proyek
+          |
+          |Usage: <options>* <dir>
+          |
+          |Available Options:
+          |-f, --force              Force generation of application-wide configurations
+          |                           (e.g., JDK info, etc.)
+          |-j, --json               s"The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)"
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |-p, --project            s"The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>$${Os.fileSep}bin$${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option)" (expects
+          |                           a path)
+          |-v, --versions           s"The properties file containing version information
+          |                           (defaults to
+          |                           <dir>$${Os.fileSep}versions.properties)" (expects a
+          |                           path)
+          |-h, --help               Display this information
+          |
+          |Ivy Dependencies Options:
+          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |                           cache directory) (expects a path)
+          |    --no-sources         Disable retrieval of source files from Ivy
+          |                           dependencies
+          |    --no-docs            Disable retrieval of javadoc files from Ivy
+          |                           dependencies
+          |-r, --repositories       Disable retrieval of javadoc files from Ivy
+          |                           dependencies (expects a string separated by ",")""".render
+
+    var force: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var versions: Option[String] = None[String]()
+    var cache: Option[String] = None[String]()
+    var sources: B = true
+    var docs: B = true
+    var repositories: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-f" || arg == "--force") {
+           val o: Option[B] = { j = j - 1; Some(!force) }
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-j" || arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--cache") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => cache = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-sources") {
+           val o: Option[B] = { j = j - 1; Some(!sources) }
+           o match {
+             case Some(v) => sources = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-docs") {
+           val o: Option[B] = { j = j - 1; Some(!docs) }
+           o match {
+             case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--repositories") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => repositories = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(IveOption(help, parseArguments(args, j), force, json, name, outputDirName, project, versions, cache, sources, docs, repositories))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

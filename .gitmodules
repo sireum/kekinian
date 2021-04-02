@@ -31,3 +31,6 @@
 [submodule "server"]
 	path = server
 	url = https://github.com/sireum/server
+[submodule "proyek"]
+	path = proyek
+	url = https://github.com/sireum/proyek

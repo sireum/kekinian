@@ -76,7 +76,7 @@ if (!(Test-Path "$scalac_plugin_lib")) {
 if ($Env:SIREUM_PROVIDED_SCALA) {
   Exit
 }
-$scala_version = $properties["org.scala-lang%scala-compiler%"]
+$scala_version = $properties["org.scala-lang%scala-library%"]
 $scala_ver_path = "$sireum_home\bin\scala\VER"
 $scala_update = $TRUE
 if (Test-Path "$scala_ver_path") {

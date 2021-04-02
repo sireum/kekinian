@@ -139,7 +139,7 @@ fi
 if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
   exit
 fi
-: ${SCALA_VERSION=$(getVersion "org.scala-lang%scala-compiler%")}
+: ${SCALA_VERSION=$(getVersion "org.scala-lang%scala-library%")}
 cd ${SIREUM_HOME}/bin
 SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
 SCALA_DROP="${SCALA_DROP_URL##*/}"
