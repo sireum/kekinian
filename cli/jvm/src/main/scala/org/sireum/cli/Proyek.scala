@@ -34,6 +34,74 @@ object Proyek {
   val INVALID_PROJECT: Z = -5
   val INVALID_VERSIONS: Z = -6
 
+  def runAssemble(o: Cli.AssembleOption): Z = {
+    val code = checkRequirements(o.json, o.project)
+    if (code != 0) {
+      return code
+    }
+
+    val path: Os.Path = getPath(o.args, o.help) match {
+      case (T, Some(p)) => p
+      case (T, None()) => return 0
+      case (_, _) => return INVALID_PATH_ARG
+    }
+
+    val prj: project.Project = getProject(path, o.json, o.project) match {
+      case Some(pr) => pr
+      case _ => return INVALID_PROJECT
+    }
+
+    val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
+      case Some((v, vs)) => (v, vs)
+      case _ => return INVALID_VERSIONS
+    }
+
+    println()
+
+    val dm = proyek.Proyek.DependencyManager(prj, HashSMap ++ versions.entries, F, F)
+
+    val oldScalaVersion = Coursier.scalaVersion
+    Coursier.setScalaVersion(scalaVersion)
+
+    val scalaHome = Sireum.scalaHomeOpt.get
+
+    var r = proyek.Proyek.compile(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      versions = versions,
+      projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
+      javaHome = Sireum.javaHomeOpt.get,
+      scalaHome = scalaHome,
+      scalacPlugin = Sireum.scalacPluginJar,
+      followSymLink = o.symlink,
+      fresh = o.fresh,
+      par = o.par,
+      sha3 = o.sha3
+    )
+
+    if (r != 0) {
+      return r
+    }
+
+    r = proyek.Proyek.assemble(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
+      scalaHome = scalaHome,
+      mainClassNameOpt = o.mainClass
+    )
+
+    Coursier.setScalaVersion(oldScalaVersion)
+
+    println()
+
+    return r
+  }
+
   def runCompile(o: Cli.CompileOption): Z = {
     val code = checkRequirements(o.json, o.project)
     if (code != 0) {
@@ -58,6 +126,8 @@ object Proyek {
 
     println()
 
+    val dm = proyek.Proyek.DependencyManager(prj, HashSMap ++ versions.entries, F, F)
+
     val oldScalaVersion = Coursier.scalaVersion
     Coursier.setScalaVersion(scalaVersion)
 
@@ -67,6 +137,7 @@ object Proyek {
       project = prj,
       versions = versions,
       projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
       javaHome = Sireum.javaHomeOpt.get,
       scalaHome = Sireum.scalaHomeOpt.get,
       scalacPlugin = Sireum.scalacPluginJar,
@@ -98,7 +169,6 @@ object Proyek {
       case _ => return INVALID_PROJECT
     }
 
-
     val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
       case Some((v, vs)) => (v, vs)
       case _ => return INVALID_VERSIONS
@@ -109,13 +179,13 @@ object Proyek {
     val oldScalaVersion = Coursier.scalaVersion
     Coursier.setScalaVersion(scalaVersion)
 
+    val dm = proyek.Proyek.DependencyManager(prj, HashSMap ++ versions.entries, o.sources, o.docs)
+
     val r = proyek.Proyek.ive(
       path = path,
       project = prj,
-      versions = versions,
       projectName = o.name.getOrElse(path.canon.name),
-      withSource = o.sources,
-      withDoc = o.docs,
+      dm = dm,
       outDirName = o.outputDirName.get,
       scalacPlugin = Sireum.scalacPluginJar,
       scalaVersion = scalaVersion,
