@@ -58,35 +58,15 @@ val projects = ISZ(
   homeDir / "cli"
 )
 
-var project = Project.empty
-
-for (p <- projects) {
-  val f = p / "bin" / "project.cmd"
-  println(s"Loading $f ...")
-  var prj = Project.empty
-
-  val r = Os.proc(ISZ(f.string, "json")).run()
-  if (r.ok) {
-    projectJsonLine(r.out) match {
-      case Some(line) =>
-        org.sireum.project.JSON.toProject(line) match {
-          case Either.Left(sp) => prj = sp
-          case _ =>
-        }
-      case _ =>
+loadFromBaseDirs(projects) match {
+  case Some(project) =>
+    if (isDot) {
+      val projectDot = homeDir / "project.dot"
+      projectDot.writeOver(toDot(project))
+      println(s"Wrote $projectDot")
+    } else {
+      println(JSON.fromProject(project, T))
     }
-  } else {
-    eprintln(s"Failed loading $f ...")
+  case _ =>
     Os.exit(-1)
-  }
-  project = project ++ prj
 }
-
-if (isDot) {
-  val projectDot = homeDir / "project.dot"
-  projectDot.writeOver(toDot(project))
-  println(s"Wrote $projectDot")
-} else {
-  println(JSON.fromProject(project, T))
-}
-
