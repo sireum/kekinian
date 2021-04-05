@@ -158,6 +158,11 @@ object Proyek {
       return code
     }
 
+    if (!Sireum.ideaDir.exists) {
+      eprintln("Sireum IVE is not installed")
+      return IDEA_NOT_FOUND
+    }
+
     val path: Os.Path = getPath(o.args, o.help) match {
       case (T, Some(p)) => p
       case (T, None()) => return 0
@@ -207,10 +212,6 @@ object Proyek {
   def checkRequirements(jsonOpt: Option[String], projectOpt: Option[String]): Z = {
     if (!Sireum.homeFound) return HOME_NOT_FOUND
     if (!(Sireum.javaFound && Sireum.scalaFound)) return JAVA_OR_SCALA_NOT_FOUND
-    if (!Sireum.ideaDir.exists) {
-      eprintln("Sireum IVE is not installed")
-      return IDEA_NOT_FOUND
-    }
 
     if (jsonOpt.nonEmpty && projectOpt.nonEmpty) {
       eprintln("Cannot specify both the 'json' and the 'project' options")
