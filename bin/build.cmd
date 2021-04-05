@@ -54,7 +54,6 @@ def usage(): Unit = {
     st"""Sireum /build
         |Usage: ( setup         | project      | fresh        | native
         |       | tipe          | compile      | test         | test-js
-        |       | touche        | touche-lib   | touche-slang | touche-transpilers
         |       | regen-project | regen-slang  | regen-logika | regen-air
         |       | regen-act     | regen-server | regen-cliopt | regen-cli
         |       | bloop         | m2           | jitpack      | ghpack
@@ -69,10 +68,6 @@ val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
 val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
-val libFiles = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "Library_Ext.scala"
-val slangFiles = home / "slang" / "frontend" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "$SlangFiles.scala"
-val transpilersFiles = home / "transpilers" / "c" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "transpilers" / "c" / "Runtime_Ext.scala"
-val artFiles = home / "hamr" / "codegen" / "arsit" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "arsit" / "util" / "ArsitLibrary_Ext.scala"
 var didTipe = F
 var didCompile = F
 var didM2 = F
@@ -208,24 +203,6 @@ def cvc4(): Unit = {
   installCVC4(Os.Kind.Win)
 }
 
-def touchePath(path: Os.Path): Unit = {
-  val content = path.read
-  val lineSep: String = if (Os.isWin) "\r\n" else "\n"
-  val sops = ops.StringOps(content)
-  val newContent: String =
-    if (sops.endsWith(lineSep)) ops.StringOps(content).trim
-    else s"$content$lineSep"
-  path.writeOver(newContent)
-}
-
-def touche(): Unit = {
-  touchePath(libFiles)
-  touchePath(slangFiles)
-  touchePath(transpilersFiles)
-  touchePath(mainFile)
-  touchePath(artFiles)
-}
-
 
 def buildMill(): Unit = {
   def copyIfNewer(from: Os.Path, to: Os.Path): Unit = {
@@ -297,16 +274,8 @@ def build(fresh: B): Unit = {
     val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
     val oldCli = cli.read
     cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
-    if (fresh) {
-      (home / "out").removeAll()
-      (Os.home / ".mill").removeAll()
-    } else {
-      touche()
-    }
-    val r = Os.proc(ISZ(mill.string, "build")).at(home).errLineAction(filterCompile _).console.run()
-    if (!fresh) {
-      touche()
-    }
+    val r = proc"$sireum proyek assemble -n sireum -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} ${home.canon.name}".at(home.up).console.run()
+    (home / "out" / "sireum" / "assemble" / "sireum.jar").copyOverTo(sireumJar)
     cli.writeOver(oldCli)
     if (r.exitCode != 0) {
       Os.exit(r.exitCode)
@@ -631,10 +600,6 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile()
       case string"test" => test()
       case string"test-js" => testJs()
-      case string"touche" => touche()
-      case string"touche-lib" => touchePath(libFiles)
-      case string"touche-slang" => touchePath(slangFiles)
-      case string"touche-transpilers" => touchePath(transpilersFiles)
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
       case string"regen-project" => regenProject()
