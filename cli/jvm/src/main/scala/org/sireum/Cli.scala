@@ -168,6 +168,24 @@ object Cli {
     forwarding: ISZ[String]
   ) extends SireumTopOption
 
+  @datatype class CompileOption(
+    help: String,
+    args: ISZ[String],
+    par: B,
+    json: Option[String],
+    name: Option[String],
+    outputDirName: Option[String],
+    project: Option[String],
+    symlink: B,
+    versions: Option[String],
+    fresh: B,
+    sha3: B,
+    cache: Option[String],
+    sources: B,
+    docs: B,
+    repositories: ISZ[String]
+  ) extends SireumTopOption
+
   @datatype class IveOption(
     help: String,
     args: ISZ[String],
@@ -176,6 +194,7 @@ object Cli {
     name: Option[String],
     outputDirName: Option[String],
     project: Option[String],
+    symlink: B,
     versions: Option[String],
     cache: Option[String],
     sources: B,
@@ -1404,15 +1423,171 @@ import Cli._
         st"""Sireum Proyek
             |
             |Available modes:
-            |ive                      Sireum IVE Proyek""".render
+            |compile                  Sireum Proyek Compiler
+            |ive                      Sireum IVE Proyek Generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("proyek", args, i, ISZ("ive"))
+    val opt = select("proyek", args, i, ISZ("compile", "ive"))
     opt match {
+      case Some(string"compile") => parseCompile(args, i + 1)
       case Some(string"ive") => parseIve(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Proyek Compiler
+          |
+          |Usage: <options>* <dir>
+          |
+          |Available Options:
+          |-p, --par                Enable parallelization
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |    --project            The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
+          |                           a path)
+          |    --symlink            Follow symbolic link when searching for files
+          |-v, --versions           The properties file containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects a path)
+          |
+          |Incremental Compilation Options:
+          |-f, --fresh              Fresh compilation from a clean slate
+          |    --sha3               Use SHA3 instead of time stamp for detecting file
+          |                           changes
+          |
+          |Ivy Dependencies Options:
+          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |                           cache directory) (expects a path)
+          |    --no-sources         Disable retrieval of source files from Ivy
+          |                           dependencies
+          |    --no-docs            Disable retrieval of javadoc files from Ivy
+          |                           dependencies
+          |-r, --repositories       Disable retrieval of javadoc files from Ivy
+          |                           dependencies (expects a string separated by ",")""".render
+
+    var par: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var symlink: B = false
+    var versions: Option[String] = None[String]()
+    var fresh: B = false
+    var sha3: B = false
+    var cache: Option[String] = None[String]()
+    var sources: B = true
+    var docs: B = true
+    var repositories: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-p" || arg == "--par") {
+           val o: Option[B] = { j = j - 1; Some(!par) }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--fresh") {
+           val o: Option[B] = { j = j - 1; Some(!fresh) }
+           o match {
+             case Some(v) => fresh = v
+             case _ => return None()
+           }
+         } else if (arg == "--sha3") {
+           val o: Option[B] = { j = j - 1; Some(!sha3) }
+           o match {
+             case Some(v) => sha3 = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--cache") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => cache = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-sources") {
+           val o: Option[B] = { j = j - 1; Some(!sources) }
+           o match {
+             case Some(v) => sources = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-docs") {
+           val o: Option[B] = { j = j - 1; Some(!docs) }
+           o match {
+             case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--repositories") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => repositories = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(CompileOption(help, parseArguments(args, j), par, json, name, outputDirName, project, symlink, versions, fresh, sha3, cache, sources, docs, repositories))
   }
 
   def parseIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1424,22 +1599,25 @@ import Cli._
           |Available Options:
           |-f, --force              Force generation of application-wide configurations
           |                           (e.g., JDK info, etc.)
-          |-j, --json               The JSON file to load project definitions from
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
           |-n, --name               Project name (defaults to the directory name of <dir>)
           |                           (expects a string)
           |-o, --out                Output directory name under <dir> (expects a string;
           |                           default is "out")
-          |-p, --project            The project.cmd file accepting the 'json' argument
+          |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
           |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
+          |    --symlink            Follow symbolic link when searching for files
           |-v, --versions           The properties file containing version information
           |                           (defaults to <dir>${Os.fileSep}versions.properties)
           |                           (expects a path)
-          |-h, --help               Display this information
           |
           |Ivy Dependencies Options:
           |-c, --cache              Ivy cache directory (defaults to couriser's default
@@ -1456,6 +1634,7 @@ import Cli._
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
     var project: Option[String] = None[String]()
+    var symlink: B = false
     var versions: Option[String] = None[String]()
     var cache: Option[String] = None[String]()
     var sources: B = true
@@ -1475,7 +1654,7 @@ import Cli._
              case Some(v) => force = v
              case _ => return None()
            }
-         } else if (arg == "-j" || arg == "--json") {
+         } else if (arg == "--json") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => json = v
@@ -1493,10 +1672,16 @@ import Cli._
              case Some(v) => outputDirName = v
              case _ => return None()
            }
-         } else if (arg == "-p" || arg == "--project") {
+         } else if (arg == "--project") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
              case _ => return None()
            }
          } else if (arg == "-v" || arg == "--versions") {
@@ -1538,7 +1723,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IveOption(help, parseArguments(args, j), force, json, name, outputDirName, project, versions, cache, sources, docs, repositories))
+    return Some(IveOption(help, parseArguments(args, j), force, json, name, outputDirName, project, symlink, versions, cache, sources, docs, repositories))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

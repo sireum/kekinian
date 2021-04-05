@@ -50,7 +50,8 @@ object Sireum {
           case Some(o: Cli.PhantomOption) => cli.Phantom.run(o).toInt
           case Some(o: Cli.LogikaVerifierOption) => cli.Logika.run(o).toInt
           case Some(o: Cli.ServerOption) => server.Server.run(o.message == Cli.ServerMessage.Msgpack, o.logika).toInt
-          case Some(o: Cli.IveOption) => cli.Proyek.run(o).toInt
+          case Some(o: Cli.IveOption) => cli.Proyek.runIve(o).toInt
+          case Some(o: Cli.CompileOption) => cli.Proyek.runCompile(o).toInt
           case Some(_: Cli.HelpOption) => 0
           case _ => -1
         })

@@ -34,7 +34,107 @@ object Proyek {
   val INVALID_PROJECT: Z = -5
   val INVALID_VERSIONS: Z = -6
 
-  def run(o: Cli.IveOption): Z = {
+  def runCompile(o: Cli.CompileOption): Z = {
+    val code = checkRequirements(o.json, o.project)
+    if (code != 0) {
+      return code
+    }
+
+    val path: Os.Path = getPath(o.args, o.help) match {
+      case (T, Some(p)) => p
+      case (T, None()) => return 0
+      case (_, _) => return INVALID_PATH_ARG
+    }
+
+    val prj: project.Project = getProject(path, o.json, o.project) match {
+      case Some(pr) => pr
+      case _ => return INVALID_PROJECT
+    }
+
+    val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
+      case Some((v, vs)) => (v, vs)
+      case _ => return INVALID_VERSIONS
+    }
+
+    println()
+
+    val oldScalaVersion = Coursier.scalaVersion
+    Coursier.setScalaVersion(scalaVersion)
+
+    val r =  proyek.Proyek.compile(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      versions = versions,
+      projectName = o.name.getOrElse(path.canon.name),
+      javaHome = Sireum.javaHomeOpt.get,
+      scalaHome = Sireum.scalaHomeOpt.get,
+      scalacPlugin = Sireum.scalacPluginJar,
+      followSymLink = o.symlink,
+      fresh = o.fresh,
+      par = o.par,
+      sha3 = o.sha3
+    )
+
+    Coursier.setScalaVersion(oldScalaVersion)
+
+    return r
+  }
+
+  def runIve(o: Cli.IveOption): Z = {
+    val code = checkRequirements(o.json, o.project)
+    if (code != 0) {
+      return code
+    }
+
+    val path: Os.Path = getPath(o.args, o.help) match {
+      case (T, Some(p)) => p
+      case (T, None()) => return 0
+      case (_, _) => return INVALID_PATH_ARG
+    }
+
+    val prj: project.Project = getProject(path, o.json, o.project) match {
+      case Some(pr) => pr
+      case _ => return INVALID_PROJECT
+    }
+
+
+    val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
+      case Some((v, vs)) => (v, vs)
+      case _ => return INVALID_VERSIONS
+    }
+
+    println()
+
+    val oldScalaVersion = Coursier.scalaVersion
+    Coursier.setScalaVersion(scalaVersion)
+
+    val r = proyek.Proyek.ive(
+      path = path,
+      project = prj,
+      versions = versions,
+      projectName = o.name.getOrElse(path.canon.name),
+      withSource = o.sources,
+      withDoc = o.docs,
+      outDirName = o.outputDirName.get,
+      scalacPlugin = Sireum.scalacPluginJar,
+      scalaVersion = scalaVersion,
+      scalaHome = Sireum.scalaHomeOpt.get,
+      sireumJar = Sireum.sireumJar,
+      javaHome = Sireum.javaHomeOpt.get,
+      javaVersion = Sireum.javaVer,
+      jbrVersion = Sireum.jbrVer,
+      ideaDir = Sireum.ideaDir,
+      isDev = Sireum.isDev,
+      force = o.force
+    )
+
+    Coursier.setScalaVersion(oldScalaVersion)
+
+    return r
+  }
+
+  def checkRequirements(jsonOpt: Option[String], projectOpt: Option[String]): Z = {
     if (!Sireum.homeFound) return HOME_NOT_FOUND
     if (!(Sireum.javaFound && Sireum.scalaFound)) return JAVA_OR_SCALA_NOT_FOUND
     if (!Sireum.ideaDir.exists) {
@@ -42,37 +142,43 @@ object Proyek {
       return IDEA_NOT_FOUND
     }
 
-    val path: Os.Path = o.args match {
-      case ISZ(p) =>
-        val d = Os.path(p)
-        if (d.exists && !d.isDir) {
-          eprintln(s"$p is not a directory")
-          return INVALID_PATH_ARG
-        }
-        d
-      case ISZ() =>
-        println(o.help)
-        return 0
-      case _ =>
-        eprintln(s"Expecting at most one argument, but found ${o.args}")
-        println(o.help)
-        return INVALID_PATH_ARG
-    }
-
-    if (o.json.nonEmpty && o.project.nonEmpty) {
+    if (jsonOpt.nonEmpty && projectOpt.nonEmpty) {
       eprintln("Cannot specify both the 'json' and the 'project' options")
       return INVALID_PROJECT
     }
 
+    return 0
+  }
+
+  def getPath(args: ISZ[String], help: String): (B, Option[Os.Path]) = {
+    args match {
+      case ISZ(p) =>
+        val d = Os.path(p)
+        if (d.exists && !d.isDir) {
+          eprintln(s"$p is not a directory")
+          return (F, None())
+        }
+        return (T, Some(d.canon))
+      case ISZ() =>
+        println(help)
+        return (T, None())
+      case _ =>
+        eprintln(s"Expecting at most one argument, but found $args")
+        println(help)
+        return (F, None())
+    }
+  }
+
+  def getProject(path: Os.Path, jsonOpt: Option[String], projectOpt: Option[String]): Option[project.Project] = {
     var prj = project.Project.empty
     var loaded = F
     ;{
-      o.json match {
+      jsonOpt match {
         case Some(p) =>
           val f = Os.path(p)
           if (!f.isFile) {
             eprintln(s"$p is not a file")
-            return INVALID_PROJECT
+            return None()
           }
           project.JSON.toProject(f.read) match {
             case Either.Left(pr) =>
@@ -80,24 +186,24 @@ object Proyek {
               loaded = T
             case _ =>
               eprintln(s"Ill-formed JSON project file $p")
-              return INVALID_PROJECT
+              return None()
           }
           println()
         case _ =>
       }
     }
     if (!loaded) {
-      val f: Os.Path = o.project match {
+      val f: Os.Path = projectOpt match {
         case Some(p) => Os.path(p)
         case _ => path / "bin" / "project.cmd"
       }
       if (!f.isFile) {
         eprintln(s"$f is not a file")
-        return INVALID_PROJECT
+        return None()
       }
       if (f.ext =!= "cmd") {
         eprintln(s"$f is not a .cmd Slash script file")
-        return INVALID_PROJECT
+        return None()
       }
       val r = proc"$f json".console.outLineAction((s: String) => project.ProjectUtil.projectJsonLine(s).isEmpty).run()
       if (r.ok) {
@@ -108,48 +214,38 @@ object Proyek {
                 prj = pr
               case _ =>
                 eprintln(s"Ill-defined project file $f")
-                return INVALID_PROJECT
+                return None()
             }
           case _ =>
             eprintln(s"Failed to load project from $f")
-            return INVALID_PROJECT
+            return None()
         }
       } else {
         eprintln(s"Failed to load project from $f")
-        return INVALID_PROJECT
+        return None()
       }
     }
+    return Some(prj)
+  }
 
-    val versionsFile: Os.Path = o.versions match {
+  def getVersions(path: Os.Path, versionsOpt: Option[String]): Option[(String, Map[String, String])] = {
+    val versionsFile: Os.Path = versionsOpt match {
       case Some(p) => Os.path(p)
-      case _ => path / "versions.properties"
+      case _ => (path / "versions.properties")
     }
 
     if (!versionsFile.isFile) {
       eprintln(s"$versionsFile is not a file")
-      return INVALID_VERSIONS
+      return None()
     }
 
-    val versions = versionsFile.properties
-
-    return org.sireum.proyek.Proyek.ive(
-      path = path,
-      project = prj,
-      versions = versions,
-      projectName = o.name.getOrElse(path.canon.name),
-      withSource = o.sources,
-      withDoc = o.docs,
-      outDirName = o.outputDirName.get,
-      scalacPlugin = Sireum.scalacPluginJar,
-      scalaVersion = Sireum.scalaVer,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      javaHome = Sireum.javaHomeOpt.get,
-      javaVersion = Sireum.javaVer,
-      jbrVersion = Sireum.jbrVer,
-      ideaDir = Sireum.ideaDir,
-      isDev = Sireum.isDev,
-      force = o.force
-    )
+    val props = versionsFile.properties
+    props.get("org.scala-lang%scala-library%") match {
+      case Some(v) =>
+        return Some((v, props))
+      case _ =>
+        eprintln(s"Could not find Scala library version in $versionsFile")
+        return None()
+    }
   }
 }
