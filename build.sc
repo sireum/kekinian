@@ -43,13 +43,6 @@ import $file.cli.Cli
 import $file.distro
 import org.sireum.mill.SireumModule
 
-trait BinModule extends mill.scalalib.ScalaModule {
-  final override def scalaVersion = SireumModule.scalaVersion
-  final override def moduleDeps = Seq(runtime.library.jvm)
-  final override def repositories = super.repositories ++ SireumModule.repositories
-  override def sources = T.sources(millSourcePath / up / "bin")
-}
-
 object runtime extends mill.Module {
 
   object macros extends Runtime.Module.Macros
@@ -66,7 +59,6 @@ object runtime extends mill.Module {
     override def macrosObject = macros
   }
 
-  object bin extends BinModule
 }
 
 object slang extends mill.Module {
@@ -89,13 +81,10 @@ object slang extends mill.Module {
     final override def tipeObject = tipe
   }
 
-  object bin extends BinModule
 }
 
 object alir extends Alir.Module with runtime.testProvider {
   final override def tipeObject = slang.tipe
-
-  object bin extends BinModule
 }
 
 object transpilers extends mill.Module {
@@ -109,20 +98,14 @@ object transpilers extends mill.Module {
 
     override val commonObject = common
   }
-
-  object bin extends BinModule
 }
 
 object logika extends Logika.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
-
-  object bin extends BinModule
 }
 
 object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
-
-  object bin extends BinModule
 }
 
 object hamr extends mill.Module {
@@ -130,42 +113,28 @@ object hamr extends mill.Module {
   object air extends Air.Module {
     final override def libraryObject = runtime.library
     final override def testObject = runtime.test
-
-    object bin extends BinModule
   }
   
   object phantom extends Phantom.Module {
     final override def libraryObject = runtime.library
-
-    object bin extends BinModule {
-      override def sources = T.sources(millSourcePath / up / up / "bin")
-    }
   }
   
   object codegen extends Codegen.Module.Codegen with runtime.testProvider {
 
-    object bin extends BinModule
-
     object common extends Codegen.Module.Common {
       final override def airObject = air
-
-      object bin extends BinModule
     }
 
     object act extends Act.Module {
       final override def airObject = air
 
       final override def commonObject = common
-
-      object bin extends BinModule
     }
 
     object arsit extends Arsit.Module {
       final override def airObject = air
 
       final override def commonObject = common
-
-      object bin extends BinModule
     }
     
     final override def actObject = act    
@@ -175,18 +144,12 @@ object hamr extends mill.Module {
     object art extends Art.Module {
       final override def libraryObject = runtime.library
       final override def testObject = runtime.test
-
-      object bin extends BinModule
     }
   }
 }
 
 object proyek extends Proyek.Module {
   final override def libraryObject = runtime.library
-
-  object bin extends BinModule {
-    override def sources = T.sources(millSourcePath / up / up / "bin")
-  }
 }
 
 
@@ -199,25 +162,16 @@ object server extends Server.Module {
   final override def hamrCodegenObject = hamr.codegen
   final override def proyekObject = proyek
   final override def testObject = runtime.test
-
-  object bin extends BinModule
 }
 
 
 object cli extends Cli.Module {
   final override def serverObject = server
-
-  object bin extends BinModule {
-    override def sources = T.sources(millSourcePath / up / up / "bin")
-  }
 }
-
-object bin extends BinModule
 
 
 object buildModule extends mill.Module {
   override def millSourcePath = super.millSourcePath / up / "build"
-  object bin extends BinModule
 }
 
 def build() = T.command {
