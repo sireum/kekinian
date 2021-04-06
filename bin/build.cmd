@@ -72,7 +72,15 @@ val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
 val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
 val versions = (home / "versions.properties").properties
-val cache = Os.home / "Downloads" / "sireum"
+val cache: Os.Path = Os.env("SIREUM_CACHE") match {
+  case Some(p) =>
+    val d = Os.path(p)
+    if (!d.exists) {
+      d.mkdirAll()
+    }
+    d
+  case _ => Os.home / "Downloads" / "sireum"
+}
 
 def platformKind(kind: Os.Kind.Type): String = {
   kind match {
