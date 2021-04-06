@@ -249,6 +249,7 @@ object Proyek {
     val oldScalaVersion = Coursier.scalaVersion
     Coursier.setScalaVersion(scalaVersion)
 
+    val javaHome = Sireum.javaHomeOpt.get
     val scalaHome = Sireum.scalaHomeOpt.get
 
     var r = proyek.Proyek.compile(
@@ -257,7 +258,7 @@ object Proyek {
       project = prj,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
-      javaHome = Sireum.javaHomeOpt.get,
+      javaHome = javaHome,
       scalaHome = scalaHome,
       scalacPlugin = Sireum.scalacPluginJar,
       followSymLink = o.symlink,
@@ -276,6 +277,7 @@ object Proyek {
       project = prj,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
+      javaHome = javaHome,
       names = ops.ISZOps(o.args).drop(1)
     )
 
