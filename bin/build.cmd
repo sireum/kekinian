@@ -47,13 +47,14 @@ exit /B %errorlevel%
 exit /B %errorlevel%
 ::!#
 // #Sireum
+
 import org.sireum._
 
 def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup         | project      | fresh        | native
-        |       | tipe          | compile      | test         | test-js
+        |       | tipe          | compile      | test
         |       | regen-project | regen-slang  | regen-logika | regen-air
         |       | regen-act     | regen-server | regen-cliopt | regen-cli
         |       | bloop         | m2           | jitpack      | ghpack
@@ -68,10 +69,6 @@ val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
 val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
-var didTipe = F
-var didCompile = F
-var didM2 = F
-var didBuild = F
 val versions = (home / "versions.properties").properties
 val cache = Os.home / "Downloads" / "sireum"
 
@@ -210,6 +207,7 @@ def buildMill(): Unit = {
       from.copyOverTo(to)
     }
   }
+
   def symlink(p: Os.Path, target: Os.Path): Unit = {
     if (Os.isWin) {
       copyIfNewer(target, p)
@@ -221,6 +219,7 @@ def buildMill(): Unit = {
       p.mklink(target)
     }
   }
+
   val millBuild = home / "build"
   symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
@@ -260,28 +259,27 @@ def bloop(): Unit = {
 
 
 def build(fresh: B): Unit = {
-  if (!didBuild) {
-    didBuild = T
-    println("Building ...")
-    def buildStamp: String = {
-      val rStatus = Os.proc(ISZ("git", "status", "--porcelain")).at(home).run()
-      if (rStatus.exitCode != 0) {
-        return "n/a"
-      }
-      val r = ops.StringOps(Os.proc(ISZ("git", "log", "-n", "1", "--date=format:%Y%m%d", "--pretty=format:%cd.%h")).at(home).runCheck().out).trim
-      return if (ops.StringOps(rStatus.out).trim === "") r else s"$r*"
+  println("Building ...")
+
+  def buildStamp: String = {
+    val rStatus = Os.proc(ISZ("git", "status", "--porcelain")).at(home).run()
+    if (rStatus.exitCode != 0) {
+      return "n/a"
     }
-    val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
-    val oldCli = cli.read
-    cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
-    val r = proc"$sireum proyek assemble -n sireum -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} ${home.canon.name}".at(home.up).console.run()
-    (home / "out" / "sireum" / "assemble" / "sireum.jar").copyOverTo(sireumJar)
-    cli.writeOver(oldCli)
-    if (r.exitCode != 0) {
-      Os.exit(r.exitCode)
-    }
-    println()
+    val r = ops.StringOps(Os.proc(ISZ("git", "log", "-n", "1", "--date=format:%Y%m%d", "--pretty=format:%cd.%h")).at(home).runCheck().out).trim
+    return if (ops.StringOps(rStatus.out).trim === "") r else s"$r*"
   }
+
+  val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
+  val oldCli = cli.read
+  cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
+  val r = proc"$sireum proyek assemble -n sireum -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
+  (home / "out" / "sireum" / "assemble" / "sireum.jar").copyOverTo(sireumJar)
+  cli.writeOver(oldCli)
+  if (r.exitCode != 0) {
+    Os.exit(r.exitCode)
+  }
+  println()
 }
 
 
@@ -314,66 +312,39 @@ def nativ(): Unit = {
 
 
 def tipe(): Unit = {
-  if (!didTipe) {
-    didTipe = T
-    println("Slang type checking ...")
-    val excludes = "hamr/codegen/arsit/resources,hamr/codegen/arsit/jvm/src/test/results,hamr/codegen/jvm/src/test/result"
-    val includedDirs = Set ++ ISZ[String]("alir", "cli", "hamr", "logika", "proyek", "runtime", "server", "slang", "tools", "transpilers")
-    val sourcepath: ISZ[Os.Path] = for (p <- home.list if includedDirs.contains(p.name)) yield p
-    Os.proc(ISZ("java", "-jar", sireumJar.string,
-      "slang", "tipe", "--verbose", "-r", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
-    println()
-  }
+  println("Slang type checking ...")
+  val excludes = "hamr/codegen/arsit/resources,hamr/codegen/arsit/jvm/src/test/results,hamr/codegen/jvm/src/test/result"
+  val includedDirs = Set ++ ISZ[String]("alir", "cli", "hamr", "logika", "proyek", "runtime", "server", "slang", "tools", "transpilers")
+  val sourcepath: ISZ[Os.Path] = for (p <- home.list if includedDirs.contains(p.name)) yield p
+  Os.proc(ISZ(sireum.string,
+    "slang", "tipe", "--verbose", "-r", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
+  println()
+
 }
 
 
 def compile(): Unit = {
-  if (!didCompile) {
-    didCompile = T
-    if (didM2) {
-      didM2 = F
-      (home / "out").removeAll()
-    }
-    tipe()
-    println("Compiling ...")
-    Os.proc(ISZ(mill.string, "all", "cli.tests.compile", "server.js.tests.compile")).at(home).
-      errLineAction(filterCompile _).console.runCheck()
-    println()
-  }
+  tipe()
+  println("Compiling ...")
+  proc"$sireum proyek compile -n sireum --par --sha3 .".at(home).console.runCheck()
+  println()
 }
 
 
 def test(): Unit = {
-  compile()
-  println("Running shared tests ...")
-  Os.proc(ISZ(mill.string, "all",
-    "runtime.library.shared.tests",
-    "slang.parser.shared.tests",
-    "slang.frontend.shared.tests",
-    "alir.shared.tests")).at(home).
-    errLineAction(filterCompile _).console.runCheck()
-  println()
-
-  println("Running jvm tests ...")
-  Os.proc(ISZ[String](mill.string, "all",
-    "runtime.library.jvm.tests",
-    "tools.jvm.tests",
-    "server.jvm.tests"
-  ) ++ (if (Os.kind == Os.Kind.LinuxArm) ISZ[String]() else ISZ("logika.jvm.tests"))).at(home).
-    errLineAction(filterCompile _).console.runCheck()
+  println("Testing ...")
+  val names = ISZ[String](
+    "org.sireum.library",
+    "org.sireum.lang",
+    "org.sireum.logika",
+    "org.sireum.server",
+    "org.sireum.tools"
+  )
+  val p = proc"$sireum proyek test -n sireum --par --sha3 ."
+  p.commands(names).at(home).console.runCheck()
   println()
 }
 
-
-def testJs(): Unit = {
-  compile()
-  Os.proc(ISZ(mill.string, "all",
-    "runtime.library.js.tests",
-    "slang.parser.js.tests",
-    "slang.frontend.js.tests",
-    "alir.js.tests")).at(home).env(ISZ("NODEJS_MAX_HEAP" ~> "4096")).
-    errLineAction(filterCompile _).console.runCheck()
-}
 
 def regenProject(): Unit = {
   val projectPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "project"
@@ -447,9 +418,6 @@ def regenCli(): Unit = {
 
 
 def m2(): Os.Path = {
-  didM2 = T
-  didCompile = F
-
   val repository = Os.home / ".m2" / "repository"
   (repository / "org" / "sireum").removeAll()
 
@@ -542,7 +510,7 @@ def project(skipBuild: B): Unit = {
     build(F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive --force ${home.canon.name}".at(home.up).console.runCheck()
+  proc"$sireum proyek ive --force .".at(home).console.runCheck()
 }
 
 
@@ -599,7 +567,6 @@ if (Os.cliArgs.isEmpty) {
       case string"tipe" => tipe()
       case string"compile" => compile()
       case string"test" => test()
-      case string"test-js" => testJs()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
       case string"regen-project" => regenProject()
