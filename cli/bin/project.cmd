@@ -26,11 +26,17 @@ val cli = "cli"
 
 val homeDir = Os.slashDir.up.canon
 
-val cliJvm = moduleJvm(
+val cliJvm = moduleJvmPub(
   id = cli,
   baseDir = homeDir,
   jvmDeps = ISZ(server),
-  jvmIvyDeps = ISZ()
+  jvmIvyDeps = ISZ(),
+  pubOpt = pub(
+    desc = "Sireum Command Line Interface (CLI)",
+    url = "github.com/sireum/kekinian",
+    licenses = org.sireum.project.ProjectUtil.bsd2,
+    devs = ISZ(robby, jasonBelt)
+  )
 )
 
 val project = Project.empty + cliJvm
