@@ -40,6 +40,11 @@ object Proyek {
       return code
     }
 
+    if (o.args.size > 1) {
+      eprintln(s"Expecting only at most one argument, but found ${o.args.size}")
+      return INVALID_PATH_ARG
+    }
+
     val path: Os.Path = getPath(o.args, o.help) match {
       case (T, Some(p)) => p
       case (T, None()) => return 0
@@ -51,14 +56,14 @@ object Proyek {
       case _ => return INVALID_PROJECT
     }
 
-    val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
+    val (scalaVersion, versions): (String, HashSMap[String, String]) = getVersions(path, o.versions) match {
       case Some((v, vs)) => (v, vs)
       case _ => return INVALID_VERSIONS
     }
 
     println()
 
-    val dm = proyek.Proyek.DependencyManager(prj, HashSMap ++ versions.entries, F, F)
+    val dm = proyek.Proyek.DependencyManager(prj, versions, F, F)
 
     val oldScalaVersion = Coursier.scalaVersion
     Coursier.setScalaVersion(scalaVersion)
@@ -69,7 +74,6 @@ object Proyek {
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
-      versions = versions,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
       javaHome = Sireum.javaHomeOpt.get,
@@ -97,8 +101,6 @@ object Proyek {
 
     Coursier.setScalaVersion(oldScalaVersion)
 
-    println()
-
     return r
   }
 
@@ -106,6 +108,11 @@ object Proyek {
     val code = checkRequirements(o.json, o.project)
     if (code != 0) {
       return code
+    }
+
+    if (o.args.size > 1) {
+      eprintln(s"Expecting only at most one argument, but found ${o.args.size}")
+      return INVALID_PATH_ARG
     }
 
     val path: Os.Path = getPath(o.args, o.help) match {
@@ -119,14 +126,14 @@ object Proyek {
       case _ => return INVALID_PROJECT
     }
 
-    val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
+    val (scalaVersion, versions): (String, HashSMap[String, String]) = getVersions(path, o.versions) match {
       case Some((v, vs)) => (v, vs)
       case _ => return INVALID_VERSIONS
     }
 
     println()
 
-    val dm = proyek.Proyek.DependencyManager(prj, HashSMap ++ versions.entries, F, F)
+    val dm = proyek.Proyek.DependencyManager(prj, versions, F, F)
 
     val oldScalaVersion = Coursier.scalaVersion
     Coursier.setScalaVersion(scalaVersion)
@@ -135,7 +142,6 @@ object Proyek {
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
-      versions = versions,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
       javaHome = Sireum.javaHomeOpt.get,
@@ -163,6 +169,11 @@ object Proyek {
       return IDEA_NOT_FOUND
     }
 
+    if (o.args.size > 1) {
+      eprintln(s"Expecting only at most one argument, but found ${o.args.size}")
+      return INVALID_PATH_ARG
+    }
+
     val path: Os.Path = getPath(o.args, o.help) match {
       case (T, Some(p)) => p
       case (T, None()) => return 0
@@ -174,7 +185,7 @@ object Proyek {
       case _ => return INVALID_PROJECT
     }
 
-    val (scalaVersion, versions): (String, Map[String, String]) = getVersions(path, o.versions) match {
+    val (scalaVersion, versions): (String, HashSMap[String, String]) = getVersions(path, o.versions) match {
       case Some((v, vs)) => (v, vs)
       case _ => return INVALID_VERSIONS
     }
@@ -184,7 +195,7 @@ object Proyek {
     val oldScalaVersion = Coursier.scalaVersion
     Coursier.setScalaVersion(scalaVersion)
 
-    val dm = proyek.Proyek.DependencyManager(prj, HashSMap ++ versions.entries, o.sources, o.docs)
+    val dm = proyek.Proyek.DependencyManager(prj, versions, o.sources, o.docs)
 
     val r = proyek.Proyek.ive(
       path = path,
@@ -209,6 +220,72 @@ object Proyek {
     return r
   }
 
+  def runTest(o: Cli.TestOption): Z = {
+    val code = checkRequirements(o.json, o.project)
+    if (code != 0) {
+      return code
+    }
+
+    val path: Os.Path = getPath(o.args, o.help) match {
+      case (T, Some(p)) => p
+      case (T, None()) => return 0
+      case (_, _) => return INVALID_PATH_ARG
+    }
+
+    val prj: project.Project = getProject(path, o.json, o.project) match {
+      case Some(pr) => pr
+      case _ => return INVALID_PROJECT
+    }
+
+    val (scalaVersion, versions): (String, HashSMap[String, String]) = getVersions(path, o.versions) match {
+      case Some((v, vs)) => (v, vs)
+      case _ => return INVALID_VERSIONS
+    }
+
+    println()
+
+    val dm = proyek.Proyek.DependencyManager(prj, versions, F, F)
+
+    val oldScalaVersion = Coursier.scalaVersion
+    Coursier.setScalaVersion(scalaVersion)
+
+    val scalaHome = Sireum.scalaHomeOpt.get
+
+    var r = proyek.Proyek.compile(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
+      javaHome = Sireum.javaHomeOpt.get,
+      scalaHome = scalaHome,
+      scalacPlugin = Sireum.scalacPluginJar,
+      followSymLink = o.symlink,
+      fresh = o.fresh,
+      par = o.par,
+      sha3 = o.sha3
+    )
+
+    if (r != 0) {
+      return r
+    }
+
+    r = proyek.Proyek.test(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
+      javaHome = scalaHome,
+      par = o.par,
+      names = ops.ISZOps(o.args).drop(1)
+    )
+
+    Coursier.setScalaVersion(oldScalaVersion)
+
+    return r
+  }
+
   def checkRequirements(jsonOpt: Option[String], projectOpt: Option[String]): Z = {
     if (!Sireum.homeFound) return HOME_NOT_FOUND
     if (!(Sireum.javaFound && Sireum.scalaFound)) return JAVA_OR_SCALA_NOT_FOUND
@@ -222,21 +299,17 @@ object Proyek {
   }
 
   def getPath(args: ISZ[String], help: String): (B, Option[Os.Path]) = {
-    args match {
-      case ISZ(p) =>
-        val d = Os.path(p)
-        if (d.exists && !d.isDir) {
-          eprintln(s"$p is not a directory")
-          return (F, None())
-        }
-        return (T, Some(d.canon))
-      case ISZ() =>
-        println(help)
-        return (T, None())
-      case _ =>
-        eprintln(s"Expecting at most one argument, but found $args")
-        println(help)
+    if (args.size >= 1) {
+      val p = args(0)
+      val d = Os.path(p)
+      if (d.exists && !d.isDir) {
+        eprintln(s"$p is not a directory")
         return (F, None())
+      }
+      return (T, Some(d.canon))
+    } else {
+      println(help)
+      return (T, None())
     }
   }
 
@@ -299,7 +372,7 @@ object Proyek {
     return Some(prj)
   }
 
-  def getVersions(path: Os.Path, versionsOpt: Option[String]): Option[(String, Map[String, String])] = {
+  def getVersions(path: Os.Path, versionsOpt: Option[String]): Option[(String, HashSMap[String, String])] = {
     val versionsFile: Os.Path = versionsOpt match {
       case Some(p) => Os.path(p)
       case _ => (path / "versions.properties")
@@ -310,10 +383,16 @@ object Proyek {
       return None()
     }
 
-    val props = versionsFile.properties
+    val props = HashSMap ++ versionsFile.properties.entries
     props.get("org.scala-lang%scala-library%") match {
       case Some(v) =>
-        return Some((v, props))
+        props.get("org.scalatest%%scalatest%%") match {
+          case Some(_) =>
+            return Some((v, props))
+          case _ =>
+            eprintln(s"Could not find ScalaTest version in $versionsFile")
+            return None()
+        }
       case _ =>
         eprintln(s"Could not find Scala library version in $versionsFile")
         return None()
