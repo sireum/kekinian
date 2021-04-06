@@ -62,10 +62,12 @@ def usage(): Unit = {
       """.render)
 }
 
+val proyekName: String = "sireum-proyek"
+val jarName: String = "sireum"
 
 val homeBin: Os.Path = Os.slashDir
 val home = homeBin.up
-val sireumJar = homeBin / "sireum.jar"
+val sireumJar = homeBin / s"$jarName.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
 val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
@@ -223,7 +225,7 @@ def buildMill(): Unit = {
   val millBuild = home / "build"
   symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
-  symlink(millBuildBin / "sireum.jar", homeBin / "sireum.jar")
+  symlink(millBuildBin / sireumJar.name, homeBin / sireumJar.name)
   symlink(millBuildBin / sireum.name, sireum)
   symlink(millBuildBin / "scala", homeBin / "scala")
   symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
@@ -273,8 +275,8 @@ def build(fresh: B): Unit = {
   val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
   val oldCli = cli.read
   cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
-  val r = proc"$sireum proyek assemble -n sireum -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
-  (home / "out" / "sireum" / "assemble" / "sireum.jar").copyOverTo(sireumJar)
+  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
+  (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
   cli.writeOver(oldCli)
   if (r.exitCode != 0) {
     Os.exit(r.exitCode)
@@ -326,21 +328,22 @@ def tipe(): Unit = {
 def compile(): Unit = {
   tipe()
   println("Compiling ...")
-  proc"$sireum proyek compile -n sireum --par --sha3 .".at(home).console.runCheck()
+  proc"$sireum proyek compile -n $proyekName --par --sha3 .".at(home).console.runCheck()
   println()
 }
 
 
 def test(): Unit = {
+  tipe()
+
   println("Testing ...")
   val names = ISZ[String](
-    "org.sireum.library",
     "org.sireum.lang",
     "org.sireum.logika",
     "org.sireum.server",
     "org.sireum.tools"
   )
-  val p = proc"$sireum proyek test -n sireum --par --sha3 ."
+  val p = proc"$sireum proyek test -n $proyekName --par --sha3 ."
   p.commands(names).at(home).console.runCheck()
   println()
 }

@@ -70,30 +70,37 @@ object Proyek {
 
     val scalaHome = Sireum.scalaHomeOpt.get
 
-    var r = proyek.Proyek.compile(
-      path = path,
-      outDirName = o.outputDirName.get,
-      project = prj,
-      projectName = o.name.getOrElse(path.canon.name),
-      dm = dm,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = scalaHome,
-      scalacPlugin = Sireum.scalacPluginJar,
-      followSymLink = o.symlink,
-      fresh = o.fresh,
-      par = o.par,
-      sha3 = o.sha3
-    )
+    var r: Z = 0
+
+    if (!o.skipCompile) {
+      r = proyek.Proyek.compile(
+        path = path,
+        outDirName = o.outputDirName.get,
+        project = prj,
+        projectName = o.name.getOrElse(path.canon.name),
+        dm = dm,
+        javaHome = Sireum.javaHomeOpt.get,
+        scalaHome = scalaHome,
+        scalacPlugin = Sireum.scalacPluginJar,
+        followSymLink = o.symlink,
+        fresh = o.fresh,
+        par = o.par,
+        sha3 = o.sha3
+      )
+    }
 
     if (r != 0) {
       return r
     }
 
+    val projectName = o.name.getOrElse(path.canon.name)
+
     r = proyek.Proyek.assemble(
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
-      projectName = o.name.getOrElse(path.canon.name),
+      projectName = projectName,
+      jarName = o.jar.getOrElse(projectName),
       dm = dm,
       scalaHome = scalaHome,
       mainClassNameOpt = o.mainClass
@@ -252,20 +259,24 @@ object Proyek {
     val javaHome = Sireum.javaHomeOpt.get
     val scalaHome = Sireum.scalaHomeOpt.get
 
-    var r = proyek.Proyek.compile(
-      path = path,
-      outDirName = o.outputDirName.get,
-      project = prj,
-      projectName = o.name.getOrElse(path.canon.name),
-      dm = dm,
-      javaHome = javaHome,
-      scalaHome = scalaHome,
-      scalacPlugin = Sireum.scalacPluginJar,
-      followSymLink = o.symlink,
-      fresh = o.fresh,
-      par = o.par,
-      sha3 = o.sha3
-    )
+    var r: Z = 0
+
+    if (!o.skipCompile) {
+      r = proyek.Proyek.compile(
+        path = path,
+        outDirName = o.outputDirName.get,
+        project = prj,
+        projectName = o.name.getOrElse(path.canon.name),
+        dm = dm,
+        javaHome = javaHome,
+        scalaHome = scalaHome,
+        scalacPlugin = Sireum.scalacPluginJar,
+        followSymLink = o.symlink,
+        fresh = o.fresh,
+        par = o.par,
+        sha3 = o.sha3
+      )
+    }
 
     if (r != 0) {
       return r
@@ -278,6 +289,7 @@ object Proyek {
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
       javaHome = javaHome,
+      classNames = o.classes,
       names = ops.ISZOps(o.args).drop(1)
     )
 
@@ -372,29 +384,34 @@ object Proyek {
     return Some(prj)
   }
 
-  def getVersions(path: Os.Path, versionsOpt: Option[String]): Option[(String, HashSMap[String, String])] = {
-    val versionsFile: Os.Path = versionsOpt match {
-      case Some(p) => Os.path(p)
-      case _ => (path / "versions.properties")
+  def getVersions(path: Os.Path, versions: ISZ[String]): Option[(String, HashSMap[String, String])] = {
+    val files: ISZ[Os.Path] = if (versions.nonEmpty) {
+      for (v <- versions) yield Os.path(v)
+    } else {
+      ISZ(path / "versions.properties")
     }
 
-    if (!versionsFile.isFile) {
-      eprintln(s"$versionsFile is not a file")
-      return None()
+    var props = HashSMap.empty[String, String]
+    for (f <- files) {
+      if (!f.isFile) {
+        eprintln(s"$f is not a file")
+        return None()
+      } else {
+        props = props ++ f.properties.entries
+      }
     }
 
-    val props = HashSMap ++ versionsFile.properties.entries
     props.get("org.scala-lang%scala-library%") match {
       case Some(v) =>
         props.get("org.scalatest%%scalatest%%") match {
           case Some(_) =>
             return Some((v, props))
           case _ =>
-            eprintln(s"Could not find ScalaTest version in $versionsFile")
+            eprintln(st"Could not find ScalaTest version in: ${(files, ", ")}".render)
             return None()
         }
       case _ =>
-        eprintln(s"Could not find Scala library version in $versionsFile")
+        eprintln(st"Could not find Scala library version in ${(files, ", ")}".render)
         return None()
     }
   }
