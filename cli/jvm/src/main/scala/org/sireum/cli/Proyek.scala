@@ -33,8 +33,9 @@ object Proyek {
   val INVALID_PATH_ARG: Z = -4
   val INVALID_PROJECT: Z = -5
   val INVALID_VERSIONS: Z = -6
+  val INVALID_PUBLISH_DEP: Z = -7
 
-  def runAssemble(o: Cli.AssembleOption): Z = {
+  def assemble(o: Cli.AssembleOption): Z = {
     val code = checkRequirements(o.json, o.project)
     if (code != 0) {
       return code
@@ -111,7 +112,7 @@ object Proyek {
     return r
   }
 
-  def runCompile(o: Cli.CompileOption): Z = {
+  def compile(o: Cli.CompileOption): Z = {
     val code = checkRequirements(o.json, o.project)
     if (code != 0) {
       return code
@@ -165,7 +166,7 @@ object Proyek {
     return r
   }
 
-  def runIve(o: Cli.IveOption): Z = {
+  def ive(o: Cli.IveOption): Z = {
     val code = checkRequirements(o.json, o.project)
     if (code != 0) {
       return code
@@ -227,7 +228,111 @@ object Proyek {
     return r
   }
 
-  def runTest(o: Cli.TestOption): Z = {
+  def publish(o: Cli.PublishOption): Z = {
+    val code = checkRequirements(o.json, o.project)
+    if (code != 0) {
+      return code
+    }
+
+    if (o.args.size != 2) {
+      eprintln(s"Expecting 2 arguments, but found ${o.args.size}")
+    }
+
+    val path: Os.Path = getPath(o.args, o.help) match {
+      case (T, Some(p)) => p
+      case (T, None()) => return 0
+      case (_, _) => return INVALID_PATH_ARG
+    }
+
+    val prj: project.Project = getProject(path, o.json, o.project) match {
+      case Some(pr) => pr
+      case _ => return INVALID_PROJECT
+    }
+
+    val (scalaVersion, versions): (String, HashSMap[String, String]) = getVersions(path, o.versions) match {
+      case Some((v, vs)) => (v, vs)
+      case _ => return INVALID_VERSIONS
+    }
+
+    val m2Repo: Os.Path = o.m2 match {
+      case Some(m) => Os.path(m) / "repository"
+      case _ => Os.home / ".m2" / "repository"
+    }
+
+    val version: String = o.version match {
+      case Some(v) => v
+      case _ => ops.StringOps(proc"git log -1 --date=format:%Y%m%d.%H%M --pretty=format:%cd.%h".runCheck().out).trim
+    }
+
+    val orgName = ops.StringOps(o.args(1)).split((c: C) => c === '.')
+
+    val publishModuleIds: ISZ[String] = for (m <- prj.modules.values if m.publishInfoOpt.nonEmpty) yield m.id
+    for (m <- prj.modules.values) {
+      val diff = m.deps -- publishModuleIds
+      if (diff.nonEmpty) {
+        eprintln(st"Publishable module ${m.id} depends on non-publishable module(s): ${(diff, ", ")}".render)
+        return INVALID_PUBLISH_DEP
+      }
+    }
+
+    println()
+
+    val dm = proyek.Proyek.DependencyManager(prj, versions, F, F)
+
+    val oldScalaVersion = Coursier.scalaVersion
+    Coursier.setScalaVersion(scalaVersion)
+
+    val javaHome = Sireum.javaHomeOpt.get
+    val scalaHome = Sireum.scalaHomeOpt.get
+    val scalaMajorVersion: String = {
+      val verOps = ops.StringOps(scalaVersion)
+      val i = verOps.indexOf('.')
+      val j = verOps.indexOfFrom('.', i + 1)
+      verOps.substring(0, j)
+    }
+
+    var r: Z = 0
+
+    if (!o.skipCompile) {
+      r = proyek.Proyek.compile(
+        path = path,
+        outDirName = o.outputDirName.get,
+        project = prj,
+        projectName = o.name.getOrElse(path.canon.name),
+        dm = dm,
+        javaHome = javaHome,
+        scalaHome = scalaHome,
+        scalacPlugin = Sireum.scalacPluginJar,
+        followSymLink = o.symlink,
+        fresh = o.fresh,
+        par = o.par,
+        sha3 = o.sha3
+      )
+    }
+
+    if (r != 0) {
+      return r
+    }
+
+    r = proyek.Proyek.publish(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
+      orgName = orgName,
+      m2Repo = m2Repo,
+      version = version,
+      scalaMajorVersion = scalaMajorVersion,
+      symlink = o.symlink
+    )
+
+    Coursier.setScalaVersion(oldScalaVersion)
+
+    return r
+  }
+
+  def test(o: Cli.TestOption): Z = {
     val code = checkRequirements(o.json, o.project)
     if (code != 0) {
       return code
@@ -378,6 +483,14 @@ object Proyek {
         }
       } else {
         eprintln(s"Failed to load project from $f")
+        return None()
+      }
+    }
+    val definedModuleIds: ISZ[String] = for (m <- prj.modules.values) yield m.id
+    for (m <- prj.modules.values) {
+      val diff = m.deps -- definedModuleIds
+      if (diff.nonEmpty) {
+        eprintln(st"Module ${m.id} depends on undefined modules: ${(diff, ", ")}".render)
         return None()
       }
     }
