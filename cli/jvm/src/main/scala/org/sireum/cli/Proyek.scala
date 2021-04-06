@@ -276,8 +276,6 @@ object Proyek {
       project = prj,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
-      javaHome = scalaHome,
-      par = o.par,
       names = ops.ISZOps(o.args).drop(1)
     )
 
