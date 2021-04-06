@@ -283,10 +283,11 @@ def build(fresh: B): Unit = {
   val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
   val oldCli = cli.read
   cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
-  (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
+  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.runCheck()
   cli.writeOver(oldCli)
-  if (r.exitCode != 0) {
+  if (r.exitCode == 0) {
+    (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
+  } else {
     Os.exit(r.exitCode)
   }
   println()
