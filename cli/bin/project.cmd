@@ -34,7 +34,7 @@ val cliJvm = moduleJvmPub(
   pubOpt = pub(
     desc = "Sireum Command Line Interface (CLI)",
     url = "github.com/sireum/kekinian",
-    licenses = org.sireum.project.ProjectUtil.bsd2,
+    licenses = bsd2,
     devs = ISZ(robby, jasonBelt)
   )
 )
