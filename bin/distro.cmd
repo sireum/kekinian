@@ -609,7 +609,7 @@ def pack(): Unit = {
   }
   val sfx = repoDir / "distro" / s"$plat$devSuffix$sfxSuffix"
   val files: ISZ[String] =
-    for (p <- distroMap.get(platform).get.map((rp: ISZ[String]) => (Os.path(distroDir.name) /+ rp)) if p.exists) yield p.string
+    for (p <- distroMap.get(platform).get.map((rp: ISZ[String]) => Os.path(distroDir.name) /+ rp)) yield p.string
   val cmd = ISZ[String]((repoDir / "bin" / platform / pwd7z.name).canon.string, "a", distro7z) ++ files
 
   Os.proc(cmd).at(distroDir.up).runCheck()
