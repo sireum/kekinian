@@ -206,7 +206,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "linux", "java"),
     ISZ("bin", "linux", "z3"),
     ISZ("bin", "linux", "cvc4"),
-    ISZ("bin", "linux", "sireum"),
     ISZ("bin", "install", "acl2.cmd"),
     ISZ("bin", "install", "clion.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
@@ -243,7 +242,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "mac", "java"),
     ISZ("bin", "mac", "z3"),
     ISZ("bin", "mac", "cvc4"),
-    ISZ("bin", "mac", "sireum"),
     ISZ("bin", "install", "clion.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
@@ -470,14 +468,6 @@ def patchIcon(): Unit = {
   println("done!")
 }
 
-def mkLink(p: Os.Path, target: Os.Path): Unit = {
-  if (Os.isWin) {
-    Os.proc(ISZ("cmd", "/c", s"""cd /d ${p.up} && dir && mklink ${p.name} "$target"""")).at(home).runCheck()
-  } else {
-    p.mklink(target)
-  }
-}
-
 def deleteSources(): Unit = {
   for (p <- Os.Path.walk(ideaDir, F, T, (p: Os.Path) => p.ext === "java" || p.ext === "scala")) {
     p.removeAll()
@@ -562,7 +552,7 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
     }
   }
   ideash.moveOverTo(ideaDir / "bin" / "IVE.sh")
-  mkLink(ideash, Os.path("IVE.sh"))
+  ideash.mklink(ideaDir / "bin" / "IVE.sh")
 }
 
 
@@ -647,9 +637,9 @@ def build(): Unit = {
     case _ if platform === "linux" || platform === "linux/arm" => setupLinux(ideaDrop)
   }
   val sireumJar = pluginsDir / "sireum-intellij-plugin" / "lib" / "sireum.jar"
-  val link = sireumJar.up.relativize(home / "bin" / "sireum.jar")
+  val homeBinSireumJar = homeBin / "sireum.jar"
   sireumJar.removeAll()
-  mkLink(sireumJar, link)
+  sireumJar.mklink(homeBinSireumJar)
   if (buildSfx) {
     pack()
   }
