@@ -57,8 +57,8 @@ def usage(): Unit = {
         |       | tipe          | compile      | test         | mill
         |       | regen-project | regen-slang  | regen-logika | regen-air
         |       | regen-act     | regen-server | regen-cliopt | regen-cli
-        |       | bloop         | m2           | jitpack      | ghpack
-        |       | cvc4          | z3                                      )*
+        |       | m2            | m2-mill      | jitpack      | ghpack
+        |       | bloop         | cvc4         | z3                       )*
       """.render)
 }
 
@@ -438,6 +438,50 @@ def m2(): Os.Path = {
   return kekinianRepo
 }
 
+def m2Mill(): Os.Path = {
+  buildMill()
+  val repository = Os.home / ".m2" / "repository"
+  (repository / "org" / "sireum").removeAll()
+
+  var m2s: ISZ[ISZ[String]] = for (pkg <- ISZ("macros", "library", "test"); plat <- ISZ("shared", "jvm", "js")) yield
+    ISZ("runtime", pkg, plat, "m2") // runtime
+  m2s = m2s ++ (for (pkg <- ISZ("ast", "parser", "tipe", "frontend"); plat <- ISZ("shared", "jvm" /*, "js"*/))
+    yield ISZ("slang", pkg, plat, "m2")) // slang
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("alir", plat, "m2")) // alir
+  m2s = m2s ++ (for (pkg <- ISZ("common", "c"); plat <- ISZ("shared", "jvm" /*, "js"*/))
+    yield ISZ("transpilers", pkg, plat, "m2")) // transpilers
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("logika", plat, "m2")) // logika
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("tools", plat, "m2"))
+  m2s = m2s ++ (for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
+    yield ISZ("hamr", pkg, plat, "m2")) // air
+  m2s = m2s :+ ISZ("hamr", "phantom", "m2") // phantom
+  m2s = m2s ++ (for (pkg <- ISZ("common", "act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
+    yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit, art
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
+  m2s = m2s :+ ISZ("proyek", "m2") // proyek
+  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("server", plat, "m2")) // server
+  m2s = m2s :+ ISZ("cli", "m2")
+
+  println(s"Publishing local m2 ...")
+  val m2Paths: ISZ[Os.Path] =
+    for (cd <- for (m2 <- m2s) yield st"${(m2, Os.fileSep)}".render) yield home / "out" / cd
+
+  for (m2p <- m2Paths) {
+    m2p.removeAll()
+  }
+
+  Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
+    at(home).errLineAction(filterCompile _).console.runCheck()
+  println("Artifacts")
+  for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
+    println(s"* $p")
+  }
+  println()
+
+  return repository / "org" / "sireum"
+}
+
+
 
 def jitpack(): Unit = {
   println("Triggering jitpack ...")
@@ -556,6 +600,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-cli" => regenCli()
       case string"bloop" => bloop()
       case string"m2" => m2()
+      case string"m2-mill" => m2Mill()
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"cvc4" => cvc4()
