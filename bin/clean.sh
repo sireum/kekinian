@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   >&2 echo "Please use clean.bat"
   exit 1
