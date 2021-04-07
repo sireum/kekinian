@@ -568,7 +568,7 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
 
 def setupWin(ideaDrop: Os.Path): Unit = {
   ideaDir.mkdirAll()
-  proc"pwd7z x -y $ideaDrop".at(ideaDir).runCheck()
+  proc"$pwd7z x -y $ideaDrop".at(ideaDir).runCheck()
   (ideaDir / "$PLUGINSDIR").removeAll()
   deleteSources()
   println("done!")
