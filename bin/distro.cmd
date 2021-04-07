@@ -499,7 +499,7 @@ def setupMac(ideaDrop: Os.Path): Unit = {
   patchImages()
   patchIdeaProperties(sireumAppDir / "Contents" / "Info.plist")
   patchVMOptions(sireumAppDir / "Contents" / "bin" / "idea.vmoptions")
-  proc"codesign --force --deep --sign - $sireumAppDir".runCheck()
+  proc"codesign --force --deep --sign - $sireumAppDir".run()
 }
 
 def setupLinux(ideaDrop: Os.Path): Unit = {
