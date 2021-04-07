@@ -434,7 +434,7 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  proc"$sireum proyek publish -n $proyekName-m2 --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
   return kekinianRepo
 }
 
