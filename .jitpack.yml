@@ -5,4 +5,4 @@ before_install:
   - export SIREUM_HOME=`pwd`
   - bin/init.sh
 install:
-  - bin/build.cmd mill-m2
+  - bin/build.cmd m2-mill
