@@ -190,7 +190,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "install", "clion.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
-    ISZ("bin", "mill.bat"),
     ISZ("bin", "sireum.bat"),
     ISZ("bin", "sireum.jar"),
     ISZ("bin", "slang-run.bat"),
@@ -210,7 +209,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "install", "clion.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
-    ISZ("bin", "mill"),
     ISZ("bin", "sireum"),
     ISZ("bin", "sireum.jar"),
     ISZ("bin", "slang-run.sh"),
@@ -226,7 +224,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "linux", "arm", "idea"),
     ISZ("bin", "linux", "arm", "java"),
     ISZ("bin", "install", "clion.cmd"),
-    ISZ("bin", "mill"),
     ISZ("bin", "sireum"),
     ISZ("bin", "sireum.jar"),
     ISZ("bin", "slang-run.sh"),
@@ -245,7 +242,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "install", "clion.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
-    ISZ("bin", "mill"),
     ISZ("bin", "sireum"),
     ISZ("bin", "sireum.jar"),
     ISZ("bin", "slang-run.sh"),
@@ -600,7 +596,7 @@ def pack(): Unit = {
   val sfx = repoDir / "distro" / s"$plat$devSuffix$sfxSuffix"
   val files: ISZ[String] =
     for (p <- distroMap.get(platform).get.map((rp: ISZ[String]) => Os.path(distroDir.name) /+ rp)) yield p.string
-  val cmd = ISZ[String]((repoDir / "bin" / platform / pwd7z.name).canon.string, "a", distro7z) ++ files
+  val cmd = ISZ[String](pwd7z.string, "a", distro7z) ++ files
 
   Os.proc(cmd).at(distroDir.up).runCheck()
   platform match {
