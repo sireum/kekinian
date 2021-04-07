@@ -54,11 +54,11 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup         | project      | fresh        | native
-        |       | tipe          | compile      | test
+        |       | tipe          | compile      | test         | mill
         |       | regen-project | regen-slang  | regen-logika | regen-air
         |       | regen-act     | regen-server | regen-cliopt | regen-cli
         |       | bloop         | m2           | jitpack      | ghpack
-        |       | cvc4          | z3                                               )*
+        |       | cvc4          | z3                                      )*
       """.render)
 }
 
@@ -256,6 +256,7 @@ def buildMill(): Unit = {
 
 
 def bloop(): Unit = {
+  buildMill()
   val bloopImport = "\n\nimport $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`"
   val buildFile = home / "build.sc"
   val old = buildFile.read
@@ -431,44 +432,10 @@ def regenCli(): Unit = {
 
 def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
-  (repository / "org" / "sireum").removeAll()
-
-  var m2s: ISZ[ISZ[String]] = for (pkg <- ISZ("macros", "library", "test"); plat <- ISZ("shared", "jvm", "js")) yield
-    ISZ("runtime", pkg, plat, "m2") // runtime
-  m2s = m2s ++ (for (pkg <- ISZ("ast", "parser", "tipe", "frontend"); plat <- ISZ("shared", "jvm" /*, "js"*/))
-    yield ISZ("slang", pkg, plat, "m2")) // slang
-  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("alir", plat, "m2")) // alir
-  m2s = m2s ++ (for (pkg <- ISZ("common", "c"); plat <- ISZ("shared", "jvm" /*, "js"*/))
-    yield ISZ("transpilers", pkg, plat, "m2")) // transpilers
-  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("logika", plat, "m2")) // logika
-  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("tools", plat, "m2"))
-  m2s = m2s ++ (for (pkg <- ISZ("air"); plat <- ISZ("shared", "jvm", "js"))
-    yield ISZ("hamr", pkg, plat, "m2")) // air
-  m2s = m2s :+ ISZ("hamr", "phantom", "m2") // phantom
-  m2s = m2s ++ (for (pkg <- ISZ("common", "act", "arsit", "art"); plat <- ISZ("shared", "jvm"))
-    yield ISZ("hamr", "codegen", pkg, plat, "m2")) // act, arsit, art
-  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("hamr", "codegen", plat, "m2"))
-  m2s = m2s :+ ISZ("proyek", "m2") // proyek
-  m2s = m2s ++ (for (plat <- ISZ("shared", "jvm" /*, "js"*/)) yield ISZ("server", plat, "m2")) // server
-  m2s = m2s :+ ISZ("cli", "m2")
-
-  println(s"Publishing local m2 ...")
-  val m2Paths: ISZ[Os.Path] =
-    for (cd <- for (m2 <- m2s) yield st"${(m2, Os.fileSep)}".render) yield home / "out" / cd
-
-  for (m2p <- m2Paths) {
-    m2p.removeAll()
-  }
-
-  Os.proc(ISZ[String](mill.string, "all") ++ (for (m2 <- m2s) yield st"${(m2, ".")}".render)).
-    at(home).errLineAction(filterCompile _).console.runCheck()
-  println("Artifacts")
-  for (m2p <- m2Paths; p <- (m2p / "dest").overlayMove(repository, F, F, _ => T, T).values) {
-    println(s"* $p")
-  }
-  println()
-
-  return repository / "org" / "sireum"
+  val kekinianRepo = repository / "org" / "sireum" / "kekinian"
+  kekinianRepo.removeAll()
+  proc"$sireum proyek publish -n $proyekName --par --sha3 --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  return kekinianRepo
 }
 
 
@@ -529,7 +496,7 @@ def project(skipBuild: B): Unit = {
 def setup(): Unit = {
   println("Setup ...")
   build(F)
-  Os.proc(ISZ(mill.string, "IVE")).at(home).errLineAction(filterCompile _).console.run()
+  proc"${homeBin / "distro.cmd"}".at(home).console.runCheck()
   project(T)
   Os.kind match {
     case Os.Kind.Win =>
@@ -565,7 +532,6 @@ if (!(home / "runtime" / "build.sc").exists) {
 
 installZ3(Os.kind)
 installCVC4(Os.kind)
-buildMill()
 
 if (Os.cliArgs.isEmpty) {
   build(F)
@@ -579,6 +545,7 @@ if (Os.cliArgs.isEmpty) {
       case string"tipe" => tipe()
       case string"compile" => compile()
       case string"test" => test()
+      case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
       case string"regen-project" => regenProject()

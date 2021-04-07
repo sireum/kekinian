@@ -319,9 +319,22 @@ Open the `hello-app` directory as a project in Sireum IVE, open the `app.scala`
 file for editing.  To run it, click on the green ► button near the definition of 
 `object app` in the editor.
 
-Note that `mill` (or `mill.bat` under Windows) is available under the `bin`
-directory of `SIREUM_HOME`.
+If you use the source distribution, `mill` (or `mill.bat` under Windows) is available 
+under the `bin` directory of `SIREUM_HOME` once you run the following:
 
+* **macOS/Linux**:
+
+  ```bash
+  bin/build.cmd mill
+  ```
+
+* **Windows**:
+
+  ```cmd
+  bin\build.cmd mill
+  ```
+
+If you use the binary distribution, you can download it from http://files.sireum.org/mill-standalone
 
 ### Sireum Kekinian Development
 
