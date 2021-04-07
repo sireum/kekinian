@@ -43,6 +43,9 @@ mill-standalone
 /resources/rh
 /distro/*.sfx
 /distro/*.exe
+/distro/config.txt
+/distro/setup.bat
+/distro/setup
 *.cmd.jar
 *.cmd.com
 /bin/win/graal
