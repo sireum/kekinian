@@ -248,6 +248,8 @@ object Cli {
     help: String,
     args: ISZ[String],
     classes: ISZ[String],
+    suffixes: ISZ[String],
+    packages: ISZ[String],
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -1978,10 +1980,10 @@ import Cli._
           |Usage: <options>* <dir> <org.name>
           |
           |Available Options:
-          |    --m2                 Local m2 repository (defaults to the user home's
-          |                           .m2${Os.fileSep}repository) (expects a path)
-          |    --version            Publication version (defaults to using git commit date
-          |                           and abbreviated hash) (expects a string)
+          |    --m2                 Local m2 repository (defaults to the user home's .m2
+          |                           directory) (expects a path)
+          |    --version            Publication version (defaults to using git commit
+          |                           date, time, and abbreviated hash) (expects a string)
           |-h, --help               Display this information
           |
           |Project Options:
@@ -2160,6 +2162,10 @@ import Cli._
           |Available Options:
           |    --classes            Specific fully-qualified test class names to run
           |                           (expects a string separated by ",")
+          |    --suffixes           Specific test class name suffixes to run (expects a
+          |                           string separated by ",")
+          |    --packages           Specific fully-qualified test package names to run
+          |                           (expects a string separated by ",")
           |-h, --help               Display this information
           |
           |Project Options:
@@ -2198,6 +2204,8 @@ import Cli._
           |                           dependencies (expects a string separated by ",")""".render
 
     var classes: ISZ[String] = ISZ[String]()
+    var suffixes: ISZ[String] = ISZ[String]()
+    var packages: ISZ[String] = ISZ[String]()
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -2224,6 +2232,18 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => classes = v
+             case _ => return None()
+           }
+         } else if (arg == "--suffixes") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => suffixes = v
+             case _ => return None()
+           }
+         } else if (arg == "--packages") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => packages = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -2319,7 +2339,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(TestOption(help, parseArguments(args, j), classes, json, name, outputDirName, project, symlink, versions, fresh, par, skipCompile, sha3, cache, sources, docs, repositories))
+    return Some(TestOption(help, parseArguments(args, j), classes, suffixes, packages, json, name, outputDirName, project, symlink, versions, fresh, par, skipCompile, sha3, cache, sources, docs, repositories))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

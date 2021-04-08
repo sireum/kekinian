@@ -395,6 +395,8 @@ object Proyek {
       dm = dm,
       javaHome = javaHome,
       classNames = o.classes,
+      suffixes = o.suffixes,
+      packageNames = o.packages,
       names = ops.ISZOps(o.args).drop(1)
     )
 

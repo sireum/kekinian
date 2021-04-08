@@ -347,14 +347,17 @@ def test(): Unit = {
   tipe()
 
   println("Testing ...")
+  val packageNames = ISZ[String](
+    "org.sireum"
+  )
   val names = ISZ[String](
     "org.sireum.lang",
     "org.sireum.logika",
     "org.sireum.server",
     "org.sireum.tools"
   )
-  val p = proc"$sireum proyek test -n $proyekName --par --sha3 ."
-  p.commands(names).at(home).console.runCheck()
+  proc"$sireum proyek test -n $proyekName --par --sha3 --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
+    at(home).console.runCheck()
   println()
 }
 
