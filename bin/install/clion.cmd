@@ -24,7 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 
-val clionVersion = "2020.3.3"
+val clionVersion = "2021.1"
 
 val url = s"https://download.jetbrains.com/cpp"
 
@@ -75,6 +75,8 @@ def mac(): Unit = {
   Os.proc(ISZ("hdiutil", "eject", dirPath.string)).runCheck()
 
   deleteSources(clionDir)
+
+  proc"codesign --force --deep --sign - $clionAppDir".run()
 
   ver.writeOver(clionVersion)
 
