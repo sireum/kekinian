@@ -37,6 +37,10 @@ mill-standalone
 /bin/linux/idea
 /bin/linux/arm/idea
 /bin/mac/idea
+/bin/win/idea-ultimate
+/bin/linux/idea-ultimate
+/bin/linux/arm/idea-ultimate
+/bin/mac/idea-ultimate
 /bin/mill
 /bin/mill.bat
 /bin/VER

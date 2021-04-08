@@ -181,6 +181,10 @@ object Sireum {
     if (platform == "mac") (homeOpt.get / "bin" / platform / "idea").list.elements.
       find(_.string.value.endsWith(".app")).get / "Contents"
     else homeOpt.get / "bin" / platform / "idea"
+  lazy val ideaUltimateDir: Os.Path =
+    if (platform == "mac") (homeOpt.get / "bin" / platform / "idea-ultimate").list.elements.
+      find(_.string.value.endsWith(".app")).get / "Contents"
+    else homeOpt.get / "bin" / platform / "idea-ultimate"
   lazy val ideaLibDir: Os.Path = ideaDir / "lib"
   lazy val ideaPluginsDir: Os.Path = ideaDir / "plugins"
   lazy val versions: Map[String, String] = {

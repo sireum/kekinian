@@ -53,12 +53,12 @@ import org.sireum._
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup         | project      | fresh        | native
-        |       | tipe          | compile      | test         | mill
-        |       | regen-project | regen-slang  | regen-logika | regen-air
-        |       | regen-act     | regen-server | regen-cliopt | regen-cli
-        |       | m2            | m2-mill      | jitpack      | ghpack
-        |       | bloop         | cvc4         | z3                       )*
+        |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
+        |       | tipe             | compile            | test         | mill
+        |       | regen-project    | regen-slang        | regen-logika | regen-air
+        |       | regen-act        | regen-server       | regen-cliopt | regen-cli
+        |       | m2               | m2-mill            | jitpack      | ghpack
+        |       | bloop            | cvc4               | z3                       )*
       """.render)
 }
 
@@ -531,20 +531,15 @@ def ghpack(): Unit = {
   }
 }
 
-def project(skipBuild: B): Unit = {
-  if (!skipBuild) {
-    build(F)
-  }
-  println("Generating IVE project ...")
-  proc"$sireum proyek ive --force .".at(home).console.runCheck()
-}
-
-
-def setup(): Unit = {
+def setup(isUltimate: B): Unit = {
   println("Setup ...")
   build(F)
-  proc"${homeBin / "distro.cmd"}".at(home).console.runCheck()
-  project(T)
+  if (isUltimate) {
+    proc"${homeBin / "distro.cmd"} --ultimate".at(home).console.runCheck()
+  } else {
+    proc"${homeBin / "distro.cmd"}".at(home).console.runCheck()
+  }
+  project(T, isUltimate)
   Os.kind match {
     case Os.Kind.Win =>
       println(s"Sireum-dev IVE can now be launched by running ${homeBin / "win" / "idea" / "bin" / "IVE.exe"}")
@@ -566,6 +561,14 @@ def setup(): Unit = {
   }
 }
 
+def project(skipBuild: B, isUltimate: B): Unit = {
+  if (!skipBuild) {
+    build(F)
+  }
+  println("Generating IVE project ...")
+  proc"$sireum proyek ive --force${if (isUltimate) " --ultimate" else ""} .".at(home).console.runCheck()
+}
+
 
 if (!(home / "runtime" / "build.sc").exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
@@ -583,8 +586,10 @@ if (Os.cliArgs.isEmpty) {
     Os.cliArgs(i) match {
       case string"fresh" => build(T)
       case string"native" => nativ()
-      case string"setup" => setup()
-      case string"project" => project(F)
+      case string"setup" => setup(F)
+      case string"setup-ultimate" => setup(T)
+      case string"project" => project(F, F)
+      case string"project-ultimate" => project(F, T)
       case string"tipe" => tipe()
       case string"compile" => compile()
       case string"test" => test()

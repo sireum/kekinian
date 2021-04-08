@@ -172,9 +172,16 @@ object Proyek {
       return code
     }
 
-    if (!Sireum.ideaDir.exists) {
-      eprintln("Sireum IVE is not installed")
-      return IDEA_NOT_FOUND
+    if (o.ultimate) {
+      if (!Sireum.ideaUltimateDir.exists) {
+        eprintln("Sireum IVE Ultimate is not installed")
+        return IDEA_NOT_FOUND
+      }
+    } else {
+      if (!Sireum.ideaDir.exists) {
+        eprintln("Sireum IVE is not installed")
+        return IDEA_NOT_FOUND
+      }
     }
 
     if (o.args.size > 1) {
@@ -218,8 +225,9 @@ object Proyek {
       javaHome = Sireum.javaHomeOpt.get,
       javaVersion = Sireum.javaVer,
       jbrVersion = Sireum.jbrVer,
-      ideaDir = Sireum.ideaDir,
-      isDev = Sireum.isDev,
+      ideaDir = if (o.ultimate) Sireum.ideaUltimateDir else Sireum.ideaDir,
+      isUltimate = o.ultimate,
+      isDev = o.ultimate || Sireum.isDev,
       force = o.force
     )
 

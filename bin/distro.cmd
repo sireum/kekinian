@@ -54,6 +54,8 @@ import org.sireum._
 
 var isDev: B = T
 var buildSfx: B = F
+var isUltimate: B = F
+val devSuffix: String = if (isDev) "-dev" else ""
 var platform: String = Os.kind match {
   case Os.Kind.Mac => "mac"
   case Os.Kind.LinuxArm => "linux/arm"
@@ -80,6 +82,17 @@ val cliArgs = Os.cliArgs
     buildSfx = T
   }
 
+  def parseUltimate(): Unit = {
+    isUltimate = T
+    isDev = T
+  }
+
+  def parseRelease(): Unit = {
+    if (!isUltimate) {
+      isDev = F
+    }
+  }
+
   def help(): Unit = {
     println(
       st"""Sireum Distro
@@ -88,7 +101,10 @@ val cliArgs = Os.cliArgs
           |
           |-p, --platform   Target platform string to build distro for
           |                   (either 'mac', 'linux', 'linux/arm', or 'win')
+          |-r               Set to release version
           |-s, --sfx        Build sfx package
+          |-u, --ultimate   Use IntelliJ Ultimate edition
+          |                   (always non-release version)
           |-h               Display this information""".render
     )
     Os.exit(0)
@@ -97,21 +113,28 @@ val cliArgs = Os.cliArgs
   while (i < cliArgs.size) {
     cliArgs(i) match {
       case string"--platform" => parsePlatform()
+      case string"--release" => parseRelease()
       case string"--sfx" => parseSfx()
+      case string"--ultimate" => parseUltimate()
       case string"-p" => parsePlatform()
+      case string"-r" => parseRelease()
       case string"-s" => parseSfx()
+      case string"-u" => parseUltimate()
       case string"-h" => help()
     }
     i = i + 1
   }
 }
 
+
 val homeBin = Os.slashDir
 val home = homeBin.up.canon
-
+val ideaDir: Os.Path = home / "bin" / platform / (if (isUltimate) "idea-ultimate" else "idea")
+val sireumAppDir: Os.Path = ideaDir / s"IVE.app"
 val delPlugins = ISZ[String]("android", "Kotlin", "smali")
 val pluginPrefix: String = "org.sireum.version.plugin."
 val versions = HashMap ++ (home / "versions.properties").properties.entries
+
 
 @strictpure def devRelVer(key: String): (String, String) =
   ops.StringOps(versions.get(key).get).split((c: C) => c === ',') match {
@@ -252,10 +275,6 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("..", "setup")
   )
 
-val devSuffix: String = if (isDev) "-dev" else ""
-val ideaDir: Os.Path = home / "bin" / platform / "idea"
-val sireumAppDir: Os.Path = ideaDir / s"IVE.app"
-
 val pluginsDir: Os.Path =
   if (platform === "mac") sireumAppDir / "Contents" / "plugins"
   else ideaDir / "plugins"
@@ -333,17 +352,18 @@ def extractPlugins(): Unit = {
 def patchIdeaProperties(p: Os.Path): Unit = {
   print(s"Patching $p ... ")
   val content = p.read
+  val ult: String = if (isUltimate) "-ult" else ""
   val newContent: String = platform match {
     case "mac" =>
       val contentOps = ops.StringOps(content)
       val i = contentOps.stringIndexOf("idea.paths.selector")
       val j = contentOps.stringIndexOfFrom("<string>", i)
       val k = contentOps.stringIndexOfFrom("</string>", j)
-      s"${contentOps.substring(0, j)}<string>SireumIVE$devSuffix${contentOps.substring(k, content.size)}"
+      s"${contentOps.substring(0, j)}<string>SireumIVE$ult$devSuffix${contentOps.substring(k, content.size)}"
     case "win" =>
-      s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\r\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\r\nidea.log.path=$${user.home}/.SireumIVE$devSuffix/log\r\nidea.plugins.path=$${user.home}/.SireumIVE$devSuffix/plugins\r\n$content"
+      s"idea.config.path=$${user.home}/.SireumIVE$ult$devSuffix/config\r\nidea.system.path=$${user.home}/.SireumIVE$ult$devSuffix/system\r\nidea.log.path=$${user.home}/.SireumIVE$ult$devSuffix/log\r\nidea.plugins.path=$${user.home}/.SireumIVE$ult$devSuffix/plugins\r\n$content"
     case _ if platform === "linux" || platform === "linux/arm" =>
-      s"idea.config.path=$${user.home}/.SireumIVE$devSuffix/config\nidea.system.path=$${user.home}/.SireumIVE$devSuffix/system\nidea.log.path=$${user.home}/.SireumIVE$devSuffix/log\nidea.plugins.path=$${user.home}/.SireumIVE$devSuffix/plugins\n$content"
+      s"idea.config.path=$${user.home}/.SireumIVE$ult$devSuffix/config\nidea.system.path=$${user.home}/.SireumIVE$ult$devSuffix/system\nidea.log.path=$${user.home}/.SireumIVE$ult$devSuffix/log\nidea.plugins.path=$${user.home}/.SireumIVE$ult$devSuffix/plugins\n$content"
   }
   p.writeOver(newContent)
   println("done!")
@@ -360,6 +380,9 @@ def patchVMOptions(p: Os.Path): Unit = {
 }
 
 def patchImages(): Unit = {
+  if (isUltimate) {
+    return
+  }
   val resourcesJar = libDir / "resources.jar"
   val distroDir = home / "resources" / "distro"
   print(s"Patching $resourcesJar ... ")
@@ -380,6 +403,9 @@ def patchImages(): Unit = {
 }
 
 def patchExe(): Unit = {
+  if (isUltimate) {
+    return
+  }
   val rhExe = "ResourceHacker.exe"
   val rhDir = home / "resources" / "rh"
   rhDir.mkdirAll()
@@ -401,6 +427,9 @@ def patchExe(): Unit = {
 }
 
 def patchIcon(): Unit = {
+  if (isUltimate) {
+    return
+  }
   val iconsPath = home / "resources" / "distro" / "icons"
   val (dirPath, srcFilename, filename): (Os.Path, String, String) = platform match {
     case string"mac" =>
@@ -612,9 +641,8 @@ def pack(): Unit = {
 }
 
 def build(): Unit = {
-  println(s"Setting up Sireum$devSuffix IVE ${platform}64 in $ideaDir ...")
-  val url: String =
-    s"https://download.jetbrains.com/idea/ideaIC-$ideaVer${ideaExtMap.get(platform).get}"
+  println(s"Setting up Sireum$devSuffix IVE $platform in $ideaDir ...")
+  val url: String = s"https://download.jetbrains.com/idea/idea${if (isUltimate) "IU" else "IC"}-$ideaVer${ideaExtMap.get(platform).get}"
   val urlOps = ops.StringOps(url)
   val filename = urlOps.substring(urlOps.lastIndexOf('/') + 1, url.size)
   val buildDir = ideaDir.up.canon

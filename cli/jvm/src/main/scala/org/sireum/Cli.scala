@@ -211,6 +211,7 @@ object Cli {
     help: String,
     args: ISZ[String],
     force: B,
+    ultimate: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -406,7 +407,7 @@ import Cli._
       println(
         st"""Sireum: A High-Assurance System Engineering Platform
             |(c) SAnToS Laboratory, Kansas State University
-            |Build yyyymmdd.sha
+            |Build 20210408.7ff5b9e*
             |
             |Available modes:
             |hamr                     HAMR Tools
@@ -1846,6 +1847,7 @@ import Cli._
           |Available Options:
           |-f, --force              Force generation of application-wide configurations
           |                           (e.g., JDK info, etc.)
+          |-u, --ultimate           Use IntelliJ Ultimate edition
           |-h, --help               Display this information
           |
           |Project Options:
@@ -1877,6 +1879,7 @@ import Cli._
           |                           dependencies (expects a string separated by ",")""".render
 
     var force: B = false
+    var ultimate: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -1899,6 +1902,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!force) }
            o match {
              case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-u" || arg == "--ultimate") {
+           val o: Option[B] = { j = j - 1; Some(!ultimate) }
+           o match {
+             case Some(v) => ultimate = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -1970,7 +1979,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IveOption(help, parseArguments(args, j), force, json, name, outputDirName, project, symlink, versions, cache, sources, docs, repositories))
+    return Some(IveOption(help, parseArguments(args, j), force, ultimate, json, name, outputDirName, project, symlink, versions, cache, sources, docs, repositories))
   }
 
   def parsePublish(args: ISZ[String], i: Z): Option[SireumTopOption] = {
