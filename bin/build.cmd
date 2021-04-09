@@ -353,9 +353,8 @@ def test(): Unit = {
   val names = ISZ[String](
     "org.sireum.lang",
     "org.sireum.logika",
-    "org.sireum.server",
     "org.sireum.tools"
-  )
+  ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
   proc"$sireum proyek test -n $proyekName --par --sha3 --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
     at(home).console.runCheck()
   println()
@@ -534,11 +533,7 @@ def ghpack(): Unit = {
 def setup(isUltimate: B): Unit = {
   println("Setup ...")
   build(F)
-  if (isUltimate) {
-    proc"${homeBin / "distro.cmd"} --ultimate".at(home).console.runCheck()
-  } else {
-    proc"${homeBin / "distro.cmd"}".at(home).console.runCheck()
-  }
+  proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else ""}".at(home).console.runCheck()
   project(T, isUltimate)
   Os.kind match {
     case Os.Kind.Win =>
