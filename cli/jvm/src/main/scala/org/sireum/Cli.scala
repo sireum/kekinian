@@ -407,7 +407,7 @@ import Cli._
       println(
         st"""Sireum: A High-Assurance System Engineering Platform
             |(c) SAnToS Laboratory, Kansas State University
-            |Build 20210408.7ff5b9e*
+            |Build yyyymmdd.sha
             |
             |Available modes:
             |hamr                     HAMR Tools
