@@ -54,11 +54,11 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
-        |       | tipe             | compile            | test         | mill
+        |       | tipe             | compile            | compile-js   | test
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
         |       | m2               | m2-mill            | jitpack      | ghpack
-        |       | bloop            | cvc4               | z3                       )*
+        |       | bloop            | cvc4               | z3           | mill      )*
       """.render)
 }
 
@@ -283,7 +283,12 @@ def build(fresh: B): Unit = {
 
   val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
   val oldCli = cli.read
-  cli.writeOver(ops.StringOps(oldCli).replaceAllLiterally("yyyymmdd.sha", buildStamp))
+  val oldCliOps = ops.StringOps(oldCli)
+  val tst = "yyyymmdd.sha"
+  if (!oldCliOps.contains("yyyymmdd.sha")) {
+    halt(s"Could not find version template $tst in $cli")
+  }
+  cli.writeOver(oldCliOps.replaceAllLiterally(tst, buildStamp))
   val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.runCheck()
   cli.writeOver(oldCli)
   if (r.exitCode == 0) {
@@ -335,10 +340,10 @@ def tipe(): Unit = {
 }
 
 
-def compile(): Unit = {
+def compile(isJs: B): Unit = {
   tipe()
   println("Compiling ...")
-  proc"$sireum proyek compile -n $proyekName --par --sha3 .".at(home).console.runCheck()
+  proc"$sireum proyek compile -n $proyekName --par --sha3${if (isJs) " --js" else ""} .".at(home).console.runCheck()
   println()
 }
 
@@ -436,7 +441,8 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  proc"$sireum proyek publish -n $proyekName-m2 --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  val org = "org.sireum.kekinian"
+  proc"$sireum proyek publish -n $proyekName --m2 ${repository.up.canon} . $org".at(home).console.runCheck()
   return kekinianRepo
 }
 
@@ -586,7 +592,8 @@ if (Os.cliArgs.isEmpty) {
       case string"project" => project(F, F)
       case string"project-ultimate" => project(F, T)
       case string"tipe" => tipe()
-      case string"compile" => compile()
+      case string"compile" => compile(F)
+      case string"compile-js" => compile(T)
       case string"test" => test()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()

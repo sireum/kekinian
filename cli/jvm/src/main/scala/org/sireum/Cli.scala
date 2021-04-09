@@ -193,6 +193,7 @@ object Cli {
     help: String,
     args: ISZ[String],
     fresh: B,
+    js: B,
     par: B,
     sha3: B,
     json: Option[String],
@@ -412,7 +413,7 @@ import Cli._
             |Available modes:
             |hamr                     HAMR Tools
             |slang                    Slang tools
-            |proyek                   Project tools
+            |proyek                   Build tools
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
@@ -1485,7 +1486,7 @@ import Cli._
   def parseProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""Sireum Proyek
+        st"""Sireum Proyek: Build Tools for Slang Projects
             |
             |Available modes:
             |assemble                 Proyek jar assembler
@@ -1694,6 +1695,7 @@ import Cli._
           |
           |Available Options:
           |-f, --fresh              Fresh compilation from a clean slate
+          |    --js                 Compile using Scala.js
           |-p, --par                Enable parallelization
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
@@ -1728,6 +1730,7 @@ import Cli._
           |                           dependencies (expects a string separated by ",")""".render
 
     var fresh: B = false
+    var js: B = false
     var par: B = false
     var sha3: B = false
     var json: Option[String] = None[String]()
@@ -1752,6 +1755,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!fresh) }
            o match {
              case Some(v) => fresh = v
+             case _ => return None()
+           }
+         } else if (arg == "--js") {
+           val o: Option[B] = { j = j - 1; Some(!js) }
+           o match {
+             case Some(v) => js = v
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
@@ -1835,7 +1844,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CompileOption(help, parseArguments(args, j), fresh, par, sha3, json, name, outputDirName, project, symlink, versions, cache, sources, docs, repositories))
+    return Some(CompileOption(help, parseArguments(args, j), fresh, js, par, sha3, json, name, outputDirName, project, symlink, versions, cache, sources, docs, repositories))
   }
 
   def parseIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2166,7 +2175,7 @@ import Cli._
     val help =
       st"""Sireum Proyek Test Runner
           |
-          |Usage: <options>* <dir> <package-name>*
+          |Usage: <options>* <dir> <root-package-name>*
           |
           |Available Options:
           |    --classes            Specific fully-qualified test class names to run

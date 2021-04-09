@@ -172,11 +172,7 @@ if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
 fi
 JAVA_NAME="Zulu JDK"
 if [[ -z ${JAVA_VERSION} ]]; then
-  if [[ "${PLATFORM}" == "linux/arm" ]]; then
-    JAVA_VERSION=$(getVersion "org.sireum.version.zulu.arm")
-  else
-    JAVA_VERSION=$(getVersion "org.sireum.version.zulu")
-  fi
+  JAVA_VERSION=$(getVersion "org.sireum.version.zulu")
 fi
 if [[ "${PLATFORM}" == "mac" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.tar.gz

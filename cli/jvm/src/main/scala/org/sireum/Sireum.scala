@@ -205,12 +205,12 @@ object Sireum {
   }
 
   lazy val (isDev, javaVer, jbrVer, scalaVer, scalacPluginVer): (B, String, String, String, String) = {
+    import project.DependencyManager._
     (Some("false") == versions.get("org.sireum.version.dev"),
-      if (Os.kind == Os.Kind.LinuxArm) versions.get("org.sireum.version.zulu.arm").get
-      else versions.get("org.sireum.version.zulu").get,
-      versions.get("org.sireum.version.jbr").get,
-      versions.get("org.scala-lang%scala-library%").get,
-      versions.get("org.sireum%%scalac-plugin%").get)
+      versions.get(javaKey).get,
+      versions.get(jbrKey).get,
+      versions.get(scalaKey).get,
+      versions.get(scalacPluginKey).get)
   }
 
   def homeFound: B = {
