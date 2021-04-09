@@ -67,6 +67,7 @@ object Proyek {
     val dm = project.DependencyManager(
       project = prj,
       versions = versions,
+      isJs = F,
       withSource = F,
       withDoc = F,
       javaHome = Sireum.javaHomeOpt.get,
@@ -144,6 +145,7 @@ object Proyek {
     val dm = project.DependencyManager(
       project = prj,
       versions = versions,
+      isJs = o.js,
       withSource = F,
       withDoc = F,
       javaHome = Sireum.javaHomeOpt.get,
@@ -213,6 +215,7 @@ object Proyek {
     val dm = project.DependencyManager(
       project = prj,
       versions = versions,
+      isJs = F,
       withSource = o.sources,
       withDoc = o.docs,
       javaHome = Sireum.javaHomeOpt.get,
@@ -287,9 +290,10 @@ object Proyek {
 
     println()
 
-    val dm = project.DependencyManager(
+    val dms: ISZ[project.DependencyManager] = for (isJs <- ISZ(F, T)) yield project.DependencyManager(
       project = prj,
       versions = versions,
+      isJs = isJs,
       withSource = F,
       withDoc = F,
       javaHome = Sireum.javaHomeOpt.get,
@@ -302,15 +306,15 @@ object Proyek {
     var r: Z = 0
 
     if (!o.skipCompile) {
-      for (isJs <- ISZ(F, T) if r == 0) {
-        println(s"Compiling ${if (isJs) "Javascript" else "JVM"} target ..")
+      for (dm<- dms if r == 0) {
+        println(s"Compiling ${if (dm.isJs) "Javascript" else "JVM"} target ..")
         r = proyek.Proyek.compile(
           path = path,
           outDirName = o.outputDirName.get,
           project = prj,
           projectName = o.name.getOrElse(path.canon.name),
           dm = dm,
-          isJs = isJs,
+          isJs = dm.isJs,
           followSymLink = o.symlink,
           fresh = o.fresh,
           par = o.par,
@@ -319,15 +323,15 @@ object Proyek {
       }
     }
 
-    for (isJs <- ISZ(F, T) if r == 0) {
-      println(s"Publishing ${if (isJs) "Javascript" else "JVM"} target ..")
+    for (dm <- dms if r == 0) {
+      println(s"Publishing ${if (dm.isJs) "Javascript" else "JVM"} target ..")
       r = proyek.Proyek.publish(
         path = path,
         outDirName = o.outputDirName.get,
         project = prj,
         projectName = o.name.getOrElse(path.canon.name),
         dm = dm,
-        isJs = isJs,
+        isJs = dm.isJs,
         orgName = orgName,
         m2Repo = m2Repo,
         version = version,
@@ -365,6 +369,7 @@ object Proyek {
     val dm = project.DependencyManager(
       project = prj,
       versions = versions,
+      isJs = F,
       withSource = F,
       withDoc = F,
       javaHome = Sireum.javaHomeOpt.get,
