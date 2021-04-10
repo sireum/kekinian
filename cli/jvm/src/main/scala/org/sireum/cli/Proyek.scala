@@ -307,7 +307,8 @@ object Proyek {
 
     if (!o.skipCompile) {
       for (dm<- dms if r == 0) {
-        println(s"Compiling ${if (dm.isJs) "Javascript" else "JVM"} target ..")
+        println(s"Compiling for ${if (dm.isJs) "Javascript" else "JVM"} target ...")
+        println()
         r = proyek.Proyek.compile(
           path = path,
           outDirName = o.outputDirName.get,
@@ -324,7 +325,8 @@ object Proyek {
     }
 
     for (dm <- dms if r == 0) {
-      println(s"Publishing ${if (dm.isJs) "Javascript" else "JVM"} target ..")
+      println(s"Publishing for ${if (dm.isJs) "Javascript" else "JVM"} target ...")
+      println()
       r = proyek.Proyek.publish(
         path = path,
         outDirName = o.outputDirName.get,
