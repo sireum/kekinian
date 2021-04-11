@@ -27,6 +27,11 @@ if ($Env:SIREUM_CACHE) {
   $cache_dir = "~\Downloads\sireum"
 }
 New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
+if ($Env:SIREUM_INIT_V) {
+  $init_v = "$Env:SIREUM_INIT_V"
+} else {
+  $init_v = "latest"
+}
 
 $sireum_home = "$PSScriptRoot\.."
 
@@ -36,7 +41,7 @@ $sireum_bat = "$sireum_home\bin\sireum.bat"
 $versions_properties = "$sireum_home\versions.properties"
 if (!(Test-Path $sireum_jar)) {
   "Please wait while downloading Sireum ..."
-  Invoke-WebRequest -Uri "https://github.com/sireum/init/releases/download/latest/sireum.jar" -OutFile "$sireum_jar"
+  Invoke-WebRequest -Uri "https://github.com/sireum/init/releases/download/$init_v/sireum.jar" -OutFile "$sireum_jar"
   if (!(Test-Path $sireum_bat)) {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum.bat" -OutFile "$sireum_bat"
   }

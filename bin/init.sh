@@ -93,6 +93,7 @@ download() {
 
 : ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
 mkdir -p ${SIREUM_CACHE}
+: ${SIREUM_INIT_V:=latest}
 
 #
 # Sireum
@@ -101,7 +102,7 @@ SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
-  $(download bin/sireum.jar https://github.com/sireum/init/releases/download/latest/sireum.jar)
+  $(download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar)
   chmod +x bin/sireum.jar
   if [[ ! -f bin/sireum ]]; then
     $(download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum)
