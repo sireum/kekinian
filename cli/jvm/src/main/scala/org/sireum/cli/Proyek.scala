@@ -30,36 +30,97 @@ object Proyek {
   val HOME_NOT_FOUND: Z = -1
   val JAVA_OR_SCALA_NOT_FOUND: Z = -2
   val IDEA_NOT_FOUND: Z = -3
-  val INVALID_PATH_ARG: Z = -4
-  val INVALID_PROJECT: Z = -5
-  val INVALID_VERSIONS: Z = -6
-  val INVALID_PUBLISH_DEP: Z = -7
+  val INVALID_ARGS: Z = -4
+  val INVALID_PATH_ARG: Z = -5
+  val INVALID_PROJECT: Z = -6
+  val INVALID_VERSIONS: Z = -7
+  val INVALID_PUBLISH_DEP: Z = -8
+
+  def check(jsonOpt: Option[String],
+            projectOpt: Option[String],
+            minArgsOpt: Option[Z],
+            maxArgsOpt: Option[Z],
+            args: ISZ[String],
+            versionFiles: ISZ[String],
+            slice: ISZ[String]): (B, Z, Os.Path, project.Project, HashSMap[String, String]) = {
+    var path = Os.cwd
+    var prj = project.Project.empty
+    var versions = HashSMap.empty[String, String]
+
+    def ret(code: Z): (B, Z, Os.Path, project.Project, HashSMap[String, String]) = {
+      return (F, code, path, prj, versions)
+    }
+
+    def ret2(h: B, code: Z): (B, Z, Os.Path, project.Project, HashSMap[String, String]) = {
+      return (h, code, path, prj, versions)
+    }
+
+    if (args.size == 0) {
+      return ret2(T, 0)
+    }
+
+    if (!Sireum.homeFound) {
+      return ret(HOME_NOT_FOUND)
+    }
+
+    if (!(Sireum.javaFound && Sireum.scalaFound)) {
+      return ret(JAVA_OR_SCALA_NOT_FOUND)
+    }
+
+    if (jsonOpt.nonEmpty && projectOpt.nonEmpty) {
+      eprintln("Cannot specify both the 'json' and the 'project' options")
+      return ret(INVALID_PROJECT)
+    }
+
+    if (minArgsOpt.nonEmpty && minArgsOpt == maxArgsOpt) {
+      val size = minArgsOpt.get
+      if (args.size != size) {
+        eprintln(s"Expecting $size argument(s), but found ${args.size}")
+        eprintln()
+        return ret2(T, INVALID_ARGS)
+      }
+    } else {
+      minArgsOpt match {
+        case Some(min) if args.size < min =>
+          eprintln(s"Expecting at least $min argument(s), but found ${args.size}")
+          eprintln()
+          return ret2(T, INVALID_ARGS)
+        case _ =>
+      }
+      maxArgsOpt match {
+        case Some(max) if args.size > max =>
+          eprintln(s"Expecting at most $max argument(s), but found ${args.size}")
+          eprintln()
+          return ret2(T, INVALID_ARGS)
+        case _ =>
+      }
+    }
+
+    path = getPath(args) match {
+      case Some(p) => p
+      case _ => return ret(INVALID_PATH_ARG)
+    }
+
+    prj = getProject(path, jsonOpt, projectOpt) match {
+      case Some(pr) => pr.slice(slice)
+      case _ => return ret(INVALID_PROJECT)
+    }
+
+    versions = getVersions(path, versionFiles) match {
+      case Some(vs) => vs
+      case _ => return ret(INVALID_VERSIONS)
+    }
+
+    return ret(0)
+  }
 
   def assemble(o: Cli.AssembleOption): Z = {
-    val code = checkRequirements(o.json, o.project)
-    if (code != 0) {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
       return code
-    }
-
-    if (o.args.size > 1) {
-      eprintln(s"Expecting only at most one argument, but found ${o.args.size}")
-      return INVALID_PATH_ARG
-    }
-
-    val path: Os.Path = getPath(o.args, o.help) match {
-      case (T, Some(p)) => p
-      case (T, None()) => return 0
-      case (_, _) => return INVALID_PATH_ARG
-    }
-
-    val prj: project.Project = getProject(path, o.json, o.project) match {
-      case Some(pr) => pr
-      case _ => return INVALID_PROJECT
-    }
-
-    val versions: HashSMap[String, String] = getVersions(path, o.versions) match {
-      case Some(vs) => vs
-      case _ => return INVALID_VERSIONS
+    } else if (code != 0) {
+      return code
     }
 
     println()
@@ -86,6 +147,8 @@ object Proyek {
         project = prj,
         projectName = o.name.getOrElse(path.canon.name),
         dm = dm,
+        javacOptions = o.javac,
+        scalacOptions = o.scalac,
         isJs = F,
         followSymLink = o.symlink,
         fresh = o.fresh,
@@ -114,30 +177,12 @@ object Proyek {
   }
 
   def compile(o: Cli.CompileOption): Z = {
-    val code = checkRequirements(o.json, o.project)
-    if (code != 0) {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
       return code
-    }
-
-    if (o.args.size > 1) {
-      eprintln(s"Expecting only at most one argument, but found ${o.args.size}")
-      return INVALID_PATH_ARG
-    }
-
-    val path: Os.Path = getPath(o.args, o.help) match {
-      case (T, Some(p)) => p
-      case (T, None()) => return 0
-      case (_, _) => return INVALID_PATH_ARG
-    }
-
-    val prj: project.Project = getProject(path, o.json, o.project) match {
-      case Some(pr) => pr
-      case _ => return INVALID_PROJECT
-    }
-
-    val versions: HashSMap[String, String] = getVersions(path, o.versions) match {
-      case Some(vs) => vs
-      case _ => return INVALID_VERSIONS
+    } else if (code != 0) {
+      return code
     }
 
     println()
@@ -155,12 +200,14 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val r =  proyek.Proyek.compile(
+    val r = proyek.Proyek.compile(
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
+      javacOptions = o.javac,
+      scalacOptions = o.scalac,
       isJs = o.js,
       followSymLink = o.symlink,
       fresh = o.fresh,
@@ -172,8 +219,11 @@ object Proyek {
   }
 
   def ive(o: Cli.IveOption): Z = {
-    val code = checkRequirements(o.json, o.project)
-    if (code != 0) {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
       return code
     }
 
@@ -187,27 +237,6 @@ object Proyek {
         eprintln("Sireum IVE is not installed")
         return IDEA_NOT_FOUND
       }
-    }
-
-    if (o.args.size > 1) {
-      eprintln(s"Expecting only at most one argument, but found ${o.args.size}")
-      return INVALID_PATH_ARG
-    }
-
-    val path: Os.Path = getPath(o.args, o.help) match {
-      case (T, Some(p)) => p
-      case (T, None()) => return 0
-      case (_, _) => return INVALID_PATH_ARG
-    }
-
-    val prj: project.Project = getProject(path, o.json, o.project) match {
-      case Some(pr) => pr
-      case _ => return INVALID_PROJECT
-    }
-
-    val versions: HashSMap[String, String] = getVersions(path, o.versions) match {
-      case Some(vs) => vs
-      case _ => return INVALID_VERSIONS
     }
 
     println()
@@ -242,29 +271,12 @@ object Proyek {
   }
 
   def publish(o: Cli.PublishOption): Z = {
-    val code = checkRequirements(o.json, o.project)
-    if (code != 0) {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(2), Some(2), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
       return code
-    }
-
-    if (o.args.size != 2) {
-      eprintln(s"Expecting 2 arguments, but found ${o.args.size}")
-    }
-
-    val path: Os.Path = getPath(o.args, o.help) match {
-      case (T, Some(p)) => p
-      case (T, None()) => return 0
-      case (_, _) => return INVALID_PATH_ARG
-    }
-
-    val prj: project.Project = getProject(path, o.json, o.project) match {
-      case Some(pr) => pr
-      case _ => return INVALID_PROJECT
-    }
-
-    val versions: HashSMap[String, String] = getVersions(path, o.versions) match {
-      case Some(vs) => vs
-      case _ => return INVALID_VERSIONS
+    } else if (code != 0) {
+      return code
     }
 
     val m2Repo: Os.Path = o.m2 match {
@@ -306,8 +318,8 @@ object Proyek {
     var r: Z = 0
 
     if (!o.skipCompile) {
-      for (dm<- dms if r == 0) {
-        println(s"Compiling for ${if (dm.isJs) "Javascript" else "JVM"} target ...")
+      for (dm <- dms if r == 0) {
+        println(s"Compiling for the ${if (dm.isJs) "Javascript" else "JVM"} target ...")
         println()
         r = proyek.Proyek.compile(
           path = path,
@@ -315,6 +327,8 @@ object Proyek {
           project = prj,
           projectName = o.name.getOrElse(path.canon.name),
           dm = dm,
+          javacOptions = o.javac,
+          scalacOptions = o.scalac,
           isJs = dm.isJs,
           followSymLink = o.symlink,
           fresh = o.fresh,
@@ -325,7 +339,7 @@ object Proyek {
     }
 
     for (dm <- dms if r == 0) {
-      println(s"Publishing for ${if (dm.isJs) "Javascript" else "JVM"} target ...")
+      println(s"Publishing for the ${if (dm.isJs) "Javascript" else "JVM"} target ...")
       println()
       r = proyek.Proyek.publish(
         path = path,
@@ -339,31 +353,19 @@ object Proyek {
         version = version,
         symlink = o.symlink
       )
+      println()
     }
 
     return r
   }
 
-  def test(o: Cli.TestOption): Z = {
-    val code = checkRequirements(o.json, o.project)
-    if (code != 0) {
+  def run(o: Cli.RunOption): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(2), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
       return code
-    }
-
-    val path: Os.Path = getPath(o.args, o.help) match {
-      case (T, Some(p)) => p
-      case (T, None()) => return 0
-      case (_, _) => return INVALID_PATH_ARG
-    }
-
-    val prj: project.Project = getProject(path, o.json, o.project) match {
-      case Some(pr) => pr
-      case _ => return INVALID_PROJECT
-    }
-
-    val versions: HashSMap[String, String] = getVersions(path, o.versions) match {
-      case Some(vs) => vs
-      case _ => return INVALID_VERSIONS
+    } else if (code != 0) {
+      return code
     }
 
     println()
@@ -390,6 +392,70 @@ object Proyek {
         project = prj,
         projectName = o.name.getOrElse(path.canon.name),
         dm = dm,
+        javacOptions = o.javac,
+        scalacOptions = o.scalac,
+        isJs = F,
+        followSymLink = o.symlink,
+        fresh = o.fresh,
+        par = o.par,
+        sha3 = o.sha3
+      )
+    }
+
+    if (r != 0) {
+      return r
+    }
+
+    r = proyek.Proyek.run(
+      path = path,
+      outDirName = o.outputDirName.get,
+      project = prj,
+      projectName = o.name.getOrElse(path.canon.name),
+      dm = dm,
+      javaOptions = o.java,
+      dir = Os.path(o.dir.getOrElseEager(Os.cwd.string)),
+      className = o.args(1),
+      args = ops.ISZOps(o.args).drop(2)
+    )
+
+    return r
+  }
+
+  def test(o: Cli.TestOption): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    println()
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = F,
+      withSource = F,
+      withDoc = F,
+      javaHome = Sireum.javaHomeOpt.get,
+      scalaHome = Sireum.scalaHomeOpt.get,
+      sireumJar = Sireum.sireumJar,
+      scalacPlugin = Sireum.scalacPluginJar,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    var r: Z = 0
+
+    if (!o.skipCompile) {
+      r = proyek.Proyek.compile(
+        path = path,
+        outDirName = o.outputDirName.get,
+        project = prj,
+        projectName = o.name.getOrElse(path.canon.name),
+        dm = dm,
+        javacOptions = o.javac,
+        scalacOptions = o.scalac,
         isJs = F,
         followSymLink = o.symlink,
         fresh = o.fresh,
@@ -408,6 +474,7 @@ object Proyek {
       project = prj,
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
+      javaOptions = o.java,
       classNames = o.classes,
       suffixes = o.suffixes,
       packageNames = o.packages,
@@ -417,37 +484,21 @@ object Proyek {
     return r
   }
 
-  def checkRequirements(jsonOpt: Option[String], projectOpt: Option[String]): Z = {
-    if (!Sireum.homeFound) return HOME_NOT_FOUND
-    if (!(Sireum.javaFound && Sireum.scalaFound)) return JAVA_OR_SCALA_NOT_FOUND
-
-    if (jsonOpt.nonEmpty && projectOpt.nonEmpty) {
-      eprintln("Cannot specify both the 'json' and the 'project' options")
-      return INVALID_PROJECT
+  def getPath(args: ISZ[String]): Option[Os.Path] = {
+    val p = args(0)
+    val d = Os.path(p)
+    if (d.exists && !d.isDir) {
+      eprintln(s"$p is not a directory")
+      return None()
     }
-
-    return 0
-  }
-
-  def getPath(args: ISZ[String], help: String): (B, Option[Os.Path]) = {
-    if (args.size >= 1) {
-      val p = args(0)
-      val d = Os.path(p)
-      if (d.exists && !d.isDir) {
-        eprintln(s"$p is not a directory")
-        return (F, None())
-      }
-      return (T, Some(d.canon))
-    } else {
-      println(help)
-      return (T, None())
-    }
+    return Some(d.canon)
   }
 
   def getProject(path: Os.Path, jsonOpt: Option[String], projectOpt: Option[String]): Option[project.Project] = {
     var prj = project.Project.empty
     var loaded = F
-    ;{
+
+    {
       jsonOpt match {
         case Some(p) =>
           val f = Os.path(p)
@@ -467,6 +518,7 @@ object Proyek {
         case _ =>
       }
     }
+
     if (!loaded) {
       val f: Os.Path = projectOpt match {
         case Some(p) => Os.path(p)
@@ -500,14 +552,28 @@ object Proyek {
         return None()
       }
     }
-    val definedModuleIds: ISZ[String] = for (m <- prj.modules.values) yield m.id
-    for (m <- prj.modules.values) {
-      val diff = m.deps -- definedModuleIds
-      if (diff.nonEmpty) {
-        eprintln(st"Module ${m.id} depends on undefined modules: ${(diff, ", ")}".render)
-        return None()
+
+    val openDeps = prj.openDeps
+    if (openDeps.nonEmpty) {
+      for (openDep <- openDeps.entries) {
+        val (mid, deps) = openDep
+        eprintln(st"Module $mid depends on undefined modules: ${(deps, ", ")}".render)
       }
+      return None()
     }
+
+    val illTargets = prj.illTargets
+    if (illTargets.nonEmpty) {
+      for (illTarget <- illTargets.entries) {
+        val mid = illTarget._1
+        for (illTargetDep <- illTarget._2.entries) {
+          val (mDep, targets) = illTargetDep
+          eprintln(st"Module $mid depends on undefined target(s) of module $mDep: ${(targets, ", ")}".render)
+        }
+      }
+      return None()
+    }
+
     return Some(prj)
   }
 
@@ -529,4 +595,5 @@ object Proyek {
     }
     return Some(props)
   }
+
 }

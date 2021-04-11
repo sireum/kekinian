@@ -54,6 +54,7 @@ object Sireum {
           case Some(o: Cli.AssembleOption) => cli.Proyek.assemble(o).toInt
           case Some(o: Cli.CompileOption) => cli.Proyek.compile(o).toInt
           case Some(o: Cli.PublishOption) => cli.Proyek.publish(o).toInt
+          case Some(o: Cli.RunOption) => cli.Proyek.run(o).toInt
           case Some(o: Cli.TestOption) => cli.Proyek.test(o).toInt
           case Some(_: Cli.HelpOption) => 0
           case _ => -1
