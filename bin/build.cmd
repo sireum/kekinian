@@ -54,10 +54,10 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
-        |       | tipe             | compile            | compile-js   | test
+        |       | tipe             | compile[-js]       | test
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
-        |       | m2               | m2-mill            | jitpack      | ghpack
+        |       | m2[-mill]        | jitpack            | ghpack
         |       | bloop            | cvc4               | z3           | mill      )*
       """.render)
 }
@@ -289,7 +289,7 @@ def build(fresh: B): Unit = {
     halt(s"Could not find version template $tst in $cli")
   }
   cli.writeOver(oldCliOps.replaceAllLiterally(tst, buildStamp))
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.runCheck()
+  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
   cli.writeOver(oldCli)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
@@ -441,8 +441,7 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  val org = "org.sireum.kekinian"
-  proc"$sireum proyek publish -n $proyekName --m2 ${repository.up.canon} . $org".at(home).console.runCheck()
+  proc"$sireum proyek publish -n $proyekName --par --sha3 --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
   return kekinianRepo
 }
 
