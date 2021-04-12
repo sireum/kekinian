@@ -106,6 +106,8 @@ object Sireum {
 
   lazy val version: String = $internal.Macro.version
 
+  lazy val commitHash: String = $internal.Macro.commitHash
+
   lazy val initInfo: Init.Info = Init.info(version, versions)
 
   lazy val homeOpt: Option[Os.Path] = {

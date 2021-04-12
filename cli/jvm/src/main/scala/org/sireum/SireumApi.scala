@@ -30,6 +30,7 @@ import org.sireum._
 
 @ext("Sireum") object SireumApi {
   def version: String = $
+  def commitHash: String = $
   def platform: String = $
   def isNative: B = $
   def initInfo: Init.Info = $

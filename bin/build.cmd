@@ -272,25 +272,7 @@ def bloop(): Unit = {
 def build(fresh: B): Unit = {
   println("Building ...")
 
-  def buildStamp: String = {
-    val rStatus = Os.proc(ISZ("git", "status", "--porcelain")).at(home).run()
-    if (rStatus.exitCode != 0) {
-      return "n/a"
-    }
-    val r = ops.StringOps(Os.proc(ISZ("git", "log", "-n", "1", "--date=format:%Y%m%d", "--pretty=format:%cd.%h")).at(home).runCheck().out).trim
-    return if (ops.StringOps(rStatus.out).trim === "") r else s"$r*"
-  }
-
-  val cli = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Cli.scala"
-  val oldCli = cli.read
-  val oldCliOps = ops.StringOps(oldCli)
-  val tst = "yyyymmdd.sha"
-  if (!oldCliOps.contains("yyyymmdd.sha")) {
-    halt(s"Could not find version template $tst in $cli")
-  }
-  cli.writeOver(oldCliOps.replaceAllLiterally(tst, buildStamp))
   val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
-  cli.writeOver(oldCli)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
   } else {

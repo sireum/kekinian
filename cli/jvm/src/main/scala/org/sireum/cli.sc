@@ -56,7 +56,7 @@ val main = Group(
   header =
     st"""Sireum: A High-Assurance System Engineering Platform
         |(c) SAnToS Laboratory, Kansas State University
-        |Build yyyymmdd.sha""".render,
+        |Build $${SireumApi.version}""".render,
   unlisted = F,
   subs = ISZ(
     hamr,
