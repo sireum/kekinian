@@ -581,10 +581,13 @@ object Proyek {
     val files: ISZ[Os.Path] = if (versions.nonEmpty) {
       for (v <- versions) yield Os.path(v)
     } else {
-      ISZ(path / "versions.properties")
+      val f = path / "versions.properties"
+      if (f.exists) ISZ(f) else ISZ()
     }
 
     var props = HashSMap.empty[String, String]
+    props = props + "org.sireum.kekinian%%library%" ~> ops.StringOps(SireumApi.commitHash).substring(0, 10)
+    props = props ++ SireumApi.versions.entries
     for (f <- files) {
       if (!f.isFile) {
         eprintln(s"$f is not a file")
