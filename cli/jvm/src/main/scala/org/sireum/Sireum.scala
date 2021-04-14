@@ -26,8 +26,8 @@
 package org.sireum
 
 import java.io.File
-
 import org.sireum.message.Reporter
+import org.sireum.project.DependencyManager
 
 object Sireum {
 
@@ -208,6 +208,7 @@ object Sireum {
     for (key <- p.keys().asScala) {
       r = r + key.toString ~> p.get(key).toString
     }
+    r = r + DependencyManager.libraryKey ~> commitHash.value.substring(0, 10)
     r
   }
 

@@ -591,7 +591,6 @@ object Proyek {
     }
 
     var props = HashSMap.empty[String, String]
-    props = props + project.DependencyManager.libraryKey ~> ops.StringOps(SireumApi.commitHash).substring(0, 10)
     props = props ++ SireumApi.versions.entries
     for (f <- files) {
       if (!f.isFile) {
