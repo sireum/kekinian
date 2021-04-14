@@ -54,11 +54,11 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
-        |       | tipe             | compile[-js]       | test
+        |       | tipe             | compile[-js]       | test         | proyek-example
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
         |       | m2[-mill]        | jitpack            | ghpack
-        |       | bloop            | cvc4               | z3           | mill      )*
+        |       | bloop            | cvc4               | z3           | mill           )*
       """.render)
 }
 
@@ -551,6 +551,11 @@ def project(skipBuild: B, isUltimate: B): Unit = {
   proc"$sireum proyek ive --force${if (isUltimate) " --ultimate" else ""} .".at(home).console.runCheck()
 }
 
+def proyekExample(): Unit = {
+  val out = home / "out"
+  proc"git clone https://github.com/sireum/proyek-example".at(out).run()
+  proc"$sireum proyek compile . ".at(out / "proyek-example").timeout(1000).run()
+}
 
 if (!(home / "runtime" / "build.sc").exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
@@ -576,6 +581,7 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
       case string"test" => test()
+      case string"proyek-example" => proyekExample()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
