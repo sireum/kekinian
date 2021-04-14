@@ -33,8 +33,12 @@ object Sireum {
 
   def main(args: Array[Predef.String]): Unit = {
     args match {
-      case Array("-v") | Array("--version") =>
+      case Array("-v") =>
         println(s"Sireum v${$internal.Macro.version}${if (isNative) " (native)" else ""}")
+      case Array("--version") =>
+        println(s"Sireum v${$internal.Macro.version}${if (isNative) " (native)" else ""}")
+        println()
+        println(versions)
       case _ =>
         System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
           case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
