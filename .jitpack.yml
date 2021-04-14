@@ -2,7 +2,5 @@ jdk:
   - oraclejdk8
 before_install:
   - export SIREUM_HOME=`pwd`
-  - bin/build.cmd
 install:
-  - rm -fR out/sireum-proyek/assemble
   - bin/build.cmd m2
