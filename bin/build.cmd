@@ -49,6 +49,7 @@ exit /B %errorlevel%
 // #Sireum
 
 import org.sireum._
+import org.sireum.project.DependencyManager
 
 def usage(): Unit = {
   println(
@@ -431,7 +432,17 @@ def m2Lib(): Unit = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  def version: String = {
+    for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c === '\n')) {
+      val lineOps = ops.StringOps(line)
+      if (lineOps.contains(DependencyManager.libraryKey)) {
+        val i = lineOps.stringIndexOf("->")
+        return ops.StringOps(lineOps.substring(i + 2, line.size)).trim
+      }
+    }
+    halt("Could not detect Slang library version")
+  }
+  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} --version $version . org.sireum.kekinian".at(home).console.runCheck()
 }
 
 def jitpack(): Unit = {
