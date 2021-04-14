@@ -49,7 +49,7 @@ jobs:
           .ci/linux-native.sh
           git clone https://github.com/sireum/proyek-example
           cd proyek-example
-          ../bin/sireum proyek compile .
+          ../bin/sireum proyek compile . && true
 
   ci-mac:
     runs-on: macOS-latest
