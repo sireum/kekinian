@@ -47,6 +47,9 @@ jobs:
           git submodule update --init --recursive
           .ci/build.sh test
           .ci/linux-native.sh
+          git clone https://github.com/sireum/proyek-example
+          cd proyek-example
+          ../bin/sireum proyek compile .
 
   ci-mac:
     runs-on: macOS-latest
