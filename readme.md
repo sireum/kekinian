@@ -249,92 +249,9 @@ to experiment with several examples designed to highlight various Slang language
 
 https://github.com/sireum/slang-by-examples
 
-## Using Sireum IVE
+## Using Sireum 
 
-### Slang Script Example Project
-
-To generate a "hello world" Slang script project in the current directory
-and launch Sireum IVE:
-
-* **macOS**: 
-
-  ```bash
-  # Generates ./hello project directory with ./hello/src/script.sc
-  ${SIREUM_HOME}/bin/sireum tools ivegen .
-  open ${SIREUM_HOME}/bin/mac/idea/IVE.app
-  ```
-
-* **Linux**:
-
-  ```bash
-  # Generates ./hello project directory with ./hello/src/script.sc
-  ${SIREUM_HOME}/bin/sireum tools ivegen .
-  ${SIREUM_HOME}/bin/linux/idea/bin/IVE.sh
-  ```
-
-* **Windows**:
-
-  ```cmd
-  REM Generates .\hello project directory with .\hello\src\script.sc
-  %SIREUM_HOME%\bin\sireum.bat tools ivegen . 
-  cmd /C %SIREUM_HOME%\bin\win\idea\bin\IVE.exe
-  ```
-  
-Once Sireum IVE is running, open the `hello` directory as a project,
-then open the `script.sc` file for editing.
-(When asked to add `Ammonite` dependencies, choose `Ignore` for now; you can add
-the dependencies but it might take a while to download the packages.)
-
-To run the script, click on the green ► button at the top-left part of the editor
-(or click on the green ► button on the right side of "Run script.sc" at
-the top-right part of the window).
-
-### Slang App Example [Mill](https://www.lihaoyi.com/mill/) Project
-
-To generate a "hello world" Slang app project in the current directory
-and launch Sireum IVE:
-
-* **macOS**: 
-
-  ```bash
-  # Generates ./hello-app project directory with ./hello-app/hello-app/src/app.scala
-  ${SIREUM_HOME}/bin/sireum tools ivegen -m mill -n hello-app .
-  ```
-
-* **Linux**:
-
-  ```bash
-  # Generates ./hello-app project directory with ./hello-app/hello-app/src/app.scala
-  ${SIREUM_HOME}/bin/sireum tools ivegen -m mill -n hello-app .
-  ```
-
-* **Windows**:
-
-  ```cmd
-  REM Generates .\hello-app project directory with .\hello-app\hello-app\src\app.scala
-  %SIREUM_HOME%\bin\sireum.bat tools ivegen -m mill -n hello-app . 
-  ```
-  
-Open the `hello-app` directory as a project in Sireum IVE, open the `app.scala` 
-file for editing.  To run it, click on the green ► button near the definition of 
-`object app` in the editor.
-
-If you use the source distribution, `mill` (or `mill.bat` under Windows) is available 
-under the `bin` directory of `SIREUM_HOME` once you run the following:
-
-* **macOS/Linux**:
-
-  ```bash
-  bin/build.cmd mill
-  ```
-
-* **Windows**:
-
-  ```cmd
-  bin\build.cmd mill
-  ```
-
-If you use the binary distribution, you can download it from http://files.sireum.org/mill-standalone
+Please read the quick tutorial at: https://github.com/sireum/proyek-example
 
 ### Sireum Kekinian Development
 
