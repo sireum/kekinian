@@ -553,8 +553,11 @@ def project(skipBuild: B, isUltimate: B): Unit = {
 
 def proyekExample(): Unit = {
   val out = home / "out"
-  proc"git clone https://github.com/sireum/proyek-example".at(out).run()
-  proc"$sireum proyek compile . ".at(out / "proyek-example").timeout(1000).run()
+  val pe = out / "proyek-example"
+  pe.removeAll()
+  out.mkdirAll()
+  proc"git clone https://github.com/sireum/proyek-example".at(out).console.run()
+  proc"$sireum proyek compile .".at(pe).timeout(60000).console.run()
 }
 
 if (!(home / "runtime" / "build.sc").exists) {
