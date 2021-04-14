@@ -180,24 +180,6 @@ def build() = T.command {
   os.copy(p, jar, replaceExisting = true, copyAttributes = true)
 }
 
-def IVE(platforms: String = currPlatform, isDev: Boolean = true) = T.command {
-  println(s"Using cache at ${distro.distro.cacheDir}")
-  for (platform <- platforms.split(',')) {
-    require((platform == "mac") == scala.util.Properties.isMac, "Cannot setup macOS IVE on non-mac")
-    distro.build(platform.trim, isDev, sfx = false, clone = false)
-  }
-}
-
-
-def Distro(isDev: Boolean = true, platforms: String = currPlatform, clone: Boolean = true) = T.command {
-  build()()
-  println(s"Using cache at ${distro.distro.cacheDir}")
-  for (platform <- platforms.split(',')) {
-    require((platform != "mac") || scala.util.Properties.isMac, "Cannot build macOS distro on non-mac")
-    distro.build(platform.trim, isDev, sfx = true, clone = clone)
-  }
-}
-
 
 def jitPack(owner: String, repo: String, lib: String = "", hash: String = "") = T.command {
   if ("" == hash) org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib)
