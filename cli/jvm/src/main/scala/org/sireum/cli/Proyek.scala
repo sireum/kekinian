@@ -153,7 +153,8 @@ object Proyek {
         followSymLink = o.symlink,
         fresh = o.fresh,
         par = o.par,
-        sha3 = o.sha3
+        sha3 = o.sha3,
+        ignoreRuntime = o.ignoreRuntime
       )
     }
 
@@ -212,7 +213,8 @@ object Proyek {
       followSymLink = o.symlink,
       fresh = o.fresh,
       par = o.par,
-      sha3 = o.sha3
+      sha3 = o.sha3,
+      ignoreRuntime = o.ignoreRuntime
     )
 
     return r
@@ -333,7 +335,8 @@ object Proyek {
           followSymLink = o.symlink,
           fresh = o.fresh,
           par = o.par,
-          sha3 = o.sha3
+          sha3 = o.sha3,
+          ignoreRuntime = o.ignoreRuntime
         )
       }
     }
@@ -398,7 +401,8 @@ object Proyek {
         followSymLink = o.symlink,
         fresh = o.fresh,
         par = o.par,
-        sha3 = o.sha3
+        sha3 = o.sha3,
+        ignoreRuntime = o.ignoreRuntime
       )
     }
 
@@ -460,7 +464,8 @@ object Proyek {
         followSymLink = o.symlink,
         fresh = o.fresh,
         par = o.par,
-        sha3 = o.sha3
+        sha3 = o.sha3,
+        ignoreRuntime = o.ignoreRuntime
       )
     }
 
@@ -586,7 +591,7 @@ object Proyek {
     }
 
     var props = HashSMap.empty[String, String]
-    props = props + "org.sireum.kekinian%%library%" ~> ops.StringOps(SireumApi.commitHash).substring(0, 10)
+    props = props + project.DependencyManager.libraryKey ~> ops.StringOps(SireumApi.commitHash).substring(0, 10)
     props = props ++ SireumApi.versions.entries
     for (f <- files) {
       if (!f.isFile) {

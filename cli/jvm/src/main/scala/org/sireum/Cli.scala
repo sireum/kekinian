@@ -173,6 +173,7 @@ object Cli {
     args: ISZ[String],
     jar: Option[String],
     mainClass : Option[String],
+    ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -201,6 +202,7 @@ object Cli {
     scalac: ISZ[String],
     sha3: B,
     js: B,
+    ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -219,6 +221,7 @@ object Cli {
     args: ISZ[String],
     force: B,
     ultimate: B,
+    ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -237,6 +240,7 @@ object Cli {
     args: ISZ[String],
     m2: Option[String],
     version: Option[String],
+    ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -261,6 +265,7 @@ object Cli {
     args: ISZ[String],
     dir: Option[String],
     java: ISZ[String],
+    ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -287,6 +292,7 @@ object Cli {
     java: ISZ[String],
     packages: ISZ[String],
     suffixes: ISZ[String],
+    ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
     outputDirName: Option[String],
@@ -1561,6 +1567,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
           |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
@@ -1608,6 +1616,7 @@ import Cli._
 
     var jar: Option[String] = None[String]()
     var mainClass : Option[String] = None[String]()
+    var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -1643,6 +1652,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => mainClass  = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -1756,7 +1771,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1781,6 +1796,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
           |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
@@ -1818,6 +1835,7 @@ import Cli._
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var js: B = false
+    var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -1873,6 +1891,12 @@ import Cli._
              case Some(v) => js = v
              case _ => return None()
            }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
+             case _ => return None()
+           }
          } else if (arg == "--json") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -1948,7 +1972,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CompileOption(help, parseArguments(args, j), javac, fresh, par, scalac, sha3, js, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(CompileOption(help, parseArguments(args, j), javac, fresh, par, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1964,6 +1988,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
           |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
@@ -1997,6 +2023,7 @@ import Cli._
 
     var force: B = false
     var ultimate: B = false
+    var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -2026,6 +2053,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!ultimate) }
            o match {
              case Some(v) => ultimate = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -2103,7 +2136,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IveOption(help, parseArguments(args, j), force, ultimate, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(IveOption(help, parseArguments(args, j), force, ultimate, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parsePublish(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2120,6 +2153,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
           |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
@@ -2167,6 +2202,7 @@ import Cli._
 
     var m2: Option[String] = None[String]()
     var version: Option[String] = None[String]()
+    var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -2202,6 +2238,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => version = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -2315,7 +2357,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PublishOption(help, parseArguments(args, j), m2, version, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(PublishOption(help, parseArguments(args, j), m2, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2331,6 +2373,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
           |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
@@ -2378,6 +2422,7 @@ import Cli._
 
     var dir: Option[String] = None[String]()
     var java: ISZ[String] = ISZ[String]()
+    var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -2413,6 +2458,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => java = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -2526,7 +2577,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(RunOption(help, parseArguments(args, j), dir, java, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(RunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseTest(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2546,6 +2597,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
           |    --json               The JSON file to load project definitions from
           |                           (mutually exclusive with the 'project' option)
           |                           (expects a path)
@@ -2595,6 +2648,7 @@ import Cli._
     var java: ISZ[String] = ISZ[String]()
     var packages: ISZ[String] = ISZ[String]()
     var suffixes: ISZ[String] = ISZ[String]()
+    var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
     var outputDirName: Option[String] = Some("out")
@@ -2642,6 +2696,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => suffixes = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
              case _ => return None()
            }
          } else if (arg == "--json") {
@@ -2755,7 +2815,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(TestOption(help, parseArguments(args, j), classes, java, packages, suffixes, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(TestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

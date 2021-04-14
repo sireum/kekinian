@@ -272,7 +272,7 @@ def bloop(): Unit = {
 def build(fresh: B): Unit = {
   println("Building ...")
 
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 ${if (fresh) "-f" else ""} .".at(home).console.run()
+  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime${if (fresh) " -f" else ""} .".at(home).console.run()
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
   } else {
@@ -325,7 +325,7 @@ def tipe(): Unit = {
 def compile(isJs: B): Unit = {
   tipe()
   println("Compiling ...")
-  proc"$sireum proyek compile -n $proyekName --par --sha3${if (isJs) " --js" else ""} .".at(home).console.runCheck()
+  proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} .".at(home).console.runCheck()
   println()
 }
 
@@ -342,7 +342,7 @@ def test(): Unit = {
     "org.sireum.logika",
     "org.sireum.tools"
   ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
-  proc"$sireum proyek test -n $proyekName --par --sha3 --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
+  proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
     at(home).console.runCheck()
   println()
 }
@@ -423,7 +423,7 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
   return kekinianRepo
 }
 
