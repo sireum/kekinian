@@ -40,7 +40,6 @@ import $file.hamr.phantom.Phantom
 import $file.proyek.Proyek
 import $file.server.Server
 import $file.cli.Cli
-import $file.distro
 import org.sireum.mill.SireumModule
 
 object runtime extends mill.Module {
