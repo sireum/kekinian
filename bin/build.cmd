@@ -292,7 +292,7 @@ def nativ(): Unit = {
     case Os.Kind.Mac => ISZ("--no-server")
     case Os.Kind.Linux => ISZ("--static", "--no-server")
     case Os.Kind.LinuxArm => ISZ("--static", "--no-server")
-    case Os.Kind.Win => ISZ("--static")
+    case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
     case _ => halt("Unsupported operating system")
   }
   build(F)
