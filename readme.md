@@ -4,24 +4,6 @@
 | :---: | :---: | :---: | 
 | <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>aarch64: linux</sup></sub> | <sub><sup>maven: `org.sireum.kekinian:cli_2.13:<tag-or-hash>`</sup></sub> |
 
-* [Overview](#overview)
-* [Available Products](#available-products)
-* [Installing](#installing)
-  * [Binary Distributions](#binary-distributions)
-  * [Git Source Distribution](#git-source-distribution)
-    * [Requirements](#requirements)
-    * [Setup](#setup)
-    * [Using Vagrant and VirtualBox](#using-vagrant-and-virtualbox)
-* [Learning Slang by Examples](#learning-slang-by-examples)
-* [Using Sireum IVE](#using-sireum-ive)
-  * [Slang Script Example Project](#slang-script-example-project)
-  * [Slang App Example Mill Project](#slang-app-example-mill-project)
-* [Sireum Kekinian Development](#sireum-kekinian-development)
-  * [Sireum IVE](#sireum-ive)
-  * [Scala Metals](#scala-metals)
-* [Sireum Native Executable via Graal](#sireum-native-executable-via-graal)
----
-
 ## Overview
 
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
