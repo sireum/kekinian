@@ -1604,7 +1604,7 @@ import Cli._
           |    --skip-compile       Skip compilation
           |
           |Ivy Dependencies Options:
-          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
@@ -1819,7 +1819,7 @@ import Cli._
           |                           (expects path strings)
           |
           |Ivy Dependencies Options:
-          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
@@ -2011,7 +2011,7 @@ import Cli._
           |                           (expects path strings)
           |
           |Ivy Dependencies Options:
-          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
@@ -2190,7 +2190,7 @@ import Cli._
           |    --skip-compile       Skip compilation
           |
           |Ivy Dependencies Options:
-          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
@@ -2410,7 +2410,7 @@ import Cli._
           |    --skip-compile       Skip compilation
           |
           |Ivy Dependencies Options:
-          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
@@ -2634,7 +2634,7 @@ import Cli._
           |    --skip-compile       Skip compilation
           |
           |Ivy Dependencies Options:
-          |-c, --cache              Ivy cache directory (defaults to couriser's default
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
