@@ -165,8 +165,8 @@ object SlangRunner {
       }
       command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time",
         "--report-unsupported-elements-at-runtime", "--no-fallback", "-H:+ReportExceptionStackTraces",
-        "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "-cp", sJar.string,
-        "-jar", jarFile.name, nativeName)
+        "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
+        "-cp", sJar.string, "-jar", jarFile.name, nativeName)
       r = Os.proc(command).at(jarFile.up).console.run()
       for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()

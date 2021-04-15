@@ -299,7 +299,8 @@ def nativ(): Unit = {
   println("Building native ...")
   val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
     "--report-unsupported-elements-at-runtime", "-H:+ReportExceptionStackTraces", "-H:-DeadlockWatchdogExitOnTimeout",
-    "-H:DeadlockWatchdogInterval=0", "-jar", sireumJar.string, (platDir / "sireum").string)).console.run()
+    "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
+    "-jar", sireumJar.string, (platDir / "sireum").string)).console.run()
   (platDir / "sireum.o").removeAll()
   for (f <- platDir.list if ops.StringOps(f.name).startsWith("sireum.") && !ops.StringOps(f.name).endsWith(".exe")) {
     f.removeAll()
