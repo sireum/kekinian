@@ -437,7 +437,8 @@ def m2Lib(): Unit = {
       val lineOps = ops.StringOps(line)
       if (lineOps.contains(DependencyManager.libraryKey)) {
         val i = lineOps.stringIndexOf("->")
-        return ops.StringOps(lineOps.substring(i + 2, line.size)).trim
+        val j: Z = lineOps.lastIndexOf(',')
+        return ops.StringOps(lineOps.substring(i + 2, if (j >= 0) j else line.size)).trim
       }
     }
     halt("Could not detect Slang library version")
