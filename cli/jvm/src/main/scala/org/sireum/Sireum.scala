@@ -34,9 +34,9 @@ object Sireum {
   def main(args: Array[Predef.String]): Unit = {
     args match {
       case Array("-v") =>
-        println(s"Sireum v${$internal.Macro.version}${if (isNative) " (native)" else ""}")
+        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
       case Array("--version") =>
-        println(s"Sireum v${$internal.Macro.version}${if (isNative) " (native)" else ""}")
+        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
         println()
         println(versions)
       case _ =>
