@@ -531,8 +531,8 @@ def proyekExample(): Unit = {
   val pe = out / "proyek-example"
   pe.removeAll()
   out.mkdirAll()
-  proc"git clone https://github.com/sireum/proyek-example".at(out).console.run()
-  proc"$sireum proyek compile .".at(pe).timeout(60000).console.run()
+  proc"git clone https://github.com/sireum/proyek-example".at(out).run()
+  proc"$sireum proyek compile .".at(pe).timeout(300000).run()
 }
 
 if (!(home / "runtime" / "build.sc").exists) {
