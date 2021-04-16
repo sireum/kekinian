@@ -47,7 +47,7 @@ jobs:
           git submodule update --init --recursive
           .ci/build.sh test
           .ci/linux-native.sh
-          bin/build.cmd proyek-example
+          (timeout -k 10 1m bin/build.cmd jitpack) || true
 
   ci-mac:
     runs-on: macOS-latest
