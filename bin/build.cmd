@@ -449,8 +449,17 @@ def m2Lib(): Unit = {
 
 def jitpack(): Unit = {
   val ver = ops.StringOps(proc"git log -n 1 --pretty=format:%H".at(home).runCheck().out).substring(0, 10)
-  Coursier.setScalaVersion(versions.get(DependencyManager.scalaKey).get)
-  Coursier.fetch(ISZ(s"org.sireum.kekinian::cli:$ver"))
+  val scalaVer = versions.get(DependencyManager.scalaKey).get
+  val sc = Os.tempFix("", ".sc")
+  sc.writeOver(
+    st"""import org.sireum._
+        |Coursier.setScalaVersion("$scalaVer")
+        |for (cif <- Coursier.fetch(ISZ(s"org.sireum.kekinian::cli:$ver"))) {
+        |  println(cif.path)
+        |}""".render
+  )
+  sc.removeOnExit()
+  proc"$sireum slang run $sc".console.run()
 }
 
 def ghpack(): Unit = {

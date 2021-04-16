@@ -47,7 +47,6 @@ jobs:
           git submodule update --init --recursive
           .ci/build.sh test
           .ci/linux-native.sh
-          rm -fR bin/build.cmd.com
           (timeout -k 10 1m bin/build.cmd jitpack) || true
 
   ci-mac:
