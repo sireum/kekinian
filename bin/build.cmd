@@ -55,11 +55,11 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
-        |       | tipe             | compile[-js]       | test         | proyek-example
+        |       | tipe             | compile[-js]       | test         | mill
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
         |       | m2[-lib]         | jitpack            | ghpack
-        |       | bloop            | cvc4               | z3           | mill           )*
+        |       | cvc4             | z3                                            )*
       """.render)
 }
 
@@ -448,25 +448,10 @@ def m2Lib(): Unit = {
 }
 
 def jitpack(): Unit = {
-  println("Triggering jitpack ...")
-  val r = mill.call(ISZ("jitPack", "--owner", "sireum", "--repo", "kekinian", "--lib", "cli")).
-    at(home).console.run()
-  r match {
-    case r: Os.Proc.Result.Normal =>
-      println(r.out)
-      println(r.err)
-      if (!r.ok) {
-        eprintln(s"Exit code: ${r.exitCode}")
-      }
-    case r: Os.Proc.Result.Exception =>
-      eprintln(s"Exception: ${r.err}")
-    case _: Os.Proc.Result.Timeout =>
-      eprintln("Timeout")
-      eprintln()
-  }
-  println()
+  val ver = ops.StringOps(proc"git log -n 1 --pretty=format:%H".at(home).runCheck().out).substring(0, 10)
+  Coursier.setScalaVersion(versions.get(DependencyManager.scalaKey).get)
+  Coursier.fetch(ISZ(s"org.sireum.kekinian::cli:$ver"))
 }
-
 
 def ghpack(): Unit = {
   val repository = m2()
@@ -526,15 +511,6 @@ def project(skipBuild: B, isUltimate: B): Unit = {
   proc"$sireum proyek ive --force${if (isUltimate) " --ultimate" else ""} .".at(home).console.runCheck()
 }
 
-def proyekExample(): Unit = {
-  val out = home / "out"
-  val pe = out / "proyek-example"
-  pe.removeAll()
-  out.mkdirAll()
-  proc"git clone https://github.com/sireum/proyek-example".at(out).run()
-  proc"$sireum proyek compile .".at(pe).timeout(300000).run()
-}
-
 if (!(home / "runtime" / "build.sc").exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
   eprintln("git submodule update --init --recursive --remote")
@@ -559,7 +535,6 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
       case string"test" => test()
-      case string"proyek-example" => proyekExample()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
