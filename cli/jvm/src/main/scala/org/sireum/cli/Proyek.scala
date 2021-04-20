@@ -263,6 +263,7 @@ object Proyek {
       dm = dm,
       outDirName = o.outputDirName.get,
       jbrVersion = Sireum.jbrVer,
+      sireumHome = Sireum.homeOpt.get,
       ideaDir = if (o.ultimate) Sireum.ideaUltimateDir else Sireum.ideaDir,
       isUltimate = o.ultimate,
       isDev = o.ultimate || Sireum.isDev,
