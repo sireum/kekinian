@@ -597,7 +597,7 @@ object Proyek {
         eprintln(s"$f is not a file")
         return None()
       } else {
-        props = props ++ f.properties.entries
+        props = props ++ (for (p <- f.properties.entries) yield (ops.StringOps(p._1).replaceAllChars('%', ':'), p._2))
       }
     }
     return Some(props)

@@ -206,7 +206,7 @@ object Sireum {
     var r = Map.empty[String, String]
     import org.sireum.$internal.CollectionCompat.Converters._
     for (key <- p.keys().asScala) {
-      r = r + key.toString ~> p.get(key).toString
+      r = r + key.toString.replace('%', ':') ~> p.get(key).toString
     }
     r = r + DependencyManager.libraryKey ~> commitHash.value.substring(0, 10)
     r
