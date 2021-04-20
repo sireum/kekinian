@@ -28,14 +28,13 @@ def usage(): Unit = {
   println("Usage: ( mac | linux | linux/arm | win )*")
 }
 
-val graalVersion = "21.0.0.2"
-
-val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
 val homeBin: Os.Path = Os.slashDir.up.canon
 val home = homeBin.up.canon
+val graalVersion = (home / "versions.properties").properties.get("org.sireum.version.graal").get
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
+val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
 
 def mac(): Unit = {

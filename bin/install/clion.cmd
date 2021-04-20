@@ -24,12 +24,11 @@ exit /B %errorlevel%
 import org.sireum._
 
 
-val clionVersion = "2021.1"
-
 val url = s"https://download.jetbrains.com/cpp"
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
+val clionVersion = (home / "versions.properties").properties.get("org.sireum.version.clion").get
 val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 val versions = (home / "versions.properties").properties
