@@ -59,10 +59,11 @@ val main = Group(
         |Build $${SireumApi.version}""".render,
   unlisted = F,
   subs = ISZ(
+    anvil.cli.group,
     hamr,
     logika.cli.group,
-    lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
     proyek.cli.group,
+    lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
     tools.cli.group,
     x
   )

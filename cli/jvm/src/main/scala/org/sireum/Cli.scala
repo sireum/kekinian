@@ -118,56 +118,6 @@ object Cli {
     logVcDir: Option[String]
   ) extends SireumTopOption
 
-  @datatype class SlangRunOption(
-    help: String,
-    args: ISZ[String],
-    input: Option[String],
-    output: Option[String],
-    transformed: B,
-    nativ: B
-  ) extends SireumTopOption
-
-  @datatype class SlangTipeOption(
-    help: String,
-    args: ISZ[String],
-    sourcepath: ISZ[String],
-    outline: B,
-    force: ISZ[String],
-    verbose: B,
-    noRuntime: B,
-    exclude: ISZ[String],
-    save: Option[String],
-    load: Option[String],
-    gzip: B
-  ) extends SireumTopOption
-
-  @datatype class CTranspilerOption(
-    help: String,
-    args: ISZ[String],
-    sourcepath: ISZ[String],
-    output: Option[String],
-    verbose: B,
-    apps: ISZ[String],
-    bitWidth: Z,
-    projectName: Option[String],
-    stackSize: Option[String],
-    customArraySizes: ISZ[String],
-    maxArraySize: Z,
-    maxStringSize: Z,
-    cmakeIncludes: ISZ[String],
-    exts: ISZ[String],
-    libOnly: B,
-    excludeBuild: ISZ[String],
-    plugins: ISZ[String],
-    fingerprint: Z,
-    stableTypeId: B,
-    unroll: B,
-    save: Option[String],
-    load: Option[String],
-    customConstants: ISZ[String],
-    forwarding: ISZ[String]
-  ) extends SireumTopOption
-
   @datatype class AssembleOption(
     help: String,
     args: ISZ[String],
@@ -310,6 +260,56 @@ object Cli {
     docs: B,
     sources: B,
     repositories: ISZ[String]
+  ) extends SireumTopOption
+
+  @datatype class SlangRunOption(
+    help: String,
+    args: ISZ[String],
+    input: Option[String],
+    output: Option[String],
+    transformed: B,
+    nativ: B
+  ) extends SireumTopOption
+
+  @datatype class SlangTipeOption(
+    help: String,
+    args: ISZ[String],
+    sourcepath: ISZ[String],
+    outline: B,
+    force: ISZ[String],
+    verbose: B,
+    noRuntime: B,
+    exclude: ISZ[String],
+    save: Option[String],
+    load: Option[String],
+    gzip: B
+  ) extends SireumTopOption
+
+  @datatype class CTranspilerOption(
+    help: String,
+    args: ISZ[String],
+    sourcepath: ISZ[String],
+    output: Option[String],
+    verbose: B,
+    apps: ISZ[String],
+    bitWidth: Z,
+    projectName: Option[String],
+    stackSize: Option[String],
+    customArraySizes: ISZ[String],
+    maxArraySize: Z,
+    maxStringSize: Z,
+    cmakeIncludes: ISZ[String],
+    exts: ISZ[String],
+    libOnly: B,
+    excludeBuild: ISZ[String],
+    plugins: ISZ[String],
+    fingerprint: Z,
+    stableTypeId: B,
+    unroll: B,
+    save: Option[String],
+    load: Option[String],
+    customConstants: ISZ[String],
+    forwarding: ISZ[String]
   ) extends SireumTopOption
 
   @enum object BitCodecMode {
@@ -456,20 +456,37 @@ import Cli._
             |
             |Available modes:
             |hamr                     HAMR Tools
-            |slang                    Slang tools
             |proyek                   Build tools
+            |slang                    Slang tools
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("hamr", "logika", "slang", "proyek", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "tools", "x"))
     opt match {
+      case Some(string"anvil") => parseAnvil(args, i + 1)
       case Some(string"hamr") => parseHamr(args, i + 1)
       case Some(string"logika") => parseLogika(args, i + 1)
-      case Some(string"slang") => parseSlang(args, i + 1)
       case Some(string"proyek") => parseProyek(args, i + 1)
+      case Some(string"slang") => parseSlang(args, i + 1)
       case Some(string"tools") => parseTools(args, i + 1)
       case Some(string"x") => parseX(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseAnvil(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Anvil
+            |
+            |Available modes:
+            """.render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("anvil", args, i, ISZ(""))
+    opt match {
       case _ => return None()
     }
   }
@@ -1069,462 +1086,6 @@ import Cli._
       }
     }
     return Some(LogikaVerifierOption(help, parseArguments(args, j), sat, sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
-  }
-
-  def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    if (i >= args.size) {
-      println(
-        st"""The Sireum Language (Slang) Tools
-            |
-            |Available modes:
-            |run                      Script runner
-            |tipe                     Type checker
-            |transpilers              Slang transpilers""".render
-      )
-      return Some(HelpOption())
-    }
-    val opt = select("slang", args, i, ISZ("run", "tipe", "transpilers"))
-    opt match {
-      case Some(string"run") => parseSlangRun(args, i + 1)
-      case Some(string"tipe") => parseSlangTipe(args, i + 1)
-      case Some(string"transpilers") => parseTranspilers(args, i + 1)
-      case _ => return None()
-    }
-  }
-
-  def parseSlangRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Slang Script Runner
-          |
-          |Usage: <option>* <slang-file> <arg>*
-          |
-          |Available Options:
-          |-i, --input              Input file for stdin (default: <slang-file>.txt, if
-          |                           any) (expects a path)
-          |-o, --output             Output file for stdin & stderr (expects a path)
-          |-t, --transformed        Show Scala transformed tree
-          |-n, --native             Generate native executable
-          |-h, --help               Display this information""".render
-
-    var input: Option[String] = None[String]()
-    var output: Option[String] = None[String]()
-    var transformed: B = false
-    var nativ: B = false
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "-i" || arg == "--input") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => input = v
-             case _ => return None()
-           }
-         } else if (arg == "-o" || arg == "--output") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => output = v
-             case _ => return None()
-           }
-         } else if (arg == "-t" || arg == "--transformed") {
-           val o: Option[B] = { j = j - 1; Some(!transformed) }
-           o match {
-             case Some(v) => transformed = v
-             case _ => return None()
-           }
-         } else if (arg == "-n" || arg == "--native") {
-           val o: Option[B] = { j = j - 1; Some(!nativ) }
-           o match {
-             case Some(v) => nativ = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(SlangRunOption(help, parseArguments(args, j), input, output, transformed, nativ))
-  }
-
-  def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Slang Type Checker
-          |
-          |Usage: <option>* [<slang-file>]
-          |
-          |Available Options:
-          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
-          |                           strings)
-          |-o, --outline            Perform type outlining only for files in the
-          |                           sourcepath
-          |-f, --force              Fully qualified names of traits, classes, and objects
-          |                           to force full type checking on when type outlining
-          |                           is enabled (expects a string separated by ",")
-          |    --verbose            Enable verbose mode
-          |-r, --no-runtime         Do not use built-in runtime (use runtime in
-          |                           sourcepath)
-          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
-          |                           separated by ",")
-          |-h, --help               Display this information
-          |
-          |Persistence Options:
-          |    --save               Path to save type information to (outline should not
-          |                           be enabled) (expects a path)
-          |    --load               Path to load type information from (expects a path)
-          |-z, --no-gzip            Disable gzip compression when saving and/or loading""".render
-
-    var sourcepath: ISZ[String] = ISZ[String]()
-    var outline: B = false
-    var force: ISZ[String] = ISZ[String]()
-    var verbose: B = false
-    var noRuntime: B = false
-    var exclude: ISZ[String] = ISZ[String]()
-    var save: Option[String] = None[String]()
-    var load: Option[String] = None[String]()
-    var gzip: B = true
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "-s" || arg == "--sourcepath") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => sourcepath = v
-             case _ => return None()
-           }
-         } else if (arg == "-o" || arg == "--outline") {
-           val o: Option[B] = { j = j - 1; Some(!outline) }
-           o match {
-             case Some(v) => outline = v
-             case _ => return None()
-           }
-         } else if (arg == "-f" || arg == "--force") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => force = v
-             case _ => return None()
-           }
-         } else if (arg == "--verbose") {
-           val o: Option[B] = { j = j - 1; Some(!verbose) }
-           o match {
-             case Some(v) => verbose = v
-             case _ => return None()
-           }
-         } else if (arg == "-r" || arg == "--no-runtime") {
-           val o: Option[B] = { j = j - 1; Some(!noRuntime) }
-           o match {
-             case Some(v) => noRuntime = v
-             case _ => return None()
-           }
-         } else if (arg == "-x" || arg == "--exclude") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => exclude = v
-             case _ => return None()
-           }
-         } else if (arg == "--save") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => save = v
-             case _ => return None()
-           }
-         } else if (arg == "--load") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => load = v
-             case _ => return None()
-           }
-         } else if (arg == "-z" || arg == "--no-gzip") {
-           val o: Option[B] = { j = j - 1; Some(!gzip) }
-           o match {
-             case Some(v) => gzip = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, exclude, save, load, gzip))
-  }
-
-  def parseTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    if (i >= args.size) {
-      println(
-        st"""Slang Transpilers
-            |
-            |Available modes:
-            |c                        Slang Embedded to C transpiler""".render
-      )
-      return Some(HelpOption())
-    }
-    val opt = select("transpilers", args, i, ISZ("c"))
-    opt match {
-      case Some(string"c") => parseCTranspiler(args, i + 1)
-      case _ => return None()
-    }
-  }
-
-  def parseCTranspiler(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Slang Embedded To C Transpiler
-          |
-          |Usage: <option>* ( <slang-file> )*
-          |
-          |Available Options:
-          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
-          |                           strings)
-          |-o, --output-dir         Output directory for transpiled files (expects a path;
-          |                           default is "out")
-          |    --verbose            Enable verbose mode
-          |-h, --help               Display this information
-          |
-          |Configuration Options:
-          |-a, --apps               @app fully qualified names (expects a string separated
-          |                           by ",")
-          |-b, --bits               Default bit-width for unbounded integer types (e.g.,
-          |                           Z) (expects one of { 64, 32, 16, 8 })
-          |-n, --name               Project name (expects a string; default is "main")
-          |-z, --stack-size         Maximum stack size in bytes (expects a string; default
-          |                           is "16 * 1024 * 1024")
-          |
-          |Array Bounds Options:
-          |-q, --sequence           Custom maximum sequence sizes, each in the form of
-          |                           <type>=<size>, where <type> is either IS[,], MS[,],
-          |                           ISZ[], MSZ[], or ZS with fully qualified index and
-          |                           element types where applicable (expects a string
-          |                           separated by ";")
-          |    --sequence-size      Default maximum sequence size (expects an integer;
-          |                           default is 100)
-          |    --string-size        Maximum string size (expects an integer; default is
-          |                           100)
-          |
-          |CMake Options:
-          |    --cmake-includes     Files to embed in generated CMakeLists.txt (can
-          |                           optionally use a preceeding - or + to indicate
-          |                           before/after library/app definitions; defaults to -)
-          |                           (expects path strings)
-          |-e, --exts               Extension directory or file paths (expects path
-          |                           strings)
-          |-l, --lib-only           Only generate library definition in CMake file
-          |-x, --exclude-build      Type/method fully qualified names to exclude in the
-          |                           generated CMake file (expects a string separated by
-          |                           ",")
-          |
-          |Extensibility Options:
-          |-p, --plugins            Plugin fully qualified names (expects a string
-          |                           separated by ",")
-          |
-          |Name Mangling Options:
-          |-f, --fingerprint        Generic entity fingerprinting size (expects an
-          |                           integer; default is 3)
-          |-i, --stable-type-id     Enable stable type id
-          |
-          |Optimizations Options:
-          |-u, --unroll             Enable for-loop unrolling on constant bounds
-          |
-          |Persistence Options:
-          |    --save               Path to save type information to (outline should not
-          |                           be enabled) (expects a path)
-          |    --load               Path to load type information from (expects a path)
-          |
-          |Substitutions Options:
-          |-c, --constants          Custom constant for object variables, each in the form
-          |                           of <name>=<lit>, where <name> is a qualified name of
-          |                           an object var and <lit> is a Slang literal
-          |                           expression (expects a string separated by ";")
-          |-w, --forward            Object forwarding, each in form of <name>=<name>,
-          |                           where <name> is a fully qualified name of an object
-          |                           (expects a string separated by ",")""".render
-
-    var sourcepath: ISZ[String] = ISZ[String]()
-    var output: Option[String] = Some("out")
-    var verbose: B = false
-    var apps: ISZ[String] = ISZ[String]()
-    var bitWidth: Z = 64
-    var projectName: Option[String] = Some("main")
-    var stackSize: Option[String] = Some("16 * 1024 * 1024")
-    var customArraySizes: ISZ[String] = ISZ[String]()
-    var maxArraySize: Z = 100
-    var maxStringSize: Z = 100
-    var cmakeIncludes: ISZ[String] = ISZ[String]()
-    var exts: ISZ[String] = ISZ[String]()
-    var libOnly: B = false
-    var excludeBuild: ISZ[String] = ISZ[String]()
-    var plugins: ISZ[String] = ISZ[String]()
-    var fingerprint: Z = 3
-    var stableTypeId: B = false
-    var unroll: B = false
-    var save: Option[String] = None[String]()
-    var load: Option[String] = None[String]()
-    var customConstants: ISZ[String] = ISZ[String]()
-    var forwarding: ISZ[String] = ISZ[String]()
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "-s" || arg == "--sourcepath") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => sourcepath = v
-             case _ => return None()
-           }
-         } else if (arg == "-o" || arg == "--output-dir") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => output = v
-             case _ => return None()
-           }
-         } else if (arg == "--verbose") {
-           val o: Option[B] = { j = j - 1; Some(!verbose) }
-           o match {
-             case Some(v) => verbose = v
-             case _ => return None()
-           }
-         } else if (arg == "-a" || arg == "--apps") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => apps = v
-             case _ => return None()
-           }
-         } else if (arg == "-b" || arg == "--bits") {
-           val o: Option[Z] = parseNumChoice(args, j + 1, ISZ(z"64", z"32", z"16", z"8"))
-           o match {
-             case Some(v) => bitWidth = v
-             case _ => return None()
-           }
-         } else if (arg == "-n" || arg == "--name") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => projectName = v
-             case _ => return None()
-           }
-         } else if (arg == "-z" || arg == "--stack-size") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => stackSize = v
-             case _ => return None()
-           }
-         } else if (arg == "-q" || arg == "--sequence") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
-           o match {
-             case Some(v) => customArraySizes = v
-             case _ => return None()
-           }
-         } else if (arg == "--sequence-size") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
-           o match {
-             case Some(v) => maxArraySize = v
-             case _ => return None()
-           }
-         } else if (arg == "--string-size") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
-           o match {
-             case Some(v) => maxStringSize = v
-             case _ => return None()
-           }
-         } else if (arg == "--cmake-includes") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => cmakeIncludes = v
-             case _ => return None()
-           }
-         } else if (arg == "-e" || arg == "--exts") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => exts = v
-             case _ => return None()
-           }
-         } else if (arg == "-l" || arg == "--lib-only") {
-           val o: Option[B] = { j = j - 1; Some(!libOnly) }
-           o match {
-             case Some(v) => libOnly = v
-             case _ => return None()
-           }
-         } else if (arg == "-x" || arg == "--exclude-build") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => excludeBuild = v
-             case _ => return None()
-           }
-         } else if (arg == "-p" || arg == "--plugins") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => plugins = v
-             case _ => return None()
-           }
-         } else if (arg == "-f" || arg == "--fingerprint") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), Some(64))
-           o match {
-             case Some(v) => fingerprint = v
-             case _ => return None()
-           }
-         } else if (arg == "-i" || arg == "--stable-type-id") {
-           val o: Option[B] = { j = j - 1; Some(!stableTypeId) }
-           o match {
-             case Some(v) => stableTypeId = v
-             case _ => return None()
-           }
-         } else if (arg == "-u" || arg == "--unroll") {
-           val o: Option[B] = { j = j - 1; Some(!unroll) }
-           o match {
-             case Some(v) => unroll = v
-             case _ => return None()
-           }
-         } else if (arg == "--save") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => save = v
-             case _ => return None()
-           }
-         } else if (arg == "--load") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => load = v
-             case _ => return None()
-           }
-         } else if (arg == "-c" || arg == "--constants") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
-           o match {
-             case Some(v) => customConstants = v
-             case _ => return None()
-           }
-         } else if (arg == "-w" || arg == "--forward") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => forwarding = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
   }
 
   def parseProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2816,6 +2377,462 @@ import Cli._
       }
     }
     return Some(TestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+  }
+
+  def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""The Sireum Language (Slang) Tools
+            |
+            |Available modes:
+            |run                      Script runner
+            |tipe                     Type checker
+            |transpilers              Slang transpilers""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("slang", args, i, ISZ("run", "tipe", "transpilers"))
+    opt match {
+      case Some(string"run") => parseSlangRun(args, i + 1)
+      case Some(string"tipe") => parseSlangTipe(args, i + 1)
+      case Some(string"transpilers") => parseTranspilers(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSlangRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Script Runner
+          |
+          |Usage: <option>* <slang-file> <arg>*
+          |
+          |Available Options:
+          |-i, --input              Input file for stdin (default: <slang-file>.txt, if
+          |                           any) (expects a path)
+          |-o, --output             Output file for stdin & stderr (expects a path)
+          |-t, --transformed        Show Scala transformed tree
+          |-n, --native             Generate native executable
+          |-h, --help               Display this information""".render
+
+    var input: Option[String] = None[String]()
+    var output: Option[String] = None[String]()
+    var transformed: B = false
+    var nativ: B = false
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-i" || arg == "--input") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => input = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--transformed") {
+           val o: Option[B] = { j = j - 1; Some(!transformed) }
+           o match {
+             case Some(v) => transformed = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--native") {
+           val o: Option[B] = { j = j - 1; Some(!nativ) }
+           o match {
+             case Some(v) => nativ = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SlangRunOption(help, parseArguments(args, j), input, output, transformed, nativ))
+  }
+
+  def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Type Checker
+          |
+          |Usage: <option>* [<slang-file>]
+          |
+          |Available Options:
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |-o, --outline            Perform type outlining only for files in the
+          |                           sourcepath
+          |-f, --force              Fully qualified names of traits, classes, and objects
+          |                           to force full type checking on when type outlining
+          |                           is enabled (expects a string separated by ",")
+          |    --verbose            Enable verbose mode
+          |-r, --no-runtime         Do not use built-in runtime (use runtime in
+          |                           sourcepath)
+          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |                           separated by ",")
+          |-h, --help               Display this information
+          |
+          |Persistence Options:
+          |    --save               Path to save type information to (outline should not
+          |                           be enabled) (expects a path)
+          |    --load               Path to load type information from (expects a path)
+          |-z, --no-gzip            Disable gzip compression when saving and/or loading""".render
+
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var outline: B = false
+    var force: ISZ[String] = ISZ[String]()
+    var verbose: B = false
+    var noRuntime: B = false
+    var exclude: ISZ[String] = ISZ[String]()
+    var save: Option[String] = None[String]()
+    var load: Option[String] = None[String]()
+    var gzip: B = true
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--outline") {
+           val o: Option[B] = { j = j - 1; Some(!outline) }
+           o match {
+             case Some(v) => outline = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--force") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--no-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!noRuntime) }
+           o match {
+             case Some(v) => noRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => exclude = v
+             case _ => return None()
+           }
+         } else if (arg == "--save") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => save = v
+             case _ => return None()
+           }
+         } else if (arg == "--load") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => load = v
+             case _ => return None()
+           }
+         } else if (arg == "-z" || arg == "--no-gzip") {
+           val o: Option[B] = { j = j - 1; Some(!gzip) }
+           o match {
+             case Some(v) => gzip = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, exclude, save, load, gzip))
+  }
+
+  def parseTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Slang Transpilers
+            |
+            |Available modes:
+            |c                        Slang Embedded to C transpiler""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("transpilers", args, i, ISZ("c"))
+    opt match {
+      case Some(string"c") => parseCTranspiler(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseCTranspiler(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Embedded To C Transpiler
+          |
+          |Usage: <option>* ( <slang-file> )*
+          |
+          |Available Options:
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |-o, --output-dir         Output directory for transpiled files (expects a path;
+          |                           default is "out")
+          |    --verbose            Enable verbose mode
+          |-h, --help               Display this information
+          |
+          |Configuration Options:
+          |-a, --apps               @app fully qualified names (expects a string separated
+          |                           by ",")
+          |-b, --bits               Default bit-width for unbounded integer types (e.g.,
+          |                           Z) (expects one of { 64, 32, 16, 8 })
+          |-n, --name               Project name (expects a string; default is "main")
+          |-z, --stack-size         Maximum stack size in bytes (expects a string; default
+          |                           is "16 * 1024 * 1024")
+          |
+          |Array Bounds Options:
+          |-q, --sequence           Custom maximum sequence sizes, each in the form of
+          |                           <type>=<size>, where <type> is either IS[,], MS[,],
+          |                           ISZ[], MSZ[], or ZS with fully qualified index and
+          |                           element types where applicable (expects a string
+          |                           separated by ";")
+          |    --sequence-size      Default maximum sequence size (expects an integer;
+          |                           default is 100)
+          |    --string-size        Maximum string size (expects an integer; default is
+          |                           100)
+          |
+          |CMake Options:
+          |    --cmake-includes     Files to embed in generated CMakeLists.txt (can
+          |                           optionally use a preceeding - or + to indicate
+          |                           before/after library/app definitions; defaults to -)
+          |                           (expects path strings)
+          |-e, --exts               Extension directory or file paths (expects path
+          |                           strings)
+          |-l, --lib-only           Only generate library definition in CMake file
+          |-x, --exclude-build      Type/method fully qualified names to exclude in the
+          |                           generated CMake file (expects a string separated by
+          |                           ",")
+          |
+          |Extensibility Options:
+          |-p, --plugins            Plugin fully qualified names (expects a string
+          |                           separated by ",")
+          |
+          |Name Mangling Options:
+          |-f, --fingerprint        Generic entity fingerprinting size (expects an
+          |                           integer; default is 3)
+          |-i, --stable-type-id     Enable stable type id
+          |
+          |Optimizations Options:
+          |-u, --unroll             Enable for-loop unrolling on constant bounds
+          |
+          |Persistence Options:
+          |    --save               Path to save type information to (outline should not
+          |                           be enabled) (expects a path)
+          |    --load               Path to load type information from (expects a path)
+          |
+          |Substitutions Options:
+          |-c, --constants          Custom constant for object variables, each in the form
+          |                           of <name>=<lit>, where <name> is a qualified name of
+          |                           an object var and <lit> is a Slang literal
+          |                           expression (expects a string separated by ";")
+          |-w, --forward            Object forwarding, each in form of <name>=<name>,
+          |                           where <name> is a fully qualified name of an object
+          |                           (expects a string separated by ",")""".render
+
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var output: Option[String] = Some("out")
+    var verbose: B = false
+    var apps: ISZ[String] = ISZ[String]()
+    var bitWidth: Z = 64
+    var projectName: Option[String] = Some("main")
+    var stackSize: Option[String] = Some("16 * 1024 * 1024")
+    var customArraySizes: ISZ[String] = ISZ[String]()
+    var maxArraySize: Z = 100
+    var maxStringSize: Z = 100
+    var cmakeIncludes: ISZ[String] = ISZ[String]()
+    var exts: ISZ[String] = ISZ[String]()
+    var libOnly: B = false
+    var excludeBuild: ISZ[String] = ISZ[String]()
+    var plugins: ISZ[String] = ISZ[String]()
+    var fingerprint: Z = 3
+    var stableTypeId: B = false
+    var unroll: B = false
+    var save: Option[String] = None[String]()
+    var load: Option[String] = None[String]()
+    var customConstants: ISZ[String] = ISZ[String]()
+    var forwarding: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--apps") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => apps = v
+             case _ => return None()
+           }
+         } else if (arg == "-b" || arg == "--bits") {
+           val o: Option[Z] = parseNumChoice(args, j + 1, ISZ(z"64", z"32", z"16", z"8"))
+           o match {
+             case Some(v) => bitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => projectName = v
+             case _ => return None()
+           }
+         } else if (arg == "-z" || arg == "--stack-size") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => stackSize = v
+             case _ => return None()
+           }
+         } else if (arg == "-q" || arg == "--sequence") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => customArraySizes = v
+             case _ => return None()
+           }
+         } else if (arg == "--sequence-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxArraySize = v
+             case _ => return None()
+           }
+         } else if (arg == "--string-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxStringSize = v
+             case _ => return None()
+           }
+         } else if (arg == "--cmake-includes") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => cmakeIncludes = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--exts") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => exts = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--lib-only") {
+           val o: Option[B] = { j = j - 1; Some(!libOnly) }
+           o match {
+             case Some(v) => libOnly = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--exclude-build") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => excludeBuild = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--plugins") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => plugins = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--fingerprint") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), Some(64))
+           o match {
+             case Some(v) => fingerprint = v
+             case _ => return None()
+           }
+         } else if (arg == "-i" || arg == "--stable-type-id") {
+           val o: Option[B] = { j = j - 1; Some(!stableTypeId) }
+           o match {
+             case Some(v) => stableTypeId = v
+             case _ => return None()
+           }
+         } else if (arg == "-u" || arg == "--unroll") {
+           val o: Option[B] = { j = j - 1; Some(!unroll) }
+           o match {
+             case Some(v) => unroll = v
+             case _ => return None()
+           }
+         } else if (arg == "--save") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => save = v
+             case _ => return None()
+           }
+         } else if (arg == "--load") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => load = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--constants") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => customConstants = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--forward") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => forwarding = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

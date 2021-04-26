@@ -38,6 +38,7 @@ import $file.hamr.codegen.act.Act
 import $file.hamr.codegen.arsit.Arsit
 import $file.hamr.phantom.Phantom
 import $file.proyek.Proyek
+import $file.anvil.Anvil
 import $file.server.Server
 import $file.cli.Cli
 import org.sireum.mill.SireumModule
@@ -151,10 +152,14 @@ object proyek extends Proyek.Module {
   final override def libraryObject = runtime.library
 }
 
+object anvil extends Anvil.Module {
+ final override def transpilersObject = transpilers.c
+}
+
 
 object server extends Server.Module {
   final override def alirObject = alir
-  final override def transpilersCObject = transpilers.c
+  final override def anvilObject = anvil
   final override def toolsObject = tools
   final override def logikaObject = logika
   final override def phantomObject = hamr.phantom
