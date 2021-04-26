@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2021, Robby, Kansas State University
  All rights reserved.
@@ -25,6 +26,7 @@
 package org.sireum.cli
 
 import org.sireum._
+import org.sireum.project.DependencyManager
 
 object Proyek {
   val HOME_NOT_FOUND: Z = -1
@@ -59,11 +61,11 @@ object Proyek {
       return ret2(T, 0)
     }
 
-    if (!Sireum.homeFound) {
+    if (!SireumApi.homeFound) {
       return ret(HOME_NOT_FOUND)
     }
 
-    if (!(Sireum.javaFound && Sireum.scalaFound)) {
+    if (!(SireumApi.javaFound && SireumApi.scalaFound)) {
       return ret(JAVA_OR_SCALA_NOT_FOUND)
     }
 
@@ -101,14 +103,32 @@ object Proyek {
       case _ => return ret(INVALID_PATH_ARG)
     }
 
+    println("Loading project ...")
+
     prj = getProject(path, jsonOpt, projectOpt) match {
       case Some(pr) => pr.slice(slice)
       case _ => return ret(INVALID_PROJECT)
     }
 
+    if (versionFiles.nonEmpty) {
+      println()
+      println("Loading version dependencies ...")
+    }
+
     versions = getVersions(path, versionFiles) match {
       case Some(vs) => vs
       case _ => return ret(INVALID_VERSIONS)
+    }
+
+    val buildCmd = SireumApi.homeOpt.get / "bin" / "build.cmd"
+    val runtimeVer = versions.get(DependencyManager.libraryKey).get
+    if (buildCmd.exists && runtimeVer == SireumApi.versions.get(DependencyManager.libraryKey).get &&
+      ops.ISZOps(for (m <- prj.modules.values; ivyDeps <- m.ivyDeps) yield ivyDeps).contains(DependencyManager.libraryKey)) {
+      if (!Coursier.isRuntimePublishedLocally(runtimeVer)) {
+        println()
+        println("Publishing Slang runtime library locally ...")
+        proc"$buildCmd m2-lib".console.runCheck()
+      }
     }
 
     return ret(0)
@@ -131,10 +151,9 @@ object Proyek {
       isJs = F,
       withSource = F,
       withDoc = F,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      scalacPlugin = Sireum.scalacPluginJar,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
@@ -194,10 +213,9 @@ object Proyek {
       isJs = o.js,
       withSource = F,
       withDoc = F,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      scalacPlugin = Sireum.scalacPluginJar,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
@@ -230,12 +248,12 @@ object Proyek {
     }
 
     if (o.ultimate) {
-      if (!Sireum.ideaUltimateDir.exists) {
+      if (!SireumApi.ideaUltimateDir.exists) {
         eprintln("Sireum IVE Ultimate is not installed")
         return IDEA_NOT_FOUND
       }
     } else {
-      if (!Sireum.ideaDir.exists) {
+      if (!SireumApi.ideaDir.exists) {
         eprintln("Sireum IVE is not installed")
         return IDEA_NOT_FOUND
       }
@@ -249,10 +267,9 @@ object Proyek {
       isJs = F,
       withSource = o.sources,
       withDoc = o.docs,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      scalacPlugin = Sireum.scalacPluginJar,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
@@ -262,11 +279,10 @@ object Proyek {
       projectName = o.name.getOrElse(path.canon.name),
       dm = dm,
       outDirName = o.outputDirName.get,
-      jbrVersion = Sireum.jbrVer,
-      sireumHome = Sireum.homeOpt.get,
-      ideaDir = if (o.ultimate) Sireum.ideaUltimateDir else Sireum.ideaDir,
+      jbrVersion = SireumApi.jbrVer,
+      ideaDir = if (o.ultimate) SireumApi.ideaUltimateDir else SireumApi.ideaDir,
       isUltimate = o.ultimate,
-      isDev = o.ultimate || Sireum.isDev,
+      isDev = o.ultimate || SireumApi.isDev,
       force = o.force
     )
 
@@ -305,34 +321,33 @@ object Proyek {
 
     println()
 
-    val dms: ISZ[project.DependencyManager] = for (isJs <- ISZ(F, T)) yield project.DependencyManager(
+    val dms: MSZ[project.DependencyManager] = for (isJs <- MSZ(F, T)) yield project.DependencyManager(
       project = prj,
       versions = versions,
       isJs = isJs,
       withSource = F,
       withDoc = F,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      scalacPlugin = Sireum.scalacPluginJar,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
     var r: Z = 0
 
     if (!o.skipCompile) {
-      for (dm <- dms if r == 0) {
-        println(s"Compiling for the ${if (dm.isJs) "Javascript" else "JVM"} target ...")
+      for (i <- 0 until dms.size if r == 0) {
+        println(s"Compiling for the ${if (dms(i).isJs) "Javascript" else "JVM"} target ...")
         println()
         r = proyek.Proyek.compile(
           path = path,
           outDirName = o.outputDirName.get,
           project = prj,
           projectName = o.name.getOrElse(path.canon.name),
-          dm = dm,
+          dm = dms(i),
           javacOptions = o.javac,
           scalacOptions = o.scalac,
-          isJs = dm.isJs,
+          isJs = dms(i).isJs,
           followSymLink = o.symlink,
           fresh = o.fresh,
           par = o.par,
@@ -342,16 +357,16 @@ object Proyek {
       }
     }
 
-    for (dm <- dms if r == 0) {
-      println(s"Publishing for the ${if (dm.isJs) "Javascript" else "JVM"} target ...")
+    for (i <- 0 until dms.size if r == 0) {
+      println(s"Publishing for the ${if (dms(i).isJs) "Javascript" else "JVM"} target ...")
       println()
       r = proyek.Proyek.publish(
         path = path,
         outDirName = o.outputDirName.get,
         project = prj,
         projectName = o.name.getOrElse(path.canon.name),
-        dm = dm,
-        isJs = dm.isJs,
+        dm = dms(i),
+        isJs = dms(i).isJs,
         orgName = orgName,
         m2Repo = m2Repo,
         version = version,
@@ -380,10 +395,9 @@ object Proyek {
       isJs = F,
       withSource = F,
       withDoc = F,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      scalacPlugin = Sireum.scalacPluginJar,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
@@ -443,10 +457,9 @@ object Proyek {
       isJs = F,
       withSource = F,
       withDoc = F,
-      javaHome = Sireum.javaHomeOpt.get,
-      scalaHome = Sireum.scalaHomeOpt.get,
-      sireumJar = Sireum.sireumJar,
-      scalacPlugin = Sireum.scalacPluginJar,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 

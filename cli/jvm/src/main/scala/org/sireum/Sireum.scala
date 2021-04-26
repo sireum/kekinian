@@ -115,21 +115,40 @@ object Sireum {
   lazy val initInfo: Init.Info = Init.info(version, versions)
 
   lazy val homeOpt: Option[Os.Path] = {
-    var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
-    if (r.isEmpty) {
-      r = scala.Option(System.getProperty("org.sireum.home")).map(p => Os.path(p).canon)
+    val rOpt: Option[Os.Path] = {
+      var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
+      if (r.isEmpty) {
+        r = scala.Option(System.getProperty("org.sireum.home")).map(p => Os.path(p).canon)
+      }
+      if (r.nonEmpty) Some(r.get)
+      else try {
+        val cs = getClass.getProtectionDomain.getCodeSource
+        var path =
+          if (cs != null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
+          else Os.slashDir.up
+        if (path.name.value == "bin") path = path.up
+        if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path) else None()
+      } catch {
+        case _: Throwable => None()
+      }
     }
-    if (r.nonEmpty) Some(r.get)
-    else try {
-      val cs = getClass.getProtectionDomain.getCodeSource
-      var path =
-        if (cs != null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
-        else Os.slashDir.up
-      if (path.name.value == "bin") path = path.up
-      if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path) else None()
-    } catch {
-      case _: Throwable => None()
+    val scalacPluginJar = rOpt match {
+      case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
+      case _ if isNative => initInfo.scalacPlugin
+      case _ => homeNotFound()
     }
+    if (!scalacPluginJar.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
+      val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
+      if (!scalacPluginCache.exists) {
+        scalacPluginCache.up.mkdirAll()
+        println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
+        scalacPluginCache.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
+        println()
+      }
+      scalacPluginJar.up.mkdirAll()
+      scalacPluginCache.copyOverTo(scalacPluginJar)
+    }
+    rOpt
   }
 
   lazy val javaHomeOpt: Option[Os.Path] = {
@@ -158,24 +177,9 @@ object Sireum {
     rOpt
   }
 
-  lazy val scalacPluginJar: Os.Path = {
-    val r = homeOpt match {
-      case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
-      case _ if isNative => initInfo.scalacPlugin
-      case _ => homeNotFound()
-    }
-    if (!r.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
-      val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
-      if (!scalacPluginCache.exists) {
-        scalacPluginCache.up.mkdirAll()
-        println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
-        scalacPluginCache.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
-        println()
-      }
-      r.up.mkdirAll()
-      scalacPluginCache.copyOverTo(r)
-    }
-    r
+  lazy val scalacPluginJar: Os.Path = homeOpt match {
+    case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
+    case _ => homeNotFound()
   }
 
   lazy val sireumJar: Os.Path = homeOpt match {

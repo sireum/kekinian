@@ -40,11 +40,13 @@ import org.sireum._
   def scalacPluginJar: Os.Path = $
   def sireumJar: Os.Path = $
   def ideaDir: Os.Path = $
+  def ideaUltimateDir: Os.Path = $
   def ideaLibDir: Os.Path = $
   def ideaPluginsDir: Os.Path = $
   def versions: Map[String, String] = $
   def isDev: B = $
   def javaVer: String = $
+  def jbrVer: String = $
   def scalaVer: String = $
   def scalacPluginVer: String = $
   def homeFound: B = $
