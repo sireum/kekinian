@@ -615,7 +615,11 @@ object Proyek {
       }
     }
 
-    if (!ops.ISZOps(for (m <- prj.modules.values; ivyDep <- m.ivyDeps) yield ivyDep).contains(DependencyManager.libraryKey)) {
+    var useRuntimeLibrary = F
+    for (m <- prj.modules.values; ivyDep <- m.ivyDeps if ivyDep == DependencyManager.libraryKey) {
+      useRuntimeLibrary = T
+    }
+    if (!useRuntimeLibrary) {
       props = props -- ISZ(DependencyManager.libraryKey)
     }
 
