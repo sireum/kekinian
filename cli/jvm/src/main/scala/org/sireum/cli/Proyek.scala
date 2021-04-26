@@ -115,16 +115,15 @@ object Proyek {
       println("Loading version dependencies ...")
     }
 
-    versions = getVersions(path, versionFiles) match {
+    versions = getVersions(prj, path, versionFiles) match {
       case Some(vs) => vs
       case _ => return ret(INVALID_VERSIONS)
     }
 
     val buildCmd = SireumApi.homeOpt.get / "bin" / "build.cmd"
-    val runtimeVer = versions.get(DependencyManager.libraryKey).get
-    if (buildCmd.exists && runtimeVer == SireumApi.versions.get(DependencyManager.libraryKey).get &&
-      ops.ISZOps(for (m <- prj.modules.values; ivyDeps <- m.ivyDeps) yield ivyDeps).contains(DependencyManager.libraryKey)) {
-      if (!Coursier.isRuntimePublishedLocally(runtimeVer)) {
+    val runtimeVerOpt = versions.get(DependencyManager.libraryKey)
+    if (buildCmd.exists && runtimeVerOpt.nonEmpty && runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
+      if (!Coursier.isRuntimePublishedLocally(runtimeVerOpt.get)) {
         println()
         println("Publishing Slang runtime library locally ...")
         proc"$buildCmd m2-lib".console.runCheck()
@@ -597,7 +596,7 @@ object Proyek {
     return Some(prj)
   }
 
-  def getVersions(path: Os.Path, versions: ISZ[String]): Option[HashSMap[String, String]] = {
+  def getVersions(prj: project.Project, path: Os.Path, versions: ISZ[String]): Option[HashSMap[String, String]] = {
     val files: ISZ[Os.Path] = if (versions.nonEmpty) {
       for (v <- versions) yield Os.path(v)
     } else {
@@ -615,6 +614,11 @@ object Proyek {
         props = props ++ (for (p <- f.properties.entries) yield (ops.StringOps(p._1).replaceAllChars('%', ':'), p._2))
       }
     }
+
+    if (!ops.ISZOps(for (m <- prj.modules.values; ivyDep <- m.ivyDeps) yield ivyDep).contains(DependencyManager.libraryKey)) {
+      props = props -- ISZ(DependencyManager.libraryKey)
+    }
+
     return Some(props)
   }
 
