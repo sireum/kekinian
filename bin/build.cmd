@@ -432,7 +432,6 @@ def m2(): Os.Path = {
 def m2Lib(): Unit = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
-  kekinianRepo.removeAll()
   def version: String = {
     for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c === '\n')) {
       val lineOps = ops.StringOps(line)
