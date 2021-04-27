@@ -363,7 +363,7 @@ object CTranspiler {
       startTime()
     }
 
-    th = TypeChecker.checkComponents(T, th, th.nameMap, th.typeMap, reporter)
+    th = TypeChecker.checkComponents(T, o.strictAliasing, th, th.nameMap, th.typeMap, reporter)
 
     if (reporter.hasIssue) {
       reporter.printMessages()

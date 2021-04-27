@@ -318,7 +318,7 @@ def tipe(): Unit = {
   val includedDirs = Set ++ ISZ[String]("alir", "cli", "hamr", "logika", "proyek", "runtime", "server", "slang", "tools", "transpilers")
   val sourcepath: ISZ[Os.Path] = for (p <- home.list if includedDirs.contains(p.name)) yield p
   Os.proc(ISZ(sireum.string,
-    "slang", "tipe", "--verbose", "-r", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
+    "slang", "tipe", "--verbose", "-r", "--strict-aliasing", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
   println()
 
 }

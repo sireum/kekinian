@@ -274,12 +274,13 @@ object Cli {
   @datatype class SlangTipeOption(
     help: String,
     args: ISZ[String],
-    sourcepath: ISZ[String],
-    outline: B,
-    force: ISZ[String],
-    verbose: B,
-    noRuntime: B,
     exclude: ISZ[String],
+    force: ISZ[String],
+    noRuntime: B,
+    outline: B,
+    sourcepath: ISZ[String],
+    strictAliasing: B,
+    verbose: B,
     save: Option[String],
     load: Option[String],
     gzip: B
@@ -289,6 +290,7 @@ object Cli {
     help: String,
     args: ISZ[String],
     sourcepath: ISZ[String],
+    strictAliasing: B,
     output: Option[String],
     verbose: B,
     apps: ISZ[String],
@@ -2469,18 +2471,19 @@ import Cli._
           |Usage: <option>* [<slang-file>]
           |
           |Available Options:
-          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
-          |                           strings)
-          |-o, --outline            Perform type outlining only for files in the
-          |                           sourcepath
+          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |                           separated by ",")
           |-f, --force              Fully qualified names of traits, classes, and objects
           |                           to force full type checking on when type outlining
           |                           is enabled (expects a string separated by ",")
-          |    --verbose            Enable verbose mode
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
-          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
-          |                           separated by ",")
+          |-o, --outline            Perform type outlining only for files in the
+          |                           sourcepath
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |    --strict-aliasing    Enable strict aliasing check
+          |    --verbose            Enable verbose mode
           |-h, --help               Display this information
           |
           |Persistence Options:
@@ -2489,12 +2492,13 @@ import Cli._
           |    --load               Path to load type information from (expects a path)
           |-z, --no-gzip            Disable gzip compression when saving and/or loading""".render
 
-    var sourcepath: ISZ[String] = ISZ[String]()
-    var outline: B = false
-    var force: ISZ[String] = ISZ[String]()
-    var verbose: B = false
-    var noRuntime: B = false
     var exclude: ISZ[String] = ISZ[String]()
+    var force: ISZ[String] = ISZ[String]()
+    var noRuntime: B = false
+    var outline: B = false
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var strictAliasing: B = false
+    var verbose: B = false
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
     var gzip: B = true
@@ -2506,16 +2510,10 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-s" || arg == "--sourcepath") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+        } else if (arg == "-x" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => sourcepath = v
-             case _ => return None()
-           }
-         } else if (arg == "-o" || arg == "--outline") {
-           val o: Option[B] = { j = j - 1; Some(!outline) }
-           o match {
-             case Some(v) => outline = v
+             case Some(v) => exclude = v
              case _ => return None()
            }
          } else if (arg == "-f" || arg == "--force") {
@@ -2524,22 +2522,34 @@ import Cli._
              case Some(v) => force = v
              case _ => return None()
            }
-         } else if (arg == "--verbose") {
-           val o: Option[B] = { j = j - 1; Some(!verbose) }
-           o match {
-             case Some(v) => verbose = v
-             case _ => return None()
-           }
          } else if (arg == "-r" || arg == "--no-runtime") {
            val o: Option[B] = { j = j - 1; Some(!noRuntime) }
            o match {
              case Some(v) => noRuntime = v
              case _ => return None()
            }
-         } else if (arg == "-x" || arg == "--exclude") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+         } else if (arg == "-o" || arg == "--outline") {
+           val o: Option[B] = { j = j - 1; Some(!outline) }
            o match {
-             case Some(v) => exclude = v
+             case Some(v) => outline = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
              case _ => return None()
            }
          } else if (arg == "--save") {
@@ -2569,7 +2579,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangTipeOption(help, parseArguments(args, j), sourcepath, outline, force, verbose, noRuntime, exclude, save, load, gzip))
+    return Some(SlangTipeOption(help, parseArguments(args, j), exclude, force, noRuntime, outline, sourcepath, strictAliasing, verbose, save, load, gzip))
   }
 
   def parseTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2598,6 +2608,7 @@ import Cli._
           |Available Options:
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
+          |    --strict-aliasing    Enable strict aliasing check
           |-o, --output-dir         Output directory for transpiled files (expects a path;
           |                           default is "out")
           |    --verbose            Enable verbose mode
@@ -2662,6 +2673,7 @@ import Cli._
           |                           (expects a string separated by ",")""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
+    var strictAliasing: B = false
     var output: Option[String] = Some("out")
     var verbose: B = false
     var apps: ISZ[String] = ISZ[String]()
@@ -2695,6 +2707,12 @@ import Cli._
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--output-dir") {
@@ -2832,7 +2850,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
+    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
   }
 
   def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

@@ -192,7 +192,8 @@ object HAMR {
         stableTypeId = ao.stableTypeId,
         save = ao.save,
         load = ao.load,
-        cmakeIncludes = ao.cmakeIncludes
+        cmakeIncludes = ao.cmakeIncludes,
+        strictAliasing = F
       )
       
       val result: Z = CTranspiler.run(to)

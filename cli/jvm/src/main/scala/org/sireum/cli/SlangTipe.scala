@@ -320,7 +320,7 @@ object SlangTipe {
         return InvalidForceNames
       }
 
-      th = TypeChecker.checkComponents(T, th, nameMap, typeMap, reporter)
+      th = TypeChecker.checkComponents(T, o.strictAliasing, th, nameMap, typeMap, reporter)
 
       if (reporter.hasIssue) {
         reporter.printMessages()
@@ -336,7 +336,7 @@ object SlangTipe {
         startTime()
       }
 
-      th = TypeChecker.checkComponents(T, th, th.nameMap, th.typeMap, reporter)
+      th = TypeChecker.checkComponents(T, o.strictAliasing, th, th.nameMap, th.typeMap, reporter)
 
       if (reporter.hasIssue) {
         reporter.printMessages()
