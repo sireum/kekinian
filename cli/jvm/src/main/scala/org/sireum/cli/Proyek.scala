@@ -172,7 +172,8 @@ object Proyek {
         fresh = o.fresh,
         par = o.par,
         sha3 = o.sha3,
-        ignoreRuntime = o.ignoreRuntime
+        ignoreRuntime = o.ignoreRuntime,
+        recompileModuleIds = o.recompile
       )
     }
 
@@ -231,7 +232,8 @@ object Proyek {
       fresh = o.fresh,
       par = o.par,
       sha3 = o.sha3,
-      ignoreRuntime = o.ignoreRuntime
+      ignoreRuntime = o.ignoreRuntime,
+      recompileModuleIds = o.recompile
     )
 
     return r
@@ -351,7 +353,8 @@ object Proyek {
           fresh = o.fresh,
           par = o.par,
           sha3 = o.sha3,
-          ignoreRuntime = o.ignoreRuntime
+          ignoreRuntime = o.ignoreRuntime,
+          recompileModuleIds = o.recompile
         )
       }
     }
@@ -416,7 +419,8 @@ object Proyek {
         fresh = o.fresh,
         par = o.par,
         sha3 = o.sha3,
-        ignoreRuntime = o.ignoreRuntime
+        ignoreRuntime = o.ignoreRuntime,
+        recompileModuleIds = o.recompile
       )
     }
 
@@ -478,7 +482,8 @@ object Proyek {
         fresh = o.fresh,
         par = o.par,
         sha3 = o.sha3,
-        ignoreRuntime = o.ignoreRuntime
+        ignoreRuntime = o.ignoreRuntime,
+        recompileModuleIds = o.recompile
       )
     }
 

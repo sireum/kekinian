@@ -134,6 +134,7 @@ object Cli {
     javac: ISZ[String],
     fresh: B,
     par: B,
+    recompile: ISZ[String],
     scalac: ISZ[String],
     sha3: B,
     skipCompile: B,
@@ -149,6 +150,7 @@ object Cli {
     javac: ISZ[String],
     fresh: B,
     par: B,
+    recompile: ISZ[String],
     scalac: ISZ[String],
     sha3: B,
     js: B,
@@ -201,6 +203,7 @@ object Cli {
     javac: ISZ[String],
     fresh: B,
     par: B,
+    recompile: ISZ[String],
     scalac: ISZ[String],
     sha3: B,
     skipCompile: B,
@@ -226,6 +229,7 @@ object Cli {
     javac: ISZ[String],
     fresh: B,
     par: B,
+    recompile: ISZ[String],
     scalac: ISZ[String],
     sha3: B,
     skipCompile: B,
@@ -253,6 +257,7 @@ object Cli {
     javac: ISZ[String],
     fresh: B,
     par: B,
+    recompile: ISZ[String],
     scalac: ISZ[String],
     sha3: B,
     skipCompile: B,
@@ -1158,6 +1163,8 @@ import Cli._
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization
+          |    --recompile          Module IDs to force recompilation on (expects a string
+          |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-target:jvm-1.8, -deprecation,
           |                           -Yrangepos, -Ydelambdafy:method, -feature,
@@ -1190,6 +1197,7 @@ import Cli._
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
     var par: B = false
+    var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
@@ -1283,6 +1291,12 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
+         } else if (arg == "--recompile") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => recompile = v
+             case _ => return None()
+           }
          } else if (arg == "--scalac") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
@@ -1334,7 +1348,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1349,6 +1363,8 @@ import Cli._
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization
+          |    --recompile          Module IDs to force recompilation on (expects a string
+          |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-target:jvm-1.8, -deprecation,
           |                           -Yrangepos, -Ydelambdafy:method, -feature,
@@ -1395,6 +1411,7 @@ import Cli._
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
     var par: B = false
+    var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var js: B = false
@@ -1434,6 +1451,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!par) }
            o match {
              case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "--recompile") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => recompile = v
              case _ => return None()
            }
          } else if (arg == "--scalac") {
@@ -1535,7 +1558,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CompileOption(help, parseArguments(args, j), javac, fresh, par, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(CompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1744,6 +1767,8 @@ import Cli._
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization
+          |    --recompile          Module IDs to force recompilation on (expects a string
+          |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-target:jvm-1.8, -deprecation,
           |                           -Yrangepos, -Ydelambdafy:method, -feature,
@@ -1776,6 +1801,7 @@ import Cli._
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
     var par: B = false
+    var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
@@ -1869,6 +1895,12 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
+         } else if (arg == "--recompile") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => recompile = v
+             case _ => return None()
+           }
          } else if (arg == "--scalac") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
@@ -1920,7 +1952,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PublishOption(help, parseArguments(args, j), m2, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(PublishOption(help, parseArguments(args, j), m2, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1964,6 +1996,8 @@ import Cli._
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization
+          |    --recompile          Module IDs to force recompilation on (expects a string
+          |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-target:jvm-1.8, -deprecation,
           |                           -Yrangepos, -Ydelambdafy:method, -feature,
@@ -1996,6 +2030,7 @@ import Cli._
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
     var par: B = false
+    var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
@@ -2089,6 +2124,12 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
+         } else if (arg == "--recompile") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => recompile = v
+             case _ => return None()
+           }
          } else if (arg == "--scalac") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
@@ -2140,7 +2181,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(RunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(RunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseTest(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2188,6 +2229,8 @@ import Cli._
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization
+          |    --recompile          Module IDs to force recompilation on (expects a string
+          |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-target:jvm-1.8, -deprecation,
           |                           -Yrangepos, -Ydelambdafy:method, -feature,
@@ -2222,6 +2265,7 @@ import Cli._
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
     var par: B = false
+    var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
@@ -2327,6 +2371,12 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
+         } else if (arg == "--recompile") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => recompile = v
+             case _ => return None()
+           }
          } else if (arg == "--scalac") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
@@ -2378,7 +2428,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(TestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(TestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

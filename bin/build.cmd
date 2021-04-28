@@ -273,7 +273,13 @@ def bloop(): Unit = {
 def build(fresh: B): Unit = {
   println("Building ...")
 
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime${if (fresh) " -f" else ""} .".at(home).console.run()
+  val pr = proc"git status --porcelain".at(home).run()
+  val recompile: String =
+    if (fresh) " -f"
+    else if (ops.StringOps(s"${pr.out}${pr.err}").trim === "" && ops.StringOps(proc"$sireum -v".run().out).contains("*")) " --recompile cli"
+    else ""
+
+  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile .".at(home).console.run()
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
   } else {
