@@ -140,8 +140,12 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           git submodule update --init --recursive
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          call .ci\build.bat test
-          call .ci\win-native.bat
+          set errorlevel=
+          call .ci\build.bat test || goto :error
+          call .ci\win-native.bat || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
 
   skip:
     runs-on: ubuntu-latest
