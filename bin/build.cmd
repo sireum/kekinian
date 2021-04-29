@@ -273,11 +273,14 @@ def bloop(): Unit = {
 def build(fresh: B): Unit = {
   println("Building ...")
 
-  val pr = proc"git status --porcelain".at(home).run()
-  val recompile: String =
-    if (fresh) " -f"
-    else if (ops.StringOps(s"${pr.out}${pr.err}").trim === "" && ops.StringOps(proc"$sireum -v".run().out).contains("*")) " --recompile cli"
+  val recompile: String = if (fresh) {
+    " -f"
+  } else {
+    val pr = proc"git status --porcelain".at(home).run()
+    if (ops.StringOps(s"${pr.out}${pr.err}").trim === "" &&
+      ops.StringOps(proc"$sireum -v".run().out).contains("*")) " --recompile cli"
     else ""
+  }
 
   val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile .".at(home).console.run()
   if (r.exitCode == 0) {
@@ -439,6 +442,7 @@ def m2(): Os.Path = {
 def m2Lib(): Unit = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
+
   def version: String = {
     for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c === '\n')) {
       val lineOps = ops.StringOps(line)
@@ -450,6 +454,7 @@ def m2Lib(): Unit = {
     }
     halt("Could not detect Slang library version")
   }
+
   proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} --version $version . org.sireum.kekinian".at(home).console.runCheck()
 }
 
