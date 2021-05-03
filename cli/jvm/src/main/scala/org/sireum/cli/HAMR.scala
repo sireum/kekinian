@@ -25,13 +25,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.sireum.cli
 
-import org.sireum._
-import org.sireum.Cli
-import org.sireum.message._
 import org.sireum.Os.Path
-import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
+import org.sireum.{Cli, _}
 import org.sireum.hamr.codegen._
 import org.sireum.hamr.codegen.common.containers.TranspilerConfig
+import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
+import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
+import org.sireum.message._
 
 object HAMR {
 
