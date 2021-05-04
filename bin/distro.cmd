@@ -551,7 +551,7 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
     println(s"Patching $ideash ...")
     ideash.writeOver(ops.StringOps(ideash.read).replaceAllLiterally(""""x86_64"""", """"aarch64""""))
     val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
-    val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
+    val jbrUrl = s"https://cache-redirector.jetbrains.com/intellij-jbr/$jbrFilename"
     val jbrDrop = ideaCacheDir / jbrFilename
     if (!jbrDrop.exists) {
       print(s"Downloading from $jbrUrl ... ")
