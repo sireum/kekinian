@@ -151,7 +151,7 @@ object Init {
     val scalacPluginVersion: String = versions.get("org.sireum.version.scalac-plugin").get
     val scalacPlugin = home / s"scalac-plugin-$scalacPluginVersion.jar"
     if (!scalacPlugin.exists) {
-      val scalacPluginUrl = s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVersion/scalac-plugin-$scalacPluginVersion.jar"
+      val scalacPluginUrl = s"https://github.com/sireum/scalac-plugin/releases/download/$scalacPluginVersion/scalac-plugin-$scalacPluginVersion.jar"
       for (p <- home.list if ops.StringOps(p.name).startsWith("scalac-plugin")) {
         p.removeAll()
       }

@@ -142,7 +142,7 @@ object Sireum {
       if (!scalacPluginCache.exists) {
         scalacPluginCache.up.mkdirAll()
         println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
-        scalacPluginCache.downloadFrom(s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
+        scalacPluginCache.downloadFrom(s"https://github.com/sireum/scalac-plugin/releases/download/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
         println()
       }
       scalacPluginJar.up.mkdirAll()
