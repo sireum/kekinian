@@ -121,7 +121,7 @@ fi
 SCALAC_PLUGIN_VER=$(getVersion "org.sireum%%scalac-plugin%")
 cd ${SIREUM_HOME}/bin
 SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-SCALAC_PLUGIN_DROP_URL=https://jitpack.io/org/sireum/scalac-plugin/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
+SCALAC_PLUGIN_DROP_URL=https://github.com/sireum/scalac-plugin/releases/download/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
 mkdir -p ${SIREUM_HOME}/lib
 cd ${SIREUM_HOME}/lib
 if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then

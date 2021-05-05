@@ -70,7 +70,7 @@ $scalac_plugin_lib = "$sireum_home\lib\$scalac_plugin_jar"
 if (!(Test-Path "$scalac_plugin_lib")) {
   if (!(Test-Path "$scalac_plugin_drop")) {
     "Please wait while downloading Slang scalac plugin $scalac_plugin_version ..."
-    $scalac_plugin_url = "https://jitpack.io/org/sireum/scalac-plugin/$scalac_plugin_version/$scalac_plugin_jar"
+    $scalac_plugin_url = "https://github.com/sireum/scalac-plugin/releases/download/$scalac_plugin_version/$scalac_plugin_jar"
     Invoke-WebRequest -Uri "$scalac_plugin_url" -OutFile "$scalac_plugin_drop"
     ""
   }
