@@ -58,7 +58,7 @@ def usage(): Unit = {
         |       | tipe             | compile[-js]       | test         | mill
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
-        |       | m2[-lib]         | jitpack            | ghpack
+        |       | m2[-lib]         | jitpack            | ghpack       | ram
         |       | cvc4             | z3                                            )*
       """.render)
 }
@@ -532,6 +532,74 @@ def project(skipBuild: B, isUltimate: B): Unit = {
   proc"$sireum proyek ive --force${if (isUltimate) " --ultimate" else ""} .".at(home).console.runCheck()
 }
 
+def ram(): Unit = {
+  def mac(): Unit = {
+    val ramdisk = Os.path("/Volumes") / "RAM"
+    val ramdiskHome = ramdisk / home.name
+    if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
+      setup(F)
+    }
+    if (ramdisk.exists) {
+      proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
+      proc"rsync -a --exclude .idea --exclude project.json --exclude out --exclude '*.cmd.com' $ramdiskHome ${home.up.canon}".echo.console.runCheck()
+      proc"hdiutil eject $ramdisk".echo.console.runCheck()
+    } else {
+      val disk = ops.StringOps(proc"hdiutil attach -nomount ram://${8 * 1024 * 2048}".echo.console.runCheck().out).trim
+      proc"diskutil erasevolume HFS+ ${ramdisk.name} $disk".echo.console.runCheck()
+      proc"rsync -a --exclude .idea --exclude project.json --exclude out --exclude '*.cmd.com' $home $ramdisk".echo.console.runCheck()
+      val plist = ramdisk / "rsync.plist"
+      plist.writeOver(
+        st"""<?xml version="1.0" encoding="UTF-8"?>
+            |<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            |<plist version="1.0">
+            |<dict>
+            |  <key>Label</key>
+            |  <string>org.sireum.ram.rsync</string>
+            |  <key>ProgramArguments</key>
+            |  <array>
+            |    <string>/usr/bin/rsync</string>
+            |    <string>-av</string>
+            |    <string>--exclude</string>
+            |    <string>project.json</string>
+            |    <string>--exclude</string>
+            |    <string>.idea</string>
+            |    <string>--exclude</string>
+            |    <string>out</string>
+            |    <string>--exclude</string>
+            |    <string>*.cmd.com</string>
+            |    <string>$ramdiskHome</string>
+            |    <string>${home.up.canon}</string>
+            |  </array>
+            |  <key>Nice</key>
+            |  <integer>1</integer>
+            |  <key>StartInterval</key>
+            |  <integer>150</integer>
+            |  <key>RunAtLoad</key>
+            |  <true/>
+            |  <key>StandardErrorPath</key>
+            |  <string>${plist.up.canon / s"${plist.name}.err.txt"}</string>
+            |  <key>StandardOutPath</key>
+            |  <string>${plist.up.canon / s"${plist.name}.out.txt"}</string>
+            |</dict>
+            |</plist>
+            | """.render)
+      println(s"""Wrote $plist""")
+      proc"launchctl load $plist".echo.console.runCheck()
+      println()
+      val ive = ramdiskHome / "bin" / "mac" / "idea" / "IVE.app"
+      proc"${ramdiskHome / "bin" / "build.cmd"} project".echo.console.runCheck()
+      proc"open --env SIREUM_HOME=$ramdiskHome $ive".echo.console.runCheck()
+    }
+  }
+
+  Os.kind match {
+    case Os.Kind.Mac => mac()
+    case _ =>
+      eprintln("This utility is only available in macOS")
+      Os.exit(-1)
+  }
+}
+
 if (!(home / "runtime" / "build.sc").exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
   eprintln("git submodule update --init --recursive --remote")
@@ -570,6 +638,7 @@ if (Os.cliArgs.isEmpty) {
       case string"m2-lib" => m2Lib()
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
+      case string"ram" => ram()
       case string"cvc4" => cvc4()
       case string"z3" => z3()
       case string"-h" => usage()
