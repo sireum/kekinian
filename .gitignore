@@ -83,3 +83,4 @@ stale_outputs_checked
 /resources/vagrant/.vagrant
 /project.dot*
 project.json
+/build
