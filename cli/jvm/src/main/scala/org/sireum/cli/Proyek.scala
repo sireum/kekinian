@@ -248,6 +248,12 @@ object Proyek {
       return code
     }
 
+    val projectName = o.name.getOrElse(path.canon.name)
+    if (prj.modules.contains(projectName)) {
+      eprintln("Project name cannot be the same as a module name")
+      return INVALID_PROJECT
+    }
+
     if (o.ultimate) {
       if (!SireumApi.ideaUltimateDir.exists) {
         eprintln("Sireum IVE Ultimate is not installed")
@@ -277,7 +283,7 @@ object Proyek {
     val r = proyek.Proyek.ive(
       path = path,
       project = prj,
-      projectName = o.name.getOrElse(path.canon.name),
+      projectName = projectName,
       dm = dm,
       outDirName = o.outputDirName.get,
       jbrVersion = SireumApi.jbrVer,
