@@ -97,11 +97,6 @@ def platform: String = {
   return platformKind(Os.kind)
 }
 
-@pure def filterCompile(line: String): B = {
-  val lineOps = ops.StringOps(line)
-  return !(lineOps.contains("sun.misc.Unsafe") || lineOps.contains("-source 8"))
-}
-
 def installZ3(kind: Os.Kind.Type): Unit = {
   val version = versions.get("org.sireum.version.z3").get
   val dir = homeBin / platformKind(kind) / "z3"
@@ -181,7 +176,7 @@ def installCVC4(kind: Os.Kind.Type): Unit = {
   if (!drop.exists) {
     println(s"Please wait while downloading CVC4 $version ...")
     drop.up.mkdirAll()
-    drop.downloadFrom(s"https://github.com/CVC4/CVC4/releases/download/$version/$filename")
+    drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$version/$filename")
   }
 
   drop.copyOverTo(exe)
