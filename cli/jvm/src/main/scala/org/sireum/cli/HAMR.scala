@@ -163,9 +163,9 @@ object HAMR {
       //
       experimentalOptions = o.experimentalOptions
     )
-    
+
     var reporter = Reporter.create
-        
+
     // call back function
     def transpile(ao: TranspilerConfig): Z = {
       val to = Cli.CTranspilerOption(
@@ -200,9 +200,38 @@ object HAMR {
 
       return result
     }
-    
+
     val results: CodeGenResults = CodeGen.codeGen(model, ops, reporter, transpile _ )
     
     return if(reporter.hasError) 1 else 0
+  }
+
+  def toCodeGenOptions(o: Cli.HamrCodeGenOption): CodeGenConfig = {
+    return CodeGenConfig(
+      writeOutResources = T,
+      ipc = CodeGenIpcMechanism.SharedMemory,
+      //
+      verbose = o.verbose,
+      platform = CodeGenPlatform.byName(o.platform.name).get,
+      //
+      slangOutputDir = o.outputDir,
+      packageName = o.packageName,
+      noEmbedArt = o.noEmbedArt,
+      devicesAsThreads = o.devicesAsThreads,
+      //
+      slangAuxCodeDirs = o.slangAuxCodeDirs,
+      slangOutputCDir = o.slangOutputCDir,
+      excludeComponentImpl = o.excludeComponentImpl,
+      bitWidth = o.bitWidth,
+      maxStringSize = o.maxStringSize,
+      maxArraySize = o.maxArraySize,
+      runTranspiler = o.runTranspiler,
+      //
+      camkesOutputDir = o.camkesOutputDir,
+      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
+      aadlRootDir = o.aadlRootDir,
+      //
+      experimentalOptions = o.experimentalOptions
+    )
   }
 }
