@@ -13,11 +13,12 @@ Slang is an OO/FP programming language with contract and proof languages
 designed for formal verification and analyses; that is, it serves as the basis for the next generation
 [Logika](http://logika.sireum.org) verifier and proof checker, as well as for other
 formal method-based analysis techniques.
-It is currently a subset of Scala 2.13 with different memory models 
+It is currently a subset of Scala 2.13 with tailored semantics 
 enabled via Scala's 
 [macro](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/scala/org/sireum/%24internal/Macro.scala) 
 and  [compiler plugin](https://github.com/sireum/scalac-plugin) 
-facilities, with support for [IntelliJ](https://github.com/sireum/intellij-injector).
+facilities, supported with a customized version of IntelliJ -- 
+Sireum IVE, and an accompanying build tool -- Proyek.
 
 With the exception of a small part of its 
 [runtime library](https://github.com/sireum/runtime) and its
@@ -223,21 +224,19 @@ virtual machine (VM) with Sireum set up as follows:
 Once the VM has been provisioned successfully, you can log in as the user `vagrant` with default password `vagrant`.
 Sireum is installed in `/home/vagrant/Sireum`, which the `SIREUM_HOME` environment variable is set to.
 
-
-## Learning Slang by Examples
-
-If you would like to learn Slang quickly, you can read and use [Sireum IVE](#using-sireum-ive) 
-to experiment with several examples designed to highlight various Slang language features:
-
-https://github.com/sireum/slang-by-examples
-
 ## Using Sireum 
 
 Please read the quick tutorial at: https://github.com/sireum/proyek-example
 
-### Sireum Kekinian Development
 
-#### Sireum IVE
+## Learning Slang by Examples
+
+If you would like to learn Slang quickly, you can read and use [Sireum IVE](#using-sireum-ive)
+to experiment with several examples designed to highlight various Slang language features:
+
+https://github.com/sireum/slang-by-examples
+
+## Sireum Development
 
 Sireum is best developed (browsed/edited) by using Sireum IVE itself. 
 The `build.cmd setup` command above setup IVE for Sireum development.
@@ -284,56 +283,8 @@ To have the codebase and its test suites recompiled upon changes, run:
   ```cmd
   %SIREUM_HOME%\bin\build.cmd
   ```
-  
-#### Scala Metals
 
-An alternative development environment is [Scala Metals](https://scalameta.org/metals/) that
-supports various editors/IDEs.
-Below are the instruction steps on how to set it up with [VSCode](https://code.visualstudio.com/):
-
-1. Prepare Sireum:
-
-   * macOS/Linux
-   
-     ```
-     git clone --recursive https://github.com/sireum/kekinian
-     kekinian/bin/build.cmd
-     ``` 
-   
-   * Windows
-   
-     ```
-     git clone --recursive https://github.com/sireum/kekinian
-     kekinian\bin\build.cmd
-     ``` 
-
-2. Set the `SIREUM_HOME` environment variable (user-wide) to the absolute path of `kekinian`
-
-3. Install VSCode with the [Scala Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals).
-   
-4. Set the following Metals' settings in VSCode:
-
-   * `Java Home`
-   
-     * **macOS**: set to the absolute path of `kekinian/bin/mac/java`.
-     
-     * **Linux**: set to the absolute path of `kekinian/bin/linux/java`.
-     
-     * **Windows**: set to the absolute path of `kekinian\bin\win\java`.
-
-   * `Mill Script`
-     
-     * **macOS/Linux**: set to the absolute path of `kekinian/bin/mill` .
-     
-     * **Windows**: set to the absolute path of `kekinian\bin\mill.bat`.
-   
-4. Open the `kekinian` folder in VSCode, and import the build
-   when asked (also available as `Metals: Import build` in the command 
-   palette).
-
-5. Run `Metals: Recompile Workspace` in the command palette.
-
-### Sireum Native Executable via Graal
+## Sireum Native Executable
 
 It is recommended to compile Sireum (and Slash build scripts) to native as it removes JVM boot up time.
 
@@ -385,4 +336,4 @@ To run:
   
 Note that once the native version is available (and has a newer timestamp),
 `sireum` and `sireum.bat` in `bin` call the native version. 
- This is also similar for `build.cmd` in `bin` and `build/bin`.
+ This is also similar for `build.cmd` in `bin`.
