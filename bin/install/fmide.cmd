@@ -28,14 +28,14 @@ val homeBin: Os.Path = Os.slashDir.up.canon
 val home = homeBin.up.canon
 
 val briefCaseFeatureId: String = "com.collins.trustedsystems.briefcase.feature.feature.group"
-@strictpure def briefCaseUpdateSite(url: String): String = s"jar:${url}!"
+@strictpure def briefCaseUpdateSite(url: String): String = s"jar:$url!"
 
 val eclipseRelease = "2019-12"
 val hamrUpdateSite = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master"
 val hamrFeatureId = "org.sireum.aadl.osate.hamr.feature.feature.group"
 
-val metalsUpdateSite = s"https://download.eclipse.org/releases/$eclipseRelease,http://scalameta.org/metals-eclipse/update"
-val metalsFeatureId = "lsp.scala.feature.feature.group"
+//val metalsUpdateSite = s"https://download.eclipse.org/releases/$eclipseRelease,http://scalameta.org/metals-eclipse/update"
+//val metalsFeatureId = "lsp.scala.feature.feature.group"
 
 @strictpure def p2Args(uninstall: B, updateSite: String, featureId: String): ISZ[String] = ISZ[String](
   "-nosplash",
@@ -50,7 +50,7 @@ val metalsFeatureId = "lsp.scala.feature.feature.group"
 ) ++ (if (uninstall) ISZ[String]("-uninstallIU", featureId) else ISZ[String]())
 
 val hamrP2Args = p2Args(T, hamrUpdateSite, hamrFeatureId)
-val metalsP2Args = p2Args(F, metalsUpdateSite, metalsFeatureId)
+//val metalsP2Args = p2Args(F, metalsUpdateSite, metalsFeatureId)
 
 val envs = ISZ[(String, String)]("PATH" ~>
   s"${Os.env("JAVA_HOME").get}${Os.fileSep}bin${Os.pathSep}${Os.env("PATH").get}")
@@ -130,9 +130,9 @@ def linux(): Unit = {
     Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
     println()
   }
-  println(s"Installing Scala Metals plugin ...")
-  Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
-  println()
+  //println(s"Installing Scala Metals plugin ...")
+  //Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
+  //println()
   println(s"FMIDE is installed at $d")
 }
 
@@ -157,9 +157,9 @@ def mac(): Unit = {
     Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
     println()
   }
-  println(s"Installing Scala Metals plugin ...")
-  Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
-  println()
+  //println(s"Installing Scala Metals plugin ...")
+  //Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
+  //println()
   println(s"FMIDE is installed at $d")
 }
 
@@ -180,9 +180,9 @@ def win(): Unit = {
     Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
     println()
   }
-  println(s"Installing Scala Metals plugin ...")
-  Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
-  println()
+  //println(s"Installing Scala Metals plugin ...")
+  //Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
+  //println()
   println(s"FMIDE is installed at $d")
 }
 
