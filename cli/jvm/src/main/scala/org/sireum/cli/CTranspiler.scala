@@ -350,7 +350,7 @@ object CTranspiler {
       startTime()
     }
 
-    th = TypeOutliner.checkOutline(T, th, reporter)
+    th = TypeOutliner.checkOutline(T, T, th, reporter)
     if (reporter.hasIssue) {
       reporter.printMessages()
       return InvalidSources

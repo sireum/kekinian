@@ -275,7 +275,7 @@ object SlangTipe {
       startTime()
     }
 
-    th = TypeOutliner.checkOutline(T, th, reporter)
+    th = TypeOutliner.checkOutline(T, o.strictAliasing, th, reporter)
     if (reporter.hasIssue) {
       reporter.printMessages()
       return InvalidSources
