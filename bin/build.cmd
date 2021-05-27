@@ -227,7 +227,11 @@ def buildMill(): Unit = {
   }
 
   val millBuild = home / "build"
-  proc"git clone https://github.com/sireum/build ${millBuild.name}".at(home).console.runCheck()
+  if (millBuild.exists) {
+    proc"git pull".at(millBuild).console.runCheck()
+  } else {
+    proc"git clone https://github.com/sireum/build ${millBuild.name}".at(home).console.runCheck()
+  }
   symlink(millBuild / "versions.properties", home / "versions.properties")
   val millBuildBin = millBuild / "bin"
   symlink(millBuildBin / sireumJar.name, homeBin / sireumJar.name)
