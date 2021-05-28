@@ -37,7 +37,7 @@ val hamr = Group(
   name = "hamr",
   description = "HAMR Tools",
   header =
-    st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems""".render,
+    st"""HAMR: High Assurance Model-based Rapid-engineering tools for embedded systems""".render,
   unlisted = F,
   subs = ISZ(codegen.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool)
 )
@@ -54,7 +54,7 @@ val main = Group(
   name = "sireum",
   description = "",
   header =
-    st"""Sireum: A High-Assurance System Engineering Platform
+    st"""Sireum: A High Assurance System Engineering Platform
         |(c) SAnToS Laboratory, Kansas State University
         |Build $${SireumApi.version}""".render,
   unlisted = F,
