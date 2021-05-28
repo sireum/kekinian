@@ -123,6 +123,7 @@ object Cli {
     args: ISZ[String],
     jar: Option[String],
     mainClass : Option[String],
+    isNative : B,
     ignoreRuntime: B,
     json: Option[String],
     name: Option[String],
@@ -457,7 +458,7 @@ import Cli._
   def parseSireum(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""Sireum: A High-Assurance System Engineering Platform
+        st"""Sireum: A High Assurance System Engineering Platform
             |(c) SAnToS Laboratory, Kansas State University
             |Build ${SireumApi.version}
             |
@@ -501,7 +502,7 @@ import Cli._
   def parseHamr(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""HAMR: High-Assurance Model-based Rapid-engineering tools for embedded systems
+        st"""HAMR: High Assurance Model-based Rapid-engineering tools for embedded systems
             |
             |Available modes:
             |codegen                 
@@ -1132,6 +1133,7 @@ import Cli._
           |-j, --jar                The assembled jar filename (defaults to the project
           |                           name) (expects a string)
           |-m, --main               The main class fully qualified name (expects a string)
+          |    --native             Generates native image
           |-h, --help               Display this information
           |
           |Project Options:
@@ -1186,6 +1188,7 @@ import Cli._
 
     var jar: Option[String] = None[String]()
     var mainClass : Option[String] = None[String]()
+    var isNative : B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -1223,6 +1226,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => mainClass  = v
+             case _ => return None()
+           }
+         } else if (arg == "--native") {
+           val o: Option[B] = { j = j - 1; Some(!isNative ) }
+           o match {
+             case Some(v) => isNative  = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -1348,7 +1357,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , isNative , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {

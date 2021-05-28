@@ -37,6 +37,7 @@ object Proyek {
   val INVALID_PROJECT: Z = -6
   val INVALID_VERSIONS: Z = -7
   val INVALID_PUBLISH_DEP: Z = -8
+  val INVALID_NATIVE_DEP: Z = -9
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -142,6 +143,19 @@ object Proyek {
       return code
     }
 
+    val sireumHome = SireumApi.homeOpt.get
+
+    if (o.isNative) {
+      if (Os.kind == Os.Kind.Unsupported) {
+        eprintln("Unsupported operating system for native image")
+        return INVALID_NATIVE_DEP
+      }
+      if (!(sireumHome / "bin" / "install" / "graal.cmd").exists) {
+        eprintln("Could not locate GraalVM installation Slash script")
+        return INVALID_NATIVE_DEP
+      }
+    }
+
     println()
 
     val dm = project.DependencyManager(
@@ -152,7 +166,7 @@ object Proyek {
       withDoc = F,
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
-      sireumHome = SireumApi.homeOpt.get,
+      sireumHome = sireumHome,
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
@@ -190,7 +204,8 @@ object Proyek {
       projectName = projectName,
       jarName = o.jar.getOrElse(projectName),
       dm = dm,
-      mainClassNameOpt = o.mainClass
+      mainClassNameOpt = o.mainClass,
+      isNative = o.isNative
     )
 
     return r

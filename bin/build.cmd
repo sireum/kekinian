@@ -270,7 +270,7 @@ def bloop(): Unit = {
 }
 
 
-def build(fresh: B): Unit = {
+def build(fresh: B, isNative: B): Unit = {
   println("Building ...")
 
   val recompile: String = if (fresh) {
@@ -281,40 +281,22 @@ def build(fresh: B): Unit = {
       ops.StringOps(proc"$sireum -v".run().out).contains("*")) " --recompile cli"
     else ""
   }
+  val nativ: String = if (isNative) " --native" else ""
 
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile .".at(home).console.run()
+  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ .".at(home).console.run()
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
+    if (isNative) {
+      val exePath: Os.Path = Os.kind match {
+        case Os.Kind.Win => homeBin / "win" / s"$jarName.exe"
+        case Os.Kind.Linux => homeBin / "linux" / jarName
+        case Os.Kind.LinuxArm => homeBin / "linux" / "arm" / jarName
+        case Os.Kind.Mac => homeBin / "mac" / jarName
+        case _ => halt("Infeasible")
+      }
+      (home / "out" / proyekName / "assemble" / exePath.name).copyOverTo(exePath)
+    }
   } else {
-    Os.exit(r.exitCode)
-  }
-  println()
-}
-
-
-def nativ(): Unit = {
-  val platDir = homeBin / platform
-  val nativeImage: Os.Path =
-    platDir / "graal" / "bin" / (if (Os.isWin) "native-image.cmd" else "native-image")
-  (homeBin / "install" / "graal.cmd").call(ISZ()).console.runCheck()
-  val flags: ISZ[String] = Os.kind match {
-    case Os.Kind.Mac => ISZ("--no-server")
-    case Os.Kind.Linux => ISZ("--static", "--no-server")
-    case Os.Kind.LinuxArm => ISZ("--static", "--no-server")
-    case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
-    case _ => halt("Unsupported operating system")
-  }
-  build(F)
-  println("Building native ...")
-  val r = Os.proc((nativeImage.string +: flags) ++ ISZ[String]("--initialize-at-build-time", "--no-fallback",
-    "--report-unsupported-elements-at-runtime", "-H:+ReportExceptionStackTraces", "-H:-DeadlockWatchdogExitOnTimeout",
-    "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
-    "-jar", sireumJar.string, (platDir / "sireum").string)).console.run()
-  (platDir / "sireum.o").removeAll()
-  for (f <- platDir.list if ops.StringOps(f.name).startsWith("sireum.") && !ops.StringOps(f.name).endsWith(".exe")) {
-    f.removeAll()
-  }
-  if (r.exitCode != 0) {
     Os.exit(r.exitCode)
   }
   println()
@@ -498,7 +480,7 @@ def ghpack(): Unit = {
 
 def setup(isUltimate: B): Unit = {
   println("Setup ...")
-  build(F)
+  build(F, F)
   proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else ""}".at(home).console.runCheck()
   project(T, isUltimate)
   Os.kind match {
@@ -524,7 +506,7 @@ def setup(isUltimate: B): Unit = {
 
 def project(skipBuild: B, isUltimate: B): Unit = {
   if (!skipBuild) {
-    build(F)
+    build(F, F)
   }
   println("Generating IVE project ...")
   proc"$sireum proyek ive --force${if (isUltimate) " --ultimate" else ""} .".at(home).console.runCheck()
@@ -608,12 +590,12 @@ installZ3(Os.kind)
 installCVC4(Os.kind)
 
 if (Os.cliArgs.isEmpty) {
-  build(F)
+  build(F, F)
 } else {
   for (i <- 0 until Os.cliArgs.size) {
     Os.cliArgs(i) match {
-      case string"fresh" => build(T)
-      case string"native" => nativ()
+      case string"fresh" => build(T, F)
+      case string"native" => build(F, T)
       case string"setup" => setup(F)
       case string"setup-ultimate" => setup(T)
       case string"project" => project(F, F)
