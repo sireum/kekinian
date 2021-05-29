@@ -30,9 +30,8 @@ mill-standalone
 /bin/win/cvc4.exe
 /bin/mac/cvc4
 /bin/linux/cvc4
-/bin/win/.cvc4.ver
-/bin/mac/.cvc4.ver
-/bin/linux/.cvc4.ver
+.cvc4.ver
+.compcert.ver
 /bin/win/idea
 /bin/linux/idea
 /bin/linux/arm/idea
@@ -74,12 +73,11 @@ stale_outputs_checked
 /bin/mac/opam
 /bin/linux/opam
 /bin/linux/arm/opam
+/bin/win/opam
 /bin/mac/.opam
 /bin/linux/.opam
 /bin/linux/arm/.opam
-/bin/mac/compcert
-/bin/linux/compcert
-/bin/linux/arm/compcert
+/bin/win/.opam
 /resources/vagrant/.vagrant
 /project.dot*
 project.json

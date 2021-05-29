@@ -25,11 +25,11 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val compcertVersion = "v3.7"
-val menhirVersion = "20200211"
-val coqVersion = "8.11.0"
-val ocamlVersion = "4.09.1"
-val opamVersion = "2.0.7"
+val compCertVersion = "3.9"
+val menhirVersion = "20210310"
+val coqVersion = "8.13.2"
+val ocamlVersion = "4.11.1"
+val opamVersion = "2.0.8"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(4).string
@@ -40,8 +40,9 @@ def opam(dir: Os.Path, bundle: String): Unit = {
   println(
     st"""Note that:
         |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and education purposes,
-        |   but not for commercial purposes." (see: http://compcert.inria.fr/doc/LICENSE)
+        |   This public release can be used for evaluation, research and
+        |   education purposes, but not for commercial purposes."
+        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
         |""".render)
   val opamExe = (dir.up / "opam").canon
 
@@ -61,6 +62,7 @@ def opam(dir: Os.Path, bundle: String): Unit = {
 
   println(s"Initializing opam with OCaml $ocamlVersion in $dir ...")
   Os.proc(ISZ(opamExe.string, "init", s"--root=$dir", s"--comp=$ocamlVersion", "--no-self-upgrade", "--no-setup", "--disable-sandboxing", "--reinit", "-a", "-j", cores)).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "repo", "add", s"--root=$dir", "--no-self-upgrade", "coq-released", "https://coq.inria.fr/opam/released")).runCheck()
   println()
 }
 
@@ -76,79 +78,37 @@ def menhir(dir: Os.Path): Unit = {
   println()
 }
 
-def compcert(opamDir: Os.Path, dir: Os.Path, target: String): Unit = {
-  val temp = Os.tempDir()
-  temp.removeOnExit()
-  val git = temp / "CompCert"
-
-  println(s"Cloning CompCert $compcertVersion ...")
-  Os.proc(ISZ("git", "clone", "--recursive", "-b", compcertVersion, s"https://github.com/AbsInt/CompCert.git", git.name)).at(temp).runCheck()
-  println()
-
-  val opamExe = (opamDir.up / "opam").canon.string
-
-  println(s"Configuring CompCert ...")
-  Os.proc(ISZ(opamExe, "exec", s"--root=$opamDir", "--no-self-upgrade", "--", (git / "configure").string, "-prefix", dir.string, target)).at(git).runCheck()
-  println()
-
-  println(s"Building CompCert ...")
-  Os.proc(ISZ(opamExe, "exec", s"--root=$opamDir", "--no-self-upgrade", "--", "make", "-j", cores, "all")).at(git).runCheck()
-  println()
-
-  println(s"Installing CompCert ...")
-  Os.proc(ISZ(opamExe, "exec", s"--root=$opamDir", "--no-self-upgrade", "--", "make", "install")).at(git).runCheck()
+def compCert(dir: Os.Path): Unit = {
+  println(s"Installing CompCert $compCertVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).runCheck()
   println()
 }
 
-def mac(): Unit = {
-  val platformDir = homeBin / "mac"
+def install(platformDir: Os.Path, opamSuffix: String): Unit = {
   val opamDir = platformDir / ".opam"
-  val compcertDir = platformDir / "compcert"
-  val ver = compcertDir / "VER"
+  val ver = platformDir / ".compcert.ver"
 
-  if (ver.exists && ver.read === compcertVersion) {
+  if (ver.exists && ver.read === compCertVersion) {
     return
   }
 
-  compcertDir.removeAll()
+  opamDir.removeAll()
 
-  opam(opamDir, s"opam-$opamVersion-x86_64-macos")
+  opam(opamDir, s"opam-$opamVersion-$opamSuffix")
   coq(opamDir)
   menhir(opamDir)
-  compcert(opamDir, compcertDir, "x86_64-macosx")
+  compCert(opamDir)
 
-  ver.writeOver(compcertVersion)
+  ver.writeOver(compCertVersion)
 
-  println()
-  println(s"CompCert is installed at $compcertDir")
+  println(s"CompCert is installed")
 }
 
-def linux(isArm: B): Unit = {
-  val platformDir: Os.Path = if (isArm) homeBin / "linux" / "arm" else homeBin / "linux"
-  val opamDir = platformDir / ".opam"
-  val compcertDir = platformDir / "compcert"
-  val ver = compcertDir / "VER"
-
-  if (ver.exists && ver.read === compcertVersion) {
-    return
-  }
-
-  compcertDir.removeAll()
-
-  opam(opamDir, if (isArm) s"opam-$opamVersion-arm64-linux" else s"opam-$opamVersion-x86_64-linux")
-  coq(opamDir)
-  menhir(opamDir)
-  compcert(opamDir, compcertDir, if (isArm) "aarch64-linux" else "x86_64-linux")
-
-  ver.writeOver(compcertVersion)
-
-  println(s"CompCert is installed at $compcertDir")
-}
 
 Os.kind match {
-  case Os.Kind.Mac => mac()
-  case Os.Kind.Linux => linux(F)
-  case Os.Kind.LinuxArm => linux(T)
+  case Os.Kind.Mac => install(homeBin / "mac", "x86_64-macos")
+  case Os.Kind.Linux => install(homeBin / "linux", "x86_64-linux")
+  case Os.Kind.LinuxArm => install(homeBin / "linux" / "arm", "arm64-linux")
   case _ =>
     eprintln("Unsupported platform")
     Os.exit(-1)
