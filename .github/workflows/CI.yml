@@ -147,6 +147,52 @@ jobs:
           :error
           exit /b %errorlevel%
 
+  ci-ubuntu-compcert:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[skip action]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache Java
+        id: cache-java
+        uses: actions/cache@v2
+        with:
+          path: bin/linux/java
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-java
+      - name: Cache Z3
+        id: cache-z3
+        uses: actions/cache@v2
+        with:
+          path: bin/linux/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-z3
+      - name: Cache Scala
+        id: cache-scala
+        uses: actions/cache@v2
+        with:
+          path: bin/scala
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-scala
+      - name: Cache Coursier
+        id: cache-coursier
+        uses: actions/cache@v2
+        with:
+          path: cache/coursier
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-coursier
+      - name: Cache CompCert
+        id: cache-compcert
+        uses: actions/cache@v2
+        with:
+          path: |
+            bin/linux/.opam
+            bin/linux/opam
+            bin/linux/.compcert.ver
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/compcert.cmd') }}-compcert
+      - name: Test
+        run: |
+          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
+          cd $GITHUB_WORKSPACE
+          git submodule update --init --recursive
+          .ci/linux-compcert.sh
+
   skip:
     runs-on: ubuntu-latest
     if: "contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[skip action]')"
