@@ -167,7 +167,6 @@ object Logika {
           status = F
         }
       } else {
-        eprintln(f.ext.value)
         eprintln(s"$arg is not a Slang script file")
         return INVALID_SCRIPT_FILE
       }
