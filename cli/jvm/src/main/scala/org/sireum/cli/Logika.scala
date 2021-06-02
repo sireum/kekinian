@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
@@ -36,13 +37,11 @@ object Logika {
   val INVALID_INT_WIDTH: Z = -5
   val INVALID_VC_DIR: Z = -6
   val INVALID_RAM_DIR: Z = -7
+  val INVALID_SOURCE_PATH: Z = -8
+  val INVALID_SOURCE_FILE: Z = -9
+  val ILL_FORMED_PROGRAMS: Z = -10
 
   def run(o: Cli.LogikaVerifierOption): Z = {
-    if (o.sourcepath.nonEmpty) {
-      eprintln("Logika sourcepath support is coming soon")
-      return TODO
-    }
-
     if (o.args.isEmpty) {
       println(o.help)
       println()
@@ -69,20 +68,112 @@ object Logika {
         return INVALID_INT_WIDTH
     }
 
-    var status = T
-    var code = z"0"
-
-    for (arg <- o.args) {
-      if (o.args.size > 1) {
-        println(s"Verifying $arg ...")
-      }
-
-      val outputDir: Option[String] =
-        o.logVcDir match {
-          case Some(d) => Some(s"$d${Os.fileSep}${Os.path(arg).name}")
-          case _ => None()
+    var smt2Configs = ISZ[logika.Smt2Config]()
+    val rfOpt: Option[Os.Path] = o.ramFolder match {
+      case Some(rf) =>
+        val rfp = Os.path(rf)
+        if (rfp.isDir) {
+          Some(rfp)
+        } else {
+          eprintln(s"$rf is not a directory")
+          return INVALID_RAM_DIR
         }
-      outputDir match {
+      case _ => None()
+    }
+    if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Cvc4) {
+      val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
+      SireumApi.homeOpt match {
+        case Some(home) =>
+          val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
+          val exe: String = rfOpt match {
+            case Some(rfp) =>
+              val d = rfp / "sireum"
+              d.mkdirAll()
+              val f = d / p.name
+              if (!(f.isFile && f.length == p.length)) {
+                f.removeAll()
+                p.copyOverTo(f)
+              }
+              f.string
+            case _ => p.string
+          }
+          smt2Configs = smt2Configs :+ logika.Cvc4Config(exe)
+        case _ =>
+          smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename)
+      }
+    }
+    if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
+      val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
+      SireumApi.homeOpt match {
+        case Some(home) =>
+          val p: Os.Path = home / "bin" / SireumApi.platform / "z3" / "bin" / exeFilename
+          val exe: String = rfOpt match {
+            case Some(rfp) =>
+              val d = rfp / "sireum"
+              d.mkdirAll()
+              val f = d / p.name
+              if (!(f.isFile && f.length == p.length)) {
+                f.removeAll()
+                p.copyOverTo(f)
+              }
+              f.string
+            case _ => p.string
+          }
+          smt2Configs = smt2Configs :+ logika.Z3Config(exe)
+        case _ =>
+          smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename)
+      }
+    }
+
+    def verifyScripts(): Z = {
+      var code: Z = 0
+      for (arg <- o.args) {
+        if (o.args.size > 1) {
+          println(s"Verifying $arg ...")
+        }
+        val outputDir: Option[String] =
+          o.logVcDir match {
+            case Some(d) => Some(s"$d${Os.fileSep}${Os.path(arg).name}")
+            case _ => None()
+          }
+        outputDir match {
+          case Some(p) =>
+            val path = Os.path(p)
+            if (path.exists && !path.isDir) {
+              eprintln(s"$p is not a directory")
+              return INVALID_VC_DIR
+            }
+          case _ =>
+        }
+        val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
+          o.intBitWidth, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
+          o.splitMatch, o.splitContract, o.simplify)
+        val f = Os.path(arg)
+        val ext = f.ext
+        val plugins = logika.Logika.defaultPlugins
+        if (f.isFile && (ext == "sc" || ext == "cmd")) {
+          val reporter = logika.Logika.Reporter.create
+          val content = f.read
+          logika.Logika.checkFile(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
+            logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
+              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, T, plugins)
+          reporter.printMessages()
+          if (reporter.hasError) {
+            code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
+          }
+        } else {
+          eprintln(s"$arg is not a Slang script file")
+          return INVALID_SCRIPT_FILE
+        }
+        if (o.args.size > 1) {
+          println()
+        }
+      }
+      return 0
+    }
+
+    def verifyPrograms(): Z = {
+      o.logVcDir match {
         case Some(p) =>
           val path = Os.path(p)
           if (path.exists && !path.isDir) {
@@ -91,91 +182,69 @@ object Logika {
           }
         case _ =>
       }
-      var smt2Configs = ISZ[logika.Smt2Config]()
-      val rfOpt: Option[Os.Path] = o.ramFolder match {
-        case Some(rf) =>
-          val rfp = Os.path(rf)
-          if (rfp.isDir) {
-            Some(rfp)
-          } else {
-            eprintln(s"$rf is not a directory")
-            return INVALID_RAM_DIR
+
+      if (o.sourcepath.isEmpty) {
+        eprintln("No sourcepath is specified")
+        return INVALID_SOURCE_PATH
+      }
+
+      def readFile(f: Os.Path): (Option[String], String) = {
+        return (Some(f.toUri), f.read)
+      }
+
+      var sources = ISZ[(Option[String], String)]()
+      for (p <- o.sourcepath) {
+        val f = Os.path(p)
+        if (!f.exists) {
+          eprintln(s"Source path '$p' does not exist.")
+          return INVALID_SOURCE_PATH
+        } else {
+          for (p <- Os.Path.walk(f, F, T, { p : Os.Path =>
+              if (p.ext == "scala") {
+                val line = conversions.String.fromCis(p.readCStream.takeWhile((c : C) => c != '\n').
+                  filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)
+                ops.StringOps(line).contains("#Sireum")
+              } else {
+                F
+              }
+          })) {
+            sources = sources :+ readFile(p)
           }
-        case _ => None()
-      }
-      if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Cvc4) {
-        val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
-        Sireum.homeOpt match {
-          case Some(home) =>
-            val p: Os.Path = home / "bin" / Sireum.platform / exeFilename
-            val exe: String = rfOpt match {
-              case Some(rfp) =>
-                val d = rfp / "sireum"
-                d.mkdirAll()
-                val f = d / p.name
-                if (!(f.isFile && f.length == p.length)) {
-                  f.removeAll()
-                  p.copyOverTo(f)
-                }
-                f.string
-              case _ => p.string
-            }
-            smt2Configs = smt2Configs :+ logika.Cvc4Config(exe)
-          case _ =>
-            smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename)
         }
       }
-      if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
-        val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
-        Sireum.homeOpt match {
-          case Some(home) =>
-            val p: Os.Path = home / "bin" / Sireum.platform / "z3" / "bin" / exeFilename
-            val exe: String = rfOpt match {
-              case Some(rfp) =>
-                val d = rfp / "sireum"
-                d.mkdirAll()
-                val f = d / p.name
-                if (!(f.isFile && f.length == p.length)) {
-                  f.removeAll()
-                  p.copyOverTo(f)
-                }
-                f.string
-              case _ => p.string
-            }
-            smt2Configs = smt2Configs :+ logika.Z3Config(exe)
-          case _ =>
-            smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename)
+
+      if (o.sourcepath.nonEmpty && sources.isEmpty) {
+        eprintln("Did not find any sources in the specified sourcepath")
+        return INVALID_SOURCE_PATH
+      }
+
+      var files = ISZ[String]()
+      for (f <- o.args) {
+        val p = Os.path(f)
+        if (!p.exists) {
+          eprintln(s"$p is not a source file")
+          return INVALID_SOURCE_FILE
         }
+        files = files :+ p.canon.toUri
       }
       val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-        o.intBitWidth, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
+        o.intBitWidth, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
         o.splitMatch, o.splitContract, o.simplify)
-      val f = Os.path(arg)
-      val ext = f.ext.value
       val plugins = logika.Logika.defaultPlugins
-      if (f.isFile && (ext == "sc" || ext == "cmd" )) {
-        val reporter = logika.Logika.Reporter.create
-        val content = f.read
-        logika.Logika.checkFile(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl.create(smt2Configs, th,  logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
-              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, T, plugins)
-        reporter.printMessages()
-        if (reporter.hasError) {
-          code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
-        }
-        if (reporter.hasIssue) {
-          status = F
-        }
-      } else {
-        eprintln(s"$arg is not a Slang script file")
-        return INVALID_SCRIPT_FILE
-      }
-      if (o.args.size > 1) {
-        println()
-      }
+      val reporter = logika.Logika.Reporter.create
+      logika.Logika.checkPrograms(sources, files, config, lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy,
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(),
+          config.timeoutInMs, config.charBitWidth, config.intBitWidth, config.simplifiedQuery, reporter), reporter,
+          o.par, T, T, plugins)
+      reporter.printMessages()
+      return if (reporter.hasError) ILL_FORMED_PROGRAMS else 0
     }
 
-    if (status) {
+    val code: Z =
+      if (ops.ISZOps(o.args).forall((s: String) => Os.path(s).ext == "scala")) verifyPrograms()
+      else verifyScripts()
+
+    if (code == 0) {
       println("Logika verified!")
     }
 
