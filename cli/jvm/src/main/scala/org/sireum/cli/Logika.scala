@@ -73,6 +73,7 @@ object Logika {
       case Some(rf) =>
         val rfp = Os.path(rf)
         if (rfp.isDir) {
+          rfp.removeAll()
           Some(rfp)
         } else {
           eprintln(s"$rf is not a directory")
@@ -142,6 +143,8 @@ object Logika {
             if (path.exists && !path.isDir) {
               eprintln(s"$p is not a directory")
               return INVALID_VC_DIR
+            } else {
+              path.removeAll()
             }
           case _ =>
         }
