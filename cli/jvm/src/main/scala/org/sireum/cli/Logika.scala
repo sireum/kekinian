@@ -186,11 +186,6 @@ object Logika {
         case _ =>
       }
 
-      if (o.sourcepath.isEmpty) {
-        eprintln("No sourcepath is specified")
-        return INVALID_SOURCE_PATH
-      }
-
       def readFile(f: Os.Path): (Option[String], String) = {
         return (Some(f.toUri), f.read)
       }
