@@ -35,7 +35,7 @@ import org.sireum.tools
 
 val hamr = Group(
   name = "hamr",
-  description = "HAMR Tools",
+  description = "HAMR tools",
   header =
     st"""HAMR: High Assurance Model-based Rapid-engineering tools for embedded systems""".render,
   unlisted = F,

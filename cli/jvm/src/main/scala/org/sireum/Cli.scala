@@ -464,7 +464,8 @@ import Cli._
             |Build ${SireumApi.version}
             |
             |Available modes:
-            |hamr                     HAMR Tools
+            |hamr                     HAMR tools
+            |logika                   Logika tools
             |proyek                   Build tools
             |slang                    Slang tools
             |tools                    Utility tools""".render
@@ -861,7 +862,7 @@ import Cli._
   def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
-        st"""Logika Toolset for Slang
+        st"""Logika Tools for Slang
             |
             |Available modes:
             |verifier                 Logika verifier""".render
@@ -899,7 +900,7 @@ import Cli._
     val help =
       st"""Logika Verifier for Slang
           |
-          |Usage: <option>* [<slang-file>]
+          |Usage: <option>* <slang-file>+
           |
           |Available Options:
           |    --line               Focus verification to the specified program line
