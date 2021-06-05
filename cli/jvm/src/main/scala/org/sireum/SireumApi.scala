@@ -30,29 +30,77 @@ import org.sireum._
 
 @ext("Sireum") object SireumApi {
   def version: String = $
+
   def commitHash: String = $
+
   def platform: String = $
+
   def isNative: B = $
+
   def initInfo: Init.Info = $
+
   def homeOpt: Option[Os.Path] = $
+
   def javaHomeOpt: Option[Os.Path] = $
+
   def scalaHomeOpt: Option[Os.Path] = $
+
   def scalacPluginJar: Os.Path = $
+
   def sireumJar: Os.Path = $
+
   def ideaDir: Os.Path = $
+
   def ideaUltimateDir: Os.Path = $
+
   def ideaLibDir: Os.Path = $
+
   def ideaPluginsDir: Os.Path = $
+
   def versions: Map[String, String] = $
+
   def isDev: B = $
+
   def javaVer: String = $
+
   def jbrVer: String = $
+
   def scalaVer: String = $
+
   def scalacPluginVer: String = $
+
   def homeFound: B = $
+
   def javaFound: B = $
+
   def scalaFound: B = $
+
   def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): ISZ[Os.Path] = $
+
   def paths2fileOpt(pathFor: String, path: ISZ[String], checkExist: B): Option[Os.Path] = $
+
   def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): Option[Os.Path] = $
+
+  def currentTimeMillis: Z = $
+
+  def readGzipContent(path: Os.Path): Option[ISZ[U8]] = $
+
+  def writeGzipContent(path: Os.Path, content: ISZ[U8]): B = $
+
+  def totalMemory: Z = $
+
+  def freeMemory: Z = $
+
+  def formatMb(bytes: Z): String = $
+
+  def formatSecond(millis: Z): String = $
+
+  def instantiate[T](className: String): Option[T] = $
+
+  def bitcodecPrint(spec: bitcodec.Spec): ST = $
+
+  def hamrCodeGen(model: hamr.ir.Aadl,
+                  options: hamr.codegen.common.util.CodeGenConfig,
+                  reporter: message.Reporter,
+                  transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z): hamr.codegen.common.util.CodeGenResults = $
 }

@@ -50,7 +50,7 @@ object Sireum {
           case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
           case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt
           case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o).toInt
-          case Some(o: Cli.HamrCodeGenOption) => cli.HAMR.codeGen(o)
+          case Some(o: Cli.HamrCodeGenOption) => cli.HAMR.codeGen(o).toInt
           case Some(o: Cli.PhantomOption) => cli.Phantom.run(o).toInt
           case Some(o: Cli.LogikaVerifierOption) => cli.Logika.run(o).toInt
           case Some(o: Cli.ServerOption) => server.Server.run(version, o.message == Cli.ServerMessage.Msgpack, o.logika).toInt
@@ -253,6 +253,86 @@ object Sireum {
       eprintln("Please specify SCALA_HOME env var.")
       F
     } else T
+  }
+
+  def currentTimeMillis: Z = System.currentTimeMillis()
+
+  def readGzipContent(path: Os.Path): Option[ISZ[U8]] = {
+    import _root_.java.io.{File, FileInputStream}
+    import _root_.java.util.zip.GZIPInputStream
+
+    def toIS(data: Array[Byte]): ISZ[U8] = {
+      new IS(Z, data, data.length, U8.Boxer)
+    }
+
+    val gis = new GZIPInputStream(new FileInputStream(new File(path.string.value)))
+    try {
+      return Some(toIS(gis.bytes))
+    } catch {
+      case e: _root_.java.io.IOException =>
+        eprintln(s"Could not load file: ${e.getMessage}")
+        return None()
+    } finally gis.close()
+  }
+
+  def writeGzipContent(path: Os.Path, content: ISZ[U8]): B = {
+    def fromIS(data: ISZ[U8]): (Array[Byte], Int) = {
+      return (data.data.asInstanceOf[Array[Byte]], data.size.toInt)
+    }
+
+    import _root_.java.io.{File, FileOutputStream}
+    import _root_.java.util.zip.GZIPOutputStream
+
+    val (buf, length) = fromIS(content)
+    val gos = new GZIPOutputStream(new FileOutputStream(new File(path.string.value)))
+    try {
+      gos.write(buf, 0, length)
+      return T
+    } catch {
+      case e: _root_.java.io.IOException =>
+        eprintln(s"Could not save file: ${e.getMessage}")
+        return F
+    } finally gos.close()
+  }
+
+  def totalMemory: Z = Runtime.getRuntime.totalMemory()
+
+  def freeMemory: Z = Runtime.getRuntime.freeMemory()
+
+  def formatMb(bytes: Z): String = f"${bytes.toLong / 1024d / 1024d}%.2f"
+
+  def formatSecond(millis: Z): String = f"${millis.toLong / 1000d}%.2f"
+
+  def instantiate[T](className: String): Option[T] = {
+    try {
+      val c = Class.forName(className.value)
+      return Some(c.getDeclaredConstructor().newInstance().asInstanceOf[T])
+    } catch {
+      case _: Throwable => return None()
+    }
+  }
+
+  def bitcodecPrint(spec: bitcodec.Spec): ST = org.sireum.bitcodec.JSON.Printer.printSpec(spec)
+
+  def hamrCodeGen(model: hamr.ir.Aadl,
+                  options: hamr.codegen.common.util.CodeGenConfig,
+                  reporter: message.Reporter,
+                  transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z): hamr.codegen.common.util.CodeGenResults =
+    hamr.codegen.CodeGen.codeGen(model, options, reporter, transpilerCallback)
+
+  implicit class GZIS(val gzis: _root_.java.util.zip.GZIPInputStream) extends AnyVal {
+
+    def bytes: Array[Byte] = {
+      val bos = new _root_.java.io.ByteArrayOutputStream
+      val buffer = new Array[Byte](16384)
+      var n = gzis.read(buffer)
+      while (n > -1) {
+        bos.write(buffer, 0, n)
+        n = gzis.read(buffer)
+      }
+      gzis.close()
+      bos.toByteArray
+    }
   }
 
 }

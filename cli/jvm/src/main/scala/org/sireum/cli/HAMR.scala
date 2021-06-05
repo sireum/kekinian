@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2019, Jason Belt, Kansas State University
  All rights reserved.
@@ -25,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.sireum.cli
 
+import org.sireum._
 import org.sireum.Os.Path
-import org.sireum.{Cli, _}
 import org.sireum.hamr.codegen._
 import org.sireum.hamr.codegen.common.containers.TranspilerConfig
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
@@ -38,7 +39,7 @@ object HAMR {
   val toolName: String = "HAMR"
 
   // cli interface
-  def codeGen(o: Cli.HamrCodeGenOption): Int = {
+  def codeGen(o: Cli.HamrCodeGenOption): Z = {
     o.args.size match {
       case z"0 " => println(o.help); return 0
       case _ =>
@@ -76,33 +77,33 @@ object HAMR {
             return -1
         }
       }
-    return codeGen(model, o)
+    return codeGenH2(model, o)
   }
 
   // JAVA/OSATE interface
-  def codeGen(model: Aadl,
-              //
-              verbose: B,
-              platform: Cli.HamrPlatform.Type,
-              slangOutputDir: Option[Predef.String],
-              slangPackageName: Option[Predef.String],
-              noEmbedArt: B,
-              devicesAsThreads: B,
-              //
-              slangAuxCodeDir: ISZ[Predef.String],
-              slangOutputCDirectory: Option[Predef.String],
-              excludeComponentImpl: B,
-              bitWidth: Int,
-              maxStringSize: Int,
-              maxArraySize: Int,
-              runTranspiler: B,
-              //
-              camkesOutputDirectory: Option[Predef.String],
-              camkesAuxCodeDirs: ISZ[Predef.String],
-              aadlRootDir: Option[Predef.String],
-              //
-              experimentalOptions: ISZ[Predef.String]
-             ): Int = {
+  def codeGenH(model: Aadl,
+               //
+               verbose: B,
+               platform: Cli.HamrPlatform.Type,
+               slangOutputDir: Option[String],
+               slangPackageName: Option[String],
+               noEmbedArt: B,
+               devicesAsThreads: B,
+               //
+               slangAuxCodeDir: ISZ[String],
+               slangOutputCDirectory: Option[String],
+               excludeComponentImpl: B,
+               bitWidth: Z,
+               maxStringSize: Z,
+               maxArraySize: Z,
+               runTranspiler: B,
+               //
+               camkesOutputDirectory: Option[String],
+               camkesAuxCodeDirs: ISZ[String],
+               aadlRootDir: Option[String],
+               //
+               experimentalOptions: ISZ[String]
+             ): Z = {
 
     val o = Cli.HamrCodeGenOption(
       help = "",
@@ -112,30 +113,30 @@ object HAMR {
       verbose = verbose,
       platform = platform,
       //
-      outputDir = slangOutputDir.map(f => org.sireum.String(f)),
-      packageName = slangPackageName.map(f => org.sireum.String(f)),
+      outputDir = slangOutputDir,
+      packageName = slangPackageName,
       noEmbedArt = noEmbedArt,
       devicesAsThreads = devicesAsThreads,
       //
-      slangAuxCodeDirs = slangAuxCodeDir.map(f => org.sireum.String(f)),
-      slangOutputCDir = slangOutputCDirectory.map(f => org.sireum.String(f)),
+      slangAuxCodeDirs = slangAuxCodeDir,
+      slangOutputCDir = slangOutputCDirectory,
       excludeComponentImpl = excludeComponentImpl,
       bitWidth = bitWidth,
       maxStringSize = maxStringSize,
       maxArraySize = maxArraySize,
       runTranspiler = runTranspiler,
       //
-      camkesOutputDir = camkesOutputDirectory.map(f => org.sireum.String(f)),
-      camkesAuxCodeDirs = camkesAuxCodeDirs.map(f => org.sireum.String(f)),
-      aadlRootDir = aadlRootDir.map(f => org.sireum.String(f)),
+      camkesOutputDir = camkesOutputDirectory,
+      camkesAuxCodeDirs = camkesAuxCodeDirs,
+      aadlRootDir = aadlRootDir,
       //
-      experimentalOptions = experimentalOptions.map(f => org.sireum.String(f))
+      experimentalOptions = experimentalOptions
     )
 
-    return codeGen(model, o)
+    return codeGenH2(model, o)
   }
 
-  def codeGen(model: Aadl, o: Cli.HamrCodeGenOption): Int = {
+  def codeGenH2(model: Aadl, o: Cli.HamrCodeGenOption): Z = {
 
     val ops = CodeGenConfig(
       writeOutResources = T,
@@ -201,7 +202,7 @@ object HAMR {
       return result
     }
 
-    val results: CodeGenResults = CodeGen.codeGen(model, ops, reporter, transpile _ )
+    val results = SireumApi.hamrCodeGen(model, ops, reporter, transpile _ )
     
     return if(reporter.hasError) 1 else 0
   }

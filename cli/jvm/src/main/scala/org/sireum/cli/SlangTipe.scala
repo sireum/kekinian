@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2020, Robby, Kansas State University
  All rights reserved.
@@ -25,8 +26,6 @@
 
 package org.sireum.cli
 
-import _root_.java.util.zip._
-
 import org.sireum._
 import org.sireum.lang.FrontEnd
 import org.sireum.lang.ast.TopUnit
@@ -50,15 +49,14 @@ object SlangTipe {
   val LoadingError: Z = -10
 
   def run(o: SlangTipeOption, reporter: Reporter): Z = {
-
     def readFile(f: Os.Path): (Option[String], String) = {
-      (Some(f.toUri), f.read)
+      return (Some(f.toUri), f.read)
     }
 
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
       println(o.help)
       println()
-      println("Please either specify sourcepath or Slang files as arguments")
+      println("Please either specify sourcepath or Slang files as argument")
       return 0
     }
 
@@ -89,7 +87,9 @@ object SlangTipe {
         return InvalidFile
       }
       Some(f)
-    } else None()
+    } else {
+      None()
+    }
 
     val saveFileOpt: Option[Os.Path] = if (o.save.nonEmpty) {
       val f = Os.path(o.save.get)
@@ -98,28 +98,29 @@ object SlangTipe {
         return InvalidFile
       }
       Some(f)
-    } else None()
+    } else {
+      None()
+    }
 
-    var start = 0L
-    var used = 0L
-    val rt = Runtime.getRuntime
+    var start: Z = 0
+    var used: Z = 0
 
     def startTime(): Unit = {
-      start = System.currentTimeMillis
+      start = SireumApi.currentTimeMillis
     }
 
     def stopTime(): Unit = {
       if (o.verbose) {
-        val end = System.currentTimeMillis
-        val newUsed = rt.totalMemory - rt.freeMemory
+        val end = SireumApi.currentTimeMillis
+        val newUsed = SireumApi.totalMemory - SireumApi.freeMemory
         if (newUsed > used) {
           used = newUsed
         }
-        println(f"Time: ${end - start} ms, Memory: ${newUsed / 1024d / 1024d}%.2f MB")
+        println(s"Time: ${end - start} ms, Memory: ${SireumApi.formatMb(newUsed)} MB")
       }
     }
 
-    val begin = System.currentTimeMillis
+    val begin = SireumApi.currentTimeMillis
 
     if (o.verbose && o.args.nonEmpty) {
       println("Reading Slang file arguments ...")
@@ -128,19 +129,19 @@ object SlangTipe {
 
     var slangFiles = ISZ[(String, (Option[String], String))]()
     for (arg <- o.args) {
-      val f = Os.path(arg.value)
+      val f = Os.path(arg)
       if (!f.exists) {
         eprintln(s"File $arg does not exist.")
         return InvalidFile
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (!f.string.value.endsWith(".sc") && !f.string.value.endsWith(".cmd") &&
-        !f.string.value.endsWith(".slang") && !f.string.value.endsWith(".logika")) {
+      } else if (f.ext =!= ".sc" && f.ext =!= ".cmd" &&
+        f.ext =!= ".slang" && f.ext =!= ".logika") {
         eprintln(s"Can only accept .sc, .cmd, .slang, or .logika files as arguments")
         return InvalidFile
       }
-      slangFiles = slangFiles :+ (arg, readFile(f))
+      slangFiles = slangFiles :+ ((arg, readFile(f)))
     }
 
     if (o.verbose) {
@@ -152,32 +153,34 @@ object SlangTipe {
       startTime()
     }
 
-    var sources = ISZ[(Option[String], String)]()
+    @strictpure def removeWs(s: String): String =
+      conversions.String.fromCis(
+        for (c <- conversions.String.toCis(s) if c != ' ' && c != '\t' && c != '\n' && c != '\r') yield c)
 
+    var sources = ISZ[(Option[String], String)]()
     for (p <- o.sourcepath) {
-      val f = Os.path(p.value)
+      val f = Os.path(p)
       if (!f.exists) {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
         for (p <- Os.Path.walk(f, F, T, { path =>
-          val excluded = ops.ISZOps(o.exclude).exists(segment => ops.StringOps(path.toUri).contains(segment))
-          var isSlang = !excluded && path.string.value.endsWith(".slang")
-          if (!excluded && (path.string.value.endsWith(".scala") || isSlang)) {
+          val excluded = ops.ISZOps(o.exclude).
+            exists((segment: String) => ops.StringOps(path.toUri).contains(segment))
+          var isSlang = !excluded && path.ext === "slang"
+          if (!excluded && (path.ext === "scala" || isSlang)) {
             if (!isSlang) {
-              for (firstLine <- path.readLineStream.take(1).toISZ.elements) {
-                isSlang = firstLine.value
-                  .replace(" ", "")
-                  .replace("\t", "")
-                  .replace("\r", "")
-                  .contains("#Sireum")
+              for (firstLine <- path.readLineStream.take(1).toISZ) {
+                isSlang = ops.StringOps(removeWs(firstLine)).contains("#Sireum")
               }
             }
           }
           isSlang
         })) {
           sources = sources :+ readFile(p)
-          if (o.verbose) println(s"Read $p")
+          if (o.verbose) {
+            println(s"Read $p")
+          }
         }
       }
     }
@@ -195,24 +198,18 @@ object SlangTipe {
           println(s"Loading type information from $loadFile ...")
           startTime()
         }
-        val data: ISZ[U8] = if (o.gzip) {
-          val gis = new GZIPInputStream(new java.io.FileInputStream(new java.io.File(loadFile.string.value)))
-          try {
-            toIS(gis.bytes)
-          } catch {
-            case e: java.io.IOException =>
-              eprintln(s"Could not load file: ${e.getMessage}")
-              return LoadingError
-          } finally gis.close()
-        } else {
-          loadFile.readU8s
-        }
-        CustomMessagePack.toTypeHierarchy(data) match {
-          case Either.Left(thl) =>
-            stopTime()
-            thl
-          case Either.Right(errorMsg) =>
-            eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
+        SireumApi.readGzipContent(loadFile) match {
+          case Some(data) =>
+            CustomMessagePack.toTypeHierarchy(data) match {
+              case Either.Left(thl) =>
+                stopTime()
+                thl
+              case Either.Right(errorMsg) =>
+                eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
+                return LoadingError
+            }
+          case _ =>
+            eprintln(s"Could not load from $loadFile")
             return LoadingError
         }
       case _ =>
@@ -221,13 +218,11 @@ object SlangTipe {
         } else {
           if (o.verbose) {
             println()
-            println(
-              s"Parsing, resolving, ${if (o.outline) "and type outlining" else "type outlining, and type checking"} Slang library files ..."
-            )
+            println(s"Parsing, resolving, ${if (o.outline) "and type outlining" else "type outlining, and type checking"} Slang library files ...")
             startTime()
           }
 
-          val (thl, rep) = if (o.outline) {
+          val (thl, rep): (TypeHierarchy, Reporter) = if (o.outline) {
             val p = FrontEnd.libraryReporter
             (p._1.typeHierarchy, p._2)
           } else {
@@ -282,6 +277,9 @@ object SlangTipe {
     }
     stopTime()
 
+    @strictpure def split(text: String, char: C): ISZ[String] =
+      for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
+
     if (o.outline) {
       var nameMap: Resolver.NameMap = HashMap.empty
       var typeMap: Resolver.TypeMap = HashMap.empty
@@ -294,7 +292,7 @@ object SlangTipe {
 
       var ok = T
       for (name <- o.force) {
-        val ids = ISZ[String](name.value.split('.').toIndexedSeq.map(id => String(id)): _*)
+        val ids = split(name, '.')
         var found = F
         th.nameMap.get(ids) match {
           case Some(info: Info.Object) =>
@@ -326,7 +324,9 @@ object SlangTipe {
         reporter.printMessages()
         return InvalidSources
       }
-      if (o.force.nonEmpty) stopTime()
+      if (o.force.nonEmpty) {
+        stopTime()
+      }
 
     } else {
 
@@ -368,26 +368,9 @@ object SlangTipe {
           println(s"Saving type information to $saveFile ...")
           startTime()
         }
-
-        val data = CustomMessagePack.fromTypeHierarchy(th)
-        if (o.gzip) {
-          val gos = new GZIPOutputStream(new java.io.FileOutputStream(new java.io.File(saveFile.string.value)))
-          val (buf, length) = fromIS(data)
-          try gos.write(buf, 0, length)
-          catch {
-            case e: java.io.IOException =>
-              eprintln(s"Could not save file: ${e.getMessage}")
-              return SavingError
-          } finally gos.close()
-        } else {
-          try saveFile.writeOverU8s(data)
-          catch {
-            case e: java.io.IOException =>
-              eprintln(s"Could not save file: ${e.getMessage}")
-              return SavingError
-          }
+        if (!SireumApi.writeGzipContent(saveFile, CustomMessagePack.fromTypeHierarchy(th))) {
+          return SavingError
         }
-
         stopTime()
       case _ =>
     }
@@ -431,39 +414,14 @@ object SlangTipe {
     }
 
     if (o.verbose) {
-      val newUsed = rt.totalMemory - rt.freeMemory
+      val newUsed = SireumApi.totalMemory - SireumApi.freeMemory
       if (newUsed > used) {
         used = newUsed
       }
       println()
-      println(
-        f"Ok! Total time: ${(System.currentTimeMillis - begin) / 1000d}%.2f s, Max memory: ${used / 1024d / 1024d}%.2f MB"
-      )
+      println(s"Ok! Total time: ${SireumApi.formatSecond(SireumApi.currentTimeMillis - begin)} s, Max memory: ${SireumApi.formatMb(used)} MB")
     }
 
     return 0
   }
-
-  def toIS(data: Array[Byte]): ISZ[U8] = {
-    new IS(Z, data, data.length, U8.Boxer)
-  }
-
-  def fromIS(data: ISZ[U8]): (Array[Byte], Int) = {
-    return (data.data.asInstanceOf[Array[Byte]], data.size.toInt)
-  }
-
-  implicit class GZIS(val gzis: GZIPInputStream) extends AnyVal {
-    def bytes: Array[Byte] = {
-      val bos = new java.io.ByteArrayOutputStream
-      val buffer = new Array[Byte](16384)
-      var n = gzis.read(buffer)
-      while (n > -1) {
-        bos.write(buffer, 0, n)
-        n = gzis.read(buffer)
-      }
-      gzis.close()
-      bos.toByteArray
-    }
-  }
-
 }

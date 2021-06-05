@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2020, Robby, Kansas State University
  All rights reserved.
@@ -25,9 +26,6 @@
 
 package org.sireum.cli
 
-import _root_.java.io._
-import _root_.java.util.zip._
-
 import org.sireum._
 import org.sireum.lang.FrontEnd
 import org.sireum.lang.{ast => AST}
@@ -35,28 +33,27 @@ import org.sireum.lang.parser.Parser
 import org.sireum.lang.tipe._
 import org.sireum.message._
 
-import Cli._
 import org.sireum.transpilers.c.StaticTranspiler
 import org.sireum.transpilers.common.TypeSpecializer
 
 object CTranspiler {
 
-  val InvalidLibrary: Int = -1
-  val InvalidMode: Int = -2
-  val InvalidPath: Int = -3
-  val InvalidFile: Int = -4
-  val InvalidSources: Int = -5
-  val InvalidSlangFiles: Int = -6
-  val InvalidForceNames: Int = -7
-  val InternalError: Int = -8
-  val SavingError: Int = -9
-  val LoadingError: Int = -10
-  val PluginError: Int = -11
-  val TranspilingError: Int = -12
+  val InvalidLibrary: Z = -1
+  val InvalidMode: Z = -2
+  val InvalidPath: Z = -3
+  val InvalidFile: Z = -4
+  val InvalidSources: Z = -5
+  val InvalidSlangFiles: Z = -6
+  val InvalidForceNames: Z = -7
+  val InternalError: Z = -8
+  val SavingError: Z = -9
+  val LoadingError: Z = -10
+  val PluginError: Z = -11
+  val TranspilingError: Z = -12
 
-  def run(o: CTranspilerOption): Z = {
+  def run(o: Cli.CTranspilerOption): Z = {
     def readFile(f: Os.Path): (Option[String], String) = {
-      (Some(f.toUri), f.read)
+      return (Some(f.toUri), f.read)
     }
 
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
@@ -66,44 +63,47 @@ object CTranspiler {
       return 0
     }
 
-    val loadFileOpt: Option[File] = if (o.load.nonEmpty) {
-      val f = new File(o.load.get.value)
+    val loadFileOpt: Option[Os.Path] = if (o.load.nonEmpty) {
+      val f = Os.path(o.load.get)
       if (!f.isFile) {
         eprintln("Invalid file to load type information from")
         return InvalidFile
       }
       Some(f)
-    } else None()
+    } else {
+      None()
+    }
 
-    val saveFileOpt: Option[File] = if (o.save.nonEmpty) {
-      val f = new File(o.save.get.value)
+    val saveFileOpt: Option[Os.Path] = if (o.save.nonEmpty) {
+      val f = Os.path(o.save.get)
       if (f.exists && !f.isFile) {
         eprintln("Invalid file to save information to")
         return InvalidFile
       }
       Some(f)
-    } else None()
+    } else {
+      None()
+    }
 
-    var start = 0L
-    var used = 0L
-    val rt = Runtime.getRuntime
+    var start: Z = 0
+    var used: Z = 0
 
     def startTime(): Unit = {
-      start = System.currentTimeMillis
+      start = SireumApi.currentTimeMillis
     }
 
     def stopTime(): Unit = {
       if (o.verbose) {
-        val end = System.currentTimeMillis
-        val newUsed = rt.totalMemory - rt.freeMemory
+        val end = SireumApi.currentTimeMillis
+        val newUsed = SireumApi.totalMemory - SireumApi.freeMemory
         if (newUsed > used) {
           used = newUsed
         }
-        println(f"Time: ${end - start} ms, Memory: ${newUsed / 1024d / 1024d}%.2f MB")
+        println(s"Time: ${end - start} ms, Memory: ${SireumApi.formatMb(newUsed)} MB")
       }
     }
 
-    val begin = System.currentTimeMillis
+    val begin = SireumApi.currentTimeMillis
 
     if (o.verbose && o.plugins.nonEmpty) {
       println("Loading plugins ...")
@@ -113,17 +113,15 @@ object CTranspiler {
     var plugins = ISZ[StaticTranspiler.Plugin]()
 
     for (p <- o.plugins) {
-      try {
-        val c = Class.forName(p.value)
-        plugins = plugins :+ c.getDeclaredConstructor().newInstance().asInstanceOf[StaticTranspiler.Plugin]
-      } catch {
-        case _: Throwable =>
+      SireumApi.instantiate[StaticTranspiler.Plugin](p) match {
+        case Some(plugin) => plugins = plugins :+ plugin
+        case _ =>
           eprintln(s"Could not load plugin: $p")
           return PluginError
       }
     }
 
-    plugins = plugins ++ ISZ(
+    plugins = plugins ++ ISZ[StaticTranspiler.Plugin](
       StaticTranspiler.StringConversionsExtMethodPlugin(),
       StaticTranspiler.NumberConversionsExtMethodPlugin()
     )
@@ -142,14 +140,14 @@ object CTranspiler {
 
     var slangFiles: ISZ[(String, (Option[String], String))] = ISZ()
     for (arg <- o.args) {
-      val f = Os.path(arg.value)
+      val f = Os.path(arg)
       if (!f.exists) {
         eprintln(s"File $arg does not exist.")
         return InvalidFile
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (!(ops.StringOps(f.name).endsWith(".sc") || ops.StringOps(f.name).endsWith(".slang"))) {
+      } else if (!(f.ext === "sc" || f.ext === "slang")) {
         eprintln(s"Can only accept .sc/.slang files as arguments")
         return InvalidFile
       }
@@ -187,7 +185,7 @@ object CTranspiler {
     }
 
     for (ext <- o.exts) {
-      val f = Os.path(ext.value)
+      val f = Os.path(ext)
       if (!extRec(ISZ(), f, T)) {
         return InvalidFile
       }
@@ -205,7 +203,7 @@ object CTranspiler {
     var cmakeIncludes: ISZ[String] = ISZ()
     var cmakePlusIncludes: ISZ[String] = ISZ()
     for (ci <- o.cmakeIncludes) {
-      val ciOps = ops.StringOps(ci.value)
+      val ciOps = ops.StringOps(ci)
       val (plus, path): (B, String) = if (ciOps.startsWith("+")) {
         (T, ciOps.substring(1, ciOps.size))
       } else if (ciOps.startsWith("-")) {
@@ -239,31 +237,31 @@ object CTranspiler {
     }
 
     var sources = ISZ[(Option[String], String)]()
+    @strictpure def removeWs(s: String): String =
+      conversions.String.fromCis(
+        for (c <- conversions.String.toCis(s) if c != ' ' && c != '\t' && c != '\n' && c != '\r') yield c)
 
     for (p <- o.sourcepath) {
-      val f = Os.path(p.value)
+      val f = Os.path(p)
       if (!f.exists) {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
-        var seen = HashSet.empty[Os.Path]
         for (p <- Os.Path.walk(f, F, T, { path =>
-          var isSlang = path.string.value.endsWith(".slang")
-          if (path.string.value.endsWith(".scala") || isSlang) {
+          var isSlang = path.ext === "slang"
+          if (path.ext === "scala" || isSlang) {
             if (!isSlang) {
-              for (firstLine <- path.readLineStream.take(1).toISZ.elements) {
-                isSlang = firstLine.value
-                  .replace(" ", "")
-                  .replace("\t", "")
-                  .replace("\r", "")
-                  .contains("#Sireum")
+              for (firstLine <- path.readLineStream.take(1).toISZ) {
+                isSlang = ops.StringOps(removeWs(firstLine)).contains("#Sireum")
               }
             }
           }
           isSlang
         })) {
           sources = sources :+ readFile(p)
-          if (o.verbose) println(s"Read $p")
+          if (o.verbose) {
+            println(s"Read $p")
+          }
         }
       }
     }
@@ -278,23 +276,19 @@ object CTranspiler {
       case Some(loadFile) =>
         if (o.verbose) {
           println()
-          println(s"Loading type information from ${loadFile.getPath} ...")
+          println(s"Loading type information from $loadFile ...")
           startTime()
         }
-        val data: ISZ[U8] = {
-          val gis = new GZIPInputStream(new FileInputStream(loadFile))
-          try {
-            toIS(gis.bytes)
-          } catch {
-            case e: IOException =>
-              eprintln(s"Could not load file: ${e.getMessage}")
-              return LoadingError
-          } finally gis.close()
-        }
-        CustomMessagePack.toTypeHierarchy(data) match {
-          case Either.Left(thl) => thl
-          case Either.Right(errorMsg) =>
-            eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
+        SireumApi.readGzipContent(loadFile) match {
+          case Some(data) =>
+            CustomMessagePack.toTypeHierarchy(data) match {
+              case Either.Left(thl) => thl
+              case Either.Right(errorMsg) =>
+                eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
+                return LoadingError
+            }
+          case _ =>
+            eprintln(s"Could not load from $loadFile")
             return LoadingError
         }
       case _ =>
@@ -304,7 +298,7 @@ object CTranspiler {
           startTime()
         }
 
-        val (thl, rep) = {
+        val (thl, rep): (TypeHierarchy, Reporter) = {
           val p = FrontEnd.checkedLibraryReporter
           (p._1.typeHierarchy, p._2)
         }
@@ -389,19 +383,12 @@ object CTranspiler {
       case Some(saveFile) =>
         if (o.verbose) {
           println()
-          println(s"Saving type information to ${saveFile.getPath} ...")
+          println(s"Saving type information to $saveFile ...")
           startTime()
         }
-
-        val (buf, length) = fromIS(CustomMessagePack.fromTypeHierarchy(th))
-        val gos = new GZIPOutputStream(new FileOutputStream(saveFile))
-        try gos.write(buf, 0, length)
-        catch {
-          case e: IOException =>
-            eprintln(s"Could not save file: ${e.getMessage}")
-            return SavingError
-        } finally gos.close()
-
+        if (!SireumApi.writeGzipContent(saveFile, CustomMessagePack.fromTypeHierarchy(th))) {
+          return SavingError
+        }
         stopTime()
       case _ =>
     }
@@ -416,7 +403,7 @@ object CTranspiler {
       }
 
       Parser.parseTopUnit[AST.TopUnit.Program](slangFile._2._2, T, F, slangFile._2._1, reporter) match {
-        case Some(p: AST.TopUnit.Program) =>
+        case Some(p) =>
           val p2 = FrontEnd.checkWorksheet(T, thOpt, p, reporter)
           if (reporter.hasIssue) {
             reporter.printMessages()
@@ -439,8 +426,6 @@ object CTranspiler {
 
           entryPoints = entryPoints :+ TypeSpecializer.EntryPoint.Worksheet(p2._2)
           thOpt = Some(p2._1)
-
-        case Some(_) => eprintln(s"File '${slangFile._1}' does not contain a Slang program")
         case _ =>
       }
       stopTime()
@@ -452,16 +437,22 @@ object CTranspiler {
       startTime()
     }
 
+    @strictpure def split(text: String, char: C): ISZ[String] =
+      for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
+
     var forwardingMap = HashMap.empty[ISZ[String], ISZ[String]]
     for (p <- o.forwarding) {
-      val Array(key, value) = p.value.split('=')
-      forwardingMap = forwardingMap + ISZ(key.split('.').toIndexedSeq.map(s => String(s.trim)): _*) ~> ISZ(
-        value.split('.').toIndexedSeq.map(s => String(s.trim)): _*
-      )
+      split(p, '=') match {
+        case ISZ(key, value) =>
+          forwardingMap = forwardingMap + split(key, '.') ~> split(value, '.')
+        case _ =>
+          eprintln(s"Could not parse forwarding config $p")
+          return TranspilingError
+      }
     }
 
     for (app <- o.apps) {
-      entryPoints = entryPoints :+ TypeSpecializer.EntryPoint.App(ISZ(app.value.split('.').toIndexedSeq.map(String(_)): _*))
+      entryPoints = entryPoints :+ TypeSpecializer.EntryPoint.App(split(app, '.'))
     }
 
     val tsr = TypeSpecializer.specialize(thOpt.get, entryPoints, forwardingMap, reporter)
@@ -480,45 +471,48 @@ object CTranspiler {
 
     var customArraySizes = HashMap.empty[AST.Typed, Z]
     for (p <- o.customArraySizes) {
-      try {
-        val Array(key, value) = p.value.split('=')
-        val num = Z(value).get
-        if (num <= 0) {
-          eprintln(s"Custom sequence size should be positive: $p")
-          return TranspilingError
-        }
-        val e = Parser.parseExp[AST.Exp.Select](s"o[$key]")
-        e.targs(0) match {
-          case t: AST.Type.Named =>
-            def addS(name: ISZ[String], otherName: ISZ[String], it: AST.Typed, et: AST.Typed) = {
-              val t1 = AST.Typed.Name(name, ISZ(it, et))
-              val t2 = AST.Typed.Name(otherName, ISZ(it, et))
-              customArraySizes = customArraySizes + t1 ~> num
-            }
+      split(p, '=') match {
+        case ISZ(key, value) =>
+          val num: Z = Z(value) match {
+            case Some(n) if n > 0 => n
+            case _ =>
+              eprintln(s"Custom sequence size should be positive: $p")
+              return TranspilingError
+          }
+          val e = Parser.parseExp[AST.Exp.Select](s"o[$key]")
+          e.targs(0) match {
+            case t: AST.Type.Named =>
+              def addS(name: ISZ[String], otherName: ISZ[String], it: AST.Typed, et: AST.Typed): Unit = {
+                val t1 = AST.Typed.Name(name, ISZ(it, et))
+                customArraySizes = customArraySizes + t1 ~> num
+              }
 
-            t.name.ids.map(_.value.value) match {
-              case ISZ("MS") if t.typeArgs.size.toInt == 2 =>
-                val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
-                val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
-                addS(AST.Typed.msName, AST.Typed.isName, it, et)
-              case ISZ("IS") if t.typeArgs.size.toInt == 2 =>
-                val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
-                val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
-                addS(AST.Typed.isName, AST.Typed.msName, it, et)
-              case ISZ("ISZ") if t.typeArgs.size.toInt == 1 =>
-                val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
-                addS(AST.Typed.isName, AST.Typed.msName, AST.Typed.z, et)
-              case ISZ("MSZ") if t.typeArgs.size.toInt == 1 =>
-                val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
-                addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, et)
-              case ISZ("ZS") if t.typeArgs.size.toInt == 0 =>
-                addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, AST.Typed.z)
-              case _ => throw new Exception
-            }
-          case _ => throw new Exception
-        }
-      } catch {
-        case _: Throwable =>
+              t.name.ids.map((id: AST.Id) => id.value) match {
+                case ISZ("MS") if t.typeArgs.size === 2 =>
+                  val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
+                  val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
+                  addS(AST.Typed.msName, AST.Typed.isName, it, et)
+                case ISZ("IS") if t.typeArgs.size === 2 =>
+                  val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
+                  val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
+                  addS(AST.Typed.isName, AST.Typed.msName, it, et)
+                case ISZ("ISZ") if t.typeArgs.size === 1 =>
+                  val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
+                  addS(AST.Typed.isName, AST.Typed.msName, AST.Typed.z, et)
+                case ISZ("MSZ") if t.typeArgs.size === 1 =>
+                  val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
+                  addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, et)
+                case ISZ("ZS") if t.typeArgs.size === 0 =>
+                  addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, AST.Typed.z)
+                case _ =>
+                  eprintln(s"Could not recognize custom sequence size configuration: $p")
+                  return TranspilingError
+              }
+            case _ =>
+              eprintln(s"Could not recognize custom sequence size configuration: $p")
+              return TranspilingError
+          }
+        case _ =>
           eprintln(s"Could not recognize custom sequence size configuration: $p")
           return TranspilingError
       }
@@ -526,21 +520,22 @@ object CTranspiler {
 
     var excludedNames: HashSet[ISZ[String]] = HashSet.empty
     for (s <- o.excludeBuild) {
-      val name = for (id <- ops.StringOps(s).split((c: C) => c.value == '.')) yield ops.StringOps(id).trim
+      val name = split(s, '.')
       excludedNames = excludedNames + name
     }
 
     var constants = HashMap.empty[ISZ[String], AST.Exp]
     for (p <- o.customConstants) {
-      try {
-        val Array(key, value) = p.value.split('=')
-        val e = Parser.parseExp[AST.Exp](value)
-        e match {
-          case e: AST.Lit => constants = constants + ISZ(key.split('.').toIndexedSeq.map(x => String(x.trim)): _*) ~> e
-          case _ => throw new Exception
-        }
-      } catch {
-        case _: Throwable =>
+      split(p, '=') match {
+        case ISZ(key, value) =>
+          val e = Parser.parseExp[AST.Exp](value)
+          e match {
+            case _: AST.Lit => constants = constants + split(key, '.') ~> e
+            case _ =>
+              eprintln(s"Could not recognize custom object var constant configuration: $p")
+              return TranspilingError
+          }
+        case _ =>
           eprintln(s"Could not recognize custom object var constant configuration: $p")
           return TranspilingError
       }
@@ -586,10 +581,7 @@ object CTranspiler {
 
     for (e <- r.files.entries) {
       val path = e._1
-      var f = resultDir
-      for (segment <- path) {
-        f = f / segment.value
-      }
+      var f = resultDir /+ path
       f.up.mkdirAll()
       f = f.canon
       f.writeOver(e._2.render)
@@ -598,10 +590,7 @@ object CTranspiler {
     for (e <- r.extFiles.entries) {
       val path = e._1
       val extFile = e._2
-      var f = resultDir
-      for (segment <- path) {
-        f = f / segment.value
-      }
+      var f = resultDir /+ path
       val p = Os.uriToPath(extFile.uri)
       f.up.mkdirAll()
       f = f.canon
@@ -616,54 +605,32 @@ object CTranspiler {
     stopTime()
 
     if (o.verbose) {
-      val newUsed = rt.totalMemory - rt.freeMemory
+      val newUsed = SireumApi.totalMemory - SireumApi.freeMemory
       if (newUsed > used) {
         used = newUsed
       }
       println()
-      println(
-        f"Ok! Total time: ${(System.currentTimeMillis - begin) / 1000d}%.2f s, Max memory: ${used / 1024d / 1024d}%.2f MB"
-      )
+      println(s"Ok! Total time: ${SireumApi.formatSecond(SireumApi.currentTimeMillis - begin)} s, Max memory: ${SireumApi.formatMb(used)} MB")
     }
 
     return 0
-  }
-
-  def toIS(data: Array[Byte]): ISZ[U8] = {
-    new IS(Z, data, data.length, U8.Boxer)
-  }
-
-  def fromIS(data: ISZ[U8]): (Array[Byte], Int) = {
-    return (data.data.asInstanceOf[Array[Byte]], data.size.toInt)
-  }
-
-  implicit class GZIS(val gzis: GZIPInputStream) extends AnyVal {
-
-    def bytes: Array[Byte] = {
-      val bos = new ByteArrayOutputStream
-      val buffer = new Array[Byte](16384)
-      var n = gzis.read(buffer)
-      while (n > -1) {
-        bos.write(buffer, 0, n)
-        n = gzis.read(buffer)
-      }
-      gzis.close()
-      bos.toByteArray
-    }
   }
 
   def toTyped(th: TypeHierarchy, tpe: AST.Type): AST.Typed = {
     def rec(t: AST.Type): AST.Typed = {
       t match {
         case t: AST.Type.Named =>
-          val ids = t.name.ids.map(_.value)
+          val ids = t.name.ids.map((id: AST.Id) => id.value)
           val tids = AST.Typed.sireumName ++ ids
-          if (!th.typeMap.contains(ids) && th.typeMap.contains(tids)) AST.Typed.Name(tids, t.typeArgs.map(rec))
-          else AST.Typed.Name(ids, t.typeArgs.map(rec))
-        case t: AST.Type.Tuple => AST.Typed.Tuple(t.args.map(rec))
-        case t: AST.Type.Fun => AST.Typed.Fun(t.isPure, t.isByName, t.args.map(rec), rec(t.ret))
+          if (!th.typeMap.contains(ids) && th.typeMap.contains(tids)) {
+            AST.Typed.Name(tids, for (ta <- t.typeArgs) yield rec(ta))
+          } else {
+            AST.Typed.Name(ids, for (ta <- t.typeArgs) yield rec(ta))
+          }
+        case t: AST.Type.Tuple => AST.Typed.Tuple(for (ta <- t.args) yield rec(ta))
+        case t: AST.Type.Fun => AST.Typed.Fun(t.isPure, t.isByName, for (ta <- t.args) yield rec(ta), rec(t.ret))
       }
     }
-    rec(tpe)
+    return rec(tpe)
   }
 }

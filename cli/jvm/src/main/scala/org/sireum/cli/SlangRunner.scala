@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2019, Robby, Kansas State University
  All rights reserved.
@@ -27,8 +28,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Cli._
-import org.sireum.Sireum._
-import org.sireum.eprintln
+import org.sireum.SireumApi._
 
 object SlangRunner {
 
@@ -54,7 +54,7 @@ object SlangRunner {
       path2fileOpt("output", o.output, F) match {
         case Some(path) =>
           outputOpt = Some(path)
-          if (path == Os.Path.Kind.Dir) {
+          if (path.isDir) {
             eprintln(s"Output $path cannot be a directory")
             eprintln()
             return InvalidOutput
@@ -73,7 +73,7 @@ object SlangRunner {
           }
         case _ => T
       }
-    val script = path2fileOpt("Slang script", Some(o.args(0).value), T).get
+    val script = path2fileOpt("Slang script", Some(o.args(0)), T).get
     val wd = script.up
     val sJar: Os.Path =
       if (Os.isWin && (sireumJar.up / ".sireum-win.jar").exists) sireumJar.up / ".sireum-win.jar"
@@ -101,7 +101,7 @@ object SlangRunner {
     }
     command = command :+ script.string
     for (i <- 1 until o.args.size) {
-      command :+= o.args(i)
+      command = command :+ o.args(i)
     }
     val inOpt: Option[String] = inputOpt match {
       case Some(f) => Some(f.read)

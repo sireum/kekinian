@@ -1,3 +1,4 @@
+// #Sireum
 /*
  Copyright (c) 2018, Kansas State University
  All rights reserved.
@@ -129,6 +130,6 @@ object Phantom {
     return ret
   }
 
-  def addError(s: String): Unit = { Console.err.println(s"Error: $s.") }
-  def addWarning(s: String): Unit = { Console.out.println(s"Warning: $s") }
+  def addError(s: String): Unit = { eprintln(s"Error: $s.") }
+  def addWarning(s: String): Unit = { println(s"Warning: $s") }
 }
