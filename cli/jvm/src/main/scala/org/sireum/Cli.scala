@@ -97,6 +97,7 @@ object Cli {
   @datatype class LogikaVerifierOption(
     help: String,
     args: ISZ[String],
+    line: Z,
     sat: B,
     sourcepath: ISZ[String],
     unroll: B,
@@ -901,6 +902,8 @@ import Cli._
           |Usage: <option>* [<slang-file>]
           |
           |Available Options:
+          |    --line               Focus verification to the specified program line
+          |                           number (expects an integer; default is 0)
           |    --sat                Enable assumption satisfiability checking
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
@@ -943,6 +946,7 @@ import Cli._
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)""".render
 
+    var line: Z = 0
     var sat: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var unroll: B = false
@@ -970,7 +974,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--sat") {
+        } else if (arg == "--line") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => line = v
+             case _ => return None()
+           }
+         } else if (arg == "--sat") {
            val o: Option[B] = { j = j - 1; Some(!sat) }
            o match {
              case Some(v) => sat = v
@@ -1093,7 +1103,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), sat, sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), line, sat, sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
