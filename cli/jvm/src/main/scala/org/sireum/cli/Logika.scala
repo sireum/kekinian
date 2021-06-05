@@ -172,7 +172,7 @@ object Logika {
           println()
         }
       }
-      return 0
+      return code
     }
 
     def verifyPrograms(): Z = {
