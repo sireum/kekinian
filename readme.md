@@ -1,8 +1,8 @@
 # Sireum: A High Assurance System Engineering Platform
 
-| [![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) | [![Build Status](https://travis-ci.com/sireum/kekinian.svg?branch=master)](https://travis-ci.com/github/sireum/kekinian) | [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian) |
-| :---: | :---: | :---: | 
-| <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>aarch64: linux</sup></sub> | <sub><sup>maven: `org.sireum.kekinian:cli_2.13:<tag-or-hash>`</sup></sub> |
+| [![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) | [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian) |
+| :---: | :---: |
+| <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>maven: `org.sireum.kekinian:cli_2.13:<tag-or-hash>`</sup></sub> |
 
 ## Overview
 
