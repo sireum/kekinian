@@ -153,10 +153,6 @@ object SlangTipe {
       startTime()
     }
 
-    @strictpure def removeWs(s: String): String =
-      conversions.String.fromCis(
-        for (c <- conversions.String.toCis(s) if c != ' ' && c != '\t' && c != '\n' && c != '\r') yield c)
-
     var sources = ISZ[(Option[String], String)]()
     for (p <- o.sourcepath) {
       val f = Os.path(p)
@@ -164,15 +160,15 @@ object SlangTipe {
         eprintln(s"Source path '$p' does not exist.")
         return InvalidPath
       } else {
-        for (p <- Os.Path.walk(f, F, T, { path =>
+        for (p <- Os.Path.walk(f, F, T, { path: Os.Path =>
           val excluded = ops.ISZOps(o.exclude).
             exists((segment: String) => ops.StringOps(path.toUri).contains(segment))
           var isSlang = !excluded && path.ext === "slang"
           if (!excluded && (path.ext === "scala" || isSlang)) {
             if (!isSlang) {
-              for (firstLine <- path.readLineStream.take(1).toISZ) {
-                isSlang = ops.StringOps(removeWs(firstLine)).contains("#Sireum")
-              }
+              val line = conversions.String.fromCis(path.readCStream.takeWhile((c : C) => c != '\n').
+                filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)
+              isSlang = ops.StringOps(line).contains("#Sireum")
             }
           }
           isSlang
