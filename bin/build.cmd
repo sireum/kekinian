@@ -276,10 +276,16 @@ def build(fresh: B, isNative: B): Unit = {
   val recompile: String = if (fresh) {
     " -f"
   } else {
+    var r: String = ""
     val pr = proc"git status --porcelain".at(home).run()
-    if (ops.StringOps(s"${pr.out}${pr.err}").trim === "" &&
-      ops.StringOps(proc"$sireum -v".run().out).contains("*")) " --recompile cli"
-    else ""
+    if (ops.StringOps(s"${pr.out}${pr.err}").trim === "") {
+      val vOutOps =  ops.StringOps(proc"$sireum -v".run().out)
+      if (vOutOps.contains("*") ||
+        !vOutOps.contains(ops.StringOps(proc"git log -n 1 --date=format:%Y%m%d --pretty=format:4.%cd.%h".run().out).trim)) {
+        r = " --recompile cli"
+      }
+    }
+    r
   }
   val nativ: String = if (isNative) " --native" else ""
 
