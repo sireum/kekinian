@@ -27,10 +27,11 @@
 package org.sireum.cli
 
 import org.sireum._
+import org.sireum.lang.tipe.TypeHierarchy
 
 object Logika {
 
-  val TODO: Z = -1
+  val INVALID_MODE: Z = -1
   val INVALID_SCRIPT_FILE: Z = -2
   val ILL_FORMED_SCRIPT_FILE: Z = -3
   val INVALID_CHAR_WIDTH: Z = -4
@@ -46,6 +47,11 @@ object Logika {
       println(o.help)
       println()
       return 0
+    }
+
+    if (o.noRuntime && o.sourcepath.isEmpty) {
+      eprintln("Please specify sourcepath when not using built-in runtime")
+      return INVALID_MODE
     }
 
     o.charBitWidth match {
@@ -127,6 +133,15 @@ object Logika {
     }
 
     def verifyScripts(): Z = {
+      if (o.noRuntime) {
+        eprintln("Checking scripts have to use built-in runtime")
+        return INVALID_MODE
+      }
+
+      if (o.sourcepath.nonEmpty) {
+        eprintln("Checking scripts cannot use custom sourcepath")
+      }
+
       var code: Z = 0
       for (arg <- o.args) {
         if (o.args.size > 1) {
@@ -159,7 +174,8 @@ object Logika {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
             logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
-              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, T, plugins, o.line)
+              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, T, plugins, o.line, o.skipMethods,
+              o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -197,14 +213,16 @@ object Logika {
           eprintln(s"Source path '$p' does not exist.")
           return INVALID_SOURCE_PATH
         } else {
-          for (p <- Os.Path.walk(f, F, T, { p : Os.Path =>
-              if (p.ext == "scala") {
-                val line = conversions.String.fromCis(p.readCStream.takeWhile((c : C) => c != '\n').
+          for (p <- Os.Path.walk(f, F, T, { path: Os.Path =>
+            var isSlang = path.ext === "slang"
+            if (path.ext === "scala" || isSlang) {
+              if (!isSlang) {
+                val line = conversions.String.fromCis(path.readCStream.takeWhile((c : C) => c != '\n').
                   filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)
-                ops.StringOps(line).contains("#Sireum")
-              } else {
-                F
+                isSlang = ops.StringOps(line).contains("#Sireum")
               }
+            }
+            isSlang
           })) {
             sources = sources :+ readFile(p)
           }
@@ -230,10 +248,13 @@ object Logika {
         o.splitMatch, o.splitContract, o.simplify)
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
-      logika.Logika.checkPrograms(sources, files, config, lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy,
+      val th: TypeHierarchy =
+        if (o.noRuntime) TypeHierarchy(HashMap.empty, HashMap.empty, Poset.empty, HashMap.empty)
+        else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
+      logika.Logika.checkPrograms(sources, files, config, th,
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(),
           config.timeoutInMs, config.charBitWidth, config.intBitWidth, config.simplifiedQuery, reporter), reporter,
-          o.par, T, T, plugins, o.line)
+          o.par, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) ILL_FORMED_PROGRAMS else 0
     }

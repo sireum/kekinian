@@ -98,7 +98,10 @@ object Cli {
     help: String,
     args: ISZ[String],
     line: Z,
+    noRuntime: B,
     sat: B,
+    skipMethods: ISZ[String],
+    skipTypes: ISZ[String],
     sourcepath: ISZ[String],
     unroll: B,
     charBitWidth: Z,
@@ -905,7 +908,14 @@ import Cli._
           |Available Options:
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; default is 0)
+          |-r, --no-runtime         Do not use built-in runtime (use runtime in
+          |                           sourcepath)
           |    --sat                Enable assumption satisfiability checking
+          |    --skip-methods       Skip checking methods with the specified identifiers
+          |                           (expects a string separated by ",")
+          |    --skip-types         Skip checking traits, classes, and objects with the
+          |                           specified identifiers (expects a string separated by
+          |                           ",")
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --unroll             Enable loop unrolling when loop modifies clause is
@@ -948,7 +958,10 @@ import Cli._
           |                           (expects a path)""".render
 
     var line: Z = 0
+    var noRuntime: B = false
     var sat: B = false
+    var skipMethods: ISZ[String] = ISZ[String]()
+    var skipTypes: ISZ[String] = ISZ[String]()
     var sourcepath: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var charBitWidth: Z = 32
@@ -981,10 +994,28 @@ import Cli._
              case Some(v) => line = v
              case _ => return None()
            }
+         } else if (arg == "-r" || arg == "--no-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!noRuntime) }
+           o match {
+             case Some(v) => noRuntime = v
+             case _ => return None()
+           }
          } else if (arg == "--sat") {
            val o: Option[B] = { j = j - 1; Some(!sat) }
            o match {
              case Some(v) => sat = v
+             case _ => return None()
+           }
+         } else if (arg == "--skip-methods") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => skipMethods = v
+             case _ => return None()
+           }
+         } else if (arg == "--skip-types") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => skipTypes = v
              case _ => return None()
            }
          } else if (arg == "-s" || arg == "--sourcepath") {
@@ -1104,7 +1135,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), line, sat, sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
+    return Some(LogikaVerifierOption(help, parseArguments(args, j), line, noRuntime, sat, skipMethods, skipTypes, sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
   }
 
   def parseProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
