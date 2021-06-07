@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
 
-  ci-ubuntu:
+  linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,7 +47,7 @@ jobs:
           .ci/build.sh test
           .ci/linux-native.sh
 
-  ci-mac:
+  macOS:
     runs-on: macOS-latest
     steps:
       - name: Checkout
@@ -90,7 +90,7 @@ jobs:
           .ci/build.sh test
           .ci/mac-native.sh
 
-  ci-windows:
+  windows:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -144,7 +144,7 @@ jobs:
           :error
           exit /b %errorlevel%
 
-  ci-ubuntu-compcert:
+  linux-compcert:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
