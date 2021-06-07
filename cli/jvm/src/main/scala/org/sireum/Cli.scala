@@ -911,11 +911,12 @@ import Cli._
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
           |    --sat                Enable assumption satisfiability checking
-          |    --skip-methods       Skip checking methods with the specified identifiers
-          |                           (expects a string separated by ",")
+          |    --skip-methods       Skip checking methods with the specified
+          |                           fully-qualified names or identifiers (expects a
+          |                           string separated by ",")
           |    --skip-types         Skip checking traits, classes, and objects with the
-          |                           specified identifiers (expects a string separated by
-          |                           ",")
+          |                           specified fully-qualified names or identifiers
+          |                           (expects a string separated by ",")
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --unroll             Enable loop unrolling when loop modifies clause is
