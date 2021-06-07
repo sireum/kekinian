@@ -15,12 +15,15 @@ jobs:
         with:
           path: bin/linux/java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
-      - name: Cache Z3
-        id: cache-z3
+      - name: Cache SMT2 solvers
+        id: cache-smt2
         uses: actions/cache@v2
         with:
-          path: bin/linux/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
+          path: |
+            bin/linux/cvc4
+            bin/linux/.cvc4.ver
+            bin/linux/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v2
@@ -58,12 +61,15 @@ jobs:
         with:
           path: bin/mac/java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
-      - name: Cache Z3
-        id: cache-z3
+      - name: Cache SMT2 solvers
+        id: cache-smt2
         uses: actions/cache@v2
         with:
-          path: bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
+          path: |
+            bin/mac/cvc4
+            bin/mac/.cvc4.ver
+            bin/mac/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v2
@@ -101,12 +107,15 @@ jobs:
         with:
           path: bin\win\java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
-      - name: Cache Z3
-        id: cache-z3
+      - name: Cache SMT2 solvers
+        id: cache-smt2
         uses: actions/cache@v2
         with:
-          path: bin\win\z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-z3
+          path: |
+            bin\win\cvc4
+            bin\win\.cvc4.ver
+            bin\win\z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v2
@@ -155,12 +164,15 @@ jobs:
         with:
           path: bin/linux/java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-java
-      - name: Cache Z3
-        id: cache-z3
+      - name: Cache SMT2 solvers
+        id: cache-smt2
         uses: actions/cache@v2
         with:
-          path: bin/linux/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-z3
+          path: |
+            bin/linux/cvc4
+            bin/linux/.cvc4.ver
+            bin/linux/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-smt2
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v2
@@ -188,3 +200,51 @@ jobs:
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
           .ci/linux-compcert.sh
+
+  macOS-compcert:
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache Java
+        id: cache-java
+        uses: actions/cache@v2
+        with:
+          path: bin/linux/java
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-java
+      - name: Cache SMT2 solvers
+        id: cache-smt2
+        uses: actions/cache@v2
+        with:
+          path: |
+            bin/mac/cvc4
+            bin/mac/.cvc4.ver
+            bin/mac/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-smt2
+      - name: Cache Scala
+        id: cache-scala
+        uses: actions/cache@v2
+        with:
+          path: bin/scala
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-scala
+      - name: Cache Coursier
+        id: cache-coursier
+        uses: actions/cache@v2
+        with:
+          path: cache/coursier
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-coursier
+      - name: Cache CompCert
+        id: cache-compcert
+        uses: actions/cache@v2
+        with:
+          path: |
+            bin/mac/.opam
+            bin/mac/opam
+            bin/mac/.compcert.ver
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/compcert.cmd') }}-compcert
+      - name: Test
+        run: |
+          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
+          cd $GITHUB_WORKSPACE
+          git submodule update --init --recursive
+          .ci/macOS-compcert.sh
