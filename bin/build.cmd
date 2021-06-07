@@ -55,7 +55,7 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
-        |       | tipe             | compile[-js]       | test         | mill
+        |       | tipe             | compile[-js]       | test[-ci]    | mill
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
         |       | m2[-lib]         | jitpack            | ghpack       | ram
@@ -329,7 +329,7 @@ def compile(isJs: B): Unit = {
 }
 
 
-def test(): Unit = {
+def test(ci: B): Unit = {
   tipe()
 
   println("Testing ...")
@@ -341,7 +341,7 @@ def test(): Unit = {
     "org.sireum.tools",
     "org.sireum.hamr.codegen.test.expensive"
   ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
-  if (!Os.isWin) {
+  if (!(ci && Os.isWin)) {
     names = names :+ "org.sireum.logika"
   }
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
@@ -611,7 +611,8 @@ if (Os.cliArgs.isEmpty) {
       case string"tipe" => tipe()
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
-      case string"test" => test()
+      case string"test" => test(F)
+      case string"test-ci" => test(T)
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
