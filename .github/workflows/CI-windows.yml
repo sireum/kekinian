@@ -1,0 +1,62 @@
+name: Windows
+
+on: [push]
+
+jobs:
+
+  ci:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache Java
+        id: cache-java
+        uses: actions/cache@v2
+        with:
+          path: bin\win\java
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
+      - name: Cache Scala
+        id: cache-scala
+        uses: actions/cache@v2
+        with:
+          path: bin\scala
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
+      - name: Cache Coursier
+        id: cache-coursier
+        uses: actions/cache@v2
+        with:
+          path: cache\coursier
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v2
+        with:
+          path: bin\win\graal
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
+      - name: Cache SMT2 solvers
+        id: cache-smt2
+        uses: actions/cache@v2
+        with:
+          path: |
+            bin\win\cvc4
+            bin\win\.cvc4.ver
+            bin\win\z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+      - name: Configure Pagefile
+        uses: al-cheb/configure-pagefile-action@v1.2
+        with:
+          minimum-size: 8GB
+          maximum-size: 16GB
+      - name: Test
+        shell: cmd
+        run: |
+          set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
+          cd /d %GITHUB_WORKSPACE%
+          git submodule update --init --recursive
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          set errorlevel=
+          call .ci\build.bat test-ci || goto :error
+          call .ci\win-native.bat || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
