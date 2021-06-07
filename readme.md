@@ -115,6 +115,8 @@ untrusted comment: Sireum
 RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
 ```
 
+Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [Using Sireum](#using-sireum).
+
 
 ### Git Source Distribution
 
@@ -150,6 +152,9 @@ In a console terminal:
   kekinian\bin\build.cmd setup
   ```
 
+The above install Sireum command-line interface (CLI) and 
+its IntelliJ-based Integrated Verification Environment (IVE),
+as well as their dependencies.
 Set the `SIREUM_HOME` env var to the `kekinian` path above.
 
 To update later on, simply do a `git pull --recurse-submodules` and re-run 
@@ -226,12 +231,42 @@ Sireum is installed in `/home/vagrant/Sireum`, which the `SIREUM_HOME` environme
 
 ## Using Sireum 
 
-Please read the quick tutorial at: https://github.com/sireum/proyek-example
+To launch the Sireum CLI or IVE:
+ 
+* **macOS**:
+
+  ```bash
+  ${SIREUM_HOME}/bin/sireum                      # CLI
+  open ${SIREUM_HOME}/bin/mac/idea/IVE.app       # IVE
+  ```
+ 
+* **Linux (amd64)**:
+ 
+  ```bash
+  ${SIREUM_HOME}/bin/sireum                      # CLI
+  ${SIREUM_HOME}/bin/linux/idea/bin/IVE.sh       # IVE
+  ```
+ 
+* **Linux (aarch64)**:
+ 
+  ```bash
+  ${SIREUM_HOME}/bin/sireum                      # CLI
+  ${SIREUM_HOME}/bin/linux/arm/idea/bin/IVE.sh   # IVE
+  ```
+ 
+* **Windows**:
+ 
+  ```cmd
+  %SIREUM_HOME%\bin\sireum.bat                   # CLI
+  %SIREUM_HOME%\bin\win\idea\bin\IVE.exe         # IVE
+  ```
+
+To proceed, please read the quick tutorial at: https://github.com/sireum/proyek-example
 
 
 ## Learning Slang by Examples
 
-If you would like to learn Slang quickly, you can read and use [Sireum IVE](#using-sireum-ive)
+If you would like to learn Slang quickly, you can read and use Sireum IVE
 to experiment with several examples designed to highlight various Slang language features:
 
 https://github.com/sireum/slang-by-examples
@@ -257,16 +292,10 @@ a terminal:
   ```
 
 Then open the `SIREUM_HOME` directory as a project in Sireum IVE.
-
-To have the codebase and its test suites recompiled upon changes, run:
+ 
+To build Sireum assembly/CLI tool:
 
 * **macOS/Linux**:
-
-  ```bash
-  cd ${SIREUM_HOME} && bin/mill -w cli.tests.compile
-  ```
-
-  and to build its assembly/CLI tool:
 
   ```bash
   ${SIREUM_HOME}/bin/build.cmd
@@ -274,13 +303,7 @@ To have the codebase and its test suites recompiled upon changes, run:
 
 * **Windows**:
 
-  ```cmd
-  cd %SIREUM_HOME% && bin\mill.bat -w cli.tests.compile
-  ```
-
-  and to build its assembly/CLI tool:
-
-  ```cmd
+ ```cmd
   %SIREUM_HOME%\bin\build.cmd
   ```
 
