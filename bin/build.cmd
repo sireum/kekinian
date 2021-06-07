@@ -336,12 +336,14 @@ def test(): Unit = {
   val packageNames = ISZ[String](
     "org.sireum"
   )
-  val names = ISZ[String](
+  var names = ISZ[String](
     "org.sireum.lang",
-    "org.sireum.logika",
     "org.sireum.tools",
     "org.sireum.hamr.codegen.test.expensive"
   ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
+  if (!Os.isWin) {
+    names = names :+ "org.sireum.logika"
+  }
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
     at(home).console.runCheck()
   println()
