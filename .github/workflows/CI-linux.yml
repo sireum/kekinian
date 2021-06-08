@@ -47,5 +47,5 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           git submodule update --init --recursive
-          .ci/build.sh test-ci
+          .ci/build.sh test
           .ci/linux-native.sh
