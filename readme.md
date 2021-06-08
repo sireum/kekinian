@@ -1,9 +1,12 @@
 # Sireum: A High Assurance System Engineering Platform
 
-| [![Actions Status](https://github.com/sireum/kekinian/workflows/CI/badge.svg)](https://github.com/sireum/kekinian/actions) | [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian) |
-| :---: | :---: |
-| <sub><sup>amd64: mac, linux, windows</sup></sub> | <sub><sup>maven: `org.sireum.kekinian:cli_2.13:<tag-or-hash>`</sup></sub> |
-
+[![Actions Status](https://github.com/sireum/kekinian/workflows/macOS/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-macOS.yml) 
+[![Actions Status](https://github.com/sireum/kekinian/workflows/Linux/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-linux.yml) 
+[![Actions Status](https://github.com/sireum/kekinian/workflows/Windows/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-windows.yml) 
+[![Actions Status](https://github.com/sireum/kekinian/workflows/macOS-CompCert/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-macOS-compcert.yml) 
+[![Actions Status](https://github.com/sireum/kekinian/workflows/Linux-CompCert/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-linux-compcert.yml) 
+[![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
+ 
 ## Overview
 
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
@@ -243,22 +246,22 @@ To launch the Sireum CLI or IVE:
 * **Linux (amd64)**:
  
   ```bash
-  ${SIREUM_HOME}/bin/sireum                      # CLI
-  ${SIREUM_HOME}/bin/linux/idea/bin/IVE.sh       # IVE
+  ${SIREUM_HOME}/bin/sireum
+  ${SIREUM_HOME}/bin/linux/idea/bin/IVE.sh
   ```
  
 * **Linux (aarch64)**:
  
   ```bash
-  ${SIREUM_HOME}/bin/sireum                      # CLI
-  ${SIREUM_HOME}/bin/linux/arm/idea/bin/IVE.sh   # IVE
+  ${SIREUM_HOME}/bin/sireum
+  ${SIREUM_HOME}/bin/linux/arm/idea/bin/IVE.sh
   ```
  
 * **Windows**:
  
   ```cmd
-  %SIREUM_HOME%\bin\sireum.bat                   # CLI
-  %SIREUM_HOME%\bin\win\idea\bin\IVE.exe         # IVE
+  %SIREUM_HOME%\bin\sireum.bat
+  %SIREUM_HOME%\bin\win\idea\bin\IVE.exe
   ```
 
 To proceed, please read the quick tutorial at: https://github.com/sireum/proyek-example
