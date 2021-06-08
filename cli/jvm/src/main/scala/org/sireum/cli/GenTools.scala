@@ -600,7 +600,7 @@ object GenTools {
       }
       val dest = destDir / s"$name.scala"
       val reporter = Reporter.create
-      TransformerGenJvm.run(mode, lOpt, sources, Some(name), reporter) match {
+      TransformerGenJvm.run(mode, lOpt, sources, Some(name), o.exclude, reporter) match {
         case Some(out) =>
           dest.writeOver(out)
           println(s"Wrote $dest")

@@ -436,6 +436,7 @@ object Cli {
   @datatype class TransgenOption(
     help: String,
     args: ISZ[String],
+    exclude: ISZ[String],
     modes: ISZ[TransformerMode.Type],
     name: Option[String],
     license: Option[String],
@@ -3614,6 +3615,9 @@ import Cli._
           |Usage: <option>* <slang-file>+
           |
           |Available Options:
+          |-e, --exclude            Exclude generating top-level transform for the
+          |                           specified type identifiers (expects a string
+          |                           separated by ",")
           |-m, --modes              Transformer mode (expects one or more of { immutable,
           |                           mutable }; default: immutable)
           |-n, --name               Type simple name for the transformers (default:
@@ -3624,6 +3628,7 @@ import Cli._
           |                           files (expects a path; default is ".")
           |-h, --help               Display this information""".render
 
+    var exclude: ISZ[String] = ISZ[String]()
     var modes: ISZ[TransformerMode.Type] = ISZ(TransformerMode.Immutable)
     var name: Option[String] = None[String]()
     var license: Option[String] = None[String]()
@@ -3636,7 +3641,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-m" || arg == "--modes") {
+        } else if (arg == "-e" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => exclude = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--modes") {
            val o: Option[ISZ[TransformerMode.Type]] = parseTransformerModes(args, j + 1)
            o match {
              case Some(v) => modes = v
@@ -3669,7 +3680,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(TransgenOption(help, parseArguments(args, j), modes, name, license, outputDir))
+    return Some(TransgenOption(help, parseArguments(args, j), exclude, modes, name, license, outputDir))
   }
 
   def parseX(args: ISZ[String], i: Z): Option[SireumTopOption] = {

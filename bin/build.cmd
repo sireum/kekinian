@@ -376,8 +376,8 @@ def regenSlang(): Unit = {
 
 def regenLogika(): Unit = {
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", "-n", "State", s"${logikaPackagePath / "State.scala"}")).at(logikaPackagePath).console.run()
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-e", "Composite",
+    "-m", "immutable,mutable", "-n", "State", s"${logikaPackagePath / "State.scala"}")).at(logikaPackagePath).console.run()
 }
 
 
