@@ -34,3 +34,12 @@
 [submodule "anvil"]
 	path = anvil
 	url = https://github.com/sireum/anvil
+[submodule "bin/linux"]
+	path = bin/linux
+	url = https://github.com/sireum/bin-linux
+[submodule "bin/win"]
+	path = bin/win
+	url = https://github.com/sireum/bin-windows
+[submodule "bin/mac"]
+	path = bin/mac
+	url = https://github.com/sireum/bin-mac
