@@ -671,15 +671,4 @@ def build(): Unit = {
   println("Done!")
 }
 
-val mac7za = homeBin / "mac" / "7za"
-
-if (Os.isMac) {
-  val macUpx = homeBin / "mac" / "upx"
-  proc"$macUpx -d $mac7za".run()
-}
-
 build()
-
-if (Os.isMac) {
-  proc"git checkout ${mac7za.name}".at(mac7za.up).runCheck()
-}
