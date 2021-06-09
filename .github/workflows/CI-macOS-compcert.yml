@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v2
@@ -49,5 +51,4 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
-          git submodule update --init --recursive
           .ci/macOS-compcert.sh

@@ -29,7 +29,7 @@ function versionNorm {
 }
 
 function cleanup {
-  cd ${SIREUM_HOME} && git checkout bin/mac/7za &>/dev/null && true
+  cd ${SIREUM_HOME}/bin/mac && git checkout 7za &>/dev/null && true
 }
 
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
