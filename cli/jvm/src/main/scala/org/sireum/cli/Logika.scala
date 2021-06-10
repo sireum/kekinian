@@ -249,7 +249,7 @@ object Logika {
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =
-        if (o.noRuntime) TypeHierarchy(HashMap.empty, HashMap.empty, Poset.empty, HashMap.empty)
+        if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(),
