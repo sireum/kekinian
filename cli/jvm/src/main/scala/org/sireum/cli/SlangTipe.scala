@@ -136,8 +136,8 @@ object SlangTipe {
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (f.ext =!= ".sc" && f.ext =!= ".cmd" &&
-        f.ext =!= ".slang" && f.ext =!= ".logika") {
+      } else if (f.ext =!= "sc" && f.ext =!= "cmd" &&
+        f.ext =!= "slang" && f.ext =!= "logika") {
         eprintln(s"Can only accept .sc, .cmd, .slang, or .logika files as arguments")
         return InvalidFile
       }
