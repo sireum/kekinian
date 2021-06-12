@@ -18,7 +18,7 @@ exit /B %errorlevel%
 
 import org.sireum._
 import org.sireum.project.ProjectUtil._
-import org.sireum.project.{JSON, Project}
+import org.sireum.project.Project
 
 val server = "server"
 
