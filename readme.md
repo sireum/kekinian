@@ -396,12 +396,13 @@ Sireum depends on open source software libraries and applications
 | [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs0.6_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scala.js: jQuery Facade](https://github.com/jducoeur/jquery-facade) | [(link)](https://search.maven.org/artifact/org.querki/jquery-facade_sjs1_2.13) | [MIT](https://github.com/jducoeur/jquery-facade/blob/master/README.md#license) |
 
-In addition, Sireum includes Slang adaptation of the following code:
+In addition, Sireum includes adaptation of the following code:
 
-| Software | Slang Adaptation | License |
+| Source | Adaptation | License |
 | :--- | :--- | :---: | 
 | [Geny](https://github.com/com-lihaoyi/geny) | [Jen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/Jen.scala) | [MIT](https://github.com/com-lihaoyi/geny/blob/master/LICENSE) |
 | [SHA3UIF](https://github.com/brainhub/SHA3IUF) | [SHA3](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/crypto/SHA3.scala) | [MIT](https://github.com/brainhub/SHA3IUF/blob/master/LICENSE) |
+| [UnsafeUtils](https://github.com/plokhotnyuk/jsoniter-scala/tree/e089f06c2d8b4bdb87a6874e17bf716e8608b117/jsoniter-scala-examples/src/main/scala-2.13/com/github/plokhotnyuk/jsoniter_scala/examples) | [MIT](https://github.com/plokhotnyuk/jsoniter-scala/blob/e089f06c2d8b4bdb87a6874e17bf716e8608b117/LICENSE)
 
 ### Application Dependencies
 
