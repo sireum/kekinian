@@ -129,8 +129,6 @@ Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [
 
 * **Linux** (amd64, aarch64): `curl` and `git`
 
-  * [Docker](resources/docker): [sireum/ci:latest](https://hub.docker.com/r/sireum/ci)
-
 * **Windows**, either: 
   
   * [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)); or
@@ -216,7 +214,7 @@ virtual machine (VM) with Sireum set up as follows:
    Note that the disk size defaults to 64GB, which is derived from the [bento/ubuntu](https://app.vagrantup.com/bento)
    base box.
    Moreover, it installs
-   [FMW](https://github.com/loonwerks/formal-methods-workbench), 
+   [FMIDE](https://github.com/loonwerks/formal-methods-workbench), 
    [CLion](https://www.jetbrains.com/clion), and 
    [CompCert](http://compcert.inria.fr) by default.
    These can be adjusted by commenting out lines that start with `bin/install/` in the [Vagrantfile](resources/vagrant/Vagrantfile).
@@ -384,7 +382,7 @@ Sireum depends on open source software libraries and applications
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [JavaFX](https://github.com/openjdk/jfx) | [(link)](https://search.maven.org/artifact/org.openjfx/javafx) | [GPL v2 with "Classpath" exception](https://github.com/openjdk/jfx) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
-| [OS Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
+| [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
 | [Scala](https://github.com/scala/scala) | [(link)](https://search.maven.org/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
 | [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://search.maven.org/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
 | [ScalaTest](https://github.com/scalatest/scalatest) | [(link)](https://search.maven.org/artifact/org.scalatest/scalatest_2.13) | [Apache 2.0](https://github.com/scalatest/scalatest/blob/3.2.x-new/LICENSE) |
@@ -393,7 +391,7 @@ Sireum depends on open source software libraries and applications
 | [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-compiler_2.13.6) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
 | [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs0.6_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scala.js: jQuery Facade](https://github.com/jducoeur/jquery-facade) | [(link)](https://search.maven.org/artifact/org.querki/jquery-facade_sjs1_2.13) | [MIT](https://github.com/jducoeur/jquery-facade/blob/master/README.md#license) |
-| [Scala.js: ScalaTags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://search.maven.org/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
+| [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://search.maven.org/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
 
 In addition, Sireum includes adaptation of the following code:
 
