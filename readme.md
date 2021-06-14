@@ -312,9 +312,9 @@ To build Sireum assembly/CLI tool:
 
 * **Windows**:
 
- ```cmd
-  %SIREUM_HOME%\bin\build.cmd
-  ```
+  ```cmd
+   %SIREUM_HOME%\bin\build.cmd
+   ```
 
 ## Sireum Native Executable
 
