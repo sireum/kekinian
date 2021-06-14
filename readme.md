@@ -396,6 +396,13 @@ Sireum depends on open source software libraries and applications
 | [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs0.6_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scala.js: jQuery Facade](https://github.com/jducoeur/jquery-facade) | [(link)](https://search.maven.org/artifact/org.querki/jquery-facade_sjs1_2.13) | [MIT](https://github.com/jducoeur/jquery-facade/blob/master/README.md#license) |
 
+In addition, Sireum includes Slang adaptation of the following code:
+
+| Software | Slang Adaptation | License |
+| :--- | :--- | :---: | 
+| [Geny](https://github.com/com-lihaoyi/geny) | [Jen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/Jen.scala) | [MIT](https://github.com/com-lihaoyi/geny/blob/master/LICENSE) |
+| [SHA3UIF](https://github.com/brainhub/SHA3IUF) | [SHA3](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/crypto/SHA3.scala) | [MIT](https://github.com/brainhub/SHA3IUF/blob/master/LICENSE) |
+
 ### Application Dependencies
 
 | Application | License |
@@ -425,3 +432,4 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [IntelliJ + Plugins](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [IntelliJ ANTLR4 Plugin](https://github.com/antlr/intellij-plugin-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime) | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/JetBrainsRuntime/blob/master/LICENSE) |
+| [Mill](https://github.com/com-lihaoyi/mill) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
