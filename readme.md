@@ -169,8 +169,8 @@ Set the `SIREUM_HOME` env var to the `kekinian` path above.
 To update later on, simply do a `git pull --recurse-submodules` and re-run 
 `build.cmd setup` (or simply `build.cmd` to rebuild Sireum CLI tools).
 Note that after a `setup` update, it is best to invalidate IntelliJ's cache files 
-and restart by using IntelliJ's `File -> Invalidate Caches/Restart...` 
-menu item.
+and restart by using IntelliJ's `File -> Invalidate Caches...` 
+menu item and select `Clear all file system cache and Local History`.
 
 Occasionally, there might be new API used in `build.cmd` that is available 
 in the pre-built binary online but not in your local copy.
@@ -198,7 +198,7 @@ If rebuilding Sireum somehow failed still, try cleaning the repo:
 The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
 the local git repository.
 
-After cleaning, re-run `git pull --recurse-submodules` and `build.cmd setup`.
+After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good fix-point) and `build.cmd setup`.
 
 
 #### Using Vagrant and VirtualBox
@@ -377,39 +377,39 @@ Sireum depends on open source software libraries and applications
 
 ### Library Dependencies
 
-| Library Dependency | Maven | License |
+| Library | Maven | License |
 | :--- | :---: | :---: | 
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Coursier](https://github.com/coursier/coursier) | [(link)](https://search.maven.org/artifact/io.get-coursier/coursier_2.13) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [Diff](https://github.com/sksamuel/google-diff-match-patch) | [(link)](https://search.maven.org/artifact/com.sksamuel.diff/diff) | [Apache 2.0](https://github.com/sksamuel/google-diff-match-patch/blob/master/LICENSE.txt) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [JavaFX](https://github.com/openjdk/jfx) | [(link)](https://search.maven.org/artifact/org.openjfx/javafx) | [GPL v2 with "Classpath" exception](https://github.com/openjdk/jfx) |
-| [jQuery Facade](https://github.com/jducoeur/jquery-facade) | [(link)](https://search.maven.org/artifact/org.querki/jquery-facade_sjs1_2.13) | [MIT](https://github.com/jducoeur/jquery-facade/blob/master/README.md#license) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
 | [Scala](https://github.com/scala/scala) | [(link)](https://search.maven.org/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
-| [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-compiler_2.13.6) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
-| [Scala.js DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs0.6_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://search.maven.org/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
 | [ScalaTags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://search.maven.org/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
 | [ScalaTest](https://github.com/scalatest/scalatest) | [(link)](https://search.maven.org/artifact/org.scalatest/scalatest_2.13) | [Apache 2.0](https://github.com/scalatest/scalatest/blob/3.2.x-new/LICENSE) |
 | [Scala Java 8 Compatibility Kit](https://github.com/scala/scala-java8-compat) | [(link)](https://search.maven.org/artifact/org.scala-lang.modules/scala-java8-compat_2.13) | [Apache 2.0](https://github.com/scala/scala-java8-compat/blob/main/LICENSE) |
 | [Scala Parallel Collection](https://github.com/scala/scala-parallel-collections) | [(link)](https://search.maven.org/artifact/org.scala-lang.modules/scala-parallel-collections_2.13) | [Apache 2.0](https://github.com/scala/scala-parallel-collections/blob/main/LICENSE) |
+| [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-compiler_2.13.6) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
+| [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs0.6_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
+| [Scala.js: jQuery Facade](https://github.com/jducoeur/jquery-facade) | [(link)](https://search.maven.org/artifact/org.querki/jquery-facade_sjs1_2.13) | [MIT](https://github.com/jducoeur/jquery-facade/blob/master/README.md#license) |
 
 ### Application Dependencies
 
-| Application Dependency | License |
+| Application | License |
 | :--- | :---: |
 | [Azul Zulu JDK](https://www.azul.com/downloads/) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
 | [CVC4](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
-Sireum stores small, pre-built binaries in its submodule repositories for
+Sireum stores small, pre-built binary executables in its submodule repositories for
 [macOS](https://github.com/sireum/bin-mac), 
 [Linux](https://github.com/sireum/bin-linux), and
-[Windows](https://github.com/sireum/bin-windows).
+[Windows](https://github.com/sireum/bin-windows) (please see the respective repository for virus analysis results).
 
-| Pre-built Binary Dependency | License |
+| Pre-built Executable | License |
 | :--- | :---: |
 | [7-zip](https://sourceforge.net/projects/sevenzip) | [LGPL v2](https://www.7-zip.org/license.txt) |
 | [fsnotifier](https://github.com/JetBrains/intellij-community/tree/master/native/fsNotifier) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
@@ -418,7 +418,7 @@ Sireum stores small, pre-built binaries in its submodule repositories for
 
 ### Optional Application Dependencies
 
-| Optional Application Dependency | License |
+| Application | License |
 | :--- | :---: |
 | [CheckStack](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
 | [GraalVM](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
