@@ -38,15 +38,6 @@ jobs:
             bin/mac/opam
             bin/mac/.compcert.ver
           key: ${{ runner.os }}-${{ hashFiles('bin/install/compcert.cmd') }}-compcert
-      - name: Cache SMT2 solvers
-        id: cache-smt2
-        uses: actions/cache@v2
-        with:
-          path: |
-            bin/mac/cvc4
-            bin/mac/.cvc4.ver
-            bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-smt2
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
