@@ -219,6 +219,7 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "VER"),
     ISZ("lib"),
     ISZ("license.txt"),
+    ISZ("readme.md"),
     ISZ("versions.properties"),
     ISZ("..", "setup.bat")
   ) +
@@ -238,6 +239,7 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "VER"),
     ISZ("lib"),
     ISZ("license.txt"),
+    ISZ("readme.md"),
     ISZ("versions.properties"),
     ISZ("..", "setup")
   ) +
@@ -253,6 +255,7 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "VER"),
     ISZ("lib"),
     ISZ("license.txt"),
+    ISZ("readme.md"),
     ISZ("versions.properties"),
     ISZ("..", "setup")
   ) +
@@ -271,6 +274,7 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "VER"),
     ISZ("lib"),
     ISZ("license.txt"),
+    ISZ("readme.md"),
     ISZ("versions.properties"),
     ISZ("..", "setup")
   )
