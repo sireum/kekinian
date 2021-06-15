@@ -58,8 +58,8 @@ def usage(): Unit = {
         |       | tipe             | compile[-js]       | test[-ci]    | mill
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
-        |       | m2[-lib]         | jitpack            | ghpack       | ram
-        |       | cvc4             | z3                                            )*
+        |       | regen-fmide-cli  | m2[-lib]           | jitpack      | ghpack
+        |       | cvc4             | z3                 | ram                      )*
       """.render)
 }
 
@@ -256,20 +256,6 @@ def buildMill(): Unit = {
 }
 
 
-def bloop(): Unit = {
-  buildMill()
-  val bloopImport = "\n\nimport $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`"
-  val buildFile = home / "build.sc"
-  val old = buildFile.read
-  buildFile.writeAppend(bloopImport)
-  val r = Os.proc(ISZ(mill.string, "mill.contrib.Bloop/install")).at(home).console.run()
-  buildFile.writeOver(old)
-  if (!r.ok) {
-    Os.exit(r.exitCode)
-  }
-}
-
-
 def build(fresh: B, isNative: B): Unit = {
   println("Building ...")
 
@@ -418,6 +404,12 @@ def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
     s"${sireumPackagePath / "cli.sc"}")).at(sireumPackagePath).console.run()
+}
+
+def regenFmideCli(): Unit = {
+  val installPath = homeBin / "install"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-l", s"${home / "license.txt"}", "-s", "fmide.cmd",
+    s"${installPath / "fmide-cli.sc"}")).at(installPath).console.run()
 }
 
 
@@ -622,7 +614,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-act" => regenAct()
       case string"regen-server" => regenServer()
       case string"regen-cli" => regenCli()
-      case string"bloop" => bloop()
+      case string"regen-fmide-cli" => regenFmideCli()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib()
       case string"jitpack" => jitpack()
