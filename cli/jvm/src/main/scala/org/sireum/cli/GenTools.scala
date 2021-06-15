@@ -113,7 +113,14 @@ object GenTools {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case z"1" =>
-      case _ => println(s"Expecting one argument, but found ${o.args.size}."); return -1
+      case _ =>
+        eprintln(s"Expecting one argument, but found ${o.args.size}.")
+        return -1
+    }
+
+    if (o.packageName.nonEmpty && o.script.nonEmpty) {
+      eprintln("Package name cannot be used along with script generation")
+      return -1
     }
 
     val lOpt = path2fileOpt("license file", o.license, T)
@@ -122,7 +129,10 @@ object GenTools {
     if (!destDir.isDir) {
       eprintln(s"Path $destDir is not a directory")
     }
-    val dest = destDir / s"${o.name.get}.scala"
+    val dest: Os.Path = o.script match {
+      case Some(script) => destDir / script
+      case _ => destDir / s"${o.name.get}.scala"
+    }
     val (first, second): (Z, Z) = o.width.size match {
       case z"2" => (o.width(0), o.width(1))
       case _ => (z"25", z"55")

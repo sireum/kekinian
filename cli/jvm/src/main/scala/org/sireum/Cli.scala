@@ -32,6 +32,9 @@ package org.sireum
 
 import org.sireum._
 
+// BEGIN USER CODE
+// END USER CODE
+
 object Cli {
 
   @datatype trait SireumTopOption
@@ -387,11 +390,12 @@ object Cli {
   @datatype class CligenOption(
     help: String,
     args: ISZ[String],
-    packageName: ISZ[String],
-    name: Option[String],
-    width: ISZ[Z],
     license: Option[String],
-    outputDir: Option[String]
+    name: Option[String],
+    outputDir: Option[String],
+    packageName: ISZ[String],
+    script: Option[String],
+    width: ISZ[Z]
   ) extends SireumTopOption
 
   @enum object IveMode {
@@ -3271,24 +3275,27 @@ import Cli._
           |Usage: <option>* <config-file>
           |
           |Available Options:
-          |-p, --package            Package name for the CLI processor (expects a string
-          |                           separated by "."; default is "cli")
+          |-l, --license            License file to be inserted in the file header
+          |                           (expects a path)
           |-n, --name               Type simple name for the CLI @record class processor
           |                           (expects a string; default is "Cli")
+          |-o, --output-dir         Output directory for the generated CLI file (expects a
+          |                           path; default is ".")
+          |-p, --package            Package name for the CLI processor (expects a string
+          |                           separated by ".")
+          |-s, --script             Generate a script file with the provided name instead
+          |                           of a Slang program (expects a string)
           |-w, --width              First (key) column (default: 25) and second column
           |                           (default: 55) max width (expects an int-list
           |                           separated by ',')
-          |-l, --license            License file to be inserted in the file header
-          |                           (expects a path)
-          |-o, --output-dir         Output directory for the generated CLI Slang file
-          |                           (expects a path; default is ".")
           |-h, --help               Display this information""".render
 
-    var packageName: ISZ[String] = ISZ("cli")
-    var name: Option[String] = Some("Cli")
-    var width: ISZ[Z] = ISZ()
     var license: Option[String] = None[String]()
+    var name: Option[String] = Some("Cli")
     var outputDir: Option[String] = Some(".")
+    var packageName: ISZ[String] = ISZ[String]()
+    var script: Option[String] = None[String]()
+    var width: ISZ[Z] = ISZ()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -3297,10 +3304,10 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-p" || arg == "--package") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+        } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => packageName = v
+             case Some(v) => license = v
              case _ => return None()
            }
          } else if (arg == "-n" || arg == "--name") {
@@ -3309,22 +3316,28 @@ import Cli._
              case Some(v) => name = v
              case _ => return None()
            }
-         } else if (arg == "-w" || arg == "--width") {
-           val o: Option[ISZ[Z]] = parseNums(args, j + 1, ',', Some(0), None())
-           o match {
-             case Some(v) => width = v
-             case _ => return None()
-           }
-         } else if (arg == "-l" || arg == "--license") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => license = v
-             case _ => return None()
-           }
          } else if (arg == "-o" || arg == "--output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--script") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => script = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--width") {
+           val o: Option[ISZ[Z]] = parseNums(args, j + 1, ',', Some(0), None())
+           o match {
+             case Some(v) => width = v
              case _ => return None()
            }
          } else {
@@ -3336,7 +3349,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CligenOption(help, parseArguments(args, j), packageName, name, width, license, outputDir))
+    return Some(CligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, script, width))
   }
 
   def parseIveModeH(arg: String): Option[IveMode.Type] = {
