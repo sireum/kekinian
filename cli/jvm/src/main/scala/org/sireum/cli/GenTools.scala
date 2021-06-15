@@ -150,6 +150,9 @@ object GenTools {
       case Either.Left(config) =>
         val out = CliGenJvm.run(lOpt, config, src, dest, o.packageName, o.name, first, second)
         dest.writeOver(out)
+        if (dest.ext === "cmd") {
+          dest.chmod("+x")
+        }
         println(s"Wrote $dest")
         return 0
       case _ =>
