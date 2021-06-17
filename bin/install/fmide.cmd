@@ -254,14 +254,14 @@ object Cli {
   @datatype class HelpOption extends FmideTopOption
 
   @datatype class FmideOption(
-    help: String,
-    args: ISZ[String]
+    val help: String,
+    val args: ISZ[String]
   ) extends FmideTopOption
 }
 
 import Cli._
 
-@record class Cli(pathSep: C) {
+@record class Cli(val pathSep: C) {
 
   def parseFmide(args: ISZ[String], i: Z): Option[FmideTopOption] = {
     val help =

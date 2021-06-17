@@ -33,6 +33,7 @@ package org.sireum
 import org.sireum._
 
 // BEGIN USER CODE
+
 // END USER CODE
 
 object Cli {
@@ -52,26 +53,26 @@ object Cli {
   }
 
   @datatype class HamrCodeGenOption(
-    help: String,
-    args: ISZ[String],
-    msgpack: B,
-    verbose: B,
-    platform: HamrPlatform.Type,
-    outputDir: Option[String],
-    packageName: Option[String],
-    noEmbedArt: B,
-    devicesAsThreads: B,
-    slangAuxCodeDirs: ISZ[String],
-    slangOutputCDir: Option[String],
-    excludeComponentImpl: B,
-    bitWidth: Z,
-    maxStringSize: Z,
-    maxArraySize: Z,
-    runTranspiler: B,
-    camkesOutputDir: Option[String],
-    camkesAuxCodeDirs: ISZ[String],
-    aadlRootDir: Option[String],
-    experimentalOptions: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val msgpack: B,
+    val verbose: B,
+    val platform: HamrPlatform.Type,
+    val outputDir: Option[String],
+    val packageName: Option[String],
+    val noEmbedArt: B,
+    val devicesAsThreads: B,
+    val slangAuxCodeDirs: ISZ[String],
+    val slangOutputCDir: Option[String],
+    val excludeComponentImpl: B,
+    val bitWidth: Z,
+    val maxStringSize: Z,
+    val maxArraySize: Z,
+    val runTranspiler: B,
+    val camkesOutputDir: Option[String],
+    val camkesAuxCodeDirs: ISZ[String],
+    val aadlRootDir: Option[String],
+    val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
   @enum object PhantomMode {
@@ -80,15 +81,15 @@ object Cli {
   }
 
   @datatype class PhantomOption(
-    help: String,
-    args: ISZ[String],
-    update: B,
-    osate: Option[String],
-    mode: PhantomMode.Type,
-    projects: ISZ[String],
-    main: Option[String],
-    impl: Option[String],
-    output: Option[String]
+    val help: String,
+    val args: ISZ[String],
+    val update: B,
+    val osate: Option[String],
+    val mode: PhantomMode.Type,
+    val projects: ISZ[String],
+    val main: Option[String],
+    val impl: Option[String],
+    val output: Option[String]
   ) extends SireumTopOption
 
   @enum object LogikaSolver {
@@ -98,233 +99,233 @@ object Cli {
   }
 
   @datatype class LogikaVerifierOption(
-    help: String,
-    args: ISZ[String],
-    line: Z,
-    noRuntime: B,
-    sat: B,
-    skipMethods: ISZ[String],
-    skipTypes: ISZ[String],
-    sourcepath: ISZ[String],
-    unroll: B,
-    charBitWidth: Z,
-    intBitWidth: Z,
-    simplify: B,
-    solver: LogikaSolver.Type,
-    timeout: Z,
-    par: B,
-    ramFolder: Option[String],
-    dontSplitFunQuant: B,
-    splitAll: B,
-    splitContract: B,
-    splitIf: B,
-    splitMatch: B,
-    logPc: B,
-    logRawPc: B,
-    logVc: B,
-    logVcDir: Option[String]
+    val help: String,
+    val args: ISZ[String],
+    val line: Z,
+    val noRuntime: B,
+    val sat: B,
+    val skipMethods: ISZ[String],
+    val skipTypes: ISZ[String],
+    val sourcepath: ISZ[String],
+    val unroll: B,
+    val charBitWidth: Z,
+    val intBitWidth: Z,
+    val simplify: B,
+    val solver: LogikaSolver.Type,
+    val timeout: Z,
+    val par: B,
+    val ramFolder: Option[String],
+    val dontSplitFunQuant: B,
+    val splitAll: B,
+    val splitContract: B,
+    val splitIf: B,
+    val splitMatch: B,
+    val logPc: B,
+    val logRawPc: B,
+    val logVc: B,
+    val logVcDir: Option[String]
   ) extends SireumTopOption
 
   @datatype class AssembleOption(
-    help: String,
-    args: ISZ[String],
-    jar: Option[String],
-    mainClass : Option[String],
-    isNative : B,
-    ignoreRuntime: B,
-    json: Option[String],
-    name: Option[String],
-    outputDirName: Option[String],
-    project: Option[String],
-    slice: ISZ[String],
-    symlink: B,
-    versions: ISZ[String],
-    javac: ISZ[String],
-    fresh: B,
-    par: B,
-    recompile: ISZ[String],
-    scalac: ISZ[String],
-    sha3: B,
-    skipCompile: B,
-    cache: Option[String],
-    docs: B,
-    sources: B,
-    repositories: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val jar: Option[String],
+    val mainClass : Option[String],
+    val isNative : B,
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val javac: ISZ[String],
+    val fresh: B,
+    val par: B,
+    val recompile: ISZ[String],
+    val scalac: ISZ[String],
+    val sha3: B,
+    val skipCompile: B,
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class CompileOption(
-    help: String,
-    args: ISZ[String],
-    javac: ISZ[String],
-    fresh: B,
-    par: B,
-    recompile: ISZ[String],
-    scalac: ISZ[String],
-    sha3: B,
-    js: B,
-    ignoreRuntime: B,
-    json: Option[String],
-    name: Option[String],
-    outputDirName: Option[String],
-    project: Option[String],
-    slice: ISZ[String],
-    symlink: B,
-    versions: ISZ[String],
-    cache: Option[String],
-    docs: B,
-    sources: B,
-    repositories: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val javac: ISZ[String],
+    val fresh: B,
+    val par: B,
+    val recompile: ISZ[String],
+    val scalac: ISZ[String],
+    val sha3: B,
+    val js: B,
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class IveOption(
-    help: String,
-    args: ISZ[String],
-    force: B,
-    ultimate: B,
-    ignoreRuntime: B,
-    json: Option[String],
-    name: Option[String],
-    outputDirName: Option[String],
-    project: Option[String],
-    slice: ISZ[String],
-    symlink: B,
-    versions: ISZ[String],
-    cache: Option[String],
-    docs: B,
-    sources: B,
-    repositories: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val force: B,
+    val ultimate: B,
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class PublishOption(
-    help: String,
-    args: ISZ[String],
-    m2: Option[String],
-    version: Option[String],
-    ignoreRuntime: B,
-    json: Option[String],
-    name: Option[String],
-    outputDirName: Option[String],
-    project: Option[String],
-    slice: ISZ[String],
-    symlink: B,
-    versions: ISZ[String],
-    javac: ISZ[String],
-    fresh: B,
-    par: B,
-    recompile: ISZ[String],
-    scalac: ISZ[String],
-    sha3: B,
-    skipCompile: B,
-    cache: Option[String],
-    docs: B,
-    sources: B,
-    repositories: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val m2: Option[String],
+    val version: Option[String],
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val javac: ISZ[String],
+    val fresh: B,
+    val par: B,
+    val recompile: ISZ[String],
+    val scalac: ISZ[String],
+    val sha3: B,
+    val skipCompile: B,
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class RunOption(
-    help: String,
-    args: ISZ[String],
-    dir: Option[String],
-    java: ISZ[String],
-    ignoreRuntime: B,
-    json: Option[String],
-    name: Option[String],
-    outputDirName: Option[String],
-    project: Option[String],
-    slice: ISZ[String],
-    symlink: B,
-    versions: ISZ[String],
-    javac: ISZ[String],
-    fresh: B,
-    par: B,
-    recompile: ISZ[String],
-    scalac: ISZ[String],
-    sha3: B,
-    skipCompile: B,
-    cache: Option[String],
-    docs: B,
-    sources: B,
-    repositories: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val dir: Option[String],
+    val java: ISZ[String],
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val javac: ISZ[String],
+    val fresh: B,
+    val par: B,
+    val recompile: ISZ[String],
+    val scalac: ISZ[String],
+    val sha3: B,
+    val skipCompile: B,
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class TestOption(
-    help: String,
-    args: ISZ[String],
-    classes: ISZ[String],
-    java: ISZ[String],
-    packages: ISZ[String],
-    suffixes: ISZ[String],
-    ignoreRuntime: B,
-    json: Option[String],
-    name: Option[String],
-    outputDirName: Option[String],
-    project: Option[String],
-    slice: ISZ[String],
-    symlink: B,
-    versions: ISZ[String],
-    javac: ISZ[String],
-    fresh: B,
-    par: B,
-    recompile: ISZ[String],
-    scalac: ISZ[String],
-    sha3: B,
-    skipCompile: B,
-    cache: Option[String],
-    docs: B,
-    sources: B,
-    repositories: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val classes: ISZ[String],
+    val java: ISZ[String],
+    val packages: ISZ[String],
+    val suffixes: ISZ[String],
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val javac: ISZ[String],
+    val fresh: B,
+    val par: B,
+    val recompile: ISZ[String],
+    val scalac: ISZ[String],
+    val sha3: B,
+    val skipCompile: B,
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class SlangRunOption(
-    help: String,
-    args: ISZ[String],
-    input: Option[String],
-    output: Option[String],
-    transformed: B,
-    nativ: B
+    val help: String,
+    val args: ISZ[String],
+    val input: Option[String],
+    val output: Option[String],
+    val transformed: B,
+    val nativ: B
   ) extends SireumTopOption
 
   @datatype class SlangTipeOption(
-    help: String,
-    args: ISZ[String],
-    exclude: ISZ[String],
-    force: ISZ[String],
-    noRuntime: B,
-    outline: B,
-    sourcepath: ISZ[String],
-    strictAliasing: B,
-    verbose: B,
-    save: Option[String],
-    load: Option[String],
-    gzip: B
+    val help: String,
+    val args: ISZ[String],
+    val exclude: ISZ[String],
+    val force: ISZ[String],
+    val noRuntime: B,
+    val outline: B,
+    val sourcepath: ISZ[String],
+    val strictAliasing: B,
+    val verbose: B,
+    val save: Option[String],
+    val load: Option[String],
+    val gzip: B
   ) extends SireumTopOption
 
   @datatype class CTranspilerOption(
-    help: String,
-    args: ISZ[String],
-    sourcepath: ISZ[String],
-    strictAliasing: B,
-    output: Option[String],
-    verbose: B,
-    apps: ISZ[String],
-    bitWidth: Z,
-    projectName: Option[String],
-    stackSize: Option[String],
-    customArraySizes: ISZ[String],
-    maxArraySize: Z,
-    maxStringSize: Z,
-    cmakeIncludes: ISZ[String],
-    exts: ISZ[String],
-    libOnly: B,
-    excludeBuild: ISZ[String],
-    plugins: ISZ[String],
-    fingerprint: Z,
-    stableTypeId: B,
-    unroll: B,
-    save: Option[String],
-    load: Option[String],
-    customConstants: ISZ[String],
-    forwarding: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val sourcepath: ISZ[String],
+    val strictAliasing: B,
+    val output: Option[String],
+    val verbose: B,
+    val apps: ISZ[String],
+    val bitWidth: Z,
+    val projectName: Option[String],
+    val stackSize: Option[String],
+    val customArraySizes: ISZ[String],
+    val maxArraySize: Z,
+    val maxStringSize: Z,
+    val cmakeIncludes: ISZ[String],
+    val exts: ISZ[String],
+    val libOnly: B,
+    val excludeBuild: ISZ[String],
+    val plugins: ISZ[String],
+    val fingerprint: Z,
+    val stableTypeId: B,
+    val unroll: B,
+    val save: Option[String],
+    val load: Option[String],
+    val customConstants: ISZ[String],
+    val forwarding: ISZ[String]
   ) extends SireumTopOption
 
   @enum object BitCodecMode {
@@ -335,16 +336,16 @@ object Cli {
   }
 
   @datatype class BcgenOption(
-    help: String,
-    args: ISZ[String],
-    mode: ISZ[BitCodecMode.Type],
-    isLittleEndian: B,
-    isMutable: B,
-    packageName: ISZ[String],
-    name: Option[String],
-    license: Option[String],
-    outputDir: Option[String],
-    traits: ISZ[String]
+    val help: String,
+    val args: ISZ[String],
+    val mode: ISZ[BitCodecMode.Type],
+    val isLittleEndian: B,
+    val isMutable: B,
+    val packageName: ISZ[String],
+    val name: Option[String],
+    val license: Option[String],
+    val outputDir: Option[String],
+    val traits: ISZ[String]
   ) extends SireumTopOption
 
   @enum object CheckStackMode {
@@ -379,23 +380,23 @@ object Cli {
   }
 
   @datatype class CheckstackOption(
-    help: String,
-    args: ISZ[String],
-    mode: CheckStackMode.Type,
-    objdump: Option[String],
-    arch: CheckStackArch.Type,
-    format: CheckStackFormat.Type
+    val help: String,
+    val args: ISZ[String],
+    val mode: CheckStackMode.Type,
+    val objdump: Option[String],
+    val arch: CheckStackArch.Type,
+    val format: CheckStackFormat.Type
   ) extends SireumTopOption
 
   @datatype class CligenOption(
-    help: String,
-    args: ISZ[String],
-    license: Option[String],
-    name: Option[String],
-    outputDir: Option[String],
-    packageName: ISZ[String],
-    script: Option[String],
-    width: ISZ[Z]
+    val help: String,
+    val args: ISZ[String],
+    val license: Option[String],
+    val name: Option[String],
+    val outputDir: Option[String],
+    val packageName: ISZ[String],
+    val script: Option[String],
+    val width: ISZ[Z]
   ) extends SireumTopOption
 
   @enum object IveMode {
@@ -404,17 +405,17 @@ object Cli {
   }
 
   @datatype class IvegenOption(
-    help: String,
-    args: ISZ[String],
-    jdk: Option[String],
-    mode: IveMode.Type,
-    projectName: Option[String],
-    moduleName: Option[String],
-    packageName: ISZ[String],
-    appName: Option[String],
-    millPath: B,
-    force: B,
-    compile: B
+    val help: String,
+    val args: ISZ[String],
+    val jdk: Option[String],
+    val mode: IveMode.Type,
+    val projectName: Option[String],
+    val moduleName: Option[String],
+    val packageName: ISZ[String],
+    val appName: Option[String],
+    val millPath: B,
+    val force: B,
+    val compile: B
   ) extends SireumTopOption
 
   @enum object SerializerMode {
@@ -423,13 +424,13 @@ object Cli {
   }
 
   @datatype class SergenOption(
-    help: String,
-    args: ISZ[String],
-    modes: ISZ[SerializerMode.Type],
-    packageName: ISZ[String],
-    name: Option[String],
-    license: Option[String],
-    outputDir: Option[String]
+    val help: String,
+    val args: ISZ[String],
+    val modes: ISZ[SerializerMode.Type],
+    val packageName: ISZ[String],
+    val name: Option[String],
+    val license: Option[String],
+    val outputDir: Option[String]
   ) extends SireumTopOption
 
   @enum object TransformerMode {
@@ -438,13 +439,13 @@ object Cli {
   }
 
   @datatype class TransgenOption(
-    help: String,
-    args: ISZ[String],
-    exclude: ISZ[String],
-    modes: ISZ[TransformerMode.Type],
-    name: Option[String],
-    license: Option[String],
-    outputDir: Option[String]
+    val help: String,
+    val args: ISZ[String],
+    val exclude: ISZ[String],
+    val modes: ISZ[TransformerMode.Type],
+    val name: Option[String],
+    val license: Option[String],
+    val outputDir: Option[String]
   ) extends SireumTopOption
 
   @enum object ServerMessage {
@@ -453,16 +454,16 @@ object Cli {
   }
 
   @datatype class ServerOption(
-    help: String,
-    args: ISZ[String],
-    message: ServerMessage.Type,
-    logika: Z
+    val help: String,
+    val args: ISZ[String],
+    val message: ServerMessage.Type,
+    val logika: Z
   ) extends SireumTopOption
 }
 
 import Cli._
 
-@record class Cli(pathSep: C) {
+@record class Cli(val pathSep: C) {
 
   def parseSireum(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {

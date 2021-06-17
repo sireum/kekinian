@@ -28,12 +28,12 @@ package org.sireum
 
 object Init {
 
-  @datatype class Info(javaHome: Os.Path,
-                       javaName: String,
-                       scalaHome: Os.Path,
-                       scalacPlugin: Os.Path,
-                       sireumJar: Os.Path,
-                       z3Home: Os.Path)
+  @datatype class Info(val javaHome: Os.Path,
+                       val javaName: String,
+                       val scalaHome: Os.Path,
+                       val scalacPlugin: Os.Path,
+                       val sireumJar: Os.Path,
+                       val z3Home: Os.Path)
 
   @memoize def home: Os.Path = {
     val r: Os.Path = Os.kind match {
