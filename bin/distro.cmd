@@ -136,14 +136,15 @@ val pluginPrefix: String = "org.sireum.version.plugin."
 val versions = HashMap ++ (home / "versions.properties").properties.entries
 
 
-@strictpure def devRelVer(key: String): (String, String) =
+@pure def devRelVer(key: String): (String, String) = {
   ops.StringOps(versions.get(key).get).split((c: C) => c === ',') match {
     case ISZ(devVer, ver) =>
-      (ops.StringOps(devVer).trim, ops.StringOps(ver).trim)
+      return (ops.StringOps(devVer).trim, ops.StringOps(ver).trim)
     case ISZ(ver) =>
       val v = ops.StringOps(ver).trim
-      (v, v)
+      return (v, v)
   }
+}
 
 @strictpure def zipName(id: String, version: String): String = s"$id-$version.zip"
 
@@ -430,7 +431,7 @@ def patchExe(): Unit = {
   println("done!")
 }
 
-def patchIcon(): Unit = {
+def patchIcon(isWin: B): Unit = {
   if (isUltimate) {
     return
   }
@@ -464,7 +465,7 @@ def patchIcon(): Unit = {
   print(s"Replacing icon ${dirPath / filename} ... ")
   (iconsPath / srcFilename).copyOverTo(dirPath / filename)
   println("done!")
-  if (Os.isWin) {
+  if (isWin) {
     patchExe()
   }
   val iconsJar = libDir / "icons.jar"
@@ -528,7 +529,7 @@ def setupMac(ideaDrop: Os.Path): Unit = {
   deleteSources()
   deletePlugins()
   extractPlugins()
-  patchIcon()
+  patchIcon(F)
   patchImages()
   patchIdeaProperties(sireumAppDir / "Contents" / "Info.plist")
   patchVMOptions(sireumAppDir / "Contents" / "bin" / "idea.vmoptions")
@@ -545,7 +546,7 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
   println("done!")
   deletePlugins()
   extractPlugins()
-  patchIcon()
+  patchIcon(F)
   patchImages()
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.vmoptions")
@@ -594,7 +595,7 @@ def setupWin(ideaDrop: Os.Path): Unit = {
   println("done!")
   deletePlugins()
   extractPlugins()
-  patchIcon()
+  patchIcon(T)
   patchImages()
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.exe.vmoptions")
