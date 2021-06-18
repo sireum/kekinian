@@ -83,13 +83,16 @@ object Cli {
   @datatype class PhantomOption(
     val help: String,
     val args: ISZ[String],
-    val update: B,
-    val osate: Option[String],
-    val mode: PhantomMode.Type,
-    val projects: ISZ[String],
-    val main: Option[String],
     val impl: Option[String],
-    val output: Option[String]
+    val main: Option[String],
+    val mode: PhantomMode.Type,
+    val output: Option[String],
+    val projects: ISZ[String],
+    val quiet: B,
+    val osate: Option[String],
+    val update: B,
+    val features: ISZ[String],
+    val version: Option[String]
   ) extends SireumTopOption
 
   @enum object LogikaSolver {
@@ -774,7 +777,7 @@ import Cli._
       st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
           |
           |Usage: ${st"""
-                  |    phantom --update [--osate <path>]
+                  |    phantom --update [--osate <path>] [--properties <path>]
                   |
                   |      Just update/install Sireum OSATE plugins
                   |
@@ -785,27 +788,38 @@ import Cli._
                   |        - populate the 'projects', 'main-package', and 'sys-impl' options""".render}
           |
           |Available Options:
-          |-u, --update             Update (or install) Sireum OSATE plugins
+          |-s, --sys-impl           Name of the system implementation. (expects a string)
+          |-a, --main-package       AADL main package file that contains a system
+          |                           implementation. (expects a path)
+          |-m, --mode               Serialization method (expects one of { json, msgpack
+          |                           }; default: json)
+          |-f, --output-file        AIR output file path (expects a path)
+          |-p, --projects           OSATE project directories, each must contain an OSATE
+          |                           '.project' file (expects path strings)
+          |-q, --quiet              Do not print informational messages
+          |-h, --help               Display this information
+          |
+          |OSATE Options:
           |-o, --osate              Existing OSATE installation path, otherwise an
           |                           internal version of OSATE will be used (expects a
           |                           path)
-          |-m, --mode               Serialization method (expects one of { json, msgpack
-          |                           }; default: json)
-          |-p, --projects           OSATE project directories, each must contain an OSATE
-          |                           '.project' file (expects path strings)
-          |-a, --main-package       AADL main package file that contains a system
-          |                           implementation. (expects a path)
-          |-s, --sys-impl           Name of the system implementation. (expects a string)
-          |-f, --output-file        AIR output file path (expects a path)
-          |-h, --help               Display this information""".render
+          |-u, --update             Update (or install) Sireum OSATE plugins
+          |    --features           Plugin features to update/install, each of the form
+          |                           <feature-id>=<repo-url-1>,...,<repo-url-N> (expects
+          |                           a string separated by ";")
+          |-v, --version            OSATE version (expects a string; default is
+          |                           "2.9.2-vfinal")""".render
 
-    var update: B = false
-    var osate: Option[String] = None[String]()
-    var mode: PhantomMode.Type = PhantomMode.Json
-    var projects: ISZ[String] = ISZ[String]()
-    var main: Option[String] = None[String]()
     var impl: Option[String] = None[String]()
+    var main: Option[String] = None[String]()
+    var mode: PhantomMode.Type = PhantomMode.Json
     var output: Option[String] = None[String]()
+    var projects: ISZ[String] = ISZ[String]()
+    var quiet: B = false
+    var osate: Option[String] = None[String]()
+    var update: B = false
+    var features: ISZ[String] = ISZ[String]()
+    var version: Option[String] = Some("2.9.2-vfinal")
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -814,28 +828,10 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-u" || arg == "--update") {
-           val o: Option[B] = { j = j - 1; Some(!update) }
+        } else if (arg == "-s" || arg == "--sys-impl") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => update = v
-             case _ => return None()
-           }
-         } else if (arg == "-o" || arg == "--osate") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => osate = v
-             case _ => return None()
-           }
-         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
-           o match {
-             case Some(v) => mode = v
-             case _ => return None()
-           }
-         } else if (arg == "-p" || arg == "--projects") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => projects = v
+             case Some(v) => impl = v
              case _ => return None()
            }
          } else if (arg == "-a" || arg == "--main-package") {
@@ -844,16 +840,52 @@ import Cli._
              case Some(v) => main = v
              case _ => return None()
            }
-         } else if (arg == "-s" || arg == "--sys-impl") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
            o match {
-             case Some(v) => impl = v
+             case Some(v) => mode = v
              case _ => return None()
            }
          } else if (arg == "-f" || arg == "--output-file") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--projects") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => projects = v
+             case _ => return None()
+           }
+         } else if (arg == "-q" || arg == "--quiet") {
+           val o: Option[B] = { j = j - 1; Some(!quiet) }
+           o match {
+             case Some(v) => quiet = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--osate") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => osate = v
+             case _ => return None()
+           }
+         } else if (arg == "-u" || arg == "--update") {
+           val o: Option[B] = { j = j - 1; Some(!update) }
+           o match {
+             case Some(v) => update = v
+             case _ => return None()
+           }
+         } else if (arg == "--features") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => features = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--version") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => version = v
              case _ => return None()
            }
          } else {
@@ -865,7 +897,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PhantomOption(help, parseArguments(args, j), update, osate, mode, projects, main, impl, output))
+    return Some(PhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, quiet, osate, update, features, version))
   }
 
   def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {

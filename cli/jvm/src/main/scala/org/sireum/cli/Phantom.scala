@@ -44,8 +44,8 @@ object Phantom {
     val osate: Option[Os.Path] = o.osate match {
       case Some(d) =>
         val cand = Os.path(d)
-        if(!cand.exists || !cand.isDir) {
-          addError(s"Path for OSATE does not exist or isn't a directory: ${d}")
+        if (cand.exists && !cand.isDir) {
+          addError(s"Path for OSATE is not a directory: $d")
           return -1
         }
         Some(cand)
@@ -54,8 +54,8 @@ object Phantom {
 
     val projects: ISZ[Os.Path] = o.projects.map { it =>
       val f = Os.path(it).canon
-      if(!f.exists) {
-        addError(s"${it} is not a valid directory")
+      if (!f.exists) {
+        addError(s"$it is not a valid directory")
         return -1
       }
       f
@@ -64,17 +64,17 @@ object Phantom {
     val main: Option[Os.Path] = o.main match {
       case Some(m) =>
         val f = Os.path(m).canon
-        if(!f.exists) {
-          addError(s"${m} is not file")
+        if (!f.exists) {
+          addError(s"$m is not file")
           return -1
         }
         Some(f)
       case _ => None()
     }
 
-    val projectDir: Option[Os.Path] = if(o.args.nonEmpty) {
+    val projectDir: Option[Os.Path] = if (o.args.nonEmpty) {
       val p = Os.path(o.args(0)).canon
-      if(!p.exists || !p.isDir) {
+      if (!p.exists || !p.isDir) {
         addError(s"${p.value} is not a directory")
         return -1
       }
@@ -88,31 +88,38 @@ object Phantom {
       case _ => None()
     }
 
-    def getKey(name: String): String = {
-      val cand = org.sireum.hamr.phantom.cli.phantomTool.opts.filter(f => f.name == name)
-      if (cand.isEmpty || cand.size > 1) { halt(s"Issue arose when looking up longKey for ${name}") }
-      return cand(0).longKey
-    }
-
     // directory supplied via arg, or options filled in, but not both
     val dirOrProj = projectDir.nonEmpty != (projects.nonEmpty && main.nonEmpty && o.impl.nonEmpty)
 
     val justInstall = o.update && projectDir.isEmpty && (projects.isEmpty && main.isEmpty && o.impl.isEmpty)
 
-    if(!justInstall && !dirOrProj) {
+    if (!justInstall && !dirOrProj) {
       println(o.help)
       return -1
     }
 
-    val ret: Z = org.sireum.hamr.phantom.Phantom.getOsateExe(osate) match {
+    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, o.quiet)
+
+    val ret: Z = phantom.getOsateExe match {
       case Some(osateExe) =>
         var ret: Z = 0
-        if(o.update || !org.sireum.hamr.phantom.Phantom.pluginsInstalled(osateExe)) {
-          ret = org.sireum.hamr.phantom.Phantom.update(osateExe)
+        var features = ISZ[org.sireum.hamr.phantom.Phantom.Feature]()
+        for (feature <- o.features) {
+          ops.StringOps(feature).split((c: C) => c === '=') match {
+            case ISZ(featureId, url) =>
+              features = features :+ org.sireum.hamr.phantom.Phantom.Feature(featureId, featureId, url)
+            case _ =>
+              addError(s"Invalid feature form: $feature")
+              ret = -1
+          }
         }
 
-        if(ret == 0 && dirOrProj) {
-          ret = org.sireum.hamr.phantom.Phantom.execute(
+        if (o.update || !phantom.pluginsInstalled(osateExe)) {
+          ret = phantom.update(osateExe, features)
+        }
+
+        if (ret == 0 && dirOrProj) {
+          ret = phantom.execute(
             osateExe = osateExe,
             mode = ops.StringOps(o.mode.string).firstToLower,
             projects = projects,
@@ -130,6 +137,11 @@ object Phantom {
     return ret
   }
 
-  def addError(s: String): Unit = { eprintln(s"Error: $s.") }
-  def addWarning(s: String): Unit = { println(s"Warning: $s") }
+  def addError(s: String): Unit = {
+    eprintln(s"Error: $s.")
+  }
+
+  def addWarning(s: String): Unit = {
+    println(s"Warning: $s")
+  }
 }
