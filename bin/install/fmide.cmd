@@ -186,7 +186,7 @@ import Cli._
     val help =
       st"""FMIDE Installer
           |
-          |Usage: <option>* ( fixed | nightly )
+          |Usage: <option>* ( fixed | latest )
           |
           |Available Options:
           |    --agree              AGREE version (expects a string; default is
