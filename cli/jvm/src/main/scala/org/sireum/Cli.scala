@@ -777,7 +777,7 @@ import Cli._
       st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
           |
           |Usage: ${st"""
-                  |    phantom --update [--osate <path>] [--properties <path>]
+                  |    phantom --update [--osate <path>] [--features <config>]
                   |
                   |      Just update/install Sireum OSATE plugins
                   |
