@@ -397,6 +397,11 @@ println("Installing FMIDE ...")
 proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".console.runCheck()
 for (p <- temp.list if ops.StringOps(p.name).startsWith("osate-")) {
   p.moveTo(fmideDir)
+  Os.kind match {
+    case Os.Kind.Linux => (fmideDir / "osate").moveTo(fmideDir / "fmide")
+    case Os.Kind.Win => (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
+    case _ =>
+  }
 }
 temp.removeAll()
 
