@@ -120,8 +120,8 @@ def lookupVersion(name: String, url: String, default: String): String = {
   return r
 }
 
-val eclipseVersion = "2020-06"
-val osateVersion = "2.9.0-vfinal"
+val eclipseVersion = option.eclipse.get
+val osateVersion = option.osate.get
 
 val agreeId = "com.rockwellcollins.atc.agree.feature.feature.group"
 val agreeUrl = "https://raw.githubusercontent.com/loonwerks/AGREE-Updates/master"
@@ -173,7 +173,9 @@ object Cli {
     val args: ISZ[String],
     val agree: Option[String],
     val briefcase: Option[String],
+    val eclipse: Option[String],
     val hamr: Option[String],
+    val osate: Option[String],
     val resolute: Option[String]
   ) extends FmideTopOption
 }
@@ -193,15 +195,21 @@ import Cli._
           |                           "agree_2.7.0")
           |    --briefcase          BriefCASE version (expects a string; default is
           |                           "briefcase_0.4.2.202106150319")
+          |    --eclipse            Eclipse release version (expects a string; default is
+          |                           "2020-06")
           |    --hamr               Sireum HAMR version (expects a string; default is
           |                           "CASE-Tool-Assessment-4")
+          |    --osate              OSATE version (expects a string; default is
+          |                           "2.9.0-vfinal")
           |    --resolute           Resolute version (expects a string; default is
           |                           "resolute_2.7.0")
           |-h, --help               Display this information""".render
 
     var agree: Option[String] = Some("agree_2.7.0")
     var briefcase: Option[String] = Some("briefcase_0.4.2.202106150319")
+    var eclipse: Option[String] = Some("2020-06")
     var hamr: Option[String] = Some("CASE-Tool-Assessment-4")
+    var osate: Option[String] = Some("2.9.0-vfinal")
     var resolute: Option[String] = Some("resolute_2.7.0")
     var j = i
     var isOption = T
@@ -223,10 +231,22 @@ import Cli._
              case Some(v) => briefcase = v
              case _ => return None()
            }
+         } else if (arg == "--eclipse") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => eclipse = v
+             case _ => return None()
+           }
          } else if (arg == "--hamr") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => hamr = v
+             case _ => return None()
+           }
+         } else if (arg == "--osate") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => osate = v
              case _ => return None()
            }
          } else if (arg == "--resolute") {
@@ -244,7 +264,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(FmideOption(help, parseArguments(args, j), agree, briefcase, hamr, resolute))
+    return Some(FmideOption(help, parseArguments(args, j), agree, briefcase, eclipse, hamr, osate, resolute))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
