@@ -285,6 +285,7 @@ import Cli._
     }
   }
 }
+// @formatter:on
 
 // BEGIN USER CODE
 val homeBin = Os.slashDir.up.canon

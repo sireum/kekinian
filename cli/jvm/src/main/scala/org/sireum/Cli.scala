@@ -32,10 +32,6 @@ package org.sireum
 
 import org.sireum._
 
-// BEGIN USER CODE
-
-// END USER CODE
-
 object Cli {
 
   @datatype trait SireumTopOption
@@ -3972,3 +3968,7 @@ import Cli._
     }
   }
 }
+
+// BEGIN USER CODE
+
+// END USER CODE
