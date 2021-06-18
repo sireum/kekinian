@@ -1,23 +1,16 @@
-::#! 2> /dev/null                                                                                           #
-@ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
-export SIREUM_HOME=$(cd -P $(dirname "$0")/../.. && pwd -P)                                                 #
-if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
-  exec "$0.com" "$@"                                                                                        #
-else                                                                                                        #
-  rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"                                                   #
-fi                                                                                                          #
+::#! 2> /dev/null                                            #
+@ 2>/dev/null # 2>nul & echo off & goto BOF                  #
+export SIREUM_HOME=$(cd -P $(dirname "$0")/../.. && pwd -P)  #
+if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then            #
+  exec "$0.com" "$@"                                         #
+else                                                         #
+  rm -fR "$0.com"                                            #
+  exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"       #
+fi                                                           #
 :BOF
 setlocal
-set NEWER=False
-if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
-if "%NEWER%" == "True" goto native
-del "%~dpnx0.com" > nul 2>&1
 if not exist "%~dp0..\sireum.jar" call "%~dp0..\init.bat"
 "%~dp0..\sireum.bat" slang run "%0" %*
-exit /B %errorlevel%
-:native
-%~dpnx0.com %*
 exit /B %errorlevel%
 ::!#
 // #Sireum
@@ -53,198 +46,120 @@ exit /B %errorlevel%
 import org.sireum._
 
 // BEGIN USER CODE
-val homeBin: Os.Path = Os.slashDir.up.canon
-val home = homeBin.up.canon
+val homeBin = Os.slashDir.up.canon
+val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 
-val briefCaseFeatureId: String = "com.collins.trustedsystems.briefcase.feature.feature.group"
-@strictpure def briefCaseUpdateSite(url: String): String = s"jar:$url!"
-
-val eclipseRelease = "2019-12"
-val hamrUpdateSite = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site/master"
-val hamrFeatureId = "org.sireum.aadl.osate.hamr.feature.feature.group"
-
-//val metalsUpdateSite = s"https://download.eclipse.org/releases/$eclipseRelease,http://scalameta.org/metals-eclipse/update"
-//val metalsFeatureId = "lsp.scala.feature.feature.group"
-
-@strictpure def p2Args(uninstall: B, updateSite: String, featureId: String): ISZ[String] = ISZ[String](
-  "-nosplash",
-  "-console",
-  "-consoleLog",
-  "-application",
-  "org.eclipse.equinox.p2.director",
-  "-repository",
-  updateSite,
-  "-installIU",
-  featureId,
-) ++ (if (uninstall) ISZ[String]("-uninstallIU", featureId) else ISZ[String]())
-
-val hamrP2Args = p2Args(T, hamrUpdateSite, hamrFeatureId)
-//val metalsP2Args = p2Args(F, metalsUpdateSite, metalsFeatureId)
-
-val envs = ISZ[(String, String)]("PATH" ~>
-  s"${Os.env("JAVA_HOME").get}${Os.fileSep}bin${Os.pathSep}${Os.env("PATH").get}")
-var fmwPlatformNameUrlMap = Map.empty[Os.Kind.Type, (String, String)]
-var briefCaseUrlOpt: Option[String] = None()
-var fmwReleaseTagNameOpt: Option[String] = None()
-var briefCaseReleaseTagNameOpt: Option[String] = None()
-val useLast: B = T
-
-Cli(conversions.String.toCis(Os.pathSep)(0) ).parseFmide(Os.cliArgs, 0) match {
-  case Some(option: Cli.FmideOption) =>
-    option.args.size match {
-      case z"0" =>
-      case z"1" =>
-        option.args(0) match {
-          case string"nightly" =>
-          case tagName => fmwReleaseTagNameOpt = Some(tagName)
-        }
-      case z"2" =>
-        fmwReleaseTagNameOpt = Some(option.args(0))
-        briefCaseReleaseTagNameOpt = Some(option.args(1))
-      case _ =>
-        println("Usage: fmide.cmd [ <fmw-tag-name> [ <briefcase-tag-name> ] | nightly ]")
-        Os.exit(-1)
-    }
-  case _ => Os.exit(-1)
+val fmideDir: Os.Path = Os.kind match {
+  case Os.Kind.Mac => homeBin / "mac" / "fmide.app"
+  case Os.Kind.Linux => homeBin / "linux" / "fmide"
+  case Os.Kind.Win => homeBin / "win" / "fmide"
+  case _ =>
+    eprintln("Unsupported operating system")
+    Os.exit(-1)
+    halt("Infeasible")
 }
 
-def findAssets(repo: String): Unit = {
-  var first = T
-  for (r <- GitHub.repo("loonwerks", repo).releases) {
-    for (a <- r.assets) {
-      val aNameOps = ops.StringOps(a.name)
-      if (aNameOps.startsWith("fmide-") || aNameOps.startsWith("com.collins.trustedsystems.fmw.ide-")) {
-        if (fmwReleaseTagNameOpt == Some(r.tagName) || (first && fmwReleaseTagNameOpt.isEmpty)) {
-          val p = (a.name, a.url)
-          if (aNameOps.contains("win32") && (useLast || !fmwPlatformNameUrlMap.contains(Os.Kind.Win))) {
-            fmwPlatformNameUrlMap = fmwPlatformNameUrlMap + Os.Kind.Win ~> p
-          } else if (aNameOps.contains("linux") && (useLast || !fmwPlatformNameUrlMap.contains(Os.Kind.Linux))) {
-            fmwPlatformNameUrlMap = fmwPlatformNameUrlMap + Os.Kind.Linux ~> p
-          } else if (aNameOps.contains("macos") && (useLast || !fmwPlatformNameUrlMap.contains(Os.Kind.Mac))) {
-            fmwPlatformNameUrlMap = fmwPlatformNameUrlMap + Os.Kind.Mac ~> p
-          }
-        }
-      } else if (aNameOps.startsWith("com.collins.trustedsystems.briefcase.repository-")) {
-        if (briefCaseReleaseTagNameOpt == Some(r.tagName) || (first && briefCaseReleaseTagNameOpt.isEmpty)) {
-          briefCaseUrlOpt = Some(a.url)
-          return
-        }
+def parseCli(): (B, Cli.FmideOption) = {
+  Cli(conversions.String.toCis(Os.pathSep)(0)).parseFmide(Os.cliArgs, 0) match {
+    case Some(o: Cli.FmideOption) if o.args.size === 1 && (o.args(0) === "fixed" || o.args(0) == "latest") =>
+      return (o.args(0) === "fixed", o)
+    case Some(o: Cli.FmideOption) if o.args.isEmpty =>
+      println(o.help)
+      Os.exit(0)
+    case Some(o: Cli.HelpOption) =>
+      Os.exit(0)
+    case _ =>
+  }
+  eprintln("Could not recognize arguments")
+  Os.exit(-1)
+  halt("Infeasible")
+}
+
+val (isFixed, option) = parseCli()
+
+val compositeArtifacts = "compositeArtifacts.xml"
+
+def lookupVersion(name: String, url: String, default: String): String = {
+  def lookupVersionH(): String = {
+    if (isFixed) {
+      return default
+    }
+    val urls = ops.StringOps(url).split((c: C) => c === ',')
+    val f = Os.temp()
+    f.removeAll()
+    val durl = urls(urls.size - 1)
+    if (!f.downloadFrom(s"$durl/$compositeArtifacts")) {
+      eprintln(s"Could not find the latest version of $name; using $default")
+      return default
+    }
+    val fOps = ops.StringOps(f.read)
+    f.removeAll()
+    var i: Z = 0
+    var foundLast = F
+    val text: String = "<child location="
+    while (!foundLast) {
+      val j = fOps.stringIndexOfFrom(text, i + 1)
+      if (j < 0) {
+        foundLast = T
+      } else {
+        i = j
       }
     }
-    first = F
+    if (i === 0) {
+      eprintln(s"Could not find the latest version of $name; using $default")
+      return default
+    }
+    val offset = i + text.size + 1
+    var last = fOps.indexOfFrom('\'', offset)
+    if (last < 0) {
+      last = fOps.indexOfFrom('"', offset)
+    }
+    return fOps.substring(offset, last)
   }
-}
-
-def download(kind: Os.Kind.Type): Os.Path = {
-  val (name, url) = fmwPlatformNameUrlMap.get(kind).get
-  val r = Os.home / "Downloads" / "sireum" / name
-  if (!r.exists) {
-    println(s"Downloading $name ...")
-    r.downloadFrom(url)
-    println()
-  }
+  val r = lookupVersionH()
   return r
 }
 
-def linux(): Unit = {
-  val f = download(Os.Kind.Linux)
-  val d = homeBin / "linux" / "fmide"
-  d.removeAll()
-  d.mkdirAll()
-  println(s"Extracting $f ...")
-  Os.proc(ISZ("tar", "xfz", f.string)).at(d).runCheck()
-  println()
-  val dFmide = (d / "fmide").string
-  if (fmwReleaseTagNameOpt.isEmpty) {
-    println("Updating BriefCASE plugin ...")
-    Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
-    println()
-    println(s"Updating HAMR plugin ...")
-    Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
-    println()
-  }
-  //println(s"Installing Scala Metals plugin ...")
-  //Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
-  //println()
-  println(s"FMIDE is installed at $d")
+val eclipseVersion = "2020-06"
+val osateVersion = "2.9.0-vfinal"
+
+val agreeId = "com.rockwellcollins.atc.agree.feature.feature.group"
+val agreeUrl = "https://raw.githubusercontent.com/loonwerks/AGREE-Updates/master"
+val agreeVersion = lookupVersion("AGREE", agreeUrl, option.agree.get)
+
+val resoluteId = "com.rockwellcollins.atc.resolute.feature.feature.group"
+val resoluteUrl = "https://raw.githubusercontent.com/loonwerks/Resolute-Updates/master"
+val resoluteVersion = lookupVersion("Resolute", resoluteUrl, option.resolute.get)
+
+val briefCaseId = "com.collins.trustedsystems.briefcase.feature.feature.group"
+val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,http://ca-trustedsystems-dev-us-east-1.s3-website-us-east-1.amazonaws.com/p2/snapshots/briefcase"
+val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase.get)
+
+val hamrId = "org.sireum.aadl.osate.hamr.feature.feature.group"
+val hamrUrl = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site"
+val hamrVersion: String = if (isFixed) "CASE-Tool-Assessment-4" else "master"
+
+val features = s"$hamrId=$hamrUrl/$hamrVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
+val verContent = s"eclipse=$eclipseVersion;osate=$osateVersion;$features"
+val ver = fmideDir / "VER"
+
+if (ver.exists && ver.read == verContent) {
+  Os.exit(0)
 }
 
-def mac(): Unit = {
-  val f = download(Os.Kind.Mac)
-  val homeBinMac = homeBin / "mac"
-  val d = homeBinMac / "fmide.app"
-  d.removeAll()
-  homeBinMac.mkdirAll()
-  println(s"Extracting $f ...")
-  Os.proc(ISZ("tar", "xfz", f.string)).at(homeBinMac).runCheck()
-  for (p <- homeBinMac.list if ops.StringOps(p.name).startsWith("com.collins.")) {
-    p.moveTo(d)
-  }
-  println()
-  val dFmide = (d / "Contents" / "MacOS" / "fmide").string
-  if (fmwReleaseTagNameOpt.isEmpty) {
-    println("Updating BriefCASE plugin ...")
-    Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
-    println()
-    println(s"Updating HAMR plugin ...")
-    Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
-    println()
-  }
-  //println(s"Installing Scala Metals plugin ...")
-  //Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
-  //println()
-  println(s"FMIDE is installed at $d")
-}
+ver.removeAll()
 
-def win(): Unit = {
-  val f = download(Os.Kind.Win)
-  val d = homeBin / "win" / "fmide"
-  d.removeAll()
-  d.mkdirAll()
-  println(s"Extracting $f ...")
-  f.unzipTo(d)
-  println()
-  val dFmide = (d / "fmide").string
-  if (fmwReleaseTagNameOpt.isEmpty) {
-    println("Updating BriefCASE plugin ...")
-    Os.proc(dFmide +: p2Args(T, briefCaseUpdateSite(briefCaseUrlOpt.get), briefCaseFeatureId)).env(envs).runCheck()
-    println()
-    println(s"Updating HAMR plugin ...")
-    Os.proc(dFmide +: hamrP2Args).env(envs).runCheck()
-    println()
-  }
-  //println(s"Installing Scala Metals plugin ...")
-  //Os.proc(dFmide +: metalsP2Args).env(envs).runCheck()
-  //println()
-  println(s"FMIDE is installed at $d")
+fmideDir.removeAll()
+val temp = fmideDir.up.canon / s".${fmideDir.name}"
+println("Installing FMIDE ...")
+proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".console.runCheck()
+for (p <- temp.list if ops.StringOps(p.name).startsWith("osate-")) {
+  p.moveTo(fmideDir)
 }
+temp.removeAll()
 
-findAssets("BriefCASE")
-if (briefCaseUrlOpt.isEmpty) {
-  briefCaseReleaseTagNameOpt match {
-    case Some(releaseTagName) => eprintln(s"Could not find BriefCASE $releaseTagName build assets")
-    case _ => eprintln("Could not find BriefCASE latest nightly build assets")
-  }
-  Os.exit(-1)
-}
-
-findAssets("formal-methods-workbench")
-if (fmwPlatformNameUrlMap.isEmpty) {
-  fmwReleaseTagNameOpt match {
-    case Some(releaseTagName) => eprintln(s"Could not find FMIDE $releaseTagName build assets")
-    case _ => eprintln("Could not find FMIDE latest nightly build assets")
-  }
-  Os.exit(-1)
-}
-
-Os.kind match {
-  case Os.Kind.Linux => linux()
-  case Os.Kind.Mac => mac()
-  case Os.Kind.Win => win()
-  case _ =>
-    eprintln("Unsupported platform")
-    Os.exit(-1)
-}
+ver.writeOver(verContent)
+println(s"FMIDE is installed at $fmideDir")
 // END USER CODE
 
 object Cli {
@@ -255,7 +170,11 @@ object Cli {
 
   @datatype class FmideOption(
     val help: String,
-    val args: ISZ[String]
+    val args: ISZ[String],
+    val agree: Option[String],
+    val briefcase: Option[String],
+    val hamr: Option[String],
+    val resolute: Option[String]
   ) extends FmideTopOption
 }
 
@@ -265,14 +184,26 @@ import Cli._
 
   def parseFmide(args: ISZ[String], i: Z): Option[FmideTopOption] = {
     val help =
-      st"""FMIDE installation manager
+      st"""FMIDE Installer
           |
-          |Usage: <option>*  [ <fmide-tag-name> [ <briefcase-tag-name> ] | nightly ]
+          |Usage: <option>* ( fixed | nightly )
           |
           |Available Options:
+          |    --agree              AGREE version (expects a string; default is
+          |                           "agree_2.7.0")
+          |    --briefcase          BriefCASE version (expects a string; default is
+          |                           "briefcase_0.4.2.202106150319")
+          |    --hamr               Sireum HAMR version (expects a string; default is
+          |                           "CASE-Tool-Assessment-4")
+          |    --resolute           Resolute version (expects a string; default is
+          |                           "resolute_2.7.0")
           |-h, --help               Display this information""".render
 
-    val j = i
+    var agree: Option[String] = Some("agree_2.7.0")
+    var briefcase: Option[String] = Some("briefcase_0.4.2.202106150319")
+    var hamr: Option[String] = Some("CASE-Tool-Assessment-4")
+    var resolute: Option[String] = Some("resolute_2.7.0")
+    var j = i
     var isOption = T
     while (j < args.size && isOption) {
       val arg = args(j)
@@ -280,16 +211,40 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else {
+        } else if (arg == "--agree") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => agree = v
+             case _ => return None()
+           }
+         } else if (arg == "--briefcase") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => briefcase = v
+             case _ => return None()
+           }
+         } else if (arg == "--hamr") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => hamr = v
+             case _ => return None()
+           }
+         } else if (arg == "--resolute") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => resolute = v
+             case _ => return None()
+           }
+         } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
         }
-
+        j = j + 2
       } else {
         isOption = F
       }
     }
-    return Some(FmideOption(help, parseArguments(args, j)))
+    return Some(FmideOption(help, parseArguments(args, j), agree, briefcase, hamr, resolute))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

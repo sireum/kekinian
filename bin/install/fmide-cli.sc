@@ -5,11 +5,19 @@ import org.sireum.cli.CliOpt._
 val fmideTool: Tool = Tool(
   name = "fmide",
   command = "fmide",
-  description = "FMIDE installation manager",
-  header = "FMIDE installation manager",
-  usage = "<option>*  [ <fmide-tag-name> [ <briefcase-tag-name> ] | nightly ]",
+  description = "FMIDE Installer",
+  header = "FMIDE Installer",
+  usage = "<option>* ( fixed | latest )",
   usageDescOpt = None(),
   opts = ISZ(
+    Opt(name = "agree", longKey = "agree", shortKey = None(),
+      tpe = Type.Str(sep = None(), default = Some("agree_2.7.0")), description = "AGREE version"),
+    Opt(name = "briefcase", longKey = "briefcase", shortKey = None(),
+      tpe = Type.Str(sep = None(), default = Some("briefcase_0.4.2.202106150319")), description = "BriefCASE version"),
+    Opt(name = "hamr", longKey = "hamr", shortKey = None(),
+      tpe = Type.Str(sep = None(), default = Some("CASE-Tool-Assessment-4")), description = "Sireum HAMR version"),
+    Opt(name = "resolute", longKey = "resolute", shortKey = None(),
+      tpe = Type.Str(sep = None(), default = Some("resolute_2.7.0")), description = "Resolute version"),
   ),
   groups = ISZ()
 )
