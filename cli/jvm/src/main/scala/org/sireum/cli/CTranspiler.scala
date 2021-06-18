@@ -176,8 +176,7 @@ object CTranspiler {
         for (f <- p.list) {
           extRec(rel :+ p.name, f, F)
         }
-      }
-      if ((force && p.isFile) || p.ext === "c" || p.ext === "h") {
+      } else if ((force || p.ext === "c" || p.ext === "h") && p.isFile) {
         val (uriOpt, content) = readFile(p)
         exts = exts :+ StaticTranspiler.ExtFile(rel, uriOpt.get, content)
       }
