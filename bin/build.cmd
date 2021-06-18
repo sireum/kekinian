@@ -408,7 +408,7 @@ def regenCli(): Unit = {
 
 def regenFmideCli(): Unit = {
   val installPath = homeBin / "install"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-l", s"${home / "license.txt"}", "-s", "fmide.cmd",
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-s", "fmide.cmd",
     s"${installPath / "fmide-cli.sc"}")).at(installPath).console.run()
 }
 
