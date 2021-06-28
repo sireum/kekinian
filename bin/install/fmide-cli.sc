@@ -13,7 +13,7 @@ val fmideTool: Tool = Tool(
     Opt(name = "agree", longKey = "agree", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("agree_2.7.0")), description = "AGREE version"),
     Opt(name = "briefcase", longKey = "briefcase", shortKey = None(),
-      tpe = Type.Str(sep = None(), default = Some("briefcase_0.4.2.202106150319")), description = "BriefCASE version"),
+      tpe = Type.Str(sep = None(), default = Some("briefcase_0.5.1")), description = "BriefCASE version"),
     Opt(name = "eclipse", longKey = "eclipse", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("2020-06")), description = "Eclipse release version"),
     Opt(name = "hamr", longKey = "hamr", shortKey = None(),
@@ -21,7 +21,7 @@ val fmideTool: Tool = Tool(
     Opt(name = "osate", longKey = "osate", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("2.9.0-vfinal")), description = "OSATE version"),
     Opt(name = "resolute", longKey = "resolute", shortKey = None(),
-      tpe = Type.Str(sep = None(), default = Some("resolute_2.7.0")), description = "Resolute version"),
+      tpe = Type.Str(sep = None(), default = Some("resolute_2.7.1")), description = "Resolute version"),
   ),
   groups = ISZ()
 )

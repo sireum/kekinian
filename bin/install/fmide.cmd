@@ -52,7 +52,7 @@ import Cli._
           |    --agree              AGREE version (expects a string; default is
           |                           "agree_2.7.0")
           |    --briefcase          BriefCASE version (expects a string; default is
-          |                           "briefcase_0.4.2.202106150319")
+          |                           "briefcase_0.5.1")
           |    --eclipse            Eclipse release version (expects a string; default is
           |                           "2020-06")
           |    --hamr               Sireum HAMR version (expects a string; default is
@@ -60,15 +60,15 @@ import Cli._
           |    --osate              OSATE version (expects a string; default is
           |                           "2.9.0-vfinal")
           |    --resolute           Resolute version (expects a string; default is
-          |                           "resolute_2.7.0")
+          |                           "resolute_2.7.1")
           |-h, --help               Display this information""".render
 
     var agree: Option[String] = Some("agree_2.7.0")
-    var briefcase: Option[String] = Some("briefcase_0.4.2.202106150319")
+    var briefcase: Option[String] = Some("briefcase_0.5.1")
     var eclipse: Option[String] = Some("2020-06")
     var hamr: Option[String] = Some("CASE-Tool-Assessment-4")
     var osate: Option[String] = Some("2.9.0-vfinal")
-    var resolute: Option[String] = Some("resolute_2.7.0")
+    var resolute: Option[String] = Some("resolute_2.7.1")
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -373,7 +373,7 @@ val resoluteUrl = "https://raw.githubusercontent.com/loonwerks/Resolute-Updates/
 val resoluteVersion = lookupVersion("Resolute", resoluteUrl, option.resolute.get)
 
 val briefCaseId = "com.collins.trustedsystems.briefcase.feature.feature.group"
-val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,http://ca-trustedsystems-dev-us-east-1.s3-website-us-east-1.amazonaws.com/p2/snapshots/briefcase"
+val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,https://raw.githubusercontent.com/loonwerks/BriefCASE-Updates/master"
 val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase.get)
 
 val hamrId = "org.sireum.aadl.osate.hamr.feature.feature.group"
@@ -382,7 +382,7 @@ val hamrVersion: String = if (isFixed) "CASE-Tool-Assessment-4" else "master"
 
 val features = s"$hamrId=$hamrUrl/$hamrVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
 val verContent = s"eclipse=$eclipseVersion;osate=$osateVersion;$features"
-val ver = fmideDir / "VER"
+val ver: Os.Path = if (Os.isMac) fmideDir / "Contents" / "Eclipse" / "VER"  else fmideDir / "VER"
 
 if (ver.exists && ver.read == verContent) {
   Os.exit(0)
@@ -400,6 +400,7 @@ for (p <- temp.list if ops.StringOps(p.name).startsWith("osate-")) {
   Os.kind match {
     case Os.Kind.Linux => (fmideDir / "osate").moveTo(fmideDir / "fmide")
     case Os.Kind.Win => (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
+    case Os.Kind.Mac => proc"xattr -rd com.apple.quarantine $fmideDir".runCheck()
     case _ =>
   }
 }
