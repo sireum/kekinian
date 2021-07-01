@@ -149,7 +149,7 @@ object hamr extends mill.Module {
 }
 
 object proyek extends Proyek.Module {
-  final override def libraryObject = runtime.library
+  final override def logikaObject = logika
 }
 
 object anvil extends Anvil.Module {
