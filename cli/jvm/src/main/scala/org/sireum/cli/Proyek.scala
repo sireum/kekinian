@@ -173,7 +173,7 @@ object Proyek {
     var r: Z = 0
 
     if (!o.skipCompile) {
-      r = proyek.Proyek.compile(
+      r = proyek.Compile.run(
         path = path,
         outDirName = o.outputDirName.get,
         project = prj,
@@ -197,7 +197,7 @@ object Proyek {
 
     val projectName = o.name.getOrElse(path.canon.name)
 
-    r = proyek.Proyek.assemble(
+    r = proyek.Assemble.run(
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
@@ -234,7 +234,7 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val r = proyek.Proyek.compile(
+    val r = proyek.Compile.run(
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
@@ -295,7 +295,7 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val r = proyek.Proyek.ive(
+    val r = proyek.Ive.run(
       path = path,
       project = prj,
       projectName = projectName,
@@ -361,7 +361,7 @@ object Proyek {
       for (i <- 0 until dms.size if r == 0) {
         println(s"Compiling for the ${if (dms(i).isJs) "Javascript" else "JVM"} target ...")
         println()
-        r = proyek.Proyek.compile(
+        r = proyek.Compile.run(
           path = path,
           outDirName = o.outputDirName.get,
           project = prj,
@@ -383,7 +383,7 @@ object Proyek {
     for (i <- 0 until dms.size if r == 0) {
       println(s"Publishing for the ${if (dms(i).isJs) "Javascript" else "JVM"} target ...")
       println()
-      r = proyek.Proyek.publish(
+      r = proyek.Publish.run(
         path = path,
         outDirName = o.outputDirName.get,
         project = prj,
@@ -427,7 +427,7 @@ object Proyek {
     var r: Z = 0
 
     if (!o.skipCompile) {
-      r = proyek.Proyek.compile(
+      r = proyek.Compile.run(
         path = path,
         outDirName = o.outputDirName.get,
         project = prj,
@@ -449,7 +449,7 @@ object Proyek {
       return r
     }
 
-    r = proyek.Proyek.run(
+    r = proyek.Run.run(
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
@@ -490,7 +490,7 @@ object Proyek {
     var r: Z = 0
 
     if (!o.skipCompile) {
-      r = proyek.Proyek.compile(
+      r = proyek.Compile.run(
         path = path,
         outDirName = o.outputDirName.get,
         project = prj,
@@ -512,7 +512,7 @@ object Proyek {
       return r
     }
 
-    r = proyek.Proyek.test(
+    r = proyek.Test.run(
       path = path,
       outDirName = o.outputDirName.get,
       project = prj,
