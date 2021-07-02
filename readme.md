@@ -202,41 +202,9 @@ After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good 
 #### Using Vagrant and VirtualBox
 
 By using [Vagrant](https://www.vagrantup.com/), you can automatically provision a 
-[VirtualBox](https://www.virtualbox.org) [Xubuntu](https://xubuntu.org/) 
-virtual machine (VM) with Sireum set up as follows:
+[VirtualBox](https://www.virtualbox.org) Linux virtual machine (VM) with Sireum set up.
 
-1. Download the [resources/vagrant](resources/vagrant) folder as an archive
-   ([link](https://downgit.github.io/#/home?url=https://github.com/sireum/kekinian/tree/master/resources/vagrant&fileName=sireum-vagrant&rootDirectory=sireum-vagrant)) 
-   and uncompress it.
-
-2. If desired, modify the [Vagrantfile](resources/vagrant/Vagrantfile) to customize the number of CPUs (default: 4),
-   RAM (default: 16GB), and VRAM (default: 64MB).
-   Note that the disk size defaults to 64GB, which is derived from the [bento/ubuntu](https://app.vagrantup.com/bento)
-   base box.
-   Moreover, it installs
-   [FMIDE](https://github.com/loonwerks/formal-methods-workbench), 
-   [CLion](https://www.jetbrains.com/clion), and 
-   [CompCert](http://compcert.inria.fr) by default.
-   These can be adjusted by commenting out lines that start with `bin/install/` in the [Vagrantfile](resources/vagrant/Vagrantfile).
-  
-3. Run the following in a terminal console inside the uncompressed directory:
-
-   * **macOS/Linux**:
-   
-     ```bash
-     bash setup.sh
-     ```
-   
-   * **Windows**:
-
-     ```cmd
-     setup.bat
-     ```
-   
-Once the VM has been provisioned successfully, you can log in as the user `vagrant` with default password `vagrant`.
-Sireum is installed in `/home/vagrant/Sireum`, which the `SIREUM_HOME` environment variable is set to.
-
-Alternatively, you can also use the [case-env](https://github.com/sireum/case-env) setup.
+Please see the instructions at: https://github.com/sireum/case-env
 
 ## Using Sireum 
 
