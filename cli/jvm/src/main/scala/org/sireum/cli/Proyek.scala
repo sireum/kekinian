@@ -577,7 +577,7 @@ object Proyek {
         return None()
       }
       val r = proc"$f json".env(ISZ("SIREUM_HOME" ~> SireumApi.homeOpt.get.string)).
-        console.outLineAction((s: String) => project.ProjectUtil.projectJsonLine(s).isEmpty).run()
+        console.outLineAction((s: String) => project.ProjectUtil.projectJsonLine(s).isEmpty).redirectErr.run()
       if (r.ok) {
         project.ProjectUtil.projectJsonLine(r.out) match {
           case Some(line) =>
@@ -590,10 +590,14 @@ object Proyek {
             }
           case _ =>
             eprintln(s"Failed to load project from $f")
+            println(r.out)
+            eprintln(r.err)
             return None()
         }
       } else {
         eprintln(s"Failed to load project from $f")
+        println(r.out)
+        eprintln(r.err)
         return None()
       }
     }
