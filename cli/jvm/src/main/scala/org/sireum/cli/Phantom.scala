@@ -27,11 +27,11 @@
 package org.sireum.cli
 
 import org.sireum._
-import org.sireum.Cli.PhantomOption
+import org.sireum.Cli.SireumHamrPhantomOption
 
 object Phantom {
 
-  def run(o: PhantomOption): Z = {
+  def run(o: SireumHamrPhantomOption): Z = {
 
     o.args.size match {
       case z"0" => // ok

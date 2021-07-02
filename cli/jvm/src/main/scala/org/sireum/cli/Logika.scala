@@ -42,7 +42,7 @@ object Logika {
   val INVALID_SOURCE_FILE: Z = -9
   val ILL_FORMED_PROGRAMS: Z = -10
 
-  def run(o: Cli.LogikaVerifierOption): Z = {
+  def run(o: Cli.SireumLogikaVerifierOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
@@ -87,7 +87,7 @@ object Logika {
         }
       case _ => None()
     }
-    if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Cvc4) {
+    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc4) {
       val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
       SireumApi.homeOpt match {
         case Some(home) =>
@@ -109,7 +109,7 @@ object Logika {
           smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename)
       }
     }
-    if (o.solver == Cli.LogikaSolver.All || o.solver == Cli.LogikaSolver.Z3) {
+    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Z3) {
       val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
       SireumApi.homeOpt match {
         case Some(home) =>

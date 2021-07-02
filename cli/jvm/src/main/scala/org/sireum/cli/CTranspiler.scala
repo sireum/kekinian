@@ -51,7 +51,7 @@ object CTranspiler {
   val PluginError: Z = -11
   val TranspilingError: Z = -12
 
-  def run(o: Cli.CTranspilerOption): Z = {
+  def run(o: Cli.SireumSlangTranspilersCOption): Z = {
     def readFile(f: Os.Path): (Option[String], String) = {
       return (Some(f.toUri), f.read)
     }

@@ -134,7 +134,7 @@ object Proyek {
     return ret(0)
   }
 
-  def assemble(o: Cli.AssembleOption): Z = {
+  def assemble(o: Cli.SireumProyekAssembleOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -211,7 +211,7 @@ object Proyek {
     return r
   }
 
-  def compile(o: Cli.CompileOption): Z = {
+  def compile(o: Cli.SireumProyekCompileOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -254,7 +254,7 @@ object Proyek {
     return r
   }
 
-  def ive(o: Cli.IveOption): Z = {
+  def ive(o: Cli.SireumProyekIveOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -311,7 +311,7 @@ object Proyek {
     return r
   }
 
-  def publish(o: Cli.PublishOption): Z = {
+  def publish(o: Cli.SireumProyekPublishOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(2), Some(2), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -401,7 +401,7 @@ object Proyek {
     return r
   }
 
-  def run(o: Cli.RunOption): Z = {
+  def run(o: Cli.SireumProyekRunOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(2), None(), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -464,7 +464,7 @@ object Proyek {
     return r
   }
 
-  def test(o: Cli.TestOption): Z = {
+  def test(o: Cli.SireumProyekTestOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)

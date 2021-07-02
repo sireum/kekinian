@@ -29,7 +29,7 @@ package org.sireum.cli
 import org.sireum._
 
 object CheckStack {
-  def run(o: Cli.CheckstackOption): Z = {
+  def run(o: Cli.SireumToolsCheckstackOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       return 0
@@ -40,20 +40,20 @@ object CheckStack {
     }
 
     val arch: String = o.arch match {
-      case Cli.CheckStackArch.Amd64 => "x86_64"
+      case Cli.SireumToolsCheckstackCheckStackArch.Amd64 => "x86_64"
       case _ => ops.StringOps(o.arch.name).firstToLower
     }
 
     val format: tools.CheckStack.Format.Type = o.format match {
-      case Cli.CheckStackFormat.Plain => tools.CheckStack.Format.Plain
-      case Cli.CheckStackFormat.Html => tools.CheckStack.Format.Html
-      case Cli.CheckStackFormat.Md => tools.CheckStack.Format.Md
-      case Cli.CheckStackFormat.Rst => tools.CheckStack.Format.Rst
-      case Cli.CheckStackFormat.Csv => tools.CheckStack.Format.Csv
+      case Cli.SireumToolsCheckstackCheckStackFormat.Plain => tools.CheckStack.Format.Plain
+      case Cli.SireumToolsCheckstackCheckStackFormat.Html => tools.CheckStack.Format.Html
+      case Cli.SireumToolsCheckstackCheckStackFormat.Md => tools.CheckStack.Format.Md
+      case Cli.SireumToolsCheckstackCheckStackFormat.Rst => tools.CheckStack.Format.Rst
+      case Cli.SireumToolsCheckstackCheckStackFormat.Csv => tools.CheckStack.Format.Csv
     }
 
     return tools.CheckStack.run(SireumApi.homeOpt.get,
       SireumApi.versions.getOrElse("org.sireum.version.checkstack", "v5.6"),
-      o.args.map((s: String) => Os.path(s)), o.mode == Cli.CheckStackMode.Bin, o.objdump.get, arch, format)
+      o.args.map((s: String) => Os.path(s)), o.mode == Cli.SireumToolsCheckstackCheckStackMode.Bin, o.objdump.get, arch, format)
   }
 }

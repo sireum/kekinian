@@ -37,7 +37,7 @@ import org.sireum.SireumApi._
 object GenTools {
 
 
-  def bcGen(o: Cli.BcgenOption): Z = {
+  def bcGen(o: Cli.SireumToolsBcgenOption): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case z"1" =>
@@ -52,7 +52,7 @@ object GenTools {
       return -1
     }
     val outTemp = Os.temp()
-    val r = SlangRunner.run(Cli.SlangRunOption("", ISZ(src.string), None(),
+    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(src.string), None(),
       Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(outTemp.read)
@@ -73,18 +73,18 @@ object GenTools {
           case Either.Left(spec) =>
             for (mode <- o.mode) {
               val ext: String = mode match {
-                case Cli.BitCodecMode.Program => "scala"
-                case Cli.BitCodecMode.Script => "sc"
-                case Cli.BitCodecMode.Json => "json"
-                case Cli.BitCodecMode.Dot => "dot"
+                case Cli.SireumToolsBcgenBitCodecMode.Program => "scala"
+                case Cli.SireumToolsBcgenBitCodecMode.Script => "sc"
+                case Cli.SireumToolsBcgenBitCodecMode.Json => "json"
+                case Cli.SireumToolsBcgenBitCodecMode.Dot => "dot"
               }
               val dest = destDir / s"${o.name.get}.$ext"
               val prev: String = if (dest.isFile) dest.read else ""
               val output: BitCodecGen.Output.Type = mode match {
-                case Cli.BitCodecMode.Program => BitCodecGen.Output.Program
-                case Cli.BitCodecMode.Script => BitCodecGen.Output.Script
-                case Cli.BitCodecMode.Json => BitCodecGen.Output.Json
-                case Cli.BitCodecMode.Dot => BitCodecGen.Output.Dot
+                case Cli.SireumToolsBcgenBitCodecMode.Program => BitCodecGen.Output.Program
+                case Cli.SireumToolsBcgenBitCodecMode.Script => BitCodecGen.Output.Script
+                case Cli.SireumToolsBcgenBitCodecMode.Json => BitCodecGen.Output.Json
+                case Cli.SireumToolsBcgenBitCodecMode.Dot => BitCodecGen.Output.Dot
               }
               val out = BitCodecGen.gen(output, !o.isLittleEndian, o.isMutable, lOpt.map((l: Os.Path) => l.read), src.name,
                 o.packageName, o.name.get, text, o.traits, spec, bitcodecPrint(spec), program, prev, reporter)
@@ -109,7 +109,7 @@ object GenTools {
     }
   }
 
-  def cliGen(o: Cli.CligenOption): Z = {
+  def cliGen(o: Cli.SireumToolsCligenOption): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case z"1" =>
@@ -138,7 +138,7 @@ object GenTools {
       case _ => (z"25", z"55")
     }
     val outTemp = Os.temp()
-    val r = SlangRunner.run(Cli.SlangRunOption("", ISZ(src.string), None(),
+    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(src.string), None(),
       Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(s"Could not run ${o.args(0)}")
@@ -162,7 +162,7 @@ object GenTools {
     }
   }
 
-  def iveGen(o: Cli.IvegenOption): Z = {
+  def iveGen(o: Cli.SireumToolsIvegenOption): Z = {
     if (o.args.size != 1) {
       println(o.help)
       return 0
@@ -459,7 +459,7 @@ object GenTools {
       val projectPath = project.string
 
       val files: Map[ISZ[String], ST] =
-        if (o.mode == Cli.IveMode.Idea) {
+        if (o.mode == Cli.SireumToolsIvegenIveMode.Idea) {
           for (p <- project.list if p.ext === ".iml") {
             p.removeAll()
           }
@@ -483,7 +483,7 @@ object GenTools {
 
       writeFiles()
       val mill: String = if (isWin) "mill.bat" else "mill"
-      if (o.mode == Cli.IveMode.Mill) {
+      if (o.mode == Cli.SireumToolsIvegenIveMode.Mill) {
         val javaBin = javaHome / "bin"
         val envVarMap = ISZ("PATH" ~> s"$javaBin${Os.pathSep}${Os.env("PATH").get}")
         if (o.millPath) {
@@ -535,7 +535,7 @@ object GenTools {
     }
   }
 
-  def serGen(o: Cli.SergenOption): Z = {
+  def serGen(o: Cli.SireumToolsSergenOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       return 0
@@ -549,7 +549,7 @@ object GenTools {
     }
     for (m <- o.modes) {
       val (name, mode): (String, SerializerGen.Mode.Type) = m match {
-        case Cli.SerializerMode.Json =>
+        case Cli.SireumToolsSergenSerializerMode.Json =>
           (
             if (o.modes.size > 1)
               if (o.name.isEmpty) "JSON" else s"${o.name.get}JSON"
@@ -557,7 +557,7 @@ object GenTools {
             else o.name.get,
             SerializerGen.Mode.JSON
           )
-        case Cli.SerializerMode.Msgpack =>
+        case Cli.SireumToolsSergenSerializerMode.Msgpack =>
           (
             if (o.modes.size > 1)
               if (o.name.isEmpty) "MsgPack" else s"${o.name.get}MsgPack"
@@ -580,7 +580,7 @@ object GenTools {
     return 0
   }
 
-  def transGen(o: Cli.TransgenOption): Z = {
+  def transGen(o: Cli.SireumToolsTransgenOption): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case _ =>
@@ -594,7 +594,7 @@ object GenTools {
     }
     for (m <- o.modes) {
       val (name, mode): (String, B) = m match {
-        case Cli.TransformerMode.Immutable =>
+        case Cli.SireumToolsTransgenTransformerMode.Immutable =>
           (
             if (o.modes.size > 1)
               if (o.name.isEmpty) "Transformer" else s"${o.name.get}Transformer"
@@ -602,7 +602,7 @@ object GenTools {
             else o.name.get,
             T
           )
-        case Cli.TransformerMode.Mutable =>
+        case Cli.SireumToolsTransgenTransformerMode.Mutable =>
           (
             if (o.modes.size > 1)
               if (o.name.isEmpty) "MTransformer" else s"M${o.name.get}Transformer"

@@ -41,25 +41,26 @@ object Sireum {
         println(versions)
       case _ =>
         System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
-          case Some(o: Cli.SlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
-          case Some(o: Cli.SlangRunOption) => cli.SlangRunner.run(o).toInt
-          case Some(o: Cli.CTranspilerOption) => cli.CTranspiler.run(o).toInt
-          case Some(o: Cli.BcgenOption) => cli.GenTools.bcGen(o).toInt
-          case Some(o: Cli.CheckstackOption) => cli.CheckStack.run(o).toInt
-          case Some(o: Cli.CligenOption) => cli.GenTools.cliGen(o).toInt
-          case Some(o: Cli.IvegenOption) => cli.GenTools.iveGen(o).toInt
-          case Some(o: Cli.SergenOption) => cli.GenTools.serGen(o).toInt
-          case Some(o: Cli.TransgenOption) => cli.GenTools.transGen(o).toInt
-          case Some(o: Cli.HamrCodeGenOption) => cli.HAMR.codeGen(o).toInt
-          case Some(o: Cli.PhantomOption) => cli.Phantom.run(o).toInt
-          case Some(o: Cli.LogikaVerifierOption) => cli.Logika.run(o).toInt
-          case Some(o: Cli.ServerOption) => server.Server.run(version, o.message == Cli.ServerMessage.Msgpack, o.logika).toInt
-          case Some(o: Cli.IveOption) => cli.Proyek.ive(o).toInt
-          case Some(o: Cli.AssembleOption) => cli.Proyek.assemble(o).toInt
-          case Some(o: Cli.CompileOption) => cli.Proyek.compile(o).toInt
-          case Some(o: Cli.PublishOption) => cli.Proyek.publish(o).toInt
-          case Some(o: Cli.RunOption) => cli.Proyek.run(o).toInt
-          case Some(o: Cli.TestOption) => cli.Proyek.test(o).toInt
+          case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
+          case Some(o: Cli.SireumSlangRunOption) => cli.SlangRunner.run(o).toInt
+          case Some(o: Cli.SireumSlangTranspilersCOption) => cli.CTranspiler.run(o).toInt
+          case Some(o: Cli.SireumToolsBcgenOption) => cli.GenTools.bcGen(o).toInt
+          case Some(o: Cli.SireumToolsCheckstackOption) => cli.CheckStack.run(o).toInt
+          case Some(o: Cli.SireumToolsCligenOption) => cli.GenTools.cliGen(o).toInt
+          case Some(o: Cli.SireumToolsIvegenOption) => cli.GenTools.iveGen(o).toInt
+          case Some(o: Cli.SireumToolsSergenOption) => cli.GenTools.serGen(o).toInt
+          case Some(o: Cli.SireumToolsTransgenOption) => cli.GenTools.transGen(o).toInt
+          case Some(o: Cli.SireumHamrCodegenOption) => cli.HAMR.codeGen(o).toInt
+          case Some(o: Cli.SireumHamrPhantomOption) => cli.Phantom.run(o).toInt
+          case Some(o: Cli.SireumLogikaVerifierOption) => cli.Logika.run(o).toInt
+          case Some(o: Cli.SireumXServerOption) => server.Server.run(version,
+            o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika).toInt
+          case Some(o: Cli.SireumProyekIveOption) => cli.Proyek.ive(o).toInt
+          case Some(o: Cli.SireumProyekAssembleOption) => cli.Proyek.assemble(o).toInt
+          case Some(o: Cli.SireumProyekCompileOption) => cli.Proyek.compile(o).toInt
+          case Some(o: Cli.SireumProyekPublishOption) => cli.Proyek.publish(o).toInt
+          case Some(o: Cli.SireumProyekRunOption) => cli.Proyek.run(o).toInt
+          case Some(o: Cli.SireumProyekTestOption) => cli.Proyek.test(o).toInt
           case Some(_: Cli.HelpOption) => 0
           case _ => -1
         })

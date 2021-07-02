@@ -38,7 +38,7 @@ object SlangRunner {
   val IllFormed: Z = -4
   val GraalError: Z = -5
 
-  def run(o: SlangRunOption): Z = {
+  def run(o: SireumSlangRunOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()

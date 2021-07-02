@@ -39,7 +39,7 @@ object HAMR {
   val toolName: String = "HAMR"
 
   // cli interface
-  def codeGen(o: Cli.HamrCodeGenOption): Z = {
+  def codeGen(o: Cli.SireumHamrCodegenOption): Z = {
     o.args.size match {
       case z"0 " => println(o.help); return 0
       case _ =>
@@ -84,7 +84,7 @@ object HAMR {
   def codeGenH(model: Aadl,
                //
                verbose: B,
-               platform: Cli.HamrPlatform.Type,
+               platform: Cli.SireumHamrCodegenHamrPlatform.Type,
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
                noEmbedArt: B,
@@ -105,7 +105,7 @@ object HAMR {
                experimentalOptions: ISZ[String]
              ): Z = {
 
-    val o = Cli.HamrCodeGenOption(
+    val o = Cli.SireumHamrCodegenOption(
       help = "",
       args = ISZ(),
       //
@@ -136,7 +136,7 @@ object HAMR {
     return codeGenH2(model, o)
   }
 
-  def codeGenH2(model: Aadl, o: Cli.HamrCodeGenOption): Z = {
+  def codeGenH2(model: Aadl, o: Cli.SireumHamrCodegenOption): Z = {
 
     val ops = CodeGenConfig(
       writeOutResources = T,
@@ -169,7 +169,7 @@ object HAMR {
 
     // call back function
     def transpile(ao: TranspilerConfig): Z = {
-      val to = Cli.CTranspilerOption(
+      val to = Cli.SireumSlangTranspilersCOption(
         help = "",
         args = ISZ(),
         sourcepath = ao.sourcepath,
@@ -207,7 +207,7 @@ object HAMR {
     return if(reporter.hasError) 1 else 0
   }
 
-  def toCodeGenOptions(o: Cli.HamrCodeGenOption): CodeGenConfig = {
+  def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
     return CodeGenConfig(
       writeOutResources = T,
       ipc = CodeGenIpcMechanism.SharedMemory,

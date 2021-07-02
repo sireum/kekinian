@@ -48,7 +48,7 @@ object SlangTipe {
   val SavingError: Z = -9
   val LoadingError: Z = -10
 
-  def run(o: SlangTipeOption, reporter: Reporter): Z = {
+  def run(o: SireumSlangTipeOption, reporter: Reporter): Z = {
     def readFile(f: Os.Path): (Option[String], String) = {
       return (Some(f.toUri), f.read)
     }

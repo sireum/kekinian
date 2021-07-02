@@ -38,7 +38,7 @@ object Cli {
 
   @datatype class HelpOption extends SireumTopOption
 
-  @enum object HamrPlatform {
+  @enum object SireumHamrCodegenHamrPlatform {
     'JVM
     'Linux
     'Cygwin
@@ -48,12 +48,12 @@ object Cli {
     'SeL4_TB
   }
 
-  @datatype class HamrCodeGenOption(
+  @datatype class SireumHamrCodegenOption(
     val help: String,
     val args: ISZ[String],
     val msgpack: B,
     val verbose: B,
-    val platform: HamrPlatform.Type,
+    val platform: SireumHamrCodegenHamrPlatform.Type,
     val outputDir: Option[String],
     val packageName: Option[String],
     val noEmbedArt: B,
@@ -71,17 +71,17 @@ object Cli {
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
-  @enum object PhantomMode {
+  @enum object SireumHamrPhantomPhantomMode {
     'Json
     'Msgpack
   }
 
-  @datatype class PhantomOption(
+  @datatype class SireumHamrPhantomOption(
     val help: String,
     val args: ISZ[String],
     val impl: Option[String],
     val main: Option[String],
-    val mode: PhantomMode.Type,
+    val mode: SireumHamrPhantomPhantomMode.Type,
     val output: Option[String],
     val projects: ISZ[String],
     val quiet: B,
@@ -91,27 +91,28 @@ object Cli {
     val version: Option[String]
   ) extends SireumTopOption
 
-  @enum object LogikaSolver {
+  @enum object SireumLogikaVerifierLogikaSolver {
     'All
     'Cvc4
     'Z3
   }
 
-  @datatype class LogikaVerifierOption(
+  @datatype class SireumLogikaVerifierOption(
     val help: String,
     val args: ISZ[String],
-    val line: Z,
     val noRuntime: B,
+    val sourcepath: ISZ[String],
+    val charBitWidth: Z,
+    val intBitWidth: Z,
+    val line: Z,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
-    val sourcepath: ISZ[String],
     val unroll: B,
-    val charBitWidth: Z,
-    val intBitWidth: Z,
-    val simplify: B,
-    val solver: LogikaSolver.Type,
-    val timeout: Z,
+    val logPc: B,
+    val logRawPc: B,
+    val logVc: B,
+    val logVcDir: Option[String],
     val par: B,
     val ramFolder: Option[String],
     val dontSplitFunQuant: B,
@@ -119,13 +120,12 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val logPc: B,
-    val logRawPc: B,
-    val logVc: B,
-    val logVcDir: Option[String]
+    val simplify: B,
+    val solver: SireumLogikaVerifierLogikaSolver.Type,
+    val timeout: Z
   ) extends SireumTopOption
 
-  @datatype class AssembleOption(
+  @datatype class SireumProyekAssembleOption(
     val help: String,
     val args: ISZ[String],
     val jar: Option[String],
@@ -152,7 +152,7 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
-  @datatype class CompileOption(
+  @datatype class SireumProyekCompileOption(
     val help: String,
     val args: ISZ[String],
     val javac: ISZ[String],
@@ -176,7 +176,7 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
-  @datatype class IveOption(
+  @datatype class SireumProyekIveOption(
     val help: String,
     val args: ISZ[String],
     val force: B,
@@ -195,7 +195,7 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
-  @datatype class PublishOption(
+  @datatype class SireumProyekPublishOption(
     val help: String,
     val args: ISZ[String],
     val m2: Option[String],
@@ -221,7 +221,7 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
-  @datatype class RunOption(
+  @datatype class SireumProyekRunOption(
     val help: String,
     val args: ISZ[String],
     val dir: Option[String],
@@ -247,7 +247,7 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
-  @datatype class TestOption(
+  @datatype class SireumProyekTestOption(
     val help: String,
     val args: ISZ[String],
     val classes: ISZ[String],
@@ -275,7 +275,7 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
-  @datatype class SlangRunOption(
+  @datatype class SireumSlangRunOption(
     val help: String,
     val args: ISZ[String],
     val input: Option[String],
@@ -284,7 +284,7 @@ object Cli {
     val nativ: B
   ) extends SireumTopOption
 
-  @datatype class SlangTipeOption(
+  @datatype class SireumSlangTipeOption(
     val help: String,
     val args: ISZ[String],
     val exclude: ISZ[String],
@@ -299,7 +299,7 @@ object Cli {
     val gzip: B
   ) extends SireumTopOption
 
-  @datatype class CTranspilerOption(
+  @datatype class SireumSlangTranspilersCOption(
     val help: String,
     val args: ISZ[String],
     val sourcepath: ISZ[String],
@@ -327,17 +327,17 @@ object Cli {
     val forwarding: ISZ[String]
   ) extends SireumTopOption
 
-  @enum object BitCodecMode {
+  @enum object SireumToolsBcgenBitCodecMode {
     'Program
     'Script
     'Json
     'Dot
   }
 
-  @datatype class BcgenOption(
+  @datatype class SireumToolsBcgenOption(
     val help: String,
     val args: ISZ[String],
-    val mode: ISZ[BitCodecMode.Type],
+    val mode: ISZ[SireumToolsBcgenBitCodecMode.Type],
     val isLittleEndian: B,
     val isMutable: B,
     val packageName: ISZ[String],
@@ -347,12 +347,12 @@ object Cli {
     val traits: ISZ[String]
   ) extends SireumTopOption
 
-  @enum object CheckStackMode {
+  @enum object SireumToolsCheckstackCheckStackMode {
     'Dotsu
     'Bin
   }
 
-  @enum object CheckStackArch {
+  @enum object SireumToolsCheckstackCheckStackArch {
     'Amd64
     'X86
     'Aarch64
@@ -370,7 +370,7 @@ object Cli {
     'Sparc
   }
 
-  @enum object CheckStackFormat {
+  @enum object SireumToolsCheckstackCheckStackFormat {
     'Plain
     'Csv
     'Html
@@ -378,16 +378,16 @@ object Cli {
     'Rst
   }
 
-  @datatype class CheckstackOption(
+  @datatype class SireumToolsCheckstackOption(
     val help: String,
     val args: ISZ[String],
-    val mode: CheckStackMode.Type,
+    val mode: SireumToolsCheckstackCheckStackMode.Type,
     val objdump: Option[String],
-    val arch: CheckStackArch.Type,
-    val format: CheckStackFormat.Type
+    val arch: SireumToolsCheckstackCheckStackArch.Type,
+    val format: SireumToolsCheckstackCheckStackFormat.Type
   ) extends SireumTopOption
 
-  @datatype class CligenOption(
+  @datatype class SireumToolsCligenOption(
     val help: String,
     val args: ISZ[String],
     val license: Option[String],
@@ -398,16 +398,16 @@ object Cli {
     val width: ISZ[Z]
   ) extends SireumTopOption
 
-  @enum object IveMode {
+  @enum object SireumToolsIvegenIveMode {
     'Idea
     'Mill
   }
 
-  @datatype class IvegenOption(
+  @datatype class SireumToolsIvegenOption(
     val help: String,
     val args: ISZ[String],
     val jdk: Option[String],
-    val mode: IveMode.Type,
+    val mode: SireumToolsIvegenIveMode.Type,
     val projectName: Option[String],
     val moduleName: Option[String],
     val packageName: ISZ[String],
@@ -417,45 +417,45 @@ object Cli {
     val compile: B
   ) extends SireumTopOption
 
-  @enum object SerializerMode {
+  @enum object SireumToolsSergenSerializerMode {
     'Json
     'Msgpack
   }
 
-  @datatype class SergenOption(
+  @datatype class SireumToolsSergenOption(
     val help: String,
     val args: ISZ[String],
-    val modes: ISZ[SerializerMode.Type],
+    val modes: ISZ[SireumToolsSergenSerializerMode.Type],
     val packageName: ISZ[String],
     val name: Option[String],
     val license: Option[String],
     val outputDir: Option[String]
   ) extends SireumTopOption
 
-  @enum object TransformerMode {
+  @enum object SireumToolsTransgenTransformerMode {
     'Immutable
     'Mutable
   }
 
-  @datatype class TransgenOption(
+  @datatype class SireumToolsTransgenOption(
     val help: String,
     val args: ISZ[String],
     val exclude: ISZ[String],
-    val modes: ISZ[TransformerMode.Type],
+    val modes: ISZ[SireumToolsTransgenTransformerMode.Type],
     val name: Option[String],
     val license: Option[String],
     val outputDir: Option[String]
   ) extends SireumTopOption
 
-  @enum object ServerMessage {
+  @enum object SireumXServerServerMessage {
     'Msgpack
     'Json
   }
 
-  @datatype class ServerOption(
+  @datatype class SireumXServerOption(
     val help: String,
     val args: ISZ[String],
-    val message: ServerMessage.Type,
+    val message: SireumXServerServerMessage.Type,
     val logika: Z
   ) extends SireumTopOption
 }
@@ -482,18 +482,18 @@ import Cli._
     }
     val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "tools", "x"))
     opt match {
-      case Some(string"anvil") => parseAnvil(args, i + 1)
-      case Some(string"hamr") => parseHamr(args, i + 1)
-      case Some(string"logika") => parseLogika(args, i + 1)
-      case Some(string"proyek") => parseProyek(args, i + 1)
-      case Some(string"slang") => parseSlang(args, i + 1)
-      case Some(string"tools") => parseTools(args, i + 1)
-      case Some(string"x") => parseX(args, i + 1)
+      case Some(string"anvil") => parseSireumAnvil(args, i + 1)
+      case Some(string"hamr") => parseSireumHamr(args, i + 1)
+      case Some(string"logika") => parseSireumLogika(args, i + 1)
+      case Some(string"proyek") => parseSireumProyek(args, i + 1)
+      case Some(string"slang") => parseSireumSlang(args, i + 1)
+      case Some(string"tools") => parseSireumTools(args, i + 1)
+      case Some(string"x") => parseSireumX(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseAnvil(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumAnvil(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Sireum Anvil
@@ -509,7 +509,7 @@ import Cli._
     }
   }
 
-  def parseHamr(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumHamr(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""HAMR: High Assurance Model-based Rapid-engineering tools for embedded systems
@@ -522,37 +522,37 @@ import Cli._
     }
     val opt = select("hamr", args, i, ISZ("codegen", "phantom"))
     opt match {
-      case Some(string"codegen") => parseHamrCodeGen(args, i + 1)
-      case Some(string"phantom") => parsePhantom(args, i + 1)
+      case Some(string"codegen") => parseSireumHamrCodegen(args, i + 1)
+      case Some(string"phantom") => parseSireumHamrPhantom(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseHamrPlatformH(arg: String): Option[HamrPlatform.Type] = {
+  def parseSireumHamrCodegenHamrPlatformH(arg: String): Option[SireumHamrCodegenHamrPlatform.Type] = {
     arg.native match {
-      case "JVM" => return Some(HamrPlatform.JVM)
-      case "Linux" => return Some(HamrPlatform.Linux)
-      case "Cygwin" => return Some(HamrPlatform.Cygwin)
-      case "MacOS" => return Some(HamrPlatform.MacOS)
-      case "seL4" => return Some(HamrPlatform.SeL4)
-      case "seL4_Only" => return Some(HamrPlatform.SeL4_Only)
-      case "seL4_TB" => return Some(HamrPlatform.SeL4_TB)
+      case "JVM" => return Some(SireumHamrCodegenHamrPlatform.JVM)
+      case "Linux" => return Some(SireumHamrCodegenHamrPlatform.Linux)
+      case "Cygwin" => return Some(SireumHamrCodegenHamrPlatform.Cygwin)
+      case "MacOS" => return Some(SireumHamrCodegenHamrPlatform.MacOS)
+      case "seL4" => return Some(SireumHamrCodegenHamrPlatform.SeL4)
+      case "seL4_Only" => return Some(SireumHamrCodegenHamrPlatform.SeL4_Only)
+      case "seL4_TB" => return Some(SireumHamrCodegenHamrPlatform.SeL4_TB)
       case s =>
         eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB }, but found '$s'.")
         return None()
     }
   }
 
-  def parseHamrPlatform(args: ISZ[String], i: Z): Option[HamrPlatform.Type] = {
+  def parseSireumHamrCodegenHamrPlatform(args: ISZ[String], i: Z): Option[SireumHamrCodegenHamrPlatform.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB }, but none found.")
       return None()
     }
-    val r = parseHamrPlatformH(args(i))
+    val r = parseSireumHamrCodegenHamrPlatformH(args(i))
     return r
   }
 
-  def parseHamrCodeGen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumHamrCodegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Generate code from AADL IR (AIR)
           |
@@ -605,7 +605,7 @@ import Cli._
 
     var msgpack: B = false
     var verbose: B = false
-    var platform: HamrPlatform.Type = HamrPlatform.JVM
+    var platform: SireumHamrCodegenHamrPlatform.Type = SireumHamrCodegenHamrPlatform.JVM
     var outputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
     var noEmbedArt: B = false
@@ -642,7 +642,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--platform") {
-           val o: Option[HamrPlatform.Type] = parseHamrPlatform(args, j + 1)
+           val o: Option[SireumHamrCodegenHamrPlatform.Type] = parseSireumHamrCodegenHamrPlatform(args, j + 1)
            o match {
              case Some(v) => platform = v
              case _ => return None()
@@ -746,29 +746,29 @@ import Cli._
         isOption = F
       }
     }
-    return Some(HamrCodeGenOption(help, parseArguments(args, j), msgpack, verbose, platform, outputDir, packageName, noEmbedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, platform, outputDir, packageName, noEmbedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
-  def parsePhantomModeH(arg: String): Option[PhantomMode.Type] = {
+  def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
     arg.native match {
-      case "json" => return Some(PhantomMode.Json)
-      case "msgpack" => return Some(PhantomMode.Msgpack)
+      case "json" => return Some(SireumHamrPhantomPhantomMode.Json)
+      case "msgpack" => return Some(SireumHamrPhantomPhantomMode.Msgpack)
       case s =>
         eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
         return None()
     }
   }
 
-  def parsePhantomMode(args: ISZ[String], i: Z): Option[PhantomMode.Type] = {
+  def parseSireumHamrPhantomPhantomMode(args: ISZ[String], i: Z): Option[SireumHamrPhantomPhantomMode.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { json, msgpack }, but none found.")
       return None()
     }
-    val r = parsePhantomModeH(args(i))
+    val r = parseSireumHamrPhantomPhantomModeH(args(i))
     return r
   }
 
-  def parsePhantom(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumHamrPhantom(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
           |
@@ -808,7 +808,7 @@ import Cli._
 
     var impl: Option[String] = None[String]()
     var main: Option[String] = None[String]()
-    var mode: PhantomMode.Type = PhantomMode.Json
+    var mode: SireumHamrPhantomPhantomMode.Type = SireumHamrPhantomPhantomMode.Json
     var output: Option[String] = None[String]()
     var projects: ISZ[String] = ISZ[String]()
     var quiet: B = false
@@ -837,7 +837,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[PhantomMode.Type] = parsePhantomMode(args, j + 1)
+           val o: Option[SireumHamrPhantomPhantomMode.Type] = parseSireumHamrPhantomPhantomMode(args, j + 1)
            o match {
              case Some(v) => mode = v
              case _ => return None()
@@ -893,10 +893,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, quiet, osate, update, features, version))
+    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, quiet, osate, update, features, version))
   }
 
-  def parseLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Logika Tools for Slang
@@ -908,53 +908,42 @@ import Cli._
     }
     val opt = select("logika", args, i, ISZ("verifier"))
     opt match {
-      case Some(string"verifier") => parseLogikaVerifier(args, i + 1)
+      case Some(string"verifier") => parseSireumLogikaVerifier(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseLogikaSolverH(arg: String): Option[LogikaSolver.Type] = {
+  def parseSireumLogikaVerifierLogikaSolverH(arg: String): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     arg.native match {
-      case "all" => return Some(LogikaSolver.All)
-      case "cvc4" => return Some(LogikaSolver.Cvc4)
-      case "z3" => return Some(LogikaSolver.Z3)
+      case "all" => return Some(SireumLogikaVerifierLogikaSolver.All)
+      case "cvc4" => return Some(SireumLogikaVerifierLogikaSolver.Cvc4)
+      case "z3" => return Some(SireumLogikaVerifierLogikaSolver.Z3)
       case s =>
         eprintln(s"Expecting one of the following: { all, cvc4, z3 }, but found '$s'.")
         return None()
     }
   }
 
-  def parseLogikaSolver(args: ISZ[String], i: Z): Option[LogikaSolver.Type] = {
+  def parseSireumLogikaVerifierLogikaSolver(args: ISZ[String], i: Z): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { all, cvc4, z3 }, but none found.")
       return None()
     }
-    val r = parseLogikaSolverH(args(i))
+    val r = parseSireumLogikaVerifierLogikaSolverH(args(i))
     return r
   }
 
-  def parseLogikaVerifier(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumLogikaVerifier(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Logika Verifier for Slang
           |
           |Usage: <option>* <slang-file>+
           |
           |Available Options:
-          |    --line               Focus verification to the specified program line
-          |                           number (expects an integer; default is 0)
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
-          |    --sat                Enable assumption satisfiability checking
-          |    --skip-methods       Skip checking methods with the specified
-          |                           fully-qualified names or identifiers (expects a
-          |                           string separated by ",")
-          |    --skip-types         Skip checking traits, classes, and objects with the
-          |                           specified fully-qualified names or identifiers
-          |                           (expects a string separated by ",")
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
-          |    --unroll             Enable loop unrolling when loop modifies clause is
-          |                           unspecified
           |-h, --help               Display this information
           |
           |Bit-width Options:
@@ -965,12 +954,25 @@ import Cli._
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
           |                           default is 0)
           |
-          |SMT2 Options:
-          |    --simplify           Simplify SMT2 query
-          |-m, --solver             Smt2 solver (expects one of { all, cvc4, z3 };
-          |                           default: all)
-          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           default is 2)
+          |Control Options:
+          |    --line               Focus verification to the specified program line
+          |                           number (expects an integer; default is 0)
+          |    --sat                Enable assumption satisfiability checking
+          |    --skip-methods       Skip checking methods with the specified
+          |                           fully-qualified names or identifiers (expects a
+          |                           string separated by ",")
+          |    --skip-types         Skip checking traits, classes, and objects with the
+          |                           specified fully-qualified names or identifiers
+          |                           (expects a string separated by ",")
+          |    --unroll             Enable loop unrolling when loop modifies clause is
+          |                           unspecified
+          |
+          |Logging Options:
+          |    --log-pc             Display path conditions before each statement
+          |    --log-raw-pc         Display raw path conditions before each statement
+          |    --log-vc             Display all verification conditions
+          |    --log-vc-dir         Write all verification conditions in a directory
+          |                           (expects a path)
           |
           |Optimizations Options:
           |-p, --par                Enable parallelization
@@ -985,25 +987,26 @@ import Cli._
           |    --split-if           Split on if-conditional expressions and statements
           |    --split-match        Split on match expressions and statements
           |
-          |Logging Options:
-          |    --log-pc             Display path conditions before each statement
-          |    --log-raw-pc         Display raw path conditions before each statement
-          |    --log-vc             Display all verification conditions
-          |    --log-vc-dir         Write all verification conditions in a directory
-          |                           (expects a path)""".render
+          |SMT2 Options:
+          |    --simplify           Simplify SMT2 query
+          |-m, --solver             Smt2 solver (expects one of { all, cvc4, z3 };
+          |                           default: all)
+          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
+          |                           default is 2)""".render
 
-    var line: Z = 0
     var noRuntime: B = false
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var charBitWidth: Z = 32
+    var intBitWidth: Z = 0
+    var line: Z = 0
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
-    var sourcepath: ISZ[String] = ISZ[String]()
     var unroll: B = false
-    var charBitWidth: Z = 32
-    var intBitWidth: Z = 0
-    var simplify: B = false
-    var solver: LogikaSolver.Type = LogikaSolver.All
-    var timeout: Z = 2
+    var logPc: B = false
+    var logRawPc: B = false
+    var logVc: B = false
+    var logVcDir: Option[String] = None[String]()
     var par: B = false
     var ramFolder: Option[String] = None[String]()
     var dontSplitFunQuant: B = false
@@ -1011,10 +1014,9 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var logPc: B = false
-    var logRawPc: B = false
-    var logVc: B = false
-    var logVcDir: Option[String] = None[String]()
+    var simplify: B = false
+    var solver: SireumLogikaVerifierLogikaSolver.Type = SireumLogikaVerifierLogikaSolver.All
+    var timeout: Z = 2
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1023,16 +1025,34 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--line") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
-           o match {
-             case Some(v) => line = v
-             case _ => return None()
-           }
-         } else if (arg == "-r" || arg == "--no-runtime") {
+        } else if (arg == "-r" || arg == "--no-runtime") {
            val o: Option[B] = { j = j - 1; Some(!noRuntime) }
            o match {
              case Some(v) => noRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--c-bitwidth") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => charBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--z-bitwidth") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => intBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--line") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => line = v
              case _ => return None()
            }
          } else if (arg == "--sat") {
@@ -1053,46 +1073,34 @@ import Cli._
              case Some(v) => skipTypes = v
              case _ => return None()
            }
-         } else if (arg == "-s" || arg == "--sourcepath") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => sourcepath = v
-             case _ => return None()
-           }
          } else if (arg == "--unroll") {
            val o: Option[B] = { j = j - 1; Some(!unroll) }
            o match {
              case Some(v) => unroll = v
              case _ => return None()
            }
-         } else if (arg == "--c-bitwidth") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+         } else if (arg == "--log-pc") {
+           val o: Option[B] = { j = j - 1; Some(!logPc) }
            o match {
-             case Some(v) => charBitWidth = v
+             case Some(v) => logPc = v
              case _ => return None()
            }
-         } else if (arg == "--z-bitwidth") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+         } else if (arg == "--log-raw-pc") {
+           val o: Option[B] = { j = j - 1; Some(!logRawPc) }
            o match {
-             case Some(v) => intBitWidth = v
+             case Some(v) => logRawPc = v
              case _ => return None()
            }
-         } else if (arg == "--simplify") {
-           val o: Option[B] = { j = j - 1; Some(!simplify) }
+         } else if (arg == "--log-vc") {
+           val o: Option[B] = { j = j - 1; Some(!logVc) }
            o match {
-             case Some(v) => simplify = v
+             case Some(v) => logVc = v
              case _ => return None()
            }
-         } else if (arg == "-m" || arg == "--solver") {
-           val o: Option[LogikaSolver.Type] = parseLogikaSolver(args, j + 1)
+         } else if (arg == "--log-vc-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => solver = v
-             case _ => return None()
-           }
-         } else if (arg == "-t" || arg == "--timeout") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => timeout = v
+             case Some(v) => logVcDir = v
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
@@ -1137,28 +1145,22 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--log-pc") {
-           val o: Option[B] = { j = j - 1; Some(!logPc) }
+         } else if (arg == "--simplify") {
+           val o: Option[B] = { j = j - 1; Some(!simplify) }
            o match {
-             case Some(v) => logPc = v
+             case Some(v) => simplify = v
              case _ => return None()
            }
-         } else if (arg == "--log-raw-pc") {
-           val o: Option[B] = { j = j - 1; Some(!logRawPc) }
+         } else if (arg == "-m" || arg == "--solver") {
+           val o: Option[SireumLogikaVerifierLogikaSolver.Type] = parseSireumLogikaVerifierLogikaSolver(args, j + 1)
            o match {
-             case Some(v) => logRawPc = v
+             case Some(v) => solver = v
              case _ => return None()
            }
-         } else if (arg == "--log-vc") {
-           val o: Option[B] = { j = j - 1; Some(!logVc) }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
-             case Some(v) => logVc = v
-             case _ => return None()
-           }
-         } else if (arg == "--log-vc-dir") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => logVcDir = v
+             case Some(v) => timeout = v
              case _ => return None()
            }
          } else {
@@ -1170,10 +1172,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(LogikaVerifierOption(help, parseArguments(args, j), line, noRuntime, sat, skipMethods, skipTypes, sourcepath, unroll, charBitWidth, intBitWidth, simplify, solver, timeout, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, logPc, logRawPc, logVc, logVcDir))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
   }
 
-  def parseProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Sireum Proyek: Build Tools for Slang Projects
@@ -1190,17 +1192,17 @@ import Cli._
     }
     val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "publish", "run", "test"))
     opt match {
-      case Some(string"assemble") => parseAssemble(args, i + 1)
-      case Some(string"compile") => parseCompile(args, i + 1)
-      case Some(string"ive") => parseIve(args, i + 1)
-      case Some(string"publish") => parsePublish(args, i + 1)
-      case Some(string"run") => parseRun(args, i + 1)
-      case Some(string"test") => parseTest(args, i + 1)
+      case Some(string"assemble") => parseSireumProyekAssemble(args, i + 1)
+      case Some(string"compile") => parseSireumProyekCompile(args, i + 1)
+      case Some(string"ive") => parseSireumProyekIve(args, i + 1)
+      case Some(string"publish") => parseSireumProyekPublish(args, i + 1)
+      case Some(string"run") => parseSireumProyekRun(args, i + 1)
+      case Some(string"test") => parseSireumProyekTest(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseAssemble(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyekAssemble(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Proyek Jar Assembler
           |
@@ -1434,10 +1436,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(AssembleOption(help, parseArguments(args, j), jar, mainClass , isNative , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), jar, mainClass , isNative , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
-  def parseCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Proyek Compiler
           |
@@ -1644,10 +1646,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
-  def parseIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyekIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum IVE Proyek Generator
           |
@@ -1808,10 +1810,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IveOption(help, parseArguments(args, j), force, ultimate, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), force, ultimate, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
-  def parsePublish(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyekPublish(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Proyek Publisher
           |
@@ -2038,10 +2040,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(PublishOption(help, parseArguments(args, j), m2, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekPublishOption(help, parseArguments(args, j), m2, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
-  def parseRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyekRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Proyek Program Runner
           |
@@ -2267,10 +2269,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(RunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekRunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
-  def parseTest(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumProyekTest(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Proyek Test Runner
           |
@@ -2514,10 +2516,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(TestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
-  def parseSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""The Sireum Language (Slang) Tools
@@ -2531,14 +2533,14 @@ import Cli._
     }
     val opt = select("slang", args, i, ISZ("run", "tipe", "transpilers"))
     opt match {
-      case Some(string"run") => parseSlangRun(args, i + 1)
-      case Some(string"tipe") => parseSlangTipe(args, i + 1)
-      case Some(string"transpilers") => parseTranspilers(args, i + 1)
+      case Some(string"run") => parseSireumSlangRun(args, i + 1)
+      case Some(string"tipe") => parseSireumSlangTipe(args, i + 1)
+      case Some(string"transpilers") => parseSireumSlangTranspilers(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseSlangRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumSlangRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Slang Script Runner
           |
@@ -2597,10 +2599,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangRunOption(help, parseArguments(args, j), input, output, transformed, nativ))
+    return Some(SireumSlangRunOption(help, parseArguments(args, j), input, output, transformed, nativ))
   }
 
-  def parseSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Slang Type Checker
           |
@@ -2715,10 +2717,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SlangTipeOption(help, parseArguments(args, j), exclude, force, noRuntime, outline, sourcepath, strictAliasing, verbose, save, load, gzip))
+    return Some(SireumSlangTipeOption(help, parseArguments(args, j), exclude, force, noRuntime, outline, sourcepath, strictAliasing, verbose, save, load, gzip))
   }
 
-  def parseTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumSlangTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Slang Transpilers
@@ -2730,12 +2732,12 @@ import Cli._
     }
     val opt = select("transpilers", args, i, ISZ("c"))
     opt match {
-      case Some(string"c") => parseCTranspiler(args, i + 1)
+      case Some(string"c") => parseSireumSlangTranspilersC(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseCTranspiler(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumSlangTranspilersC(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Slang Embedded To C Transpiler
           |
@@ -2986,10 +2988,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CTranspilerOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
+    return Some(SireumSlangTranspilersCOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
   }
 
-  def parseTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Sireum Utility Tools
@@ -3006,45 +3008,45 @@ import Cli._
     }
     val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "sergen", "transgen"))
     opt match {
-      case Some(string"bcgen") => parseBcgen(args, i + 1)
-      case Some(string"checkstack") => parseCheckstack(args, i + 1)
-      case Some(string"cligen") => parseCligen(args, i + 1)
-      case Some(string"ivegen") => parseIvegen(args, i + 1)
-      case Some(string"sergen") => parseSergen(args, i + 1)
-      case Some(string"transgen") => parseTransgen(args, i + 1)
+      case Some(string"bcgen") => parseSireumToolsBcgen(args, i + 1)
+      case Some(string"checkstack") => parseSireumToolsCheckstack(args, i + 1)
+      case Some(string"cligen") => parseSireumToolsCligen(args, i + 1)
+      case Some(string"ivegen") => parseSireumToolsIvegen(args, i + 1)
+      case Some(string"sergen") => parseSireumToolsSergen(args, i + 1)
+      case Some(string"transgen") => parseSireumToolsTransgen(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseBitCodecModeH(arg: String): Option[BitCodecMode.Type] = {
+  def parseSireumToolsBcgenBitCodecModeH(arg: String): Option[SireumToolsBcgenBitCodecMode.Type] = {
     arg.native match {
-      case "program" => return Some(BitCodecMode.Program)
-      case "script" => return Some(BitCodecMode.Script)
-      case "json" => return Some(BitCodecMode.Json)
-      case "dot" => return Some(BitCodecMode.Dot)
+      case "program" => return Some(SireumToolsBcgenBitCodecMode.Program)
+      case "script" => return Some(SireumToolsBcgenBitCodecMode.Script)
+      case "json" => return Some(SireumToolsBcgenBitCodecMode.Json)
+      case "dot" => return Some(SireumToolsBcgenBitCodecMode.Dot)
       case s =>
         eprintln(s"Expecting one of the following: { program, script, json, dot }, but found '$s'.")
         return None()
     }
   }
 
-  def parseBitCodecMode(args: ISZ[String], i: Z): Option[BitCodecMode.Type] = {
+  def parseSireumToolsBcgenBitCodecMode(args: ISZ[String], i: Z): Option[SireumToolsBcgenBitCodecMode.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { program, script, json, dot }, but none found.")
       return None()
     }
-    val r = parseBitCodecModeH(args(i))
+    val r = parseSireumToolsBcgenBitCodecModeH(args(i))
     return r
   }
 
-  def parseBitCodecModes(args: ISZ[String], i: Z): Option[ISZ[BitCodecMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "BitCodecMode", ',', T)
+  def parseSireumToolsBcgenBitCodecModes(args: ISZ[String], i: Z): Option[ISZ[SireumToolsBcgenBitCodecMode.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumToolsBcgenBitCodecMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
-    var r = ISZ[BitCodecMode.Type]()
+    var r = ISZ[SireumToolsBcgenBitCodecMode.Type]()
     for (token <- tokensOpt.get) {
-      val e = parseBitCodecModeH(token)
+      val e = parseSireumToolsBcgenBitCodecModeH(token)
       e match {
         case Some(v) => r = r :+ v
         case _ => return None()
@@ -3053,7 +3055,7 @@ import Cli._
     return Some(r)
   }
 
-  def parseBcgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsBcgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum BitCodec Generator
           |
@@ -3077,7 +3079,7 @@ import Cli._
           |                           types to extend (expects a string separated by ";")
           |-h, --help               Display this information""".render
 
-    var mode: ISZ[BitCodecMode.Type] = ISZ(BitCodecMode.Program)
+    var mode: ISZ[SireumToolsBcgenBitCodecMode.Type] = ISZ(SireumToolsBcgenBitCodecMode.Program)
     var isLittleEndian: B = false
     var isMutable: B = false
     var packageName: ISZ[String] = ISZ[String]()
@@ -3094,7 +3096,7 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[ISZ[BitCodecMode.Type]] = parseBitCodecModes(args, j + 1)
+           val o: Option[ISZ[SireumToolsBcgenBitCodecMode.Type]] = parseSireumToolsBcgenBitCodecModes(args, j + 1)
            o match {
              case Some(v) => mode = v
              case _ => return None()
@@ -3150,83 +3152,83 @@ import Cli._
         isOption = F
       }
     }
-    return Some(BcgenOption(help, parseArguments(args, j), mode, isLittleEndian, isMutable, packageName, name, license, outputDir, traits))
+    return Some(SireumToolsBcgenOption(help, parseArguments(args, j), mode, isLittleEndian, isMutable, packageName, name, license, outputDir, traits))
   }
 
-  def parseCheckStackModeH(arg: String): Option[CheckStackMode.Type] = {
+  def parseSireumToolsCheckstackCheckStackModeH(arg: String): Option[SireumToolsCheckstackCheckStackMode.Type] = {
     arg.native match {
-      case "dotsu" => return Some(CheckStackMode.Dotsu)
-      case "bin" => return Some(CheckStackMode.Bin)
+      case "dotsu" => return Some(SireumToolsCheckstackCheckStackMode.Dotsu)
+      case "bin" => return Some(SireumToolsCheckstackCheckStackMode.Bin)
       case s =>
         eprintln(s"Expecting one of the following: { dotsu, bin }, but found '$s'.")
         return None()
     }
   }
 
-  def parseCheckStackMode(args: ISZ[String], i: Z): Option[CheckStackMode.Type] = {
+  def parseSireumToolsCheckstackCheckStackMode(args: ISZ[String], i: Z): Option[SireumToolsCheckstackCheckStackMode.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { dotsu, bin }, but none found.")
       return None()
     }
-    val r = parseCheckStackModeH(args(i))
+    val r = parseSireumToolsCheckstackCheckStackModeH(args(i))
     return r
   }
 
-  def parseCheckStackArchH(arg: String): Option[CheckStackArch.Type] = {
+  def parseSireumToolsCheckstackCheckStackArchH(arg: String): Option[SireumToolsCheckstackCheckStackArch.Type] = {
     arg.native match {
-      case "amd64" => return Some(CheckStackArch.Amd64)
-      case "x86" => return Some(CheckStackArch.X86)
-      case "aarch64" => return Some(CheckStackArch.Aarch64)
-      case "arm" => return Some(CheckStackArch.Arm)
-      case "powerpc" => return Some(CheckStackArch.Powerpc)
-      case "openrisc" => return Some(CheckStackArch.Openrisc)
-      case "mips" => return Some(CheckStackArch.Mips)
-      case "mips64" => return Some(CheckStackArch.Mips64)
-      case "m68k" => return Some(CheckStackArch.M68k)
-      case "ia64" => return Some(CheckStackArch.Ia64)
-      case "nios2" => return Some(CheckStackArch.Nios2)
-      case "parisc" => return Some(CheckStackArch.Parisc)
-      case "s390x" => return Some(CheckStackArch.S390x)
-      case "sh64" => return Some(CheckStackArch.Sh64)
-      case "sparc" => return Some(CheckStackArch.Sparc)
+      case "amd64" => return Some(SireumToolsCheckstackCheckStackArch.Amd64)
+      case "x86" => return Some(SireumToolsCheckstackCheckStackArch.X86)
+      case "aarch64" => return Some(SireumToolsCheckstackCheckStackArch.Aarch64)
+      case "arm" => return Some(SireumToolsCheckstackCheckStackArch.Arm)
+      case "powerpc" => return Some(SireumToolsCheckstackCheckStackArch.Powerpc)
+      case "openrisc" => return Some(SireumToolsCheckstackCheckStackArch.Openrisc)
+      case "mips" => return Some(SireumToolsCheckstackCheckStackArch.Mips)
+      case "mips64" => return Some(SireumToolsCheckstackCheckStackArch.Mips64)
+      case "m68k" => return Some(SireumToolsCheckstackCheckStackArch.M68k)
+      case "ia64" => return Some(SireumToolsCheckstackCheckStackArch.Ia64)
+      case "nios2" => return Some(SireumToolsCheckstackCheckStackArch.Nios2)
+      case "parisc" => return Some(SireumToolsCheckstackCheckStackArch.Parisc)
+      case "s390x" => return Some(SireumToolsCheckstackCheckStackArch.S390x)
+      case "sh64" => return Some(SireumToolsCheckstackCheckStackArch.Sh64)
+      case "sparc" => return Some(SireumToolsCheckstackCheckStackArch.Sparc)
       case s =>
         eprintln(s"Expecting one of the following: { amd64, x86, aarch64, arm, powerpc, openrisc, mips, mips64, m68k, ia64, nios2, parisc, s390x, sh64, sparc }, but found '$s'.")
         return None()
     }
   }
 
-  def parseCheckStackArch(args: ISZ[String], i: Z): Option[CheckStackArch.Type] = {
+  def parseSireumToolsCheckstackCheckStackArch(args: ISZ[String], i: Z): Option[SireumToolsCheckstackCheckStackArch.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { amd64, x86, aarch64, arm, powerpc, openrisc, mips, mips64, m68k, ia64, nios2, parisc, s390x, sh64, sparc }, but none found.")
       return None()
     }
-    val r = parseCheckStackArchH(args(i))
+    val r = parseSireumToolsCheckstackCheckStackArchH(args(i))
     return r
   }
 
-  def parseCheckStackFormatH(arg: String): Option[CheckStackFormat.Type] = {
+  def parseSireumToolsCheckstackCheckStackFormatH(arg: String): Option[SireumToolsCheckstackCheckStackFormat.Type] = {
     arg.native match {
-      case "plain" => return Some(CheckStackFormat.Plain)
-      case "csv" => return Some(CheckStackFormat.Csv)
-      case "html" => return Some(CheckStackFormat.Html)
-      case "md" => return Some(CheckStackFormat.Md)
-      case "rst" => return Some(CheckStackFormat.Rst)
+      case "plain" => return Some(SireumToolsCheckstackCheckStackFormat.Plain)
+      case "csv" => return Some(SireumToolsCheckstackCheckStackFormat.Csv)
+      case "html" => return Some(SireumToolsCheckstackCheckStackFormat.Html)
+      case "md" => return Some(SireumToolsCheckstackCheckStackFormat.Md)
+      case "rst" => return Some(SireumToolsCheckstackCheckStackFormat.Rst)
       case s =>
         eprintln(s"Expecting one of the following: { plain, csv, html, md, rst }, but found '$s'.")
         return None()
     }
   }
 
-  def parseCheckStackFormat(args: ISZ[String], i: Z): Option[CheckStackFormat.Type] = {
+  def parseSireumToolsCheckstackCheckStackFormat(args: ISZ[String], i: Z): Option[SireumToolsCheckstackCheckStackFormat.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { plain, csv, html, md, rst }, but none found.")
       return None()
     }
-    val r = parseCheckStackFormatH(args(i))
+    val r = parseSireumToolsCheckstackCheckStackFormatH(args(i))
     return r
   }
 
-  def parseCheckstack(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsCheckstack(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum CheckStack
           |
@@ -3249,10 +3251,10 @@ import Cli._
           |-f, --format             Output format (expects one of { plain, csv, html, md,
           |                           rst }; default: plain)""".render
 
-    var mode: CheckStackMode.Type = CheckStackMode.Dotsu
+    var mode: SireumToolsCheckstackCheckStackMode.Type = SireumToolsCheckstackCheckStackMode.Dotsu
     var objdump: Option[String] = Some("objdump")
-    var arch: CheckStackArch.Type = CheckStackArch.Amd64
-    var format: CheckStackFormat.Type = CheckStackFormat.Plain
+    var arch: SireumToolsCheckstackCheckStackArch.Type = SireumToolsCheckstackCheckStackArch.Amd64
+    var format: SireumToolsCheckstackCheckStackFormat.Type = SireumToolsCheckstackCheckStackFormat.Plain
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -3262,7 +3264,7 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[CheckStackMode.Type] = parseCheckStackMode(args, j + 1)
+           val o: Option[SireumToolsCheckstackCheckStackMode.Type] = parseSireumToolsCheckstackCheckStackMode(args, j + 1)
            o match {
              case Some(v) => mode = v
              case _ => return None()
@@ -3274,13 +3276,13 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-a" || arg == "--arch") {
-           val o: Option[CheckStackArch.Type] = parseCheckStackArch(args, j + 1)
+           val o: Option[SireumToolsCheckstackCheckStackArch.Type] = parseSireumToolsCheckstackCheckStackArch(args, j + 1)
            o match {
              case Some(v) => arch = v
              case _ => return None()
            }
          } else if (arg == "-f" || arg == "--format") {
-           val o: Option[CheckStackFormat.Type] = parseCheckStackFormat(args, j + 1)
+           val o: Option[SireumToolsCheckstackCheckStackFormat.Type] = parseSireumToolsCheckstackCheckStackFormat(args, j + 1)
            o match {
              case Some(v) => format = v
              case _ => return None()
@@ -3294,10 +3296,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CheckstackOption(help, parseArguments(args, j), mode, objdump, arch, format))
+    return Some(SireumToolsCheckstackOption(help, parseArguments(args, j), mode, objdump, arch, format))
   }
 
-  def parseCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsCligen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum CLI Generator
           |
@@ -3378,29 +3380,29 @@ import Cli._
         isOption = F
       }
     }
-    return Some(CligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, script, width))
+    return Some(SireumToolsCligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, script, width))
   }
 
-  def parseIveModeH(arg: String): Option[IveMode.Type] = {
+  def parseSireumToolsIvegenIveModeH(arg: String): Option[SireumToolsIvegenIveMode.Type] = {
     arg.native match {
-      case "idea" => return Some(IveMode.Idea)
-      case "mill" => return Some(IveMode.Mill)
+      case "idea" => return Some(SireumToolsIvegenIveMode.Idea)
+      case "mill" => return Some(SireumToolsIvegenIveMode.Mill)
       case s =>
         eprintln(s"Expecting one of the following: { idea, mill }, but found '$s'.")
         return None()
     }
   }
 
-  def parseIveMode(args: ISZ[String], i: Z): Option[IveMode.Type] = {
+  def parseSireumToolsIvegenIveMode(args: ISZ[String], i: Z): Option[SireumToolsIvegenIveMode.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { idea, mill }, but none found.")
       return None()
     }
-    val r = parseIveModeH(args(i))
+    val r = parseSireumToolsIvegenIveModeH(args(i))
     return r
   }
 
-  def parseIvegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsIvegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum IVE Project Generator
           |
@@ -3424,7 +3426,7 @@ import Cli._
           |-h, --help               Display this information""".render
 
     var jdk: Option[String] = Some("Java")
-    var mode: IveMode.Type = IveMode.Idea
+    var mode: SireumToolsIvegenIveMode.Type = SireumToolsIvegenIveMode.Idea
     var projectName: Option[String] = Some("hello")
     var moduleName: Option[String] = None[String]()
     var packageName: ISZ[String] = ISZ[String]()
@@ -3447,7 +3449,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[IveMode.Type] = parseIveMode(args, j + 1)
+           val o: Option[SireumToolsIvegenIveMode.Type] = parseSireumToolsIvegenIveMode(args, j + 1)
            o match {
              case Some(v) => mode = v
              case _ => return None()
@@ -3503,36 +3505,36 @@ import Cli._
         isOption = F
       }
     }
-    return Some(IvegenOption(help, parseArguments(args, j), jdk, mode, projectName, moduleName, packageName, appName, millPath, force, compile))
+    return Some(SireumToolsIvegenOption(help, parseArguments(args, j), jdk, mode, projectName, moduleName, packageName, appName, millPath, force, compile))
   }
 
-  def parseSerializerModeH(arg: String): Option[SerializerMode.Type] = {
+  def parseSireumToolsSergenSerializerModeH(arg: String): Option[SireumToolsSergenSerializerMode.Type] = {
     arg.native match {
-      case "json" => return Some(SerializerMode.Json)
-      case "msgpack" => return Some(SerializerMode.Msgpack)
+      case "json" => return Some(SireumToolsSergenSerializerMode.Json)
+      case "msgpack" => return Some(SireumToolsSergenSerializerMode.Msgpack)
       case s =>
         eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
         return None()
     }
   }
 
-  def parseSerializerMode(args: ISZ[String], i: Z): Option[SerializerMode.Type] = {
+  def parseSireumToolsSergenSerializerMode(args: ISZ[String], i: Z): Option[SireumToolsSergenSerializerMode.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { json, msgpack }, but none found.")
       return None()
     }
-    val r = parseSerializerModeH(args(i))
+    val r = parseSireumToolsSergenSerializerModeH(args(i))
     return r
   }
 
-  def parseSerializerModes(args: ISZ[String], i: Z): Option[ISZ[SerializerMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "SerializerMode", ',', T)
+  def parseSireumToolsSergenSerializerModes(args: ISZ[String], i: Z): Option[ISZ[SireumToolsSergenSerializerMode.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumToolsSergenSerializerMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
-    var r = ISZ[SerializerMode.Type]()
+    var r = ISZ[SireumToolsSergenSerializerMode.Type]()
     for (token <- tokensOpt.get) {
-      val e = parseSerializerModeH(token)
+      val e = parseSireumToolsSergenSerializerModeH(token)
       e match {
         case Some(v) => r = r :+ v
         case _ => return None()
@@ -3541,7 +3543,7 @@ import Cli._
     return Some(r)
   }
 
-  def parseSergen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsSergen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum De/Serializer Generator
           |
@@ -3560,7 +3562,7 @@ import Cli._
           |                           files (expects a path; default is ".")
           |-h, --help               Display this information""".render
 
-    var modes: ISZ[SerializerMode.Type] = ISZ(SerializerMode.Json)
+    var modes: ISZ[SireumToolsSergenSerializerMode.Type] = ISZ(SireumToolsSergenSerializerMode.Json)
     var packageName: ISZ[String] = ISZ[String]()
     var name: Option[String] = None[String]()
     var license: Option[String] = None[String]()
@@ -3574,7 +3576,7 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "-m" || arg == "--modes") {
-           val o: Option[ISZ[SerializerMode.Type]] = parseSerializerModes(args, j + 1)
+           val o: Option[ISZ[SireumToolsSergenSerializerMode.Type]] = parseSireumToolsSergenSerializerModes(args, j + 1)
            o match {
              case Some(v) => modes = v
              case _ => return None()
@@ -3612,36 +3614,36 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SergenOption(help, parseArguments(args, j), modes, packageName, name, license, outputDir))
+    return Some(SireumToolsSergenOption(help, parseArguments(args, j), modes, packageName, name, license, outputDir))
   }
 
-  def parseTransformerModeH(arg: String): Option[TransformerMode.Type] = {
+  def parseSireumToolsTransgenTransformerModeH(arg: String): Option[SireumToolsTransgenTransformerMode.Type] = {
     arg.native match {
-      case "immutable" => return Some(TransformerMode.Immutable)
-      case "mutable" => return Some(TransformerMode.Mutable)
+      case "immutable" => return Some(SireumToolsTransgenTransformerMode.Immutable)
+      case "mutable" => return Some(SireumToolsTransgenTransformerMode.Mutable)
       case s =>
         eprintln(s"Expecting one of the following: { immutable, mutable }, but found '$s'.")
         return None()
     }
   }
 
-  def parseTransformerMode(args: ISZ[String], i: Z): Option[TransformerMode.Type] = {
+  def parseSireumToolsTransgenTransformerMode(args: ISZ[String], i: Z): Option[SireumToolsTransgenTransformerMode.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { immutable, mutable }, but none found.")
       return None()
     }
-    val r = parseTransformerModeH(args(i))
+    val r = parseSireumToolsTransgenTransformerModeH(args(i))
     return r
   }
 
-  def parseTransformerModes(args: ISZ[String], i: Z): Option[ISZ[TransformerMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "TransformerMode", ',', T)
+  def parseSireumToolsTransgenTransformerModes(args: ISZ[String], i: Z): Option[ISZ[SireumToolsTransgenTransformerMode.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumToolsTransgenTransformerMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
-    var r = ISZ[TransformerMode.Type]()
+    var r = ISZ[SireumToolsTransgenTransformerMode.Type]()
     for (token <- tokensOpt.get) {
-      val e = parseTransformerModeH(token)
+      val e = parseSireumToolsTransgenTransformerModeH(token)
       e match {
         case Some(v) => r = r :+ v
         case _ => return None()
@@ -3650,7 +3652,7 @@ import Cli._
     return Some(r)
   }
 
-  def parseTransgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsTransgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Transformer Generator
           |
@@ -3671,7 +3673,7 @@ import Cli._
           |-h, --help               Display this information""".render
 
     var exclude: ISZ[String] = ISZ[String]()
-    var modes: ISZ[TransformerMode.Type] = ISZ(TransformerMode.Immutable)
+    var modes: ISZ[SireumToolsTransgenTransformerMode.Type] = ISZ(SireumToolsTransgenTransformerMode.Immutable)
     var name: Option[String] = None[String]()
     var license: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
@@ -3690,7 +3692,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-m" || arg == "--modes") {
-           val o: Option[ISZ[TransformerMode.Type]] = parseTransformerModes(args, j + 1)
+           val o: Option[ISZ[SireumToolsTransgenTransformerMode.Type]] = parseSireumToolsTransgenTransformerModes(args, j + 1)
            o match {
              case Some(v) => modes = v
              case _ => return None()
@@ -3722,10 +3724,10 @@ import Cli._
         isOption = F
       }
     }
-    return Some(TransgenOption(help, parseArguments(args, j), exclude, modes, name, license, outputDir))
+    return Some(SireumToolsTransgenOption(help, parseArguments(args, j), exclude, modes, name, license, outputDir))
   }
 
-  def parseX(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumX(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
         st"""Sireum eXperimental
@@ -3737,31 +3739,31 @@ import Cli._
     }
     val opt = select("x", args, i, ISZ("server"))
     opt match {
-      case Some(string"server") => parseServer(args, i + 1)
+      case Some(string"server") => parseSireumXServer(args, i + 1)
       case _ => return None()
     }
   }
 
-  def parseServerMessageH(arg: String): Option[ServerMessage.Type] = {
+  def parseSireumXServerServerMessageH(arg: String): Option[SireumXServerServerMessage.Type] = {
     arg.native match {
-      case "msgpack" => return Some(ServerMessage.Msgpack)
-      case "json" => return Some(ServerMessage.Json)
+      case "msgpack" => return Some(SireumXServerServerMessage.Msgpack)
+      case "json" => return Some(SireumXServerServerMessage.Json)
       case s =>
         eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
         return None()
     }
   }
 
-  def parseServerMessage(args: ISZ[String], i: Z): Option[ServerMessage.Type] = {
+  def parseSireumXServerServerMessage(args: ISZ[String], i: Z): Option[SireumXServerServerMessage.Type] = {
     if (i >= args.size) {
       eprintln("Expecting one of the following: { msgpack, json }, but none found.")
       return None()
     }
-    val r = parseServerMessageH(args(i))
+    val r = parseSireumXServerServerMessageH(args(i))
     return r
   }
 
-  def parseServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumXServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Server
           |
@@ -3774,7 +3776,7 @@ import Cli._
           |                           is 1)
           |-h, --help               Display this information""".render
 
-    var message: ServerMessage.Type = ServerMessage.Msgpack
+    var message: SireumXServerServerMessage.Type = SireumXServerServerMessage.Msgpack
     var logika: Z = 1
     var j = i
     var isOption = T
@@ -3785,7 +3787,7 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "-m" || arg == "--message") {
-           val o: Option[ServerMessage.Type] = parseServerMessage(args, j + 1)
+           val o: Option[SireumXServerServerMessage.Type] = parseSireumXServerServerMessage(args, j + 1)
            o match {
              case Some(v) => message = v
              case _ => return None()
@@ -3805,7 +3807,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(ServerOption(help, parseArguments(args, j), message, logika))
+    return Some(SireumXServerOption(help, parseArguments(args, j), message, logika))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
@@ -3968,6 +3970,7 @@ import Cli._
     }
   }
 }
+// @formatter:on
 
 // BEGIN USER CODE
 
