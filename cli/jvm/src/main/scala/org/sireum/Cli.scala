@@ -129,8 +129,9 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val jar: Option[String],
-    val mainClass : Option[String],
-    val isNative : B,
+    val mainClass: Option[String],
+    val isNative: B,
+    val uber: B,
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -193,6 +194,46 @@ object Cli {
     val docs: B,
     val sources: B,
     val repositories: ISZ[String]
+  ) extends SireumTopOption
+
+  @enum object SireumProyekLogikaLogikaSolver {
+    'All
+    'Cvc4
+    'Z3
+  }
+
+  @datatype class SireumProyekLogikaOption(
+    val help: String,
+    val args: ISZ[String],
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val charBitWidth: Z,
+    val intBitWidth: Z,
+    val line: Z,
+    val sat: B,
+    val skipMethods: ISZ[String],
+    val skipTypes: ISZ[String],
+    val unroll: B,
+    val logPc: B,
+    val logRawPc: B,
+    val logVc: B,
+    val logVcDir: Option[String],
+    val par: B,
+    val ramFolder: Option[String],
+    val dontSplitFunQuant: B,
+    val splitAll: B,
+    val splitContract: B,
+    val splitIf: B,
+    val splitMatch: B,
+    val simplify: B,
+    val solver: SireumProyekLogikaLogikaSolver.Type,
+    val timeout: Z
   ) extends SireumTopOption
 
   @datatype class SireumProyekPublishOption(
@@ -1184,17 +1225,19 @@ import Cli._
             |assemble                 Proyek jar assembler
             |compile                  Proyek compiler
             |ive                      Sireum IVE proyek generator
+            |logika                   Sireum Logika for Proyek
             |publish                  Proyek publisher
             |run                      Proyek program runner
             |test                     Proyek test runner""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "publish", "run", "test"))
+    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "logika", "publish", "run", "test"))
     opt match {
       case Some(string"assemble") => parseSireumProyekAssemble(args, i + 1)
       case Some(string"compile") => parseSireumProyekCompile(args, i + 1)
       case Some(string"ive") => parseSireumProyekIve(args, i + 1)
+      case Some(string"logika") => parseSireumProyekLogika(args, i + 1)
       case Some(string"publish") => parseSireumProyekPublish(args, i + 1)
       case Some(string"run") => parseSireumProyekRun(args, i + 1)
       case Some(string"test") => parseSireumProyekTest(args, i + 1)
@@ -1213,6 +1256,7 @@ import Cli._
           |                           name) (expects a string)
           |-m, --main               The main class fully qualified name (expects a string)
           |    --native             Generates native image
+          |    --uber               Generates uber jar
           |-h, --help               Display this information
           |
           |Project Options:
@@ -1266,8 +1310,9 @@ import Cli._
           |                           ",")""".render
 
     var jar: Option[String] = None[String]()
-    var mainClass : Option[String] = None[String]()
-    var isNative : B = false
+    var mainClass: Option[String] = None[String]()
+    var isNative: B = false
+    var uber: B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -1304,13 +1349,19 @@ import Cli._
          } else if (arg == "-m" || arg == "--main") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => mainClass  = v
+             case Some(v) => mainClass = v
              case _ => return None()
            }
          } else if (arg == "--native") {
-           val o: Option[B] = { j = j - 1; Some(!isNative ) }
+           val o: Option[B] = { j = j - 1; Some(!isNative) }
            o match {
-             case Some(v) => isNative  = v
+             case Some(v) => isNative = v
+             case _ => return None()
+           }
+         } else if (arg == "--uber") {
+           val o: Option[B] = { j = j - 1; Some(!uber) }
+           o match {
+             case Some(v) => uber = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -1436,7 +1487,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), jar, mainClass , isNative , ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), jar, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1811,6 +1862,329 @@ import Cli._
       }
     }
     return Some(SireumProyekIveOption(help, parseArguments(args, j), force, ultimate, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+  }
+
+  def parseSireumProyekLogikaLogikaSolverH(arg: String): Option[SireumProyekLogikaLogikaSolver.Type] = {
+    arg.native match {
+      case "all" => return Some(SireumProyekLogikaLogikaSolver.All)
+      case "cvc4" => return Some(SireumProyekLogikaLogikaSolver.Cvc4)
+      case "z3" => return Some(SireumProyekLogikaLogikaSolver.Z3)
+      case s =>
+        eprintln(s"Expecting one of the following: { all, cvc4, z3 }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumProyekLogikaLogikaSolver(args: ISZ[String], i: Z): Option[SireumProyekLogikaLogikaSolver.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { all, cvc4, z3 }, but none found.")
+      return None()
+    }
+    val r = parseSireumProyekLogikaLogikaSolverH(args(i))
+    return r
+  }
+
+  def parseSireumProyekLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Logika for Proyek
+          |
+          |Usage: <options>* <file>*
+          |
+          |Available Options:
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
+          |    --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |    --project            The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
+          |                           a path)
+          |    --slice              Slice the project starting from the given module IDs
+          |                           and their dependencies (expects a string separated
+          |                           by ",")
+          |    --symlink            Follow symbolic link when searching for files
+          |-v, --versions           The properties file(s) containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects path strings)
+          |
+          |Bit-width Options:
+          |    --c-bitwidth         Bit-width representation for C (character) values
+          |                           (expected 8, 16, or 32) (expects an integer; default
+          |                           is 32)
+          |    --z-bitwidth         Bit-width representation for Z (integer) values
+          |                           (expected 0, 8, 16, 32, 64) (expects an integer;
+          |                           default is 0)
+          |
+          |Control Options:
+          |    --line               Focus verification to the specified program line
+          |                           number (expects an integer; default is 0)
+          |    --sat                Enable assumption satisfiability checking
+          |    --skip-methods       Skip checking methods with the specified
+          |                           fully-qualified names or identifiers (expects a
+          |                           string separated by ",")
+          |    --skip-types         Skip checking traits, classes, and objects with the
+          |                           specified fully-qualified names or identifiers
+          |                           (expects a string separated by ",")
+          |    --unroll             Enable loop unrolling when loop modifies clause is
+          |                           unspecified
+          |
+          |Logging Options:
+          |    --log-pc             Display path conditions before each statement
+          |    --log-raw-pc         Display raw path conditions before each statement
+          |    --log-vc             Display all verification conditions
+          |    --log-vc-dir         Write all verification conditions in a directory
+          |                           (expects a path)
+          |
+          |Optimizations Options:
+          |-p, --par                Enable parallelization
+          |    --ram-folder         RAM folder to temporarily store various artifacts
+          |                           (e.g., SMT2 solvers) (expects a path)
+          |
+          |Path Splitting Options:
+          |    --dont-split-pfq     Do not force splitting in quantifiers and proof
+          |                           functions derived from @strictpure methods
+          |    --split-all          Split all
+          |    --split-contract     Split on contract cases
+          |    --split-if           Split on if-conditional expressions and statements
+          |    --split-match        Split on match expressions and statements
+          |
+          |SMT2 Options:
+          |    --simplify           Simplify SMT2 query
+          |-m, --solver             Smt2 solver (expects one of { all, cvc4, z3 };
+          |                           default: all)
+          |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
+          |                           default is 2)""".render
+
+    var ignoreRuntime: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var slice: ISZ[String] = ISZ[String]()
+    var symlink: B = false
+    var versions: ISZ[String] = ISZ[String]()
+    var charBitWidth: Z = 32
+    var intBitWidth: Z = 0
+    var line: Z = 0
+    var sat: B = false
+    var skipMethods: ISZ[String] = ISZ[String]()
+    var skipTypes: ISZ[String] = ISZ[String]()
+    var unroll: B = false
+    var logPc: B = false
+    var logRawPc: B = false
+    var logVc: B = false
+    var logVcDir: Option[String] = None[String]()
+    var par: B = false
+    var ramFolder: Option[String] = None[String]()
+    var dontSplitFunQuant: B = false
+    var splitAll: B = false
+    var splitContract: B = false
+    var splitIf: B = false
+    var splitMatch: B = false
+    var simplify: B = false
+    var solver: SireumProyekLogikaLogikaSolver.Type = SireumProyekLogikaLogikaSolver.All
+    var timeout: Z = 2
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--slice") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "--c-bitwidth") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => charBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--z-bitwidth") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => intBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--line") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => line = v
+             case _ => return None()
+           }
+         } else if (arg == "--sat") {
+           val o: Option[B] = { j = j - 1; Some(!sat) }
+           o match {
+             case Some(v) => sat = v
+             case _ => return None()
+           }
+         } else if (arg == "--skip-methods") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => skipMethods = v
+             case _ => return None()
+           }
+         } else if (arg == "--skip-types") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => skipTypes = v
+             case _ => return None()
+           }
+         } else if (arg == "--unroll") {
+           val o: Option[B] = { j = j - 1; Some(!unroll) }
+           o match {
+             case Some(v) => unroll = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-pc") {
+           val o: Option[B] = { j = j - 1; Some(!logPc) }
+           o match {
+             case Some(v) => logPc = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-raw-pc") {
+           val o: Option[B] = { j = j - 1; Some(!logRawPc) }
+           o match {
+             case Some(v) => logRawPc = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-vc") {
+           val o: Option[B] = { j = j - 1; Some(!logVc) }
+           o match {
+             case Some(v) => logVc = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-vc-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => logVcDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--par") {
+           val o: Option[B] = { j = j - 1; Some(!par) }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "--ram-folder") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => ramFolder = v
+             case _ => return None()
+           }
+         } else if (arg == "--dont-split-pfq") {
+           val o: Option[B] = { j = j - 1; Some(!dontSplitFunQuant) }
+           o match {
+             case Some(v) => dontSplitFunQuant = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-all") {
+           val o: Option[B] = { j = j - 1; Some(!splitAll) }
+           o match {
+             case Some(v) => splitAll = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-contract") {
+           val o: Option[B] = { j = j - 1; Some(!splitContract) }
+           o match {
+             case Some(v) => splitContract = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-if") {
+           val o: Option[B] = { j = j - 1; Some(!splitIf) }
+           o match {
+             case Some(v) => splitIf = v
+             case _ => return None()
+           }
+         } else if (arg == "--split-match") {
+           val o: Option[B] = { j = j - 1; Some(!splitMatch) }
+           o match {
+             case Some(v) => splitMatch = v
+             case _ => return None()
+           }
+         } else if (arg == "--simplify") {
+           val o: Option[B] = { j = j - 1; Some(!simplify) }
+           o match {
+             case Some(v) => simplify = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--solver") {
+           val o: Option[SireumProyekLogikaLogikaSolver.Type] = parseSireumProyekLogikaLogikaSolver(args, j + 1)
+           o match {
+             case Some(v) => solver = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
   }
 
   def parseSireumProyekPublish(args: ISZ[String], i: Z): Option[SireumTopOption] = {

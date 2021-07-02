@@ -38,6 +38,7 @@ object Proyek {
   val INVALID_VERSIONS: Z = -7
   val INVALID_PUBLISH_DEP: Z = -8
   val INVALID_NATIVE_DEP: Z = -9
+  val INVALID_UBER: Z = -9
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -143,6 +144,11 @@ object Proyek {
       return code
     }
 
+    if (o.mainClass.isEmpty && o.uber) {
+      eprintln("Assembling an uber jar requires the main class name to be specified")
+      return INVALID_UBER
+    }
+
     val sireumHome = SireumApi.homeOpt.get
 
     if (o.isNative) {
@@ -205,7 +211,8 @@ object Proyek {
       jarName = o.jar.getOrElse(projectName),
       dm = dm,
       mainClassNameOpt = o.mainClass,
-      isNative = o.isNative
+      isNative = o.isNative,
+      isUber = o.uber
     )
 
     return r
@@ -309,6 +316,11 @@ object Proyek {
     )
 
     return r
+  }
+
+  def logika(o: Cli.SireumProyekLogikaOption): Z = {
+    println("Coming soon!")
+    return 0
   }
 
   def publish(o: Cli.SireumProyekPublishOption): Z = {
