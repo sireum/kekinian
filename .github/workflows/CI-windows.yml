@@ -56,7 +56,7 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set errorlevel=
-          call .ci\build.bat test-ci || goto :error
+          call .ci\build.bat test || goto :error
           call .ci\win-native.bat || goto :error
           goto :EOF
           :error
