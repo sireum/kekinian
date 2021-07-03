@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            bin\win\cvc4
+            bin\win\cvc4.exe
             bin\win\.cvc4.ver
             bin\win\z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
