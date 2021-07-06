@@ -58,7 +58,7 @@ def usage(): Unit = {
         |       | tipe             | compile[-js]       | test         | mill
         |       | regen-project    | regen-slang        | regen-logika | regen-air
         |       | regen-act        | regen-server       | regen-cliopt | regen-cli
-        |       | regen-fmide-cli  | m2[-lib]           | jitpack      | ghpack
+        |       | regen-fmide-cli  | m2[-lib[-js]]      | jitpack      | ghpack
         |       | cvc4             | z3                 | ram                      )*
       """.render)
 }
@@ -419,7 +419,7 @@ def m2(): Os.Path = {
   return kekinianRepo
 }
 
-def m2Lib(): Unit = {
+def m2Lib(isJs: B): Unit = {
   val repository = Os.home / ".m2" / "repository"
 
   def version: String = {
@@ -433,8 +433,8 @@ def m2Lib(): Unit = {
     }
     halt("Could not detect Slang library version")
   }
-
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} --version $version . org.sireum.kekinian".at(home).console.runCheck()
+  val target: String = if (isJs) "--target js" else "--target jvm"
+  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version . org.sireum.kekinian".at(home).console.runCheck()
 }
 
 def jitpack(): Unit = {
@@ -613,7 +613,8 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-cli" => regenCli()
       case string"regen-fmide-cli" => regenFmideCli()
       case string"m2" => m2()
-      case string"m2-lib" => m2Lib()
+      case string"m2-lib" => m2Lib(F)
+      case string"m2-lib-js" => m2Lib(T)
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"ram" => ram()
