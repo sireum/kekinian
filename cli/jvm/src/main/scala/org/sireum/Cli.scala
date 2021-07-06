@@ -2239,9 +2239,8 @@ import Cli._
           |Available Options:
           |    --m2                 Local m2 repository (defaults to the user home's .m2
           |                           directory) (expects a path)
-          |    --target             Local m2 repository (defaults to the user home's .m2
-          |                           directory) (expects one or more of { all, jvm, js };
-          |                           default: all)
+          |    --target             Publication target (expects one or more of { all, jvm,
+          |                           js }; default: all)
           |    --version            Publication version (defaults to using git commit
           |                           date, time, and abbreviated hash) (expects a string)
           |-h, --help               Display this information
