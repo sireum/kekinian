@@ -236,10 +236,17 @@ object Cli {
     val timeout: Z
   ) extends SireumTopOption
 
+  @enum object SireumProyekPublishTarget {
+    'All
+    'Jvm
+    'Js
+  }
+
   @datatype class SireumProyekPublishOption(
     val help: String,
     val args: ISZ[String],
     val m2: Option[String],
+    val target: ISZ[SireumProyekPublishTarget.Type],
     val version: Option[String],
     val ignoreRuntime: B,
     val json: Option[String],
@@ -2187,6 +2194,42 @@ import Cli._
     return Some(SireumProyekLogikaOption(help, parseArguments(args, j), ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
   }
 
+  def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
+    arg.native match {
+      case "all" => return Some(SireumProyekPublishTarget.All)
+      case "jvm" => return Some(SireumProyekPublishTarget.Jvm)
+      case "js" => return Some(SireumProyekPublishTarget.Js)
+      case s =>
+        eprintln(s"Expecting one of the following: { all, jvm, js }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumProyekPublishTarget(args: ISZ[String], i: Z): Option[SireumProyekPublishTarget.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { all, jvm, js }, but none found.")
+      return None()
+    }
+    val r = parseSireumProyekPublishTargetH(args(i))
+    return r
+  }
+
+  def parseSireumProyekPublishTargets(args: ISZ[String], i: Z): Option[ISZ[SireumProyekPublishTarget.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumProyekPublishTarget", ',', T)
+    if (tokensOpt.isEmpty) {
+      return None()
+    }
+    var r = ISZ[SireumProyekPublishTarget.Type]()
+    for (token <- tokensOpt.get) {
+      val e = parseSireumProyekPublishTargetH(token)
+      e match {
+        case Some(v) => r = r :+ v
+        case _ => return None()
+      }
+    }
+    return Some(r)
+  }
+
   def parseSireumProyekPublish(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Proyek Publisher
@@ -2196,6 +2239,9 @@ import Cli._
           |Available Options:
           |    --m2                 Local m2 repository (defaults to the user home's .m2
           |                           directory) (expects a path)
+          |    --target             Local m2 repository (defaults to the user home's .m2
+          |                           directory) (expects one or more of { all, jvm, js };
+          |                           default: all)
           |    --version            Publication version (defaults to using git commit
           |                           date, time, and abbreviated hash) (expects a string)
           |-h, --help               Display this information
@@ -2251,6 +2297,7 @@ import Cli._
           |                           ",")""".render
 
     var m2: Option[String] = None[String]()
+    var target: ISZ[SireumProyekPublishTarget.Type] = ISZ(SireumProyekPublishTarget.All)
     var version: Option[String] = None[String]()
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
@@ -2283,6 +2330,12 @@ import Cli._
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => m2 = v
+             case _ => return None()
+           }
+         } else if (arg == "--target") {
+           val o: Option[ISZ[SireumProyekPublishTarget.Type]] = parseSireumProyekPublishTargets(args, j + 1)
+           o match {
+             case Some(v) => target = v
              case _ => return None()
            }
          } else if (arg == "--version") {
@@ -2414,7 +2467,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekPublishOption(help, parseArguments(args, j), m2, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekPublishOption(help, parseArguments(args, j), m2, target, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {

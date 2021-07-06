@@ -355,7 +355,18 @@ object Proyek {
 
     println()
 
-    val dms: MSZ[project.DependencyManager] = for (isJs <- MSZ(F, T)) yield project.DependencyManager(
+    val targets: MSZ[B] = {
+      var ts = HashSSet.empty[B]
+      for (t <- o.target) {
+        t match {
+          case Cli.SireumProyekPublishTarget.All => ts = ts + F + T
+          case Cli.SireumProyekPublishTarget.Jvm => ts = ts + F
+          case Cli.SireumProyekPublishTarget.Js => ts = ts + T
+        }
+      }
+      ts.elements.toMS
+    }
+    val dms: MSZ[project.DependencyManager] = for (isJs <-targets) yield project.DependencyManager(
       project = prj,
       versions = versions,
       isJs = isJs,
