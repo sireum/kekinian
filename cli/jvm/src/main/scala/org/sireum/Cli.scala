@@ -56,6 +56,7 @@ object Cli {
     val platform: SireumHamrCodegenHamrPlatform.Type,
     val outputDir: Option[String],
     val packageName: Option[String],
+    val noProyekIve: B,
     val noEmbedArt: B,
     val devicesAsThreads: B,
     val slangAuxCodeDirs: ISZ[String],
@@ -619,6 +620,7 @@ import Cli._
           |                           (expects a path; default is ".")
           |-n, --package-name       Base package name for Slang project (output-dir's
           |                           simple name used if not provided) (expects a string)
+          |    --no-proyek-ive      Do not run Proyek IVE
           |    --no-embed-art       Do not embed ART project files
           |    --devices-as-thread  Treat AADL devices as threads
           |
@@ -656,6 +658,7 @@ import Cli._
     var platform: SireumHamrCodegenHamrPlatform.Type = SireumHamrCodegenHamrPlatform.JVM
     var outputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
+    var noProyekIve: B = false
     var noEmbedArt: B = false
     var devicesAsThreads: B = false
     var slangAuxCodeDirs: ISZ[String] = ISZ[String]()
@@ -705,6 +708,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-proyek-ive") {
+           val o: Option[B] = { j = j - 1; Some(!noProyekIve) }
+           o match {
+             case Some(v) => noProyekIve = v
              case _ => return None()
            }
          } else if (arg == "--no-embed-art") {
@@ -794,7 +803,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, platform, outputDir, packageName, noEmbedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, platform, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {

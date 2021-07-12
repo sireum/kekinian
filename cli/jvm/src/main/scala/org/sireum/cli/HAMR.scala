@@ -28,9 +28,8 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Os.Path
-import org.sireum.hamr.codegen._
-import org.sireum.hamr.codegen.common.containers.TranspilerConfig
-import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
+import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, TranspilerConfig}
+import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.message._
 
@@ -87,6 +86,8 @@ object HAMR {
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
+               //
+               noProyekIve: B,
                noEmbedArt: B,
                devicesAsThreads: B,
                //
@@ -115,6 +116,7 @@ object HAMR {
       //
       outputDir = slangOutputDir,
       packageName = slangPackageName,
+      noProyekIve = noProyekIve,
       noEmbedArt = noEmbedArt,
       devicesAsThreads = devicesAsThreads,
       //
@@ -138,38 +140,11 @@ object HAMR {
 
   def codeGenH2(model: Aadl, o: Cli.SireumHamrCodegenOption): Z = {
 
-    val ops = CodeGenConfig(
-      writeOutResources = T,
-      ipc = CodeGenIpcMechanism.SharedMemory,
-      //
-      verbose = o.verbose,
-      platform = CodeGenPlatform.byName(o.platform.name).get,
-      //
-      slangOutputDir = o.outputDir,
-      packageName = o.packageName,
-      noEmbedArt = o.noEmbedArt,
-      devicesAsThreads = o.devicesAsThreads,
-      //
-      slangAuxCodeDirs = o.slangAuxCodeDirs,
-      slangOutputCDir = o.slangOutputCDir,
-      excludeComponentImpl = o.excludeComponentImpl,
-      bitWidth = o.bitWidth,
-      maxStringSize = o.maxStringSize,
-      maxArraySize = o.maxArraySize,
-      runTranspiler = o.runTranspiler,
-      //
-      camkesOutputDir = o.camkesOutputDir,
-      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
-      aadlRootDir = o.aadlRootDir,
-      //
-      experimentalOptions = o.experimentalOptions
-    )
-
     var reporter = Reporter.create
 
     // call back function
     def transpile(ao: TranspilerConfig): Z = {
-      val to = Cli.SireumSlangTranspilersCOption(
+      val sstco = Cli.SireumSlangTranspilersCOption(
         help = "",
         args = ISZ(),
         sourcepath = ao.sourcepath,
@@ -197,13 +172,36 @@ object HAMR {
         strictAliasing = F
       )
       
-      val result: Z = CTranspiler.run(to)
-
-      return result
+      return CTranspiler.run(sstco)
     }
 
-    val results = SireumApi.hamrCodeGen(model, ops, reporter, transpile _ )
-    
+    // call back function
+    def proyekIve(po: ProyekIveConfig): Z = {
+      val spivo = Cli.SireumProyekIveOption(
+        help = po.help,
+        args = po.args,
+        force = po.force,
+        ultimate = po.ultimate,
+        ignoreRuntime= po.ignoreRuntime,
+        json = po.json,
+        name = po.name,
+        outputDirName = po.outputDirName,
+        project = po.project,
+        slice = po.slice,
+        symlink = po.symlink,
+        versions = po.versions,
+        cache = po.cache,
+        docs = po.docs,
+        sources = po.sources,
+        repositories = po.repositories
+      )
+      return Proyek.ive(spivo)
+    }
+
+    val ops = toCodeGenOptions(o)
+
+    val results = SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _ )
+
     return if(reporter.hasError) 1 else 0
   }
 
@@ -217,6 +215,7 @@ object HAMR {
       //
       slangOutputDir = o.outputDir,
       packageName = o.packageName,
+      noProyekIve = o.noProyekIve,
       noEmbedArt = o.noEmbedArt,
       devicesAsThreads = o.devicesAsThreads,
       //

@@ -102,5 +102,6 @@ import org.sireum._
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
                   reporter: message.Reporter,
-                  transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z): hamr.codegen.common.util.CodeGenResults = $
+                  transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z,
+                  proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $
 }
