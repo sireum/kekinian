@@ -41,6 +41,10 @@ object Phantom {
         return -1
     }
 
+    if(!SireumApi.homeFound) {
+      return -1
+    }
+
     val osate: Option[Os.Path] = o.osate match {
       case Some(d) =>
         val cand = Os.path(d)
@@ -100,7 +104,7 @@ object Phantom {
 
     val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, o.quiet)
 
-    val ret: Z = phantom.getOsateExe match {
+    val ret: Z = phantom.getOsateExe(SireumApi.homeOpt.get) match {
       case Some(osateExe) =>
         var ret: Z = 0
         var features = ISZ[org.sireum.hamr.phantom.Phantom.Feature]()
