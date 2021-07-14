@@ -28,6 +28,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Cli.SireumHamrPhantomOption
+import org.sireum.hamr.phantom.Phantom.{Feature => PFeature}
 
 object Phantom {
 
@@ -107,7 +108,7 @@ object Phantom {
     val ret: Z = phantom.getOsateExe(SireumApi.homeOpt.get) match {
       case Some(osateExe) =>
         var ret: Z = 0
-        var features = ISZ[org.sireum.hamr.phantom.Phantom.Feature]()
+        var features = ISZ[PFeature]()
         for (feature <- o.features) {
           ops.StringOps(feature).split((c: C) => c === '=') match {
             case ISZ(featureId, url) =>
@@ -118,7 +119,17 @@ object Phantom {
           }
         }
 
-        if (o.update || !phantom.pluginsInstalled(osateExe)) {
+        val cliFeature: PFeature = PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
+        val hamrFeature: PFeature = PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
+
+        def add(f: PFeature, _features: ISZ[PFeature]): ISZ[PFeature] = {
+          if(!ops.ISZOps(_features).exists(p => p.id == f.id)) { return _features :+ f }
+          else { return _features }
+        }
+
+        features = add(hamrFeature, add(cliFeature, features))
+
+        if (ret == 0 && (o.update || !phantom.featuresInstalled(features, osateExe))) {
           ret = phantom.update(osateExe, features)
         }
 

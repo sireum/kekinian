@@ -832,7 +832,7 @@ import Cli._
           |Usage: ${st"""
                   |    phantom --update [--osate <path>] [--features <config>]
                   |
-                  |      Just update/install Sireum OSATE plugins
+                  |      Just update/install features
                   |
                   |or: phantom [<options>] [<project-directory>]
                   |
@@ -858,8 +858,9 @@ import Cli._
           |                           path)
           |-u, --update             Update (or install) Sireum OSATE plugins
           |    --features           Plugin features to update/install, each of the form
-          |                           <feature-id>=<repo-url-1>,...,<repo-url-N> (expects
-          |                           a string separated by ";")
+          |                           <feature-id>=<repo-url-1>,...,<repo-url-N>. Latest
+          |                           Sireum plugins installed if not provided (expects a
+          |                           string separated by ";")
           |-v, --version            OSATE version (expects a string; default is
           |                           "2.9.2-vfinal")""".render
 
