@@ -17,7 +17,7 @@ val fmideTool: Tool = Tool(
     Opt(name = "eclipse", longKey = "eclipse", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("2020-06")), description = "Eclipse release version"),
     Opt(name = "hamr", longKey = "hamr", shortKey = None(),
-      tpe = Type.Str(sep = None(), default = Some("CASE-Tool-Assessment-4")), description = "Sireum HAMR version"),
+      tpe = Type.Str(sep = None(), default = Some("1.0.2107141642.88909b5")), description = "Sireum HAMR version"),
     Opt(name = "osate", longKey = "osate", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("2.9.0-vfinal")), description = "OSATE version"),
     Opt(name = "resolute", longKey = "resolute", shortKey = None(),

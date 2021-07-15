@@ -56,7 +56,7 @@ import Cli._
           |    --eclipse            Eclipse release version (expects a string; default is
           |                           "2020-06")
           |    --hamr               Sireum HAMR version (expects a string; default is
-          |                           "CASE-Tool-Assessment-4")
+          |                           "1.0.2107141642.88909b5")
           |    --osate              OSATE version (expects a string; default is
           |                           "2.9.0-vfinal")
           |    --resolute           Resolute version (expects a string; default is
@@ -66,7 +66,7 @@ import Cli._
     var agree: Option[String] = Some("agree_2.7.0")
     var briefcase: Option[String] = Some("briefcase_0.5.1")
     var eclipse: Option[String] = Some("2020-06")
-    var hamr: Option[String] = Some("CASE-Tool-Assessment-4")
+    var hamr: Option[String] = Some("1.0.2107141642.88909b5")
     var osate: Option[String] = Some("2.9.0-vfinal")
     var resolute: Option[String] = Some("resolute_2.7.1")
     var j = i
@@ -376,11 +376,12 @@ val briefCaseId = "com.collins.trustedsystems.briefcase.feature.feature.group"
 val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,https://raw.githubusercontent.com/loonwerks/BriefCASE-Updates/master"
 val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase.get)
 
+val hamrCliId = "org.sireum.aadl.osate.cli.feature.feature.group"
 val hamrId = "org.sireum.aadl.osate.hamr.feature.feature.group"
-val hamrUrl = "https://raw.githubusercontent.com/sireum/hamr-plugin-update-site"
-val hamrVersion: String = if (isFixed) "CASE-Tool-Assessment-4" else "master"
+val hamrUrl = "https://raw.githubusercontent.com/sireum/osate-update-site/master"
+val hamrVersion: String = lookupVersion("HAMR", hamrUrl, option.hamr.get)
 
-val features = s"$hamrId=$hamrUrl/$hamrVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
+val features = s"$hamrCliId=$hamrUrl/$hamrVersion;$hamrId=$hamrUrl/$hamrVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
 val verContent = s"eclipse=$eclipseVersion;osate=$osateVersion;$features"
 val ver: Os.Path = if (Os.isMac) fmideDir / "Contents" / "Eclipse" / "VER"  else fmideDir / "VER"
 
@@ -398,9 +399,15 @@ proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion
 for (p <- temp.list if ops.StringOps(p.name).startsWith("osate-")) {
   p.moveTo(fmideDir)
   Os.kind match {
-    case Os.Kind.Linux => (fmideDir / "osate").moveTo(fmideDir / "fmide")
-    case Os.Kind.Win => (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
-    case Os.Kind.Mac => proc"xattr -rd com.apple.quarantine $fmideDir".runCheck()
+    case Os.Kind.Linux =>
+      (fmideDir / "osate").moveTo(fmideDir / "fmide")
+      (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
+    case Os.Kind.Win =>
+      (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
+      (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
+    case Os.Kind.Mac =>
+      proc"xattr -rd com.apple.quarantine $fmideDir".runCheck()
+      // don't need to move osate.ini to fmide.ini for Mac
     case _ =>
   }
 }
