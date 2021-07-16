@@ -104,4 +104,8 @@ import org.sireum._
                   reporter: message.Reporter,
                   transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $
+
+  def run(args: ISZ[String]): Z = $
+
+  def initRuntimeLibrary(): Unit = $
 }

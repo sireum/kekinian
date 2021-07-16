@@ -32,40 +32,7 @@ import org.sireum.project.DependencyManager
 object Sireum {
 
   def main(args: Array[Predef.String]): Unit = {
-    args match {
-      case Array("-v") =>
-        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
-      case Array("--version") =>
-        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
-        println()
-        println(versions)
-      case _ =>
-        System.exit(Cli(File.pathSeparatorChar).parseSireum(ISZ(args.toSeq.map(s => s: String): _*), 0) match {
-          case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create).toInt
-          case Some(o: Cli.SireumSlangRunOption) => cli.SlangRunner.run(o).toInt
-          case Some(o: Cli.SireumSlangTranspilersCOption) => cli.CTranspiler.run(o).toInt
-          case Some(o: Cli.SireumToolsBcgenOption) => cli.GenTools.bcGen(o).toInt
-          case Some(o: Cli.SireumToolsCheckstackOption) => cli.CheckStack.run(o).toInt
-          case Some(o: Cli.SireumToolsCligenOption) => cli.GenTools.cliGen(o).toInt
-          case Some(o: Cli.SireumToolsIvegenOption) => cli.GenTools.iveGen(o).toInt
-          case Some(o: Cli.SireumToolsSergenOption) => cli.GenTools.serGen(o).toInt
-          case Some(o: Cli.SireumToolsTransgenOption) => cli.GenTools.transGen(o).toInt
-          case Some(o: Cli.SireumHamrCodegenOption) => cli.HAMR.codeGen(o).toInt
-          case Some(o: Cli.SireumHamrPhantomOption) => cli.Phantom.run(o).toInt
-          case Some(o: Cli.SireumLogikaVerifierOption) => cli.Logika.run(o).toInt
-          case Some(o: Cli.SireumXServerOption) => server.Server.run(version,
-            o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika).toInt
-          case Some(o: Cli.SireumProyekIveOption) => cli.Proyek.ive(o).toInt
-          case Some(o: Cli.SireumProyekAssembleOption) => cli.Proyek.assemble(o).toInt
-          case Some(o: Cli.SireumProyekCompileOption) => cli.Proyek.compile(o).toInt
-          case Some(o: Cli.SireumProyekLogikaOption) => cli.Proyek.logika(o).toInt
-          case Some(o: Cli.SireumProyekPublishOption) => cli.Proyek.publish(o).toInt
-          case Some(o: Cli.SireumProyekRunOption) => cli.Proyek.run(o).toInt
-          case Some(o: Cli.SireumProyekTestOption) => cli.Proyek.test(o).toInt
-          case Some(_: Cli.HelpOption) => 0
-          case _ => -1
-        })
-    }
+    System.exit(run(ISZ(args.toSeq.map(s => s: String): _*)).toInt)
   }
 
   def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): ISZ[Os.Path] = {
@@ -338,4 +305,46 @@ object Sireum {
     }
   }
 
+  def run(args: ISZ[String]): Z = {
+    args match {
+      case ISZ(string"-v") =>
+        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
+        return 0
+      case ISZ(string"--version") =>
+        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
+        println()
+        println(versions)
+        return 0
+      case _ =>
+        Cli(File.pathSeparatorChar).parseSireum(args, 0) match {
+          case Some(o: Cli.SireumSlangTipeOption) => return cli.SlangTipe.run(o, Reporter.create)
+          case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
+          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o)
+          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o)
+          case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
+          case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
+          case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
+          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o)
+          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o)
+          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
+          case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
+          case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
+          case Some(o: Cli.SireumXServerOption) => return server.Server.run(version,
+            o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika)
+          case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
+          case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
+          case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
+          case Some(o: Cli.SireumProyekLogikaOption) => return cli.Proyek.logika(o)
+          case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
+          case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
+          case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
+          case Some(_: Cli.HelpOption) => return 0
+          case _ => return -1
+        }
+    }
+  }
+
+  def initRuntimeLibrary(): Unit = {
+    org.sireum.lang.FrontEnd.checkedLibraryReporter
+  }
 }
