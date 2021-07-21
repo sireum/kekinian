@@ -26,10 +26,8 @@
 /resources/vagrant/.vagrant
 out
 project.json
-Scratch.scala
-Scratch.sc
-scratch.scala
-scratch.sc
+Scratch.*
+scratch.*
 stale_outputs_checked
 *.cmd.jar
 *.cmd.com
