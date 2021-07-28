@@ -388,21 +388,21 @@ def patchImages(): Unit = {
   if (isUltimate) {
     return
   }
-  val resourcesJar = libDir / "resources.jar"
+  val platformImplJar = libDir / "platform-impl.jar"
   val distroDir = home / "resources" / "distro"
-  print(s"Patching $resourcesJar ... ")
+  print(s"Patching $platformImplJar ... ")
   (distroDir / "idea").removeAll()
-  proc"$pwd7z x $resourcesJar idea${Os.fileSep}IdeaApplicationInfo.xml".at(distroDir).runCheck()
+  proc"$pwd7z x $platformImplJar idea${Os.fileSep}IdeaApplicationInfo.xml".at(distroDir).runCheck()
   val iai = distroDir / "idea" / "IdeaApplicationInfo.xml"
   val content = iai.read
   iai.writeOver(
     ops.StringOps(ops.StringOps(content).
       replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "svg-small=\"/idea-ce_16.png\"")).
       replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", "svg-small=\"/idea-ce_16.png\""))
-  proc"$pwd7z a $resourcesJar idea${Os.fileSep}IdeaApplicationInfo.xml".at(distroDir).runCheck()
+  proc"$pwd7z a $platformImplJar idea${Os.fileSep}IdeaApplicationInfo.xml".at(distroDir).runCheck()
   (distroDir / "idea").removeAll()
-  proc"$pwd7z d $resourcesJar idea-ce_16.svg idea-ce_16@2x.svg idea-ce-eap_16.svg idea-ce-eap_16@2x.svg".at(distroDir / "images").runCheck()
-  proc"$pwd7z a $resourcesJar idea_community_about.png idea_community_about@2x.png idea_community_logo.png idea_community_logo@2x.png idea-ce.svg idea-ce-eap.svg idea-ce_16.png idea-ce_16@2x.png".
+  proc"$pwd7z d $platformImplJar idea-ce_16.svg idea-ce_16@2x.svg idea-ce-eap_16.svg idea-ce-eap_16@2x.svg".at(distroDir / "images").runCheck()
+  proc"$pwd7z a $platformImplJar idea_community_about.png idea_community_about@2x.png idea_community_logo.png idea_community_logo@2x.png idea-ce.svg idea-ce-eap.svg idea-ce_16.png idea-ce_16@2x.png".
     at(distroDir / "images" / (if (isDev) "dev" else "release")).runCheck()
   println("done!")
 }
