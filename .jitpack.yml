@@ -3,4 +3,5 @@ jdk:
 before_install:
   - export SIREUM_HOME=`pwd`
 install:
+  - unset JAVA_TOOL_OPTIONS
   - bin/build.cmd m2
