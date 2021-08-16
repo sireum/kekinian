@@ -599,8 +599,7 @@ object Proyek {
         eprintln(s"$f is not a .cmd Slash script file")
         return None()
       }
-      val r = proc"$f json".env(ISZ("SIREUM_HOME" ~> SireumApi.homeOpt.get.string)).
-        console.outLineAction((s: String) => project.ProjectUtil.projectJsonLine(s).isEmpty).redirectErr.run()
+      val r = proc"$f json".env(ISZ("SIREUM_HOME" ~> SireumApi.homeOpt.get.string)).console.redirectErr.run()
       if (r.ok) {
         project.ProjectUtil.projectJsonLine(r.out) match {
           case Some(line) =>
@@ -608,7 +607,8 @@ object Proyek {
               case Either.Left(pr) =>
                 prj = pr
               case _ =>
-                eprintln(s"Ill-defined project file $f")
+                eprintln(s"Ill-defined project file $f producing:")
+                eprintln(line)
                 return None()
             }
           case _ =>
