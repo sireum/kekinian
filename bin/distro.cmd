@@ -468,7 +468,7 @@ def patchIcon(isWin: B): Unit = {
   if (isWin) {
     patchExe()
   }
-  val iconsJar = libDir / "icons.jar"
+  val iconsJar = libDir / "platform-impl.jar"
   print(s"Patching $iconsJar ... ")
   val entriesToUpdate: ISZ[String] =
     for (f <- ISZ[String](
