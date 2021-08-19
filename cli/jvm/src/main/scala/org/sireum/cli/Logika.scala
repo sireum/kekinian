@@ -172,10 +172,10 @@ object Logika {
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
           val reporter = logika.Logika.Reporter.create
           val content = f.read
-          logika.Logika.checkScript(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(), config.timeoutInMs, config.charBitWidth,
-              config.intBitWidth, config.simplifiedQuery, reporter), reporter, o.par, T, plugins, o.line, o.skipMethods,
-              o.skipTypes)
+          logika.Logika.checkScript(Some(f.value), content, config,
+            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
+              config.charBitWidth, config.intBitWidth, config.simplifiedQuery, reporter),
+            logika.Smt2.NoCache(), reporter, o.par, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -252,9 +252,9 @@ object Logika {
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
-        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, logika.Smt2Impl.NoCache(),
-          config.timeoutInMs, config.charBitWidth, config.intBitWidth, config.simplifiedQuery, reporter), reporter,
-          o.par, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs, config.charBitWidth,
+          config.intBitWidth, config.simplifiedQuery, reporter),
+        logika.Smt2.NoCache(), reporter, o.par, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) ILL_FORMED_PROGRAMS else 0
     }
