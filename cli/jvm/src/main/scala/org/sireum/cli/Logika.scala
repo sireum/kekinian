@@ -34,19 +34,19 @@ object Logika {
   val INVALID_MODE: Z = -1
   val INVALID_SCRIPT_FILE: Z = -2
   val ILL_FORMED_SCRIPT_FILE: Z = -3
-  val INVALID_CHAR_WIDTH: Z = -4
-  val INVALID_INT_WIDTH: Z = -5
-  val INVALID_VC_DIR: Z = -6
-  val INVALID_RAM_DIR: Z = -7
-  val INVALID_SOURCE_PATH: Z = -8
-  val INVALID_SOURCE_FILE: Z = -9
-  val ILL_FORMED_PROGRAMS: Z = -10
+  val INVALID_VC_DIR: Z = -4
+  val INVALID_SOURCE_PATH: Z = -5
 
   def run(o: Cli.SireumLogikaVerifierOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
       return 0
+    }
+
+    if (o.line != 0 && o.args.size != 1) {
+      eprintln("Line focused verification can only be used for checking a single file")
+      return Proyek.INVALID_LINE
     }
 
     if (o.noRuntime && o.sourcepath.isEmpty) {
@@ -60,7 +60,7 @@ object Logika {
       case z"32" =>
       case _ =>
         eprintln(s"C (character) bit-width has to be 8, 16, or 32 (instead of ${o.charBitWidth})")
-        return INVALID_CHAR_WIDTH
+        return Proyek.INVALID_CHAR_WIDTH
     }
 
     o.intBitWidth match {
@@ -71,7 +71,7 @@ object Logika {
       case z"64" =>
       case _ =>
         eprintln(s"Z (integer) bit-width has to be 0 (arbitrary-precision), 8, 16, 32, or 64 (instead of ${o.intBitWidth})")
-        return INVALID_INT_WIDTH
+        return Proyek.INVALID_INT_WIDTH
     }
 
     var smt2Configs = ISZ[logika.Smt2Config]()
@@ -83,7 +83,7 @@ object Logika {
           Some(rfp)
         } else {
           eprintln(s"$rf is not a directory")
-          return INVALID_RAM_DIR
+          return Proyek.INVALID_RAM_DIR
         }
       case _ => None()
     }
@@ -239,7 +239,7 @@ object Logika {
         val p = Os.path(f)
         if (!p.exists) {
           eprintln(s"$p is not a source file")
-          return INVALID_SOURCE_FILE
+          return Proyek.INVALID_SOURCE_FILE
         }
         files = files :+ p.canon.toUri
       }
@@ -256,7 +256,7 @@ object Logika {
           config.intBitWidth, config.simplifiedQuery, reporter),
         logika.Smt2.NoCache(), reporter, o.par, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
-      return if (reporter.hasError) ILL_FORMED_PROGRAMS else 0
+      return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }
 
     val code: Z =

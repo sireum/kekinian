@@ -26,7 +26,9 @@
 package org.sireum.cli
 
 import org.sireum._
+import org.sireum.logika.Smt2
 import org.sireum.project.DependencyManager
+import org.sireum.proyek.LogikaProyek
 
 object Proyek {
   val HOME_NOT_FOUND: Z = -1
@@ -39,6 +41,12 @@ object Proyek {
   val INVALID_PUBLISH_DEP: Z = -8
   val INVALID_NATIVE_DEP: Z = -9
   val INVALID_UBER: Z = -9
+  val INVALID_LINE: Z = -10
+  val INVALID_SOURCE_FILE: Z = -11
+  val INVALID_CHAR_WIDTH: Z = -12
+  val INVALID_INT_WIDTH: Z = -13
+  val INVALID_RAM_DIR: Z = -14
+  val ILL_FORMED_PROGRAMS: Z = -15
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -319,8 +327,158 @@ object Proyek {
   }
 
   def logika(o: Cli.SireumProyekLogikaOption): Z = {
-    println("Coming soon!")
-    return 0
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    if (o.line != 0 && o.args.size != 2) {
+      eprintln("Line focused verification can only be used for checking a single file")
+      return INVALID_LINE
+    }
+
+    if (o.args.size == 1 && !o.all) {
+      eprintln("Either specify file(s) to check or supply the --all option")
+      return INVALID_ARGS
+    }
+
+    var files = HashSMap.empty[String, String]
+    for (i <- 1 until o.args.size) {
+      val arg = o.args(i)
+      val p = Os.path(arg)
+      var ok = F
+      if (p.isFile && (p.ext == "slang" || p.ext == "scala")) {
+        val content = p.read
+        if (org.sireum.lang.parser.Parser.detectSlang(Some(p.toUri), content)._1) {
+          ok = T
+          files = files + p.canon.string ~> content
+        }
+      }
+      if (!ok) {
+        eprintln(s"$arg is not a Slang file")
+        return INVALID_SOURCE_FILE
+      }
+    }
+
+    o.charBitWidth match {
+      case z"8" =>
+      case z"16" =>
+      case z"32" =>
+      case _ =>
+        eprintln(s"C (character) bit-width has to be 8, 16, or 32 (instead of ${o.charBitWidth})")
+        return INVALID_CHAR_WIDTH
+    }
+
+    o.intBitWidth match {
+      case z"0" =>
+      case z"8" =>
+      case z"16" =>
+      case z"32" =>
+      case z"64" =>
+      case _ =>
+        eprintln(s"Z (integer) bit-width has to be 0 (arbitrary-precision), 8, 16, 32, or 64 (instead of ${o.intBitWidth})")
+        return INVALID_INT_WIDTH
+    }
+
+    var smt2Configs = ISZ[org.sireum.logika.Smt2Config]()
+    val rfOpt: Option[Os.Path] = o.ramFolder match {
+      case Some(rf) =>
+        val rfp = Os.path(rf)
+        if (rfp.isDir) {
+          rfp.removeAll()
+          Some(rfp)
+        } else {
+          eprintln(s"$rf is not a directory")
+          return INVALID_RAM_DIR
+        }
+      case _ => None()
+    }
+    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc4) {
+      val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
+      SireumApi.homeOpt match {
+        case Some(home) =>
+          val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
+          val exe: String = rfOpt match {
+            case Some(rfp) =>
+              val d = rfp / "sireum"
+              d.mkdirAll()
+              val f = d / p.name
+              if (!(f.isFile && f.length == p.length)) {
+                f.removeAll()
+                p.copyOverTo(f)
+              }
+              f.string
+            case _ => p.string
+          }
+          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe)
+        case _ =>
+          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename)
+      }
+    }
+    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
+      val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
+      SireumApi.homeOpt match {
+        case Some(home) =>
+          val p: Os.Path = home / "bin" / SireumApi.platform / "z3" / "bin" / exeFilename
+          val exe: String = rfOpt match {
+            case Some(rfp) =>
+              val d = rfp / "sireum"
+              d.mkdirAll()
+              val f = d / p.name
+              if (!(f.isFile && f.length == p.length)) {
+                f.removeAll()
+                p.copyOverTo(f)
+              }
+              f.string
+            case _ => p.string
+          }
+          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exe)
+        case _ =>
+          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exeFilename)
+      }
+    }
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = F,
+      withSource = F,
+      withDoc = F,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+      o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc, o.logVcDir,
+      o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify)
+
+    val reporter = org.sireum.logika.Logika.Reporter.create
+    val lcode = LogikaProyek.run(
+      root = path,
+      project = prj,
+      dm = dm,
+      thMapBox = MBox(HashMap.empty),
+      config = config,
+      cache = Smt2.NoCache(),
+      files = files,
+      line = 0,
+      par = o.par,
+      strictAliasing = o.strictAliasing,
+      followSymLink = o.symlink,
+      all = o.all,
+      verify = T,
+      plugins = org.sireum.logika.Logika.defaultPlugins,
+      skipMethods = o.skipMethods,
+      skipTypes = o.skipTypes,
+      reporter = reporter
+    )
+    reporter.printMessages()
+    return if (lcode == 0) 0 else ILL_FORMED_PROGRAMS
   }
 
   def publish(o: Cli.SireumProyekPublishOption): Z = {
@@ -549,6 +707,57 @@ object Proyek {
     )
 
     return r
+  }
+
+  def tipe(o: Cli.SireumProyekTipeOption): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    if (o.args.size > 1) {
+      eprintln(st"Unexpected command line arguments: ${(ops.ISZOps(o.args).drop(1), " ")}".render)
+      return INVALID_ARGS
+    }
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = F,
+      withSource = F,
+      withDoc = F,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    val reporter = org.sireum.logika.Logika.Reporter.create
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, None(), F, F, F, F, F, F)
+    val lcode = LogikaProyek.run(
+      root = path,
+      project = prj,
+      dm = dm,
+      thMapBox = MBox(HashMap.empty),
+      config = config,
+      cache = Smt2.NoCache(),
+      files = HashSMap.empty,
+      line = 0,
+      par = T, // o.par,
+      strictAliasing = T,
+      followSymLink = F,
+      all = T,
+      verify = F,
+      plugins = ISZ(),
+      skipMethods = ISZ(),
+      skipTypes = ISZ(),
+      reporter = reporter
+    )
+    reporter.printMessages()
+    return if (lcode == 0) 0 else ILL_FORMED_PROGRAMS
   }
 
   def getPath(args: ISZ[String]): Option[Os.Path] = {

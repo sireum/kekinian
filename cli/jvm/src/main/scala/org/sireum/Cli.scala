@@ -206,6 +206,8 @@ object Cli {
   @datatype class SireumProyekLogikaOption(
     val help: String,
     val args: ISZ[String],
+    val all: B,
+    val strictAliasing: B,
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -214,6 +216,10 @@ object Cli {
     val slice: ISZ[String],
     val symlink: B,
     val versions: ISZ[String],
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String],
     val charBitWidth: Z,
     val intBitWidth: Z,
     val line: Z,
@@ -318,6 +324,25 @@ object Cli {
     val scalac: ISZ[String],
     val sha3: B,
     val skipCompile: B,
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
+  ) extends SireumTopOption
+
+  @datatype class SireumProyekTipeOption(
+    val help: String,
+    val args: ISZ[String],
+    val par: B,
+    val strictAliasing: B,
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
     val sources: B,
@@ -856,7 +881,7 @@ import Cli._
           |-o, --osate              Existing OSATE installation path, otherwise an
           |                           internal version of OSATE will be used (expects a
           |                           path)
-          |-u, --update             Update (or install) Sireum OSATE plugins
+          |-u, --update             Update (or install) features
           |    --features           Plugin features to update/install, each of the form
           |                           <feature-id>=<repo-url-1>,...,<repo-url-N>. Latest
           |                           Sireum plugins installed if not provided (expects a
@@ -1245,11 +1270,12 @@ import Cli._
             |logika                   Sireum Logika for Proyek
             |publish                  Proyek publisher
             |run                      Proyek program runner
-            |test                     Proyek test runner""".render
+            |test                     Proyek test runner
+            |tipe                     Slang proyek type checker""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "logika", "publish", "run", "test"))
+    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "logika", "publish", "run", "test", "tipe"))
     opt match {
       case Some(string"assemble") => parseSireumProyekAssemble(args, i + 1)
       case Some(string"compile") => parseSireumProyekCompile(args, i + 1)
@@ -1258,6 +1284,7 @@ import Cli._
       case Some(string"publish") => parseSireumProyekPublish(args, i + 1)
       case Some(string"run") => parseSireumProyekRun(args, i + 1)
       case Some(string"test") => parseSireumProyekTest(args, i + 1)
+      case Some(string"tipe") => parseSireumProyekTipe(args, i + 1)
       case _ => return None()
     }
   }
@@ -1905,9 +1932,11 @@ import Cli._
     val help =
       st"""Sireum Logika for Proyek
           |
-          |Usage: <options>* <file>*
+          |Usage: <options>* <dir> <file>*
           |
           |Available Options:
+          |    --all                Check all Slang files
+          |    --strict-aliasing    Enable strict aliasing check
           |-h, --help               Display this information
           |
           |Project Options:
@@ -1932,6 +1961,17 @@ import Cli._
           |-v, --versions           The properties file(s) containing version information
           |                           (defaults to <dir>${Os.fileSep}versions.properties)
           |                           (expects path strings)
+          |
+          |Ivy Dependencies Options:
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
+          |                           cache directory) (expects a path)
+          |    --no-docs            Disable retrieval of javadoc files from Ivy
+          |                           dependencies
+          |    --no-sources         Disable retrieval of source files from Ivy
+          |                           dependencies
+          |-r, --repositories       Additional repository URLs to retrieve Ivy
+          |                           dependencies from (expects a string separated by
+          |                           ",")
           |
           |Bit-width Options:
           |    --c-bitwidth         Bit-width representation for C (character) values
@@ -1981,6 +2021,8 @@ import Cli._
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)""".render
 
+    var all: B = false
+    var strictAliasing: B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -1989,6 +2031,10 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
+    var cache: Option[String] = None[String]()
+    var docs: B = true
+    var sources: B = true
+    var repositories: ISZ[String] = ISZ[String]()
     var charBitWidth: Z = 32
     var intBitWidth: Z = 0
     var line: Z = 0
@@ -2018,7 +2064,19 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--ignore-runtime") {
+        } else if (arg == "--all") {
+           val o: Option[B] = { j = j - 1; Some(!all) }
+           o match {
+             case Some(v) => all = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
            val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
            o match {
              case Some(v) => ignoreRuntime = v
@@ -2064,6 +2122,30 @@ import Cli._
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--cache") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => cache = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-docs") {
+           val o: Option[B] = { j = j - 1; Some(!docs) }
+           o match {
+             case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-sources") {
+           val o: Option[B] = { j = j - 1; Some(!sources) }
+           o match {
+             case Some(v) => sources = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--repositories") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => repositories = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -2201,7 +2283,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -2953,6 +3035,169 @@ import Cli._
       }
     }
     return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+  }
+
+  def parseSireumProyekTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Proyek Type Checker
+          |
+          |Usage: <options>* <dir>
+          |
+          |Available Options:
+          |-p, --par                Enable parallelization
+          |    --strict-aliasing    Enable strict aliasing check
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
+          |    --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |    --project            The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
+          |                           a path)
+          |    --slice              Slice the project starting from the given module IDs
+          |                           and their dependencies (expects a string separated
+          |                           by ",")
+          |    --symlink            Follow symbolic link when searching for files
+          |-v, --versions           The properties file(s) containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects path strings)
+          |
+          |Ivy Dependencies Options:
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
+          |                           cache directory) (expects a path)
+          |    --no-docs            Disable retrieval of javadoc files from Ivy
+          |                           dependencies
+          |    --no-sources         Disable retrieval of source files from Ivy
+          |                           dependencies
+          |-r, --repositories       Additional repository URLs to retrieve Ivy
+          |                           dependencies from (expects a string separated by
+          |                           ",")""".render
+
+    var par: B = false
+    var strictAliasing: B = false
+    var ignoreRuntime: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var slice: ISZ[String] = ISZ[String]()
+    var symlink: B = false
+    var versions: ISZ[String] = ISZ[String]()
+    var cache: Option[String] = None[String]()
+    var docs: B = true
+    var sources: B = true
+    var repositories: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-p" || arg == "--par") {
+           val o: Option[B] = { j = j - 1; Some(!par) }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--slice") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--cache") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => cache = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-docs") {
+           val o: Option[B] = { j = j - 1; Some(!docs) }
+           o match {
+             case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-sources") {
+           val o: Option[B] = { j = j - 1; Some(!sources) }
+           o match {
+             case Some(v) => sources = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--repositories") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => repositories = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumProyekTipeOption(help, parseArguments(args, j), par, strictAliasing, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {

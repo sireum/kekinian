@@ -338,6 +338,7 @@ object Sireum {
           case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
           case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
+          case Some(o: Cli.SireumProyekTipeOption) => return cli.Proyek.tipe(o)
           case Some(_: Cli.HelpOption) => return 0
           case _ => return -1
         }
