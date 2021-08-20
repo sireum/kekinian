@@ -455,7 +455,7 @@ object Proyek {
 
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc, o.logVcDir,
-      o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify)
+      o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = LogikaProyek.run(
@@ -748,7 +748,7 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, None(), F, F, F, F, F, F)
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, None(), F, F, F, F, F, F, F)
     val lcode = LogikaProyek.run(
       root = path,
       project = prj,
