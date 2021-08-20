@@ -472,13 +472,20 @@ object Proyek {
       followSymLink = o.symlink,
       all = o.all,
       verify = T,
+      disableOutput = F,
+      verbose = o.verbose,
+      sanityCheck = F,
       plugins = org.sireum.logika.Logika.defaultPlugins,
       skipMethods = o.skipMethods,
       skipTypes = o.skipTypes,
       reporter = reporter
     )
-    reporter.printMessages()
+    if (reporter.messages.nonEmpty) {
+      println()
+      reporter.printMessages()
+    }
     if (lcode == 0) {
+      println()
       println("Logika verified!")
       return 0
     } else {
@@ -755,14 +762,21 @@ object Proyek {
       strictAliasing = o.strictAliasing,
       followSymLink = o.symlink,
       all = T,
+      disableOutput = F,
       verify = F,
+      verbose = o.verbose,
+      sanityCheck = T,
       plugins = ISZ(),
       skipMethods = ISZ(),
       skipTypes = ISZ(),
       reporter = reporter
     )
-    reporter.printMessages()
+    if (reporter.messages.nonEmpty) {
+      println()
+      reporter.printMessages()
+    }
     if (lcode == 0) {
+      println()
       println("Programs are well-typed!")
       return 0
     } else {

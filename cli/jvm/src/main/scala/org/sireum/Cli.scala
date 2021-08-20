@@ -208,6 +208,7 @@ object Cli {
     val args: ISZ[String],
     val all: B,
     val strictAliasing: B,
+    val verbose: B,
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -335,6 +336,7 @@ object Cli {
     val args: ISZ[String],
     val par: B,
     val strictAliasing: B,
+    val verbose: B,
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -1937,6 +1939,7 @@ import Cli._
           |Available Options:
           |    --all                Check all Slang files
           |    --strict-aliasing    Enable strict aliasing check
+          |    --verbose            Enable verbose mode
           |-h, --help               Display this information
           |
           |Project Options:
@@ -2023,6 +2026,7 @@ import Cli._
 
     var all: B = false
     var strictAliasing: B = false
+    var verbose: B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -2074,6 +2078,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
            o match {
              case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -2283,7 +2293,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, simplify, solver, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -3046,6 +3056,7 @@ import Cli._
           |Available Options:
           |-p, --par                Enable parallelization
           |    --strict-aliasing    Enable strict aliasing check
+          |    --verbose            Enable verbose mode
           |-h, --help               Display this information
           |
           |Project Options:
@@ -3084,6 +3095,7 @@ import Cli._
 
     var par: B = false
     var strictAliasing: B = false
+    var verbose: B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -3114,6 +3126,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
            o match {
              case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -3197,7 +3215,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTipeOption(help, parseArguments(args, j), par, strictAliasing, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekTipeOption(help, parseArguments(args, j), par, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
