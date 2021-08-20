@@ -478,7 +478,12 @@ object Proyek {
       reporter = reporter
     )
     reporter.printMessages()
-    return if (lcode == 0) 0 else ILL_FORMED_PROGRAMS
+    if (lcode == 0) {
+      println("Logika verified!")
+      return 0
+    } else {
+      return ILL_FORMED_PROGRAMS
+    }
   }
 
   def publish(o: Cli.SireumProyekPublishOption): Z = {
@@ -746,9 +751,9 @@ object Proyek {
       cache = Smt2.NoCache(),
       files = HashSMap.empty,
       line = 0,
-      par = T, // o.par,
-      strictAliasing = T,
-      followSymLink = F,
+      par = o.par,
+      strictAliasing = o.strictAliasing,
+      followSymLink = o.symlink,
       all = T,
       verify = F,
       plugins = ISZ(),
@@ -757,7 +762,12 @@ object Proyek {
       reporter = reporter
     )
     reporter.printMessages()
-    return if (lcode == 0) 0 else ILL_FORMED_PROGRAMS
+    if (lcode == 0) {
+      println("Programs are well-typed!")
+      return 0
+    } else {
+      return ILL_FORMED_PROGRAMS
+    }
   }
 
   def getPath(args: ISZ[String]): Option[Os.Path] = {
