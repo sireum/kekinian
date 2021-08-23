@@ -27,7 +27,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.logika.Smt2
-import org.sireum.project.DependencyManager
+import org.sireum.project.{DependencyManager, ProjectUtil}
 import org.sireum.proyek.LogikaProyek
 
 object Proyek {
@@ -878,6 +878,23 @@ object Proyek {
         }
       }
       return None()
+    }
+
+    ;{
+      var ok = T
+      for (m <- prj.modules.values) {
+        if (ProjectUtil.moduleSources(m).isEmpty && ProjectUtil.moduleTestSources(m).isEmpty) {
+          eprintln()
+          eprintln(s"Module ${m.id} does not have any source paths that exist among:")
+          for (p <- for (source <- m.sources ++ m.testSources) yield ProjectUtil.pathSep(ProjectUtil.moduleBasePath(m), source)) {
+            eprintln(s"* $p")
+          }
+          ok = F
+        }
+      }
+      if (!ok) {
+        return None()
+      }
     }
 
     return Some(prj)
