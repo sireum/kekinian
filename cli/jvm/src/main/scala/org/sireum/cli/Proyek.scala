@@ -130,9 +130,11 @@ object Proyek {
       case _ => return ret(INVALID_VERSIONS)
     }
 
-    val buildCmd = SireumApi.homeOpt.get / "bin" / "build.cmd"
+    val sireumHome = SireumApi.homeOpt.get
+    val buildCmd = sireumHome / "bin" / "build.cmd"
     val runtimeVerOpt = versions.get(DependencyManager.libraryKey)
-    if (buildCmd.exists && runtimeVerOpt.nonEmpty && runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
+    if ((sireumHome / "bin" / "distro.cmd").exists && runtimeVerOpt.nonEmpty &&
+      runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
       if (!Coursier.isRuntimePublishedLocally(runtimeVerOpt.get)) {
         println()
         println("Publishing Slang runtime library locally ...")
