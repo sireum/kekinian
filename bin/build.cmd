@@ -297,13 +297,8 @@ def build(fresh: B, isNative: B): Unit = {
 
 def tipe(): Unit = {
   println("Slang type checking ...")
-  val excludes = "hamr/codegen/arsit/resources,hamr/codegen/arsit/jvm/src/test/results,hamr/codegen/jvm/src/test/result"
-  val includedDirs = Set ++ ISZ[String]("alir", "cli", "hamr", "logika", "proyek", "runtime", "server", "slang", "tools", "transpilers")
-  val sourcepath: ISZ[Os.Path] = for (p <- home.list if includedDirs.contains(p.name)) yield p
-  Os.proc(ISZ(sireum.string,
-    "slang", "tipe", "--verbose", "-r", "--strict-aliasing", "-s", st"${(sourcepath, Os.pathSep)}".render, "-x", excludes)).at(home).console.runCheck()
+  Os.proc(ISZ(sireum.string, "proyek", "tipe", "--par", "--strict-aliasing", home.string)).console.runCheck()
   println()
-
 }
 
 
