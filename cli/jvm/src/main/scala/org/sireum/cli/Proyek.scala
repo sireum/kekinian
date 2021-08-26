@@ -455,13 +455,14 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-//    versions.get(DependencyManager.libraryKey) match {
-//      case Some(v) if SireumApi.version != v =>
-//        println(s"Verification is done using the internal library v${SireumApi.version}")
-//        println(s"instead of using v$v as specified in the given version property file(s)")
-//        println()
-//      case _ =>
-//    }
+    val libV = ops.StringOps(SireumApi.commitHash).substring(0, 10)
+    versions.get(DependencyManager.libraryKey) match {
+      case Some(v) if libV != v =>
+        println(s"Verification is done using the internal library v$libV")
+        println(s"instead of using v$v as specified in the given version property file(s)")
+        println()
+      case _ =>
+    }
 
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc, o.logVcDir,
@@ -476,7 +477,7 @@ object Proyek {
       config = config,
       cache = Smt2.NoCache(),
       files = files,
-      line = 0,
+      line = o.line,
       par = o.par,
       strictAliasing = o.strictAliasing,
       followSymLink = o.symlink,
