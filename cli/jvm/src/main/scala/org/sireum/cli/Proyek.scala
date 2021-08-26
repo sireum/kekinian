@@ -458,8 +458,8 @@ object Proyek {
     val libV = ops.StringOps(SireumApi.commitHash).substring(0, 10)
     versions.get(DependencyManager.libraryKey) match {
       case Some(v) if libV != v =>
-        println(s"Verification is done using the internal library v$libV")
-        println(s"instead of using v$v as specified in the given version property file(s)")
+        println(s"Verification is done using the internal library v.$libV")
+        println(s"instead of using v.$v as specified in the given version property file(s)")
         println()
       case _ =>
     }
