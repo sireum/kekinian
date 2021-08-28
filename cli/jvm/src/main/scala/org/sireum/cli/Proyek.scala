@@ -415,9 +415,9 @@ object Proyek {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe, o.cvc4Opts)
         case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename, o.cvc4Opts)
       }
     }
     if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
@@ -437,9 +437,9 @@ object Proyek {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exe)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exe, o.z3Opts)
         case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exeFilename)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exeFilename, o.z3Opts)
       }
     }
 
@@ -466,7 +466,7 @@ object Proyek {
 
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.logPc, o.logRawPc, o.logVc, o.logVcDir,
-      o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T)
+      o.dontSplitFunQuant, o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = LogikaProyek.run(
@@ -759,7 +759,7 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, None(), F, F, F, F, F, F, F)
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, None(), F, F, F, F, F, F, F, 0)
     val lcode = LogikaProyek.run(
       root = path,
       project = prj,
