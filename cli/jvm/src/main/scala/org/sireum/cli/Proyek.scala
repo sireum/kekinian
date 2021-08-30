@@ -415,9 +415,9 @@ object Proyek {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe, o.cvc4Opts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe, o.cvc4VOpts, o.cvc4SOpts)
         case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename, o.cvc4Opts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename, o.cvc4VOpts, o.cvc4SOpts)
       }
     }
     if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
@@ -437,9 +437,9 @@ object Proyek {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exe, o.z3Opts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exe, o.z3VOpts, o.z3SOpts)
         case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exeFilename, o.z3Opts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exeFilename, o.z3VOpts, o.z3SOpts)
       }
     }
 

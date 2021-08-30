@@ -122,11 +122,13 @@ object Cli {
     val splitIf: B,
     val splitMatch: B,
     val cvc4RLimit: Z,
-    val cvc4Opts: ISZ[String],
+    val cvc4VOpts: ISZ[String],
+    val cvc4SOpts: ISZ[String],
     val simplify: B,
     val solver: SireumLogikaVerifierLogikaSolver.Type,
     val timeout: Z,
-    val z3Opts: ISZ[String]
+    val z3VOpts: ISZ[String],
+    val z3SOpts: ISZ[String]
   ) extends SireumTopOption
 
   @datatype class SireumProyekAssembleOption(
@@ -243,11 +245,13 @@ object Cli {
     val splitIf: B,
     val splitMatch: B,
     val cvc4RLimit: Z,
-    val cvc4Opts: ISZ[String],
+    val cvc4VOpts: ISZ[String],
+    val cvc4SOpts: ISZ[String],
     val simplify: B,
     val solver: SireumProyekLogikaLogikaSolver.Type,
     val timeout: Z,
-    val z3Opts: ISZ[String]
+    val z3VOpts: ISZ[String],
+    val z3SOpts: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumProyekPublishTarget {
@@ -1080,13 +1084,20 @@ import Cli._
           |
           |SMT2 Options:
           |    --cvc4-rlimit        CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc4-opts          Other CVC4 options (expects a string separated by ",")
+          |    --cvc4-vopts         Additional options for CVC4 validity checks (expects a
+          |                           string separated by ","; default is
+          |                           "--full-saturate-quant")
+          |    --cvc4-sopts         Additional options for CVC4 satisfiability checks
+          |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
           |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)
-          |    --z3-opts            Other Z3 options (expects a string separated by ",")""".render
+          |    --z3-vopts           Additional options for Z3 validity checks (expects a
+          |                           string separated by ",")
+          |    --z3-sopts           Additional options for Z3 satisfiability checks
+          |                           (expects a string separated by ",")""".render
 
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
@@ -1109,11 +1120,13 @@ import Cli._
     var splitIf: B = false
     var splitMatch: B = false
     var cvc4RLimit: Z = 1000000
-    var cvc4Opts: ISZ[String] = ISZ[String]()
+    var cvc4VOpts: ISZ[String] = ISZ("--full-saturate-quant")
+    var cvc4SOpts: ISZ[String] = ISZ[String]()
     var simplify: B = false
     var solver: SireumLogikaVerifierLogikaSolver.Type = SireumLogikaVerifierLogikaSolver.All
     var timeout: Z = 2
-    var z3Opts: ISZ[String] = ISZ[String]()
+    var z3VOpts: ISZ[String] = ISZ[String]()
+    var z3SOpts: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1248,10 +1261,16 @@ import Cli._
              case Some(v) => cvc4RLimit = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-opts") {
+         } else if (arg == "--cvc4-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4Opts = v
+             case Some(v) => cvc4VOpts = v
+             case _ => return None()
+           }
+         } else if (arg == "--cvc4-sopts") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => cvc4SOpts = v
              case _ => return None()
            }
          } else if (arg == "--simplify") {
@@ -1272,10 +1291,16 @@ import Cli._
              case Some(v) => timeout = v
              case _ => return None()
            }
-         } else if (arg == "--z3-opts") {
+         } else if (arg == "--z3-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => z3Opts = v
+             case Some(v) => z3VOpts = v
+             case _ => return None()
+           }
+         } else if (arg == "--z3-sopts") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => z3SOpts = v
              case _ => return None()
            }
          } else {
@@ -1287,7 +1312,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4Opts, simplify, solver, timeout, z3Opts))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2049,13 +2074,20 @@ import Cli._
           |
           |SMT2 Options:
           |    --cvc4-rlimit        CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc4-opts          Other CVC4 options (expects a string separated by ",")
+          |    --cvc4-vopts         Additional options for CVC4 validity checks (expects a
+          |                           string separated by ","; default is
+          |                           "--full-saturate-quant")
+          |    --cvc4-sopts         Additional options for CVC4 satisfiability checks
+          |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
           |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           default is 2)
-          |    --z3-opts            Other Z3 options (expects a string separated by ",")""".render
+          |    --z3-vopts           Additional options for Z3 validity checks (expects a
+          |                           string separated by ",")
+          |    --z3-sopts           Additional options for Z3 satisfiability checks
+          |                           (expects a string separated by ",")""".render
 
     var all: B = false
     var strictAliasing: B = false
@@ -2091,11 +2123,13 @@ import Cli._
     var splitIf: B = false
     var splitMatch: B = false
     var cvc4RLimit: Z = 1000000
-    var cvc4Opts: ISZ[String] = ISZ[String]()
+    var cvc4VOpts: ISZ[String] = ISZ("--full-saturate-quant")
+    var cvc4SOpts: ISZ[String] = ISZ[String]()
     var simplify: B = false
     var solver: SireumProyekLogikaLogikaSolver.Type = SireumProyekLogikaLogikaSolver.All
     var timeout: Z = 2
-    var z3Opts: ISZ[String] = ISZ[String]()
+    var z3VOpts: ISZ[String] = ISZ[String]()
+    var z3SOpts: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -2308,10 +2342,16 @@ import Cli._
              case Some(v) => cvc4RLimit = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-opts") {
+         } else if (arg == "--cvc4-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4Opts = v
+             case Some(v) => cvc4VOpts = v
+             case _ => return None()
+           }
+         } else if (arg == "--cvc4-sopts") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => cvc4SOpts = v
              case _ => return None()
            }
          } else if (arg == "--simplify") {
@@ -2332,10 +2372,16 @@ import Cli._
              case Some(v) => timeout = v
              case _ => return None()
            }
-         } else if (arg == "--z3-opts") {
+         } else if (arg == "--z3-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => z3Opts = v
+             case Some(v) => z3VOpts = v
+             case _ => return None()
+           }
+         } else if (arg == "--z3-sopts") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => z3SOpts = v
              case _ => return None()
            }
          } else {
@@ -2347,7 +2393,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4Opts, simplify, solver, timeout, z3Opts))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
