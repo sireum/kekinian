@@ -32,7 +32,7 @@ itself (and analyses on top of it) are written using Slang.
 Slang programs run on the JVM (Java 8+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
 via [Graal](http://graalvm.org) targeting macOS, Linux, and Windows on amd64, and
-Linux on aarch64.
+macOS and Linux on aarch64.
 
 In addition, the Slang-to-C [transpiler](https://github.com/sireum/transpilers)
 can compile a subset of Slang -- Slang Embedded (which excludes, e.g., closures and 
@@ -55,6 +55,8 @@ As Slash is Slang, Slash scripts can be compiled to native via Graal, which spee
 things up by virtue of having no JVM boot up time.
 
 ## Available Products
+
+* [Slang](http://slang.sireum.org): The Sireum Programming Language
 
 * [HAMR](http://hamr.sireum.org): A **H**igh **A**ssurance **M**odel-based **R**apid Engineering of Embedded Systems
 

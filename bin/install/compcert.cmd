@@ -28,7 +28,7 @@ val home = homeBin.up.canon
 val compCertVersion = "3.9"
 val menhirVersion = "20210310"
 val coqVersion = "8.13.2"
-val ocamlVersion = "4.11.1"
+val ocamlVersion = "4.12.0"
 val opamVersion = "2.0.8"
 
 val cores: String = Os.cliArgs match {
@@ -106,7 +106,10 @@ def install(platformDir: Os.Path, opamSuffix: String): Unit = {
 
 
 Os.kind match {
-  case Os.Kind.Mac => install(homeBin / "mac", "x86_64-macos")
+  case Os.Kind.Mac =>
+    install(homeBin / "mac",
+      if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") "arm64-macos"
+      else "x86_64-macos")
   case Os.Kind.Linux => install(homeBin / "linux", "x86_64-linux")
   case Os.Kind.LinuxArm => install(homeBin / "linux" / "arm", "arm64-linux")
   case _ =>
