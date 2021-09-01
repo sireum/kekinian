@@ -172,6 +172,7 @@ val ignoredIcons = HashSet ++ ISZ[String](
 val ideaExtMap =
   HashMap.empty[String, String] +
     "mac" ~> ".dmg" +
+    "mac/arm" ~> "-aarch64.dmg" +
     "win" ~> ".win.zip" +
     "linux" ~> ".tar.gz" +
     "linux/arm" ~> ".tar.gz"
@@ -647,7 +648,10 @@ def pack(): Unit = {
 
 def build(): Unit = {
   println(s"Setting up Sireum$devSuffix IVE $platform in $ideaDir ...")
-  val url: String = s"https://download.jetbrains.com/idea/idea${if (isUltimate) "IU" else "IC"}-$ideaVer${ideaExtMap.get(platform).get}"
+  val suffix: String =
+    if (platform == "mac" && ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") ideaExtMap.get("mac/arm").get
+    else ideaExtMap.get(platform).get
+  val url: String = s"https://download.jetbrains.com/idea/idea${if (isUltimate) "IU" else "IC"}-$ideaVer$suffix"
   val urlOps = ops.StringOps(url)
   val filename = urlOps.substring(urlOps.lastIndexOf('/') + 1, url.size)
   val buildDir = ideaDir.up.canon

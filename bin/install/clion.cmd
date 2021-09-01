@@ -53,7 +53,7 @@ def mac(): Unit = {
     return
   }
 
-  val bundle = s"CLion-$clionVersion.dmg"
+  val bundle = s"CLion-$clionVersion${if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") "-aarch64" else ""}.dmg"
   val cache = Os.home / "Downloads" / "sireum" / bundle
 
   if (!cache.exists) {
