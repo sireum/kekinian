@@ -407,6 +407,8 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [IntelliJ Markdown Plugin](https://plugins.jetbrains.com/plugin/7793-markdown) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [IntelliJ ReStructuredText Plugin](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [IntelliJ Scala Plugin](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
+| [IntelliJ Sireum Plugin](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
+| [IntelliJ Slang Injector Plugin](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
 | [JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime) | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/JetBrainsRuntime/blob/master/LICENSE) |
 | [Mill](https://github.com/com-lihaoyi/mill) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
