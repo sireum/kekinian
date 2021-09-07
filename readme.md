@@ -400,8 +400,13 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | :--- | :---: |
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
 | [GraalVM](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
-| [IntelliJ + Plugins](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
-| [IntelliJ ANTLR4 Plugin](https://github.com/antlr/intellij-plugin-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
+| [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
+| [IntelliJ ANTLR4 Plugin](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
+| [IntelliJ ASM Plugin](https://plugins.jetbrains.com/plugin/10302-asm-bytecode-viewer) | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
+| [IntelliJ JDT AstView Plugin](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
+| [IntelliJ Markdown Plugin](https://plugins.jetbrains.com/plugin/7793-markdown) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
+| [IntelliJ ReStructuredText Plugin](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
+| [IntelliJ Scala Plugin](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime) | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/JetBrainsRuntime/blob/master/LICENSE) |
 | [Mill](https://github.com/com-lihaoyi/mill) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
