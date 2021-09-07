@@ -200,7 +200,7 @@ object Proyek {
         isJs = F,
         followSymLink = o.symlink,
         fresh = o.fresh,
-        par = o.par,
+        par = SireumApi.parCoresOpt(o.par),
         sha3 = o.sha3,
         ignoreRuntime = o.ignoreRuntime,
         recompileModuleIds = o.recompile
@@ -262,7 +262,7 @@ object Proyek {
       isJs = o.js,
       followSymLink = o.symlink,
       fresh = o.fresh,
-      par = o.par,
+      par = SireumApi.parCoresOpt(o.par),
       sha3 = o.sha3,
       ignoreRuntime = o.ignoreRuntime,
       recompileModuleIds = o.recompile
@@ -478,7 +478,7 @@ object Proyek {
       cache = Smt2.NoCache(),
       files = files,
       line = o.line,
-      par = o.par,
+      par = SireumApi.parCoresOpt(o.par),
       strictAliasing = o.strictAliasing,
       followSymLink = o.symlink,
       all = o.all,
@@ -576,7 +576,7 @@ object Proyek {
           isJs = dms(i).isJs,
           followSymLink = o.symlink,
           fresh = o.fresh,
-          par = o.par,
+          par = SireumApi.parCoresOpt(o.par),
           sha3 = o.sha3,
           ignoreRuntime = o.ignoreRuntime,
           recompileModuleIds = o.recompile
@@ -642,7 +642,7 @@ object Proyek {
         isJs = F,
         followSymLink = o.symlink,
         fresh = o.fresh,
-        par = o.par,
+        par = SireumApi.parCoresOpt(o.par),
         sha3 = o.sha3,
         ignoreRuntime = o.ignoreRuntime,
         recompileModuleIds = o.recompile
@@ -705,7 +705,7 @@ object Proyek {
         isJs = F,
         followSymLink = o.symlink,
         fresh = o.fresh,
-        par = o.par,
+        par = SireumApi.parCoresOpt(o.par),
         sha3 = o.sha3,
         ignoreRuntime = o.ignoreRuntime,
         recompileModuleIds = o.recompile
@@ -769,7 +769,7 @@ object Proyek {
       cache = Smt2.NoCache(),
       files = HashSMap.empty,
       line = 0,
-      par = o.par,
+      par = SireumApi.parCoresOpt(o.par),
       strictAliasing = o.strictAliasing,
       followSymLink = o.symlink,
       all = T,

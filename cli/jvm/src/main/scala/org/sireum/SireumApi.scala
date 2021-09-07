@@ -108,4 +108,10 @@ import org.sireum._
   def run(args: ISZ[String]): Z = $
 
   def initRuntimeLibrary(): Unit = $
+
+  @pure def availableCores: Z = $
+
+  @pure def parCores(percentage: Z): Z = $
+
+  @pure def parCoresOpt(percentageOpt: Option[Z]): Z = $
 }

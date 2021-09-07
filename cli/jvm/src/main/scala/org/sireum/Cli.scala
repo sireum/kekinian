@@ -114,7 +114,7 @@ object Cli {
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
-    val par: B,
+    val par: Option[Z],
     val ramFolder: Option[String],
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -148,7 +148,7 @@ object Cli {
     val versions: ISZ[String],
     val javac: ISZ[String],
     val fresh: B,
-    val par: B,
+    val par: Option[Z],
     val recompile: ISZ[String],
     val scalac: ISZ[String],
     val sha3: B,
@@ -164,7 +164,7 @@ object Cli {
     val args: ISZ[String],
     val javac: ISZ[String],
     val fresh: B,
-    val par: B,
+    val par: Option[Z],
     val recompile: ISZ[String],
     val scalac: ISZ[String],
     val sha3: B,
@@ -237,7 +237,7 @@ object Cli {
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
-    val par: B,
+    val par: Option[Z],
     val ramFolder: Option[String],
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -276,7 +276,7 @@ object Cli {
     val versions: ISZ[String],
     val javac: ISZ[String],
     val fresh: B,
-    val par: B,
+    val par: Option[Z],
     val recompile: ISZ[String],
     val scalac: ISZ[String],
     val sha3: B,
@@ -302,7 +302,7 @@ object Cli {
     val versions: ISZ[String],
     val javac: ISZ[String],
     val fresh: B,
-    val par: B,
+    val par: Option[Z],
     val recompile: ISZ[String],
     val scalac: ISZ[String],
     val sha3: B,
@@ -330,7 +330,7 @@ object Cli {
     val versions: ISZ[String],
     val javac: ISZ[String],
     val fresh: B,
-    val par: B,
+    val par: Option[Z],
     val recompile: ISZ[String],
     val scalac: ISZ[String],
     val sha3: B,
@@ -344,7 +344,7 @@ object Cli {
   @datatype class SireumProyekTipeOption(
     val help: String,
     val args: ISZ[String],
-    val par: B,
+    val par: Option[Z],
     val strictAliasing: B,
     val verbose: B,
     val ignoreRuntime: B,
@@ -1051,7 +1051,7 @@ import Cli._
           |
           |Control Options:
           |    --line               Focus verification to the specified program line
-          |                           number (expects an integer; default is 0)
+          |                           number (expects an integer; min is 0; default is 0)
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -1070,7 +1070,9 @@ import Cli._
           |                           (expects a path)
           |
           |Optimizations Options:
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --ram-folder         RAM folder to temporarily store various artifacts
           |                           (e.g., SMT2 solvers) (expects a path)
           |
@@ -1093,7 +1095,7 @@ import Cli._
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
           |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           default is 2)
+          |                           min is 1; default is 2)
           |    --z3-vopts           Additional options for Z3 validity checks (expects a
           |                           string separated by ",")
           |    --z3-sopts           Additional options for Z3 satisfiability checks
@@ -1112,7 +1114,7 @@ import Cli._
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
-    var par: B = false
+    var par: Option[Z] = None()
     var ramFolder: Option[String] = None[String]()
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -1214,7 +1216,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -1388,7 +1393,9 @@ import Cli._
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
@@ -1424,7 +1431,7 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
-    var par: B = false
+    var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
@@ -1526,7 +1533,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -1602,7 +1612,9 @@ import Cli._
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
@@ -1650,7 +1662,7 @@ import Cli._
 
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
-    var par: B = false
+    var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
@@ -1688,7 +1700,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -2041,7 +2056,7 @@ import Cli._
           |
           |Control Options:
           |    --line               Focus verification to the specified program line
-          |                           number (expects an integer; default is 0)
+          |                           number (expects an integer; min is 0; default is 0)
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -2060,7 +2075,9 @@ import Cli._
           |                           (expects a path)
           |
           |Optimizations Options:
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --ram-folder         RAM folder to temporarily store various artifacts
           |                           (e.g., SMT2 solvers) (expects a path)
           |
@@ -2083,7 +2100,7 @@ import Cli._
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
           |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           default is 2)
+          |                           min is 1; default is 2)
           |    --z3-vopts           Additional options for Z3 validity checks (expects a
           |                           string separated by ",")
           |    --z3-sopts           Additional options for Z3 satisfiability checks
@@ -2115,7 +2132,7 @@ import Cli._
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
-    var par: B = false
+    var par: Option[Z] = None()
     var ramFolder: Option[String] = None[String]()
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -2295,7 +2312,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -2475,7 +2495,9 @@ import Cli._
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
@@ -2510,7 +2532,7 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
-    var par: B = false
+    var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
@@ -2606,7 +2628,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -2711,7 +2736,9 @@ import Cli._
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
@@ -2745,7 +2772,7 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
-    var par: B = false
+    var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
@@ -2835,7 +2862,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -2944,7 +2974,9 @@ import Cli._
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options")
           |-f, --fresh              Fresh compilation from a clean slate
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
@@ -2980,7 +3012,7 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
     var fresh: B = false
-    var par: B = false
+    var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
     var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
@@ -3082,7 +3114,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -3154,7 +3189,9 @@ import Cli._
           |Usage: <options>* <dir>
           |
           |Available Options:
-          |-p, --par                Enable parallelization
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
           |    --strict-aliasing    Enable strict aliasing check
           |    --verbose            Enable verbose mode
           |-h, --help               Display this information
@@ -3193,7 +3230,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
-    var par: B = false
+    var par: Option[Z] = None()
     var strictAliasing: B = false
     var verbose: B = false
     var ignoreRuntime: B = false
@@ -3217,7 +3254,10 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "-p" || arg == "--par") {
-           val o: Option[B] = { j = j - 1; Some(!par) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
            o match {
              case Some(v) => par = v
              case _ => return None()
@@ -3589,7 +3629,7 @@ import Cli._
           |
           |Name Mangling Options:
           |-f, --fingerprint        Generic entity fingerprinting size (expects an
-          |                           integer; default is 3)
+          |                           integer; min is 1; max is 64; default is 3)
           |-i, --stable-type-id     Enable stable type id
           |
           |Optimizations Options:
@@ -4117,7 +4157,7 @@ import Cli._
           |                           of a Slang program (expects a string)
           |-w, --width              First (key) column (default: 25) and second column
           |                           (default: 55) max width (expects an int-list
-          |                           separated by ',')
+          |                           separated by ','; min is 0)
           |-h, --help               Display this information""".render
 
     var license: Option[String] = None[String]()
@@ -4571,8 +4611,8 @@ import Cli._
           |Available Options:
           |-m, --message            Message format (expects one of { msgpack, json };
           |                           default: msgpack)
-          |-l, --logika             Number of Logika workers (expects an integer; default
-          |                           is 1)
+          |-l, --logika             Number of Logika workers (expects an integer; min is
+          |                           1; default is 1)
           |-h, --help               Display this information""".render
 
     var message: SireumXServerServerMessage.Type = SireumXServerServerMessage.Msgpack
@@ -4650,7 +4690,7 @@ import Cli._
       case Some(sargs) =>
         var r = ISZ[Z]()
         for (arg <- sargs) {
-          parseNumH(arg, minOpt, maxOpt) match {
+          parseNumH(F, arg, minOpt, maxOpt)._2 match {
             case Some(n) => r = r :+ n
             case _ => return None()
           }
@@ -4718,17 +4758,27 @@ import Cli._
       eprintln(s"Expecting an integer, but none found.")
       return None()
     }
-    return parseNumH(args(i), minOpt, maxOpt)
+    return parseNumH(F, args(i), minOpt, maxOpt)._2
   }
 
-  def parseNumH(arg: String, minOpt: Option[Z], maxOpt: Option[Z]): Option[Z] = {
+  def parseNumFlag(args: ISZ[String], i: Z, minOpt: Option[Z], maxOpt: Option[Z]): Option[Option[Z]] = {
+    if (i >= args.size) {
+      return Some(None())
+    }
+    parseNumH(T, args(i), minOpt, maxOpt) match {
+      case (T, vOpt) => return Some(vOpt)
+      case _ => return None()
+    }
+  }
+
+  def parseNumH(optArg: B, arg: String, minOpt: Option[Z], maxOpt: Option[Z]): (B, Option[Z]) = {
     Z(arg) match {
       case Some(n) =>
         minOpt match {
           case Some(min) =>
             if (n < min) {
               eprintln(s"Expecting an integer at least $min, but found $n.")
-              return None()
+              return (F, None())
             }
           case _ =>
         }
@@ -4736,15 +4786,18 @@ import Cli._
           case Some(max) =>
             if (n > max) {
               eprintln(s"Expecting an integer at most $max, but found $n.")
-              return None()
+              return (F, None())
             }
-            return Some(n)
           case _ =>
         }
-        return Some(n)
+        return (T, Some(n))
       case _ =>
-        eprintln(s"Expecting an integer, but found '$arg'.")
-        return None()
+        if (!optArg) {
+          eprintln(s"Expecting an integer, but found '$arg'.")
+          return (F, None())
+        } else {
+          return (T, None())
+       }
     }
   }
 

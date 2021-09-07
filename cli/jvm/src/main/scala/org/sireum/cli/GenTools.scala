@@ -62,7 +62,7 @@ object GenTools {
     val text = src.read
     Parser.parseTopUnit[ast.TopUnit.Program](text, T, F, Some(src.string), reporter) match {
       case Some(p) if !reporter.hasIssue =>
-        val (_, program) = FrontEnd.checkWorksheet(T, None(), p, reporter)
+        val (_, program) = FrontEnd.checkWorksheet(0, None(), p, reporter)
         if (reporter.hasIssue) {
           reporter.printMessages()
           return -1

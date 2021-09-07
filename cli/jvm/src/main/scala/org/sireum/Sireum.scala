@@ -348,4 +348,20 @@ object Sireum {
   def initRuntimeLibrary(): Unit = {
     org.sireum.lang.FrontEnd.checkedLibraryReporter
   }
+
+  def availableCores: Z = Runtime.getRuntime.availableProcessors
+
+  def parCores(percentage: Z): Z = {
+    val maxCores = availableCores
+    val r = percentage * maxCores / 100
+    return if (r <= 1) 1 else if (r >= maxCores) maxCores else r
+  }
+
+  def parCoresOpt(percentageOpt: Option[Z]): Z = {
+    val r: Z = percentageOpt match {
+      case Some(v) => parCores(v)
+      case _ => 1
+    }
+    return r
+  }
 }
