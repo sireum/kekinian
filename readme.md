@@ -71,36 +71,16 @@ recommended to use the source distribution.
 
 ### Binary Distributions
 
+The binary distribution files are available at: https://github.com/sireum/kekinian/releases
+
 Sireum binary distribution files are [7z](https://www.7-zip.org/7z.html) 
 [self-extracting archives (SFX)](https://en.wikipedia.org/wiki/Self-extracting_archive) 
 with command-line installers to (optionally) configure where Sireum should be 
-installed.
- 
-Below are the installation instructions for 64-bit (amd64) macOS, Linux, and 
-Windows (or, one can simply download the distribution files from the
-[GitHub releases page](https://github.com/sireum/kekinian/releases)
-and extract them  using a program capable of uncompressing `7z` archive).
-
-* **macOS**: run the following command in a terminal:
-
-  ```bash
-  (sd=sireum-dev-mac.sfx && curl -JLo $sd -c /dev/null http://mac.distro.sireum.org && chmod +x $sd && p=$(pwd) && cd /tmp && $p/$sd)
-  ```
-
-* **Linux**: download and run [sireum-dev-linux.sfx](http://linux.distro.sireum.org), 
-  or run the following command in a terminal if you have `curl` installed:
-
-  ```bash
-  (sd=sireum-dev-linux.sfx && curl -JLo $sd -c /dev/null http://linux.distro.sireum.org && chmod +x $sd && p=$(pwd) && cd /tmp && $p/$sd)
-  ```
-
-* **Windows**: download and run [sireum-dev-win.exe](http://win.distro.sireum.org)
+installed (the files can also be extracted using a program capable of uncompressing `7z` archive).
 
 If you want to ensure that the downloaded files are genuine, download 
-the appropriate [Minisign](https://jedisct1.github.io/minisign/) signature files 
-for the specific platforms for [macOS](http://minisig.mac.distro.sireum.org), 
-[Linux](http://minisig.linux.distro.sireum.org), and 
-[Windows](http://minisig.win.distro.sireum.org), then run:
+the appropriate [Minisign](https://jedisct1.github.io/minisign/) signature file 
+for the specific platform, then run:
 
 ```console
 minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -Vm <installer-file>
