@@ -164,8 +164,8 @@ object Logika {
           case _ =>
         }
         val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-          o.intBitWidth, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
-          o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
+          o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll,
+          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -174,7 +174,7 @@ object Logika {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-              config.cvc4RLimit, config.charBitWidth, config.intBitWidth, config.simplifiedQuery, reporter),
+              config.cvc4RLimit, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, reporter),
             logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -244,8 +244,8 @@ object Logika {
         files = files :+ p.canon.toUri
       }
       val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-        o.intBitWidth, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll, o.splitIf,
-        o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
+        o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll,
+        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =
@@ -253,7 +253,7 @@ object Logika {
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs, config.cvc4RLimit,
-          config.charBitWidth, config.intBitWidth, config.simplifiedQuery, reporter),
+          config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, reporter),
         logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
