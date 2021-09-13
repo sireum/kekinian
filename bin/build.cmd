@@ -321,8 +321,9 @@ def test(): Unit = {
     "org.sireum.lang",
     "org.sireum.tools",
     "org.sireum.logika",
-    "org.sireum.proyek"
-  ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.hamr.codegen.test.expensive", "org.sireum.server"))
+    "org.sireum.proyek",
+    "org.sireum.hamr.codegen.test.expensive"
+  ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
     at(home).console.runCheck()
   println()
