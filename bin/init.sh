@@ -176,7 +176,13 @@ if [[ "${PLATFORM}" == "mac" ]]; then
 elif [[ "${PLATFORM}" == "linux/arm" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_aarch64.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
-  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
+  if [[ -n ${SIREUM_ZING_VERSION} ]]; then
+    JAVA_NAME="Zing JDK"
+    JAVA_VERSION=${SIREUM_ZING_VERSION}
+    JAVA_DROP_URL=https://cdn.azul.com/zing-zvm/ZVM${JAVA_VERSION%%-*}/zing${JAVA_VERSION}-linux_x64.tar.gz
+  else
+    JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
+  fi
 elif [[ "${PLATFORM}" == "win" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 fi
