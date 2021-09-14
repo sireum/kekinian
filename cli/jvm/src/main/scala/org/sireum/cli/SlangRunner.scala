@@ -124,6 +124,9 @@ object SlangRunner {
       case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
       case _ =>
     }
+    if (Os.env("JAVA_OPTS").isEmpty) {
+      env = env :+ "JAVA_OPTS" ~> " "
+    }
     var p = Os.proc(command).at(Os.cwd).env(env)
     if (jarFile.exists) {
       jarFile.removeOnExit()
