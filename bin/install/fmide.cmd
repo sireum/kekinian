@@ -56,7 +56,7 @@ import Cli._
           |    --eclipse            Eclipse release version (expects a string; default is
           |                           "2020-06")
           |    --hamr               Sireum HAMR version (expects a string; default is
-          |                           "1.0.2107141642.88909b5")
+          |                           "1.0.2109141821.effe14b")
           |    --osate              OSATE version (expects a string; default is
           |                           "2.9.0-vfinal")
           |    --resolute           Resolute version (expects a string; default is
@@ -66,7 +66,7 @@ import Cli._
     var agree: Option[String] = Some("agree_2.7.0")
     var briefcase: Option[String] = Some("briefcase_0.5.1")
     var eclipse: Option[String] = Some("2020-06")
-    var hamr: Option[String] = Some("1.0.2107141642.88909b5")
+    var hamr: Option[String] = Some("1.0.2109141821.effe14b")
     var osate: Option[String] = Some("2.9.0-vfinal")
     var resolute: Option[String] = Some("resolute_2.7.1")
     var j = i
@@ -166,7 +166,7 @@ import Cli._
       case Some(sargs) =>
         var r = ISZ[Z]()
         for (arg <- sargs) {
-          parseNumH(arg, minOpt, maxOpt) match {
+          parseNumH(F, arg, minOpt, maxOpt)._2 match {
             case Some(n) => r = r :+ n
             case _ => return None()
           }
@@ -234,17 +234,27 @@ import Cli._
       eprintln(s"Expecting an integer, but none found.")
       return None()
     }
-    return parseNumH(args(i), minOpt, maxOpt)
+    return parseNumH(F, args(i), minOpt, maxOpt)._2
   }
 
-  def parseNumH(arg: String, minOpt: Option[Z], maxOpt: Option[Z]): Option[Z] = {
+  def parseNumFlag(args: ISZ[String], i: Z, minOpt: Option[Z], maxOpt: Option[Z]): Option[Option[Z]] = {
+    if (i >= args.size) {
+      return Some(None())
+    }
+    parseNumH(T, args(i), minOpt, maxOpt) match {
+      case (T, vOpt) => return Some(vOpt)
+      case _ => return None()
+    }
+  }
+
+  def parseNumH(optArg: B, arg: String, minOpt: Option[Z], maxOpt: Option[Z]): (B, Option[Z]) = {
     Z(arg) match {
       case Some(n) =>
         minOpt match {
           case Some(min) =>
             if (n < min) {
               eprintln(s"Expecting an integer at least $min, but found $n.")
-              return None()
+              return (F, None())
             }
           case _ =>
         }
@@ -252,15 +262,18 @@ import Cli._
           case Some(max) =>
             if (n > max) {
               eprintln(s"Expecting an integer at most $max, but found $n.")
-              return None()
+              return (F, None())
             }
-            return Some(n)
           case _ =>
         }
-        return Some(n)
+        return (T, Some(n))
       case _ =>
-        eprintln(s"Expecting an integer, but found '$arg'.")
-        return None()
+        if (!optArg) {
+          eprintln(s"Expecting an integer, but found '$arg'.")
+          return (F, None())
+        } else {
+          return (T, None())
+       }
     }
   }
 
