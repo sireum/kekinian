@@ -7,7 +7,7 @@ val fmideTool: Tool = Tool(
   command = "fmide",
   description = "FMIDE Installer",
   header = "FMIDE Installer",
-  usage = "<option>* ( fixed | latest )",
+  usage = "<option>* [ fixed | latest ]",
   usageDescOpt = None(),
   opts = ISZ(
     Opt(name = "agree", longKey = "agree", shortKey = None(),

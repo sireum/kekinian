@@ -46,7 +46,7 @@ import Cli._
     val help =
       st"""FMIDE Installer
           |
-          |Usage: <option>* ( fixed | latest )
+          |Usage: <option>* [ fixed | latest ]
           |
           |Available Options:
           |    --agree              AGREE version (expects a string; default is
@@ -319,9 +319,8 @@ def parseCliArgs(): (B, Cli.FmideOption) = {
     case Some(o: Cli.FmideOption) if o.args.size === 1 && (o.args(0) === "fixed" || o.args(0) == "latest") =>
       return (o.args(0) === "fixed", o)
     case Some(o: Cli.FmideOption) if o.args.isEmpty =>
-      println(o.help)
-      Os.exit(0)
-    case Some(o: Cli.HelpOption) =>
+      return (F, o)
+    case Some(_: Cli.HelpOption) =>
       Os.exit(0)
     case _ =>
   }
