@@ -1,17 +1,17 @@
-::#! 2> /dev/null                                      #
-@ 2>/dev/null # 2>nul & echo off & goto BOF            #
-if [ -z ${SIREUM_HOME} ]; then                         #
-  echo "Please set SIREUM_HOME env var"                #
-  exit -1                                              #
-fi                                                     #
-exec ${SIREUM_HOME}/bin/sireum slang run -n "$0" "$@"  #
+::#! 2> /dev/null                                   #
+@ 2>/dev/null # 2>nul & echo off & goto BOF         #
+if [ -z ${SIREUM_HOME} ]; then                      #
+  echo "Please set SIREUM_HOME env var"             #
+  exit -1                                           #
+fi                                                  #
+exec ${SIREUM_HOME}/bin/sireum slang run "$0" "$@"  #
 :BOF
 setlocal
 if not defined SIREUM_HOME (
   echo Please set SIREUM_HOME env var
   exit /B -1
 )
-%SIREUM_HOME%\bin\sireum.bat slang run -n "%0" %*
+%SIREUM_HOME%\bin\sireum.bat slang run "%0" %*
 exit /B %errorlevel%
 ::!#
 // #Sireum
@@ -646,6 +646,12 @@ def pack(): Unit = {
   distroDir.removeAll()
 }
 
+def patchSecurityManager(p: Os.Path): Unit = {
+  print(s"Patching $p ... ")
+  Asm.rewriteSetSecurityManager(p)
+  println("done!")
+}
+
 def build(): Unit = {
   println(s"Setting up Sireum$devSuffix IVE $platform in $ideaDir ...")
   val suffix: String =
@@ -670,6 +676,7 @@ def build(): Unit = {
     case string"win" => setupWin(ideaDrop)
     case _ if platform === "linux" || platform === "linux/arm" => setupLinux(ideaDrop)
   }
+  patchSecurityManager(pluginsDir / "Scala" / "lib" / "jps" / "nailgun.jar")
   val sireumJar = pluginsDir / "sireum-intellij-plugin" / "lib" / "sireum.jar"
   val homeBinSireumJar = homeBin / "sireum.jar"
   sireumJar.removeAll()
