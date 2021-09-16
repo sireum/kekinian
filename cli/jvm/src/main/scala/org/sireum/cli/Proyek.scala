@@ -251,6 +251,24 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
+    if (!dm.scalacPlugin.exists) {
+      val version = versions.get(project.DependencyManager.scalacPluginKey).get
+      val url = s"https://github.com/sireum/scalac-plugin/releases/download/$version/scalac-plugin-$version.jar"
+      val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
+        case Some(v) => Os.path(v)
+        case _ => Os.home / "Downloads" / "sireum"
+      }
+      cacheDir.mkdirAll()
+      dm.scalacPlugin.up.mkdirAll()
+      val pluginCache = cacheDir / dm.scalacPlugin.name
+      if (!pluginCache.exists) {
+        println(s"Please wait while downloading Slang scalac plugin $version ...")
+        pluginCache.downloadFrom(url)
+        println()
+      }
+      pluginCache.copyOverTo(dm.scalacPlugin)
+    }
+
     val r = proyek.Compile.run(
       path = path,
       outDirName = o.outputDirName.get,
