@@ -177,6 +177,8 @@ elif [[ "${PLATFORM}" == "linux/arm" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_aarch64.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
   if [[ -n ${SIREUM_ZING_VERSION} ]]; then
+    echo "Azul Platform Prime Stream Build is only for evaluation purposes"
+    echo "(see: https://www.azul.com/wp-content/uploads/Azul-Platform-Prime-Evaluation-Agreement.pdf)"
     JAVA_NAME="Zing JDK"
     JAVA_VERSION=${SIREUM_ZING_VERSION}
     JAVA_DROP_URL=https://cdn.azul.com/zing-zvm/ZVM${JAVA_VERSION%%-*}/zing${JAVA_VERSION}-linux_x64.tar.gz
