@@ -348,26 +348,34 @@ def lookupVersion(name: String, url: String, default: String): String = {
     val fOps = ops.StringOps(f.read)
     f.removeAll()
     var i: Z = 0
-    var foundLast = F
+    var rOpt: Option[String] = None()
     val text: String = "<child location="
-    while (!foundLast) {
-      val j = fOps.stringIndexOfFrom(text, i + 1)
+    while (i < fOps.size) {
+      val j = fOps.stringIndexOfFrom(text, i)
       if (j < 0) {
-        foundLast = T
+        i = fOps.size
       } else {
-        i = j
+        i = j + text.size + 1
+        val quote = fOps.substring(j + text.size, i)
+        val k = fOps.stringIndexOfFrom(quote, i)
+        if (k >= 0) {
+          val version = fOps.substring(i, k)
+          rOpt match {
+            case Some(r) =>
+              if (ops.StringOps(version).compareVersion(r) > 0) {
+                rOpt = Some(version)
+              }
+            case _ => rOpt = Some(version)
+          }
+        }
       }
     }
-    if (i === 0) {
-      eprintln(s"Could not find the latest version of $name; using $default")
-      return default
+    rOpt match {
+      case Some(r) => return r
+      case _ =>
+        eprintln(s"Could not find the latest version of $name; using $default")
+        return default
     }
-    val offset = i + text.size + 1
-    var last = fOps.indexOfFrom('\'', offset)
-    if (last < 0) {
-      last = fOps.indexOfFrom('"', offset)
-    }
-    return fOps.substring(offset, last)
   }
   val r = lookupVersionH()
   return r
@@ -406,8 +414,13 @@ ver.removeAll()
 fmideDir.removeAll()
 val temp = fmideDir.up.canon / s".${fmideDir.name}"
 temp.removeAll()
+var env = ISZ[(String, String)]()
+Os.env("JAVA_HOME") match {
+  case Some(v) => env = env :+ (("PATH", s"${Os.path(v) / "bin"}${Os.pathSep}${Os.env("PATH").get}"))
+  case _ =>
+}
 println("Installing FMIDE ...")
-proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".console.runCheck()
+proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".env(env).console.runCheck()
 for (p <- temp.list if ops.StringOps(p.name).startsWith("osate-")) {
   p.moveTo(fmideDir)
   Os.kind match {
