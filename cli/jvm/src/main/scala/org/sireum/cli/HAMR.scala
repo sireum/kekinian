@@ -169,7 +169,9 @@ object HAMR {
         save = ao.save,
         load = ao.load,
         cmakeIncludes = ao.cmakeIncludes,
-        strictAliasing = F
+        strictAliasing = F,
+        anvilTranspilerPass = Cli.SireumSlangTranspilersCAnvilExecutionPass.None,
+        anvilTranspilerContext = ISZ()
       )
       
       return CTranspiler.run(sstco)
