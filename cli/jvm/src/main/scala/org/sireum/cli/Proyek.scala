@@ -337,13 +337,18 @@ object Proyek {
       return code
     }
 
-    if (o.line != 0 && o.args.size != 2) {
+    if (o.line != 0 && (o.all || o.args.size != 2)) {
       eprintln("Line focused verification can only be used for checking a single file")
       return INVALID_LINE
     }
 
     if (o.args.size == 1 && !o.all) {
       eprintln("Either specify file(s) to check or supply the --all option")
+      return INVALID_ARGS
+    }
+
+    if (o.all && o.args.size > 1) {
+      eprintln("Cannot specify file arguments if --all is supplied")
       return INVALID_ARGS
     }
 
@@ -477,6 +482,7 @@ object Proyek {
       config = config,
       cache = Smt2.NoCache(),
       files = files,
+      vfiles = files.keys,
       line = o.line,
       par = SireumApi.parCoresOpt(o.par),
       strictAliasing = o.strictAliasing,
@@ -768,6 +774,7 @@ object Proyek {
       config = config,
       cache = Smt2.NoCache(),
       files = HashSMap.empty,
+      vfiles = ISZ(),
       line = 0,
       par = SireumApi.parCoresOpt(o.par),
       strictAliasing = o.strictAliasing,
