@@ -115,7 +115,7 @@ object Proyek {
 
     println("Loading project ...")
 
-    prj = getProject(path, jsonOpt, projectOpt) match {
+    prj = org.sireum.proyek.Proyek.getProject(SireumApi.homeOpt.get, path, jsonOpt, projectOpt) match {
       case Some(pr) => pr.slice(slice)
       case _ => return ret(INVALID_PROJECT)
     }
@@ -125,7 +125,7 @@ object Proyek {
       println("Loading version dependencies ...")
     }
 
-    versions = getVersions(prj, path, versionFiles) match {
+    versions = org.sireum.proyek.Proyek.getVersions(prj, path, versionFiles, SireumApi.versions.entries) match {
       case Some(vs) => vs
       case _ => return ret(INVALID_VERSIONS)
     }
@@ -810,142 +810,6 @@ object Proyek {
       return None()
     }
     return Some(d.canon)
-  }
-
-  def getProject(path: Os.Path, jsonOpt: Option[String], projectOpt: Option[String]): Option[project.Project] = {
-    var prj = project.Project.empty
-    var loaded = F
-
-    {
-      jsonOpt match {
-        case Some(p) =>
-          val f = Os.path(p)
-          if (!f.isFile) {
-            eprintln(s"$p is not a file")
-            return None()
-          }
-          project.JSON.toProject(f.read) match {
-            case Either.Left(pr) =>
-              prj = pr
-              loaded = T
-            case _ =>
-              eprintln(s"Ill-formed JSON project file $p")
-              return None()
-          }
-          println()
-        case _ =>
-      }
-    }
-
-    if (!loaded) {
-      val f: Os.Path = projectOpt match {
-        case Some(p) => Os.path(p)
-        case _ => path / "bin" / "project.cmd"
-      }
-      if (!f.isFile) {
-        eprintln(s"$f is not a file")
-        return None()
-      }
-      if (f.ext =!= "cmd") {
-        eprintln(s"$f is not a .cmd Slash script file")
-        return None()
-      }
-      val r = proc"$f json".env(ISZ("SIREUM_HOME" ~> SireumApi.homeOpt.get.string)).
-        console.outLineAction((s: String) => project.ProjectUtil.projectJsonLine(s).isEmpty).redirectErr.run()
-      if (r.ok) {
-        project.ProjectUtil.projectJsonLine(r.out) match {
-          case Some(line) =>
-            project.JSON.toProject(line) match {
-              case Either.Left(pr) =>
-                prj = pr
-              case _ =>
-                eprintln(s"Ill-defined project file $f producing:")
-                eprintln(line)
-                return None()
-            }
-          case _ =>
-            eprintln(s"Failed to load project from $f")
-            println(r.out)
-            eprintln(r.err)
-            return None()
-        }
-      } else {
-        eprintln(s"Failed to load project from $f")
-        println(r.out)
-        eprintln(r.err)
-        return None()
-      }
-    }
-
-    val openDeps = prj.openDeps
-    if (openDeps.nonEmpty) {
-      for (openDep <- openDeps.entries) {
-        val (mid, deps) = openDep
-        eprintln(st"Module $mid depends on undefined modules: ${(deps, ", ")}".render)
-      }
-      return None()
-    }
-
-    val illTargets = prj.illTargets
-    if (illTargets.nonEmpty) {
-      for (illTarget <- illTargets.entries) {
-        val mid = illTarget._1
-        for (illTargetDep <- illTarget._2.entries) {
-          val (mDep, targets) = illTargetDep
-          eprintln(st"Module $mid depends on undefined target(s) of module $mDep: ${(targets, ", ")}".render)
-        }
-      }
-      return None()
-    }
-
-    ;{
-      var ok = T
-      for (m <- prj.modules.values) {
-        if (ProjectUtil.moduleSources(m).isEmpty && ProjectUtil.moduleTestSources(m).isEmpty) {
-          eprintln()
-          eprintln(s"Module ${m.id} does not have any source paths that exist among:")
-          for (p <- for (source <- m.sources ++ m.testSources) yield ProjectUtil.pathSep(ProjectUtil.moduleBasePath(m), source)) {
-            eprintln(s"* $p")
-          }
-          ok = F
-        }
-      }
-      if (!ok) {
-        return None()
-      }
-    }
-
-    return Some(prj)
-  }
-
-  def getVersions(prj: project.Project, path: Os.Path, versions: ISZ[String]): Option[HashSMap[String, String]] = {
-    val files: ISZ[Os.Path] = if (versions.nonEmpty) {
-      for (v <- versions) yield Os.path(v)
-    } else {
-      val f = path / "versions.properties"
-      if (f.exists) ISZ(f) else ISZ()
-    }
-
-    var props = HashSMap.empty[String, String]
-    props = props ++ SireumApi.versions.entries
-    for (f <- files) {
-      if (!f.isFile) {
-        eprintln(s"$f is not a file")
-        return None()
-      } else {
-        props = props ++ (for (p <- f.properties.entries) yield (ops.StringOps(p._1).replaceAllChars('%', ':'), p._2))
-      }
-    }
-
-    var useRuntimeLibrary = F
-    for (m <- prj.modules.values; ivyDep <- m.ivyDeps if ivyDep == DependencyManager.libraryKey) {
-      useRuntimeLibrary = T
-    }
-    if (!useRuntimeLibrary) {
-      props = props -- ISZ(DependencyManager.libraryKey)
-    }
-
-    return Some(props)
   }
 
 }

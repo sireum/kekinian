@@ -329,8 +329,6 @@ object Sireum {
           case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
-          case Some(o: Cli.SireumXServerOption) => return server.Server.run(version,
-            o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika)
           case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
           case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
           case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
@@ -340,6 +338,15 @@ object Sireum {
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
           case Some(o: Cli.SireumProyekTipeOption) => return cli.Proyek.tipe(o)
           case Some(_: Cli.HelpOption) => return 0
+          case Some(o: Cli.SireumXServerOption) =>
+            homeOpt match {
+              case Some(home) =>
+                return server.Server.run(version, o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika,
+                  javaHomeOpt.get, scalaHomeOpt.get, home, versions.entries)
+              case _ =>
+                eprintln("Please set SIREUM_HOME env var")
+                return -1
+            }
           case _ => return -1
         }
     }
