@@ -27,8 +27,8 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.logika.Smt2
-import org.sireum.project.{DependencyManager, ProjectUtil}
-import org.sireum.proyek.LogikaProyek
+import org.sireum.project.DependencyManager
+import org.sireum.proyek.Analysis
 
 object Proyek {
   val HOME_NOT_FOUND: Z = -1
@@ -474,7 +474,7 @@ object Proyek {
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val lcode = LogikaProyek.run(
+    val lcode = Analysis.run(
       root = path,
       project = prj,
       dm = dm,
@@ -766,7 +766,7 @@ object Proyek {
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0)
-    val lcode = LogikaProyek.run(
+    val lcode = Analysis.run(
       root = path,
       project = prj,
       dm = dm,
