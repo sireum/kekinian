@@ -240,7 +240,7 @@ object SlangTipe {
       startTime()
     }
 
-    val t = FrontEnd.parseProgramAndGloballyResolve(0, for (p <- sources) yield FrontEnd.Input(p._2, p._1, 0),
+    val t = FrontEnd.parseProgramAndGloballyResolve(0, for (p <- sources) yield FrontEnd.Input(p._2, p._1),
       th.nameMap, th.typeMap)
     if (t._1.hasIssue) {
       t._1.printMessages()
