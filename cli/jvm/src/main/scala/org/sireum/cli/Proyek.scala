@@ -469,9 +469,17 @@ object Proyek {
       case _ =>
     }
 
+    val fpRoundingMode: String = o.fpRounding match {
+      case Cli.SireumProyekLogikaFPRoundingMode.NearestTiesToEven => "RNE"
+      case Cli.SireumProyekLogikaFPRoundingMode.NearestTiesToAway => "RNA"
+      case Cli.SireumProyekLogikaFPRoundingMode.TowardPositive => "RTP"
+      case Cli.SireumProyekLogikaFPRoundingMode.TowardNegative => "RTN"
+      case Cli.SireumProyekLogikaFPRoundingMode.TowardZero => "RTZ"
+    }
+
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit, fpRoundingMode)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = Analysis.run(
@@ -765,7 +773,7 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0)
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0, "RNE")
     val lcode = Analysis.run(
       root = path,
       project = prj,
