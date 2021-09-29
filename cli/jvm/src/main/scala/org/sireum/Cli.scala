@@ -112,8 +112,8 @@ object Cli {
     val noRuntime: B,
     val sourcepath: ISZ[String],
     val charBitWidth: Z,
-    val useReal: B,
     val fpRounding: SireumLogikaVerifierFPRoundingMode.Type,
+    val useReal: B,
     val intBitWidth: Z,
     val line: Z,
     val sat: B,
@@ -245,8 +245,8 @@ object Cli {
     val sources: B,
     val repositories: ISZ[String],
     val charBitWidth: Z,
-    val useReal: B,
     val fpRounding: SireumProyekLogikaFPRoundingMode.Type,
+    val useReal: B,
     val intBitWidth: Z,
     val line: Z,
     val sat: B,
@@ -1087,11 +1087,11 @@ import Cli._
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
           |                           is 32)
+          |    --fp-rounding        Rounding mode for floating point numbers (expects one
+          |                           of { NearestTiesToEven, NearestTiesToAway,
+          |                           TowardPositive, TowardNegative, TowardZero };
+          |                           default: NearestTiesToEven)
           |    --use-real           Use reals to approximate floating-point numbers
-          |    --fp-rounding        Use reals to approximate floating-point numbers
-          |                           (expects one of { NearestTiesToEven,
-          |                           NearestTiesToAway, TowardPositive, TowardNegative,
-          |                           TowardZero }; default: NearestTiesToEven)
           |    --z-bitwidth         Bit-width representation for Z (integer) values
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
           |                           default is 0)
@@ -1151,8 +1151,8 @@ import Cli._
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var charBitWidth: Z = 32
-    var useReal: B = false
     var fpRounding: SireumLogikaVerifierFPRoundingMode.Type = SireumLogikaVerifierFPRoundingMode.NearestTiesToEven
+    var useReal: B = false
     var intBitWidth: Z = 0
     var line: Z = 0
     var sat: B = false
@@ -1204,16 +1204,16 @@ import Cli._
              case Some(v) => charBitWidth = v
              case _ => return None()
            }
-         } else if (arg == "--use-real") {
-           val o: Option[B] = { j = j - 1; Some(!useReal) }
-           o match {
-             case Some(v) => useReal = v
-             case _ => return None()
-           }
          } else if (arg == "--fp-rounding") {
            val o: Option[SireumLogikaVerifierFPRoundingMode.Type] = parseSireumLogikaVerifierFPRoundingMode(args, j + 1)
            o match {
              case Some(v) => fpRounding = v
+             case _ => return None()
+           }
+         } else if (arg == "--use-real") {
+           val o: Option[B] = { j = j - 1; Some(!useReal) }
+           o match {
+             case Some(v) => useReal = v
              case _ => return None()
            }
          } else if (arg == "--z-bitwidth") {
@@ -1378,7 +1378,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, useReal, fpRounding, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2133,11 +2133,11 @@ import Cli._
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
           |                           is 32)
+          |    --fp-rounding        Rounding mode for floating point numbers (expects one
+          |                           of { NearestTiesToEven, NearestTiesToAway,
+          |                           TowardPositive, TowardNegative, TowardZero };
+          |                           default: NearestTiesToEven)
           |    --use-real           Use reals to approximate floating-point numbers
-          |    --fp-rounding        Use reals to approximate floating-point numbers
-          |                           (expects one of { NearestTiesToEven,
-          |                           NearestTiesToAway, TowardPositive, TowardNegative,
-          |                           TowardZero }; default: NearestTiesToEven)
           |    --z-bitwidth         Bit-width representation for Z (integer) values
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
           |                           default is 0)
@@ -2210,8 +2210,8 @@ import Cli._
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var charBitWidth: Z = 32
-    var useReal: B = false
     var fpRounding: SireumProyekLogikaFPRoundingMode.Type = SireumProyekLogikaFPRoundingMode.NearestTiesToEven
+    var useReal: B = false
     var intBitWidth: Z = 0
     var line: Z = 0
     var sat: B = false
@@ -2341,16 +2341,16 @@ import Cli._
              case Some(v) => charBitWidth = v
              case _ => return None()
            }
-         } else if (arg == "--use-real") {
-           val o: Option[B] = { j = j - 1; Some(!useReal) }
-           o match {
-             case Some(v) => useReal = v
-             case _ => return None()
-           }
          } else if (arg == "--fp-rounding") {
            val o: Option[SireumProyekLogikaFPRoundingMode.Type] = parseSireumProyekLogikaFPRoundingMode(args, j + 1)
            o match {
              case Some(v) => fpRounding = v
+             case _ => return None()
+           }
+         } else if (arg == "--use-real") {
+           val o: Option[B] = { j = j - 1; Some(!useReal) }
+           o match {
+             case Some(v) => useReal = v
              case _ => return None()
            }
          } else if (arg == "--z-bitwidth") {
@@ -2515,7 +2515,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, useReal, fpRounding, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
