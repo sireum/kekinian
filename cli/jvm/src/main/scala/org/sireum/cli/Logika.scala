@@ -104,9 +104,9 @@ object Logika {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ logika.Cvc4Config(exe, o.cvc4VOpts, o.cvc4SOpts)
+          smt2Configs = smt2Configs :+ logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts)
         case _ =>
-          smt2Configs = smt2Configs :+ logika.Cvc4Config(exeFilename, o.cvc4VOpts, o.cvc4SOpts)
+          smt2Configs = smt2Configs :+ logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts)
       }
     }
     if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Z3) {
@@ -172,7 +172,7 @@ object Logika {
         }
         val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll,
-          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit, fpRoundingMode)
+          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -260,7 +260,7 @@ object Logika {
       }
       val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll,
-        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit, fpRoundingMode)
+        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode)
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =

@@ -131,9 +131,9 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val cvc4RLimit: Z,
-    val cvc4VOpts: ISZ[String],
-    val cvc4SOpts: ISZ[String],
+    val cvcRLimit: Z,
+    val cvcVOpts: ISZ[String],
+    val cvcSOpts: ISZ[String],
     val simplify: B,
     val solver: SireumLogikaVerifierLogikaSolver.Type,
     val timeout: Z,
@@ -264,9 +264,9 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val cvc4RLimit: Z,
-    val cvc4VOpts: ISZ[String],
-    val cvc4SOpts: ISZ[String],
+    val cvcRLimit: Z,
+    val cvcVOpts: ISZ[String],
+    val cvcSOpts: ISZ[String],
     val simplify: B,
     val solver: SireumProyekLogikaLogikaSolver.Type,
     val timeout: Z,
@@ -433,6 +433,19 @@ object Cli {
     val forwarding: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumServerServerMessage {
+    'Msgpack
+    'Json
+  }
+
+  @datatype class SireumServerOption(
+    val help: String,
+    val args: ISZ[String],
+    val message: SireumServerServerMessage.Type,
+    val threads: Z,
+    val noInputCache: B
+  ) extends SireumTopOption
+
   @enum object SireumToolsBcgenBitCodecMode {
     'Program
     'Script
@@ -552,18 +565,6 @@ object Cli {
     val license: Option[String],
     val outputDir: Option[String]
   ) extends SireumTopOption
-
-  @enum object SireumXServerServerMessage {
-    'Msgpack
-    'Json
-  }
-
-  @datatype class SireumXServerOption(
-    val help: String,
-    val args: ISZ[String],
-    val message: SireumXServerServerMessage.Type,
-    val logika: Z
-  ) extends SireumTopOption
 }
 
 import Cli._
@@ -582,17 +583,19 @@ import Cli._
             |logika                   Logika tools
             |proyek                   Build tools
             |slang                    Slang tools
+            |server                   Sireum server
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "server", "tools", "x"))
     opt match {
       case Some(string"anvil") => parseSireumAnvil(args, i + 1)
       case Some(string"hamr") => parseSireumHamr(args, i + 1)
       case Some(string"logika") => parseSireumLogika(args, i + 1)
       case Some(string"proyek") => parseSireumProyek(args, i + 1)
       case Some(string"slang") => parseSireumSlang(args, i + 1)
+      case Some(string"server") => parseSireumServer(args, i + 1)
       case Some(string"tools") => parseSireumTools(args, i + 1)
       case Some(string"x") => parseSireumX(args, i + 1)
       case _ => return None()
@@ -1132,11 +1135,11 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc4-rlimit        CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc4-vopts         Additional options for CVC4 validity checks (expects a
+          |    --cvc-rlimit         CVC4 rlimit (expects an integer; default is 1000000)
+          |    --cvc-vopts          Additional options for CVC4 validity checks (expects a
           |                           string separated by ","; default is
           |                           "--full-saturate-quant")
-          |    --cvc4-sopts         Additional options for CVC4 satisfiability checks
+          |    --cvc-sopts          Additional options for CVC4 satisfiability checks
           |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
@@ -1170,9 +1173,9 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var cvc4RLimit: Z = 1000000
-    var cvc4VOpts: ISZ[String] = ISZ("--full-saturate-quant")
-    var cvc4SOpts: ISZ[String] = ISZ[String]()
+    var cvcRLimit: Z = 1000000
+    var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
+    var cvcSOpts: ISZ[String] = ISZ[String]()
     var simplify: B = false
     var solver: SireumLogikaVerifierLogikaSolver.Type = SireumLogikaVerifierLogikaSolver.All
     var timeout: Z = 2
@@ -1321,22 +1324,22 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-rlimit") {
+         } else if (arg == "--cvc-rlimit") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
-             case Some(v) => cvc4RLimit = v
+             case Some(v) => cvcRLimit = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-vopts") {
+         } else if (arg == "--cvc-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4VOpts = v
+             case Some(v) => cvcVOpts = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-sopts") {
+         } else if (arg == "--cvc-sopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4SOpts = v
+             case Some(v) => cvcSOpts = v
              case _ => return None()
            }
          } else if (arg == "--simplify") {
@@ -1378,7 +1381,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2178,11 +2181,11 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc4-rlimit        CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc4-vopts         Additional options for CVC4 validity checks (expects a
+          |    --cvc-rlimit         CVC4 rlimit (expects an integer; default is 1000000)
+          |    --cvc-vopts          Additional options for CVC4 validity checks (expects a
           |                           string separated by ","; default is
           |                           "--full-saturate-quant")
-          |    --cvc4-sopts         Additional options for CVC4 satisfiability checks
+          |    --cvc-sopts          Additional options for CVC4 satisfiability checks
           |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
@@ -2229,9 +2232,9 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var cvc4RLimit: Z = 1000000
-    var cvc4VOpts: ISZ[String] = ISZ("--full-saturate-quant")
-    var cvc4SOpts: ISZ[String] = ISZ[String]()
+    var cvcRLimit: Z = 1000000
+    var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
+    var cvcSOpts: ISZ[String] = ISZ[String]()
     var simplify: B = false
     var solver: SireumProyekLogikaLogikaSolver.Type = SireumProyekLogikaLogikaSolver.All
     var timeout: Z = 2
@@ -2458,22 +2461,22 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-rlimit") {
+         } else if (arg == "--cvc-rlimit") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
-             case Some(v) => cvc4RLimit = v
+             case Some(v) => cvcRLimit = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-vopts") {
+         } else if (arg == "--cvc-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4VOpts = v
+             case Some(v) => cvcVOpts = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-sopts") {
+         } else if (arg == "--cvc-sopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4SOpts = v
+             case Some(v) => cvcSOpts = v
              case _ => return None()
            }
          } else if (arg == "--simplify") {
@@ -2515,7 +2518,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -3932,6 +3935,80 @@ import Cli._
     return Some(SireumSlangTranspilersCOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
   }
 
+  def parseSireumServerServerMessageH(arg: String): Option[SireumServerServerMessage.Type] = {
+    arg.native match {
+      case "msgpack" => return Some(SireumServerServerMessage.Msgpack)
+      case "json" => return Some(SireumServerServerMessage.Json)
+      case s =>
+        eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumServerServerMessage(args: ISZ[String], i: Z): Option[SireumServerServerMessage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { msgpack, json }, but none found.")
+      return None()
+    }
+    val r = parseSireumServerServerMessageH(args(i))
+    return r
+  }
+
+  def parseSireumServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Server
+          |
+          |Usage: <option>*
+          |
+          |Available Options:
+          |-m, --message            Message format (expects one of { msgpack, json };
+          |                           default: msgpack)
+          |-t, --threads            Number of analysis threads (expects an integer; min is
+          |                           1; default is 1)
+          |-i, --no-input-cache     Disable file symbol table cache
+          |-h, --help               Display this information""".render
+
+    var message: SireumServerServerMessage.Type = SireumServerServerMessage.Msgpack
+    var threads: Z = 1
+    var noInputCache: B = false
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-m" || arg == "--message") {
+           val o: Option[SireumServerServerMessage.Type] = parseSireumServerServerMessage(args, j + 1)
+           o match {
+             case Some(v) => message = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--threads") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => threads = v
+             case _ => return None()
+           }
+         } else if (arg == "-i" || arg == "--no-input-cache") {
+           val o: Option[B] = { j = j - 1; Some(!noInputCache) }
+           o match {
+             case Some(v) => noInputCache = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumServerOption(help, parseArguments(args, j), message, threads, noInputCache))
+  }
+
   def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
@@ -4674,81 +4751,14 @@ import Cli._
         st"""Sireum eXperimental
             |
             |Available modes:
-            |server                   Sireum server""".render
+            """.render
       )
       return Some(HelpOption())
     }
-    val opt = select("x", args, i, ISZ("server"))
+    val opt = select("x", args, i, ISZ(""))
     opt match {
-      case Some(string"server") => parseSireumXServer(args, i + 1)
       case _ => return None()
     }
-  }
-
-  def parseSireumXServerServerMessageH(arg: String): Option[SireumXServerServerMessage.Type] = {
-    arg.native match {
-      case "msgpack" => return Some(SireumXServerServerMessage.Msgpack)
-      case "json" => return Some(SireumXServerServerMessage.Json)
-      case s =>
-        eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumXServerServerMessage(args: ISZ[String], i: Z): Option[SireumXServerServerMessage.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { msgpack, json }, but none found.")
-      return None()
-    }
-    val r = parseSireumXServerServerMessageH(args(i))
-    return r
-  }
-
-  def parseSireumXServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Sireum Server
-          |
-          |Usage: <option>*
-          |
-          |Available Options:
-          |-m, --message            Message format (expects one of { msgpack, json };
-          |                           default: msgpack)
-          |-l, --logika             Number of Logika workers (expects an integer; min is
-          |                           1; default is 1)
-          |-h, --help               Display this information""".render
-
-    var message: SireumXServerServerMessage.Type = SireumXServerServerMessage.Msgpack
-    var logika: Z = 1
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "-m" || arg == "--message") {
-           val o: Option[SireumXServerServerMessage.Type] = parseSireumXServerServerMessage(args, j + 1)
-           o match {
-             case Some(v) => message = v
-             case _ => return None()
-           }
-         } else if (arg == "-l" || arg == "--logika") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => logika = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(SireumXServerOption(help, parseArguments(args, j), message, logika))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

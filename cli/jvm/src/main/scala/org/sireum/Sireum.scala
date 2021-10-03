@@ -338,11 +338,11 @@ object Sireum {
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
           case Some(o: Cli.SireumProyekTipeOption) => return cli.Proyek.tipe(o)
           case Some(_: Cli.HelpOption) => return 0
-          case Some(o: Cli.SireumXServerOption) =>
+          case Some(o: Cli.SireumServerOption) =>
             homeOpt match {
               case Some(home) =>
-                return server.Server.run(version, o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika,
-                  javaHomeOpt.get, scalaHomeOpt.get, home, versions.entries)
+                return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.threads,
+                  !o.noInputCache, javaHomeOpt.get, scalaHomeOpt.get, home, versions.entries)
               case _ =>
                 eprintln("Please set SIREUM_HOME env var")
                 return -1

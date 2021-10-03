@@ -47,7 +47,7 @@ val x = Group(
   description = "Experimental",
   header = "Sireum eXperimental",
   unlisted = T,
-  subs = ISZ(server.cli.serverTool)
+  subs = ISZ()
 )
 
 val main = Group(
@@ -64,6 +64,7 @@ val main = Group(
     logika.cli.group,
     proyek.cli.group,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
+    server.cli.serverTool,
     tools.cli.group,
     x
   )

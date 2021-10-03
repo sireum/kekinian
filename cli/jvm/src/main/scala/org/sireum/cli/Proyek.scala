@@ -420,9 +420,9 @@ object Proyek {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe, o.cvc4VOpts, o.cvc4SOpts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts)
         case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename, o.cvc4VOpts, o.cvc4SOpts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts)
       }
     }
     if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
@@ -479,13 +479,15 @@ object Proyek {
 
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit, fpRoundingMode)
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = Analysis.run(
       root = path,
       project = prj,
       dm = dm,
+      cacheInput = F,
+      cacheTypeHierarchy = F,
       mapBox = MBox2(HashMap.empty, HashMap.empty),
       config = config,
       cache = Smt2.NoCache(),
@@ -778,6 +780,8 @@ object Proyek {
       root = path,
       project = prj,
       dm = dm,
+      cacheInput = F,
+      cacheTypeHierarchy = F,
       mapBox = MBox2(HashMap.empty, HashMap.empty),
       config = config,
       cache = Smt2.NoCache(),
