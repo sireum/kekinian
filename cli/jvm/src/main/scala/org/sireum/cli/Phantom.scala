@@ -43,6 +43,7 @@ object Phantom {
     }
 
     if(!SireumApi.homeFound) {
+      addError("Could not determine Sireum's location")
       return -1
     }
 
@@ -103,9 +104,9 @@ object Phantom {
       return -1
     }
 
-    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, o.quiet)
+    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, o.quiet, SireumApi.homeOpt.get)
 
-    val ret: Z = phantom.getOsateExe(SireumApi.homeOpt.get) match {
+    val ret: Z = phantom.getOsateExe() match {
       case Some(osateExe) =>
         var ret: Z = 0
         var features = ISZ[PFeature]()
