@@ -341,8 +341,8 @@ object Sireum {
           case Some(o: Cli.SireumServerOption) =>
             homeOpt match {
               case Some(home) =>
-                return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.threads,
-                  !o.noInputCache, javaHomeOpt.get, scalaHomeOpt.get, home, versions.entries)
+                return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.workers,
+                  !o.noInputCache, !o.noTypeCache, javaHomeOpt.get, scalaHomeOpt.get, home, versions.entries)
               case _ =>
                 eprintln("Please set SIREUM_HOME env var")
                 return -1

@@ -442,8 +442,9 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val message: SireumServerServerMessage.Type,
-    val threads: Z,
-    val noInputCache: B
+    val noInputCache: B,
+    val noTypeCache: B,
+    val workers: Z
   ) extends SireumTopOption
 
   @enum object SireumToolsBcgenBitCodecMode {
@@ -3963,14 +3964,16 @@ import Cli._
           |Available Options:
           |-m, --message            Message format (expects one of { msgpack, json };
           |                           default: msgpack)
-          |-t, --threads            Number of analysis threads (expects an integer; min is
-          |                           1; default is 1)
-          |-i, --no-input-cache     Disable file symbol table cache
+          |-i, --no-input-cache     Disable file input caching
+          |-t, --no-type-cache      Disable type information caching
+          |-w, --workers            Number of analysis thread workers (expects an integer;
+          |                           min is 1; default is 1)
           |-h, --help               Display this information""".render
 
     var message: SireumServerServerMessage.Type = SireumServerServerMessage.Msgpack
-    var threads: Z = 1
     var noInputCache: B = false
+    var noTypeCache: B = false
+    var workers: Z = 1
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -3985,16 +3988,22 @@ import Cli._
              case Some(v) => message = v
              case _ => return None()
            }
-         } else if (arg == "-t" || arg == "--threads") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => threads = v
-             case _ => return None()
-           }
          } else if (arg == "-i" || arg == "--no-input-cache") {
            val o: Option[B] = { j = j - 1; Some(!noInputCache) }
            o match {
              case Some(v) => noInputCache = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--no-type-cache") {
+           val o: Option[B] = { j = j - 1; Some(!noTypeCache) }
+           o match {
+             case Some(v) => noTypeCache = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--workers") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => workers = v
              case _ => return None()
            }
          } else {
@@ -4006,7 +4015,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumServerOption(help, parseArguments(args, j), message, threads, noInputCache))
+    return Some(SireumServerOption(help, parseArguments(args, j), message, noInputCache, noTypeCache, workers))
   }
 
   def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
