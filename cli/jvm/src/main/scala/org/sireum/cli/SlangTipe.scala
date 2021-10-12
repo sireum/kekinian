@@ -48,7 +48,7 @@ object SlangTipe {
   val SavingError: Z = -9
   val LoadingError: Z = -10
 
-  def run(o: SireumSlangTipeOption, reporter: Reporter): Z = {
+  def run(o: SireumSlangTipeOption, reporter: Reporter): Either[TypeHierarchy, Z] = {
     def readFile(f: Os.Path): (Option[String], String) = {
       return (Some(f.toUri), f.read)
     }
@@ -57,34 +57,29 @@ object SlangTipe {
       println(o.help)
       println()
       println("Please either specify sourcepath or Slang files as argument")
-      return 0
+      return Either.right(InvalidSources)
     }
 
-    if (o.load.nonEmpty && o.noRuntime) {
-      eprintln("Have to use built-in runtime together with loading type information from file")
-      return InvalidMode
-    }
-
-    if (o.noRuntime && o.sourcepath.isEmpty) {
-      eprintln("Please specify sourcepath when not using built-in runtime")
-      return InvalidMode
+    if (o.noRuntime && o.sourcepath.isEmpty && o.load.isEmpty) {
+      eprintln("Please specify sourcepath or load type information from a file when not using built-in runtime")
+      return Either.right(InvalidMode)
     }
 
     if (o.force.nonEmpty && !o.outline) {
       eprintln("Forcing type checking can only be used when outline is enabled")
-      return InvalidMode
+      return Either.right(InvalidMode)
     }
 
     if (o.save.nonEmpty && o.outline) {
       eprintln("Saving type information can only be used when outline is disabled")
-      return InvalidMode
+      return Either.right(InvalidMode)
     }
 
     val loadFileOpt: Option[Os.Path] = if (o.load.nonEmpty) {
       val f = Os.path(o.load.get)
       if (!f.exists || !f.isFile) {
         eprintln("Invalid file to load type information from")
-        return InvalidFile
+        return Either.right(InvalidFile)
       }
       Some(f)
     } else {
@@ -95,7 +90,7 @@ object SlangTipe {
       val f = Os.path(o.save.get)
       if (f.exists && !f.isFile) {
         eprintln("Invalid file to save information to")
-        return InvalidFile
+        return Either.right(InvalidFile)
       }
       Some(f)
     } else {
@@ -132,14 +127,14 @@ object SlangTipe {
       val f = Os.path(arg)
       if (!f.exists) {
         eprintln(s"File $arg does not exist.")
-        return InvalidFile
+        return Either.right(InvalidFile)
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
-        return InvalidFile
+        return Either.right(InvalidFile)
       } else if (f.ext =!= "sc" && f.ext =!= "cmd" &&
         f.ext =!= "slang" && f.ext =!= "logika") {
         eprintln(s"Can only accept .sc, .cmd, .slang, or .logika files as arguments")
-        return InvalidFile
+        return Either.right(InvalidFile)
       }
       slangFiles = slangFiles :+ ((arg, readFile(f)))
     }
@@ -158,7 +153,7 @@ object SlangTipe {
       val f = Os.path(p)
       if (!f.exists) {
         eprintln(s"Source path '$p' does not exist.")
-        return InvalidPath
+        return Either.right(InvalidPath)
       } else {
         for (p <- Os.Path.walk(f, F, T, { path: Os.Path =>
           val excluded = ops.ISZOps(o.exclude).
@@ -166,8 +161,8 @@ object SlangTipe {
           var isSlang = !excluded && path.ext === "slang"
           if (!excluded && (path.ext === "scala" || isSlang)) {
             if (!isSlang) {
-              val line = conversions.String.fromCis(path.readCStream.takeWhile((c : C) => c != '\n').
-                filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)
+              val line = conversions.String.fromCis(path.readCStream.takeWhile((c: C) => c != '\n').
+                filter((c: C) => c != ' ' && c != '\t' && c != '\r').toISZ)
               isSlang = ops.StringOps(line).contains("#Sireum")
             }
           }
@@ -183,7 +178,7 @@ object SlangTipe {
 
     if (o.sourcepath.nonEmpty && sources.isEmpty) {
       eprintln("Did not find any sources in the specified sourcepath")
-      return InvalidSources
+      return Either.right(InvalidSources)
     }
     stopTime()
 
@@ -194,19 +189,23 @@ object SlangTipe {
           println(s"Loading type information from $loadFile ...")
           startTime()
         }
-        SireumApi.readGzipContent(loadFile) match {
-          case Some(data) =>
-            CustomMessagePack.toTypeHierarchy(data) match {
-              case Either.Left(thl) =>
-                stopTime()
-                thl
-              case Either.Right(errorMsg) =>
-                eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
-                return LoadingError
-            }
-          case _ =>
-            eprintln(s"Could not load from $loadFile")
-            return LoadingError
+        val data: ISZ[U8] = if (o.gzip) {
+          SireumApi.readGzipContent(loadFile) match {
+            case Some(d) => d
+            case _ =>
+              eprintln(s"Could not load from $loadFile")
+              return Either.right(LoadingError)
+          }
+        } else {
+          loadFile.readU8s
+        }
+        CustomMessagePack.toTypeHierarchy(data) match {
+          case Either.Left(thl) =>
+            stopTime()
+            thl
+          case Either.Right(errorMsg) =>
+            eprintln(s"Loading error at offset ${errorMsg.offset}: ${errorMsg.message}")
+            return Either.right(LoadingError)
         }
       case _ =>
         if (o.noRuntime) {
@@ -227,7 +226,7 @@ object SlangTipe {
           }
           if (rep.hasIssue) {
             rep.printMessages()
-            return InvalidLibrary
+            return Either.right(InvalidLibrary)
           }
           stopTime()
           thl
@@ -244,7 +243,7 @@ object SlangTipe {
       th.nameMap, th.typeMap)
     if (t._1.hasIssue) {
       t._1.printMessages()
-      return InvalidSources
+      return Either.right(InvalidSources)
     }
     stopTime()
 
@@ -257,7 +256,7 @@ object SlangTipe {
     th = TypeHierarchy.build(F, th(nameMap = t._3, typeMap = t._4), reporter)
     if (reporter.hasIssue) {
       reporter.printMessages()
-      return InvalidSources
+      return Either.right(InvalidSources)
     }
     stopTime()
 
@@ -270,7 +269,7 @@ object SlangTipe {
     th = TypeOutliner.checkOutline(0, o.strictAliasing, th, reporter)
     if (reporter.hasIssue) {
       reporter.printMessages()
-      return InvalidSources
+      return Either.right(InvalidSources)
     }
     stopTime()
 
@@ -312,14 +311,14 @@ object SlangTipe {
         }
       }
       if (!ok) {
-        return InvalidForceNames
+        return Either.right(InvalidForceNames)
       }
 
       th = TypeChecker.checkComponents(0, o.strictAliasing, th, nameMap, typeMap, reporter)
 
       if (reporter.hasIssue) {
         reporter.printMessages()
-        return InvalidSources
+        return Either.right(InvalidSources)
       }
       if (o.force.nonEmpty) {
         stopTime()
@@ -337,7 +336,7 @@ object SlangTipe {
 
       if (reporter.hasIssue) {
         reporter.printMessages()
-        return InvalidSources
+        return Either.right(InvalidSources)
       }
       stopTime()
 
@@ -353,7 +352,7 @@ object SlangTipe {
 
       if (reporter.hasIssue) {
         reporter.printMessages()
-        return InternalError
+        return Either.right(InternalError)
       }
       stopTime()
     }
@@ -365,8 +364,13 @@ object SlangTipe {
           println(s"Saving type information to $saveFile ...")
           startTime()
         }
-        if (!SireumApi.writeGzipContent(saveFile, CustomMessagePack.fromTypeHierarchy(th))) {
-          return SavingError
+        val data = CustomMessagePack.fromTypeHierarchy(th)
+        if (o.gzip) {
+          if (!SireumApi.writeGzipContent(saveFile, data)) {
+            return Either.right(SavingError)
+          }
+        } else {
+          saveFile.writeOverU8s(data)
         }
         stopTime()
       case _ =>
@@ -387,7 +391,7 @@ object SlangTipe {
           val p2 = FrontEnd.checkWorksheet(0, thOpt, p, reporter)
           if (reporter.hasIssue) {
             reporter.printMessages()
-            return InvalidSlangFiles
+            return Either.right(InvalidSlangFiles)
           }
           stopTime()
 
@@ -401,7 +405,7 @@ object SlangTipe {
 
           if (reporter.hasIssue) {
             reporter.printMessages()
-            return InternalError
+            return Either.right(InternalError)
           }
           stopTime()
 
@@ -419,6 +423,6 @@ object SlangTipe {
       println(s"Ok! Total time: ${SireumApi.formatSecond(SireumApi.currentTimeMillis - begin)} s, Max memory: ${SireumApi.formatMb(used)} MB")
     }
 
-    return 0
+    return Either.Left(th)
   }
 }

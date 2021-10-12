@@ -537,6 +537,24 @@ object Cli {
     val compile: B
   ) extends SireumTopOption
 
+  @datatype class SireumToolsOpgenOption(
+    val help: String,
+    val args: ISZ[String],
+    val license: Option[String],
+    val name: Option[String],
+    val output: Option[String],
+    val packageName: ISZ[String],
+    val exclude: ISZ[String],
+    val force: ISZ[String],
+    val noRuntime: B,
+    val sourcepath: ISZ[String],
+    val strictAliasing: B,
+    val verbose: B,
+    val save: Option[String],
+    val load: Option[String],
+    val gzip: B
+  ) extends SireumTopOption
+
   @enum object SireumToolsSergenSerializerMode {
     'Json
     'Msgpack
@@ -4028,17 +4046,19 @@ import Cli._
             |checkstack               Native function stack size check tool
             |cligen                   Command-line interface (CLI) generator
             |ivegen                   Sireum IVE project generator
+            |opgen                    Object printer meta-generator
             |sergen                   De/Serializer generator
             |transgen                 Transformer (visitor/rewriter) generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "opgen", "sergen", "transgen"))
     opt match {
       case Some(string"bcgen") => parseSireumToolsBcgen(args, i + 1)
       case Some(string"checkstack") => parseSireumToolsCheckstack(args, i + 1)
       case Some(string"cligen") => parseSireumToolsCligen(args, i + 1)
       case Some(string"ivegen") => parseSireumToolsIvegen(args, i + 1)
+      case Some(string"opgen") => parseSireumToolsOpgen(args, i + 1)
       case Some(string"sergen") => parseSireumToolsSergen(args, i + 1)
       case Some(string"transgen") => parseSireumToolsTransgen(args, i + 1)
       case _ => return None()
@@ -4533,6 +4553,149 @@ import Cli._
       }
     }
     return Some(SireumToolsIvegenOption(help, parseArguments(args, j), jdk, mode, projectName, moduleName, packageName, appName, millPath, force, compile))
+  }
+
+  def parseSireumToolsOpgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Object Printer Meta-generator
+          |
+          |Usage: <option>* <fully-qualified-name>
+          |
+          |Available Options:
+          |-l, --license             (expects a path)
+          |-n, --name               Name of the generated object printer generator
+          |                           (expects a string; default is "ObjectPrinter")
+          |-o, --output-dir          (expects a path)
+          |-p, --package            Package name of the generated object printer generator
+          |                           (expects a string separated by ".")
+          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |                           separated by ",")
+          |-f, --force              Fully qualified names of traits, classes, and objects
+          |                           to force full type checking on when type outlining
+          |                           is enabled (expects a string separated by ",")
+          |-r, --no-runtime         Do not use built-in runtime (use runtime in
+          |                           sourcepath)
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |    --strict-aliasing    Enable strict aliasing check
+          |    --verbose            Enable verbose mode
+          |-h, --help               Display this information
+          |
+          |Persistence Options:
+          |    --save               Path to save type information to (outline should not
+          |                           be enabled) (expects a path)
+          |    --load               Path to load type information from (expects a path)
+          |-z, --no-gzip            Disable gzip compression when saving and/or loading""".render
+
+    var license: Option[String] = None[String]()
+    var name: Option[String] = Some("ObjectPrinter")
+    var output: Option[String] = None[String]()
+    var packageName: ISZ[String] = ISZ[String]()
+    var exclude: ISZ[String] = ISZ[String]()
+    var force: ISZ[String] = ISZ[String]()
+    var noRuntime: B = false
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var strictAliasing: B = false
+    var verbose: B = false
+    var save: Option[String] = None[String]()
+    var load: Option[String] = None[String]()
+    var gzip: B = true
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => exclude = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--force") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--no-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!noRuntime) }
+           o match {
+             case Some(v) => noRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "--save") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => save = v
+             case _ => return None()
+           }
+         } else if (arg == "--load") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => load = v
+             case _ => return None()
+           }
+         } else if (arg == "-z" || arg == "--no-gzip") {
+           val o: Option[B] = { j = j - 1; Some(!gzip) }
+           o match {
+             case Some(v) => gzip = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumToolsOpgenOption(help, parseArguments(args, j), license, name, output, packageName, exclude, force, noRuntime, sourcepath, strictAliasing, verbose, save, load, gzip))
   }
 
   def parseSireumToolsSergenSerializerModeH(arg: String): Option[SireumToolsSergenSerializerMode.Type] = {

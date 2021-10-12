@@ -317,13 +317,17 @@ object Sireum {
         return 0
       case _ =>
         Cli(File.pathSeparatorChar).parseSireum(args, 0) match {
-          case Some(o: Cli.SireumSlangTipeOption) => return cli.SlangTipe.run(o, Reporter.create)
+          case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {
+            case Either.Right(code) => return code
+            case _ => return 0
+          }
           case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
           case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o)
           case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o)
           case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
           case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
           case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
+          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o)
           case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o)
           case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o)
           case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
