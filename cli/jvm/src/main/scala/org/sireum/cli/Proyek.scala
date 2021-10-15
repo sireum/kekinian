@@ -507,10 +507,6 @@ object Proyek {
       skipTypes = o.skipTypes,
       reporter = reporter
     )
-    if (reporter.messages.nonEmpty) {
-      println()
-      reporter.printMessages()
-    }
     if (lcode == 0) {
       println()
       println("Logika verified!")
@@ -684,6 +680,59 @@ object Proyek {
     return r
   }
 
+  def stats(o: Cli.SireumProyekStatsOption): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(2), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    val projectName = o.name.getOrElse(path.canon.name)
+    if (prj.modules.contains(projectName)) {
+      eprintln("Project name cannot be the same as a module name")
+      return INVALID_PROJECT
+    }
+
+    println()
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = F,
+      withSource = o.sources,
+      withDoc = o.docs,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    val output: Os.Path = o.args match {
+      case ISZ(_) => o.name match {
+        case Some(name) => Os.path(s"$name.csv").canon
+        case _ => Os.path("project.csv").canon
+      }
+      case ISZ(_, file) => Os.path(file).canon
+    }
+
+    output.up.mkdirAll()
+
+    val r = proyek.Stats.run(
+      root = path,
+      project = prj,
+      dm = dm,
+      par = 0,
+      strictAliasing = T,
+      followSymLink = F,
+      output = output,
+      reporter = message.Reporter.create
+    )
+
+    return r
+  }
+
   def test(o: Cli.SireumProyekTestOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
@@ -801,10 +850,6 @@ object Proyek {
       skipTypes = ISZ(),
       reporter = reporter
     )
-    if (reporter.messages.nonEmpty) {
-      println()
-      reporter.printMessages()
-    }
     if (lcode == 0) {
       println()
       println("Programs are well-typed!")
