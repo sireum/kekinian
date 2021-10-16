@@ -512,6 +512,8 @@ object Proyek {
       println("Logika verified!")
       return 0
     } else {
+      println()
+      reporter.printMessages()
       return ILL_FORMED_PROGRAMS
     }
   }
@@ -855,6 +857,8 @@ object Proyek {
       println("Programs are well-typed!")
       return 0
     } else {
+      println()
+      reporter.printMessages()
       return ILL_FORMED_PROGRAMS
     }
   }

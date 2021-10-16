@@ -33,3 +33,5 @@ scratch.*
 stale_outputs_checked
 *.cmd.jar
 *.cmd.com
+/.server.log
+/.client.log
