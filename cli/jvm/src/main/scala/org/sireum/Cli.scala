@@ -459,8 +459,10 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val message: SireumServerServerMessage.Type,
+    val log: B,
     val noInputCache: B,
     val noTypeCache: B,
+    val verbose: B,
     val workers: Z
   ) extends SireumTopOption
 
@@ -4148,15 +4150,19 @@ import Cli._
           |Available Options:
           |-m, --message            Message format (expects one of { msgpack, json };
           |                           default: msgpack)
+          |-l, --log                Enable logging
           |-i, --no-input-cache     Disable file input caching
           |-t, --no-type-cache      Disable type information caching
+          |-v, --verbose            Enable verbose logging
           |-w, --workers            Number of analysis thread workers (expects an integer;
           |                           min is 1; default is 1)
           |-h, --help               Display this information""".render
 
     var message: SireumServerServerMessage.Type = SireumServerServerMessage.Msgpack
+    var log: B = false
     var noInputCache: B = false
     var noTypeCache: B = false
+    var verbose: B = false
     var workers: Z = 1
     var j = i
     var isOption = T
@@ -4172,6 +4178,12 @@ import Cli._
              case Some(v) => message = v
              case _ => return None()
            }
+         } else if (arg == "-l" || arg == "--log") {
+           val o: Option[B] = { j = j - 1; Some(!log) }
+           o match {
+             case Some(v) => log = v
+             case _ => return None()
+           }
          } else if (arg == "-i" || arg == "--no-input-cache") {
            val o: Option[B] = { j = j - 1; Some(!noInputCache) }
            o match {
@@ -4182,6 +4194,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!noTypeCache) }
            o match {
              case Some(v) => noTypeCache = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
              case _ => return None()
            }
          } else if (arg == "-w" || arg == "--workers") {
@@ -4199,7 +4217,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumServerOption(help, parseArguments(args, j), message, noInputCache, noTypeCache, workers))
+    return Some(SireumServerOption(help, parseArguments(args, j), message, log, noInputCache, noTypeCache, verbose, workers))
   }
 
   def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
