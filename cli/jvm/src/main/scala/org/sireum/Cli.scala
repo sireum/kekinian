@@ -450,6 +450,33 @@ object Cli {
     val forwarding: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumPresentasiText2speechService {
+    'Mary
+    'Azure
+  }
+
+  @enum object SireumPresentasiText2speechOutputFormat {
+    'Mp3_48khz_192kbit
+    'Webm_24khz_16bit
+    'Ogg_48khz_16bit
+    'Pcm_48khz_16bit
+  }
+
+  @datatype class SireumPresentasiText2speechOption(
+    val help: String,
+    val args: ISZ[String],
+    val force: B,
+    val output: Option[String],
+    val service: SireumPresentasiText2speechService.Type,
+    val voice: Option[String],
+    val gender: Option[String],
+    val key: Option[String],
+    val lang: Option[String],
+    val outputFormat: SireumPresentasiText2speechOutputFormat.Type,
+    val region: Option[String],
+    val voiceLang: Option[String]
+  ) extends SireumTopOption
+
   @enum object SireumServerServerMessage {
     'Msgpack
     'Json
@@ -621,18 +648,20 @@ import Cli._
             |logika                   Logika tools
             |proyek                   Build tools
             |slang                    Slang tools
+            |presentasi               Presentation tools
             |server                   Sireum server
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "server", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "presentasi", "server", "tools", "x"))
     opt match {
       case Some(string"anvil") => parseSireumAnvil(args, i + 1)
       case Some(string"hamr") => parseSireumHamr(args, i + 1)
       case Some(string"logika") => parseSireumLogika(args, i + 1)
       case Some(string"proyek") => parseSireumProyek(args, i + 1)
       case Some(string"slang") => parseSireumSlang(args, i + 1)
+      case Some(string"presentasi") => parseSireumPresentasi(args, i + 1)
       case Some(string"server") => parseSireumServer(args, i + 1)
       case Some(string"tools") => parseSireumTools(args, i + 1)
       case Some(string"x") => parseSireumX(args, i + 1)
@@ -4120,6 +4149,181 @@ import Cli._
       }
     }
     return Some(SireumSlangTranspilersCOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
+  }
+
+  def parseSireumPresentasi(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Presentasi
+            |
+            |Available modes:
+            |text2speech              Text-to-speech tool""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("presentasi", args, i, ISZ("text2speech"))
+    opt match {
+      case Some(string"text2speech") => parseSireumPresentasiText2speech(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumPresentasiText2speechServiceH(arg: String): Option[SireumPresentasiText2speechService.Type] = {
+    arg.native match {
+      case "mary" => return Some(SireumPresentasiText2speechService.Mary)
+      case "azure" => return Some(SireumPresentasiText2speechService.Azure)
+      case s =>
+        eprintln(s"Expecting one of the following: { mary, azure }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumPresentasiText2speechService(args: ISZ[String], i: Z): Option[SireumPresentasiText2speechService.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mary, azure }, but none found.")
+      return None()
+    }
+    val r = parseSireumPresentasiText2speechServiceH(args(i))
+    return r
+  }
+
+  def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {
+    arg.native match {
+      case "mp3_48khz_192kbit" => return Some(SireumPresentasiText2speechOutputFormat.Mp3_48khz_192kbit)
+      case "webm_24khz_16bit" => return Some(SireumPresentasiText2speechOutputFormat.Webm_24khz_16bit)
+      case "ogg_48khz_16bit" => return Some(SireumPresentasiText2speechOutputFormat.Ogg_48khz_16bit)
+      case "pcm_48khz_16bit" => return Some(SireumPresentasiText2speechOutputFormat.Pcm_48khz_16bit)
+      case s =>
+        eprintln(s"Expecting one of the following: { mp3_48khz_192kbit, webm_24khz_16bit, ogg_48khz_16bit, pcm_48khz_16bit }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumPresentasiText2speechOutputFormat(args: ISZ[String], i: Z): Option[SireumPresentasiText2speechOutputFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mp3_48khz_192kbit, webm_24khz_16bit, ogg_48khz_16bit, pcm_48khz_16bit }, but none found.")
+      return None()
+    }
+    val r = parseSireumPresentasiText2speechOutputFormatH(args(i))
+    return r
+  }
+
+  def parseSireumPresentasiText2speech(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Presentasi Text-to-Speech Tool
+          |
+          |Usage: <option>* <file.txt>
+          |
+          |Available Options:
+          |    --force              Overview output file(s)
+          |-o, --output             Output filename (defaults to <line>.<ext>) (expects a
+          |                           path)
+          |-s, --service            Speech language (expects one of { mary, azure };
+          |                           default: mary)
+          |-v, --voice              Voice (defaults to "en-GB-RyanNeural" for Azure,
+          |                           "dfki-spike-hsmm" for MaryTTS (expects a string)
+          |-h, --help               Display this information
+          |
+          |Azure Options:
+          |-g, --gender             Voice gender (expects a string; default is "Male")
+          |-k, --key                Azure subscription key (expects a string)
+          |-l, --lang               Speech language (expects a string; default is "en-US")
+          |-f, --output-format      Audio output format (expects one of {
+          |                           mp3_48khz_192kbit, webm_24khz_16bit,
+          |                           ogg_48khz_16bit, pcm_48khz_16bit }; default:
+          |                           mp3_48khz_192kbit)
+          |-r, --region             Azure region (expects a string; default is
+          |                           "centralus")
+          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
+
+    var force: B = false
+    var output: Option[String] = None[String]()
+    var service: SireumPresentasiText2speechService.Type = SireumPresentasiText2speechService.Mary
+    var voice: Option[String] = None[String]()
+    var gender: Option[String] = Some("Male")
+    var key: Option[String] = None[String]()
+    var lang: Option[String] = Some("en-US")
+    var outputFormat: SireumPresentasiText2speechOutputFormat.Type = SireumPresentasiText2speechOutputFormat.Mp3_48khz_192kbit
+    var region: Option[String] = Some("centralus")
+    var voiceLang: Option[String] = Some("en-GB")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--force") {
+           val o: Option[B] = { j = j - 1; Some(!force) }
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--service") {
+           val o: Option[SireumPresentasiText2speechService.Type] = parseSireumPresentasiText2speechService(args, j + 1)
+           o match {
+             case Some(v) => service = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--voice") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voice = v
+             case _ => return None()
+           }
+         } else if (arg == "-g" || arg == "--gender") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => gender = v
+             case _ => return None()
+           }
+         } else if (arg == "-k" || arg == "--key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => key = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => lang = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--output-format") {
+           val o: Option[SireumPresentasiText2speechOutputFormat.Type] = parseSireumPresentasiText2speechOutputFormat(args, j + 1)
+           o match {
+             case Some(v) => outputFormat = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--region") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => region = v
+             case _ => return None()
+           }
+         } else if (arg == "-d" || arg == "--voice-lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voiceLang = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumPresentasiText2speechOption(help, parseArguments(args, j), force, output, service, voice, gender, key, lang, outputFormat, region, voiceLang))
   }
 
   def parseSireumServerServerMessageH(arg: String): Option[SireumServerServerMessage.Type] = {

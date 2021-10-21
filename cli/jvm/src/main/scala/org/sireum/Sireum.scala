@@ -333,6 +333,7 @@ object Sireum {
           case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
+          case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
           case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
           case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)

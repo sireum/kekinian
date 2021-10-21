@@ -50,6 +50,57 @@ val x = Group(
   subs = ISZ()
 )
 
+val text2speechTool: Tool = Tool(
+  name = "text2speech",
+  command = "text2speech",
+  description = "Text-to-speech tool",
+  header = "Sireum Presentasi Text-to-Speech Tool",
+  usage = "<option>* <file.txt>",
+  usageDescOpt = None(),
+  opts = ISZ(
+    Opt(name = "force", longKey = "force", shortKey = None(),
+      tpe = Type.Flag(F),
+      description = "Overview output file(s)"),
+    Opt(name = "output", longKey = "output", shortKey = Some('o'),
+      tpe = Type.Path(F, None()),
+      description = "Output filename (defaults to <line>.<ext>)"),
+    Opt(name = "service", longKey = "service", shortKey = Some('s'),
+      tpe = Type.Choice(name = "service", sep = None(), elements = ISZ("mary", "azure")), description = "Speech language"),
+    Opt(name = "voice", longKey = "voice", shortKey = Some('v'),
+      tpe = Type.Str(sep = None(), default = None()),
+      description = "Voice (defaults to \"en-GB-RyanNeural\" for Azure, \"dfki-spike-hsmm\" for MaryTTS"),
+  ),
+  groups = ISZ(
+    OptGroup(
+      name = "Azure", opts = ISZ(
+        Opt(name = "gender", longKey = "gender", shortKey = Some('g'),
+          tpe = Type.Str(sep = None(), default = Some("Male")), description = "Voice gender"),
+        Opt(name = "key", longKey = "key", shortKey = Some('k'),
+          tpe = Type.Str(sep = None(), default = None()), description = "Azure subscription key"),
+        Opt(name = "lang", longKey = "lang", shortKey = Some('l'),
+          tpe = Type.Str(sep = None(), default = Some("en-US")), description = "Speech language"),
+        Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
+          tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
+            "mp3_48khz_192kbit", "webm_24khz_16bit", "ogg_48khz_16bit", "pcm_48khz_16bit")),
+          description = "Audio output format"),
+        Opt(name = "region", longKey = "region", shortKey = Some('r'),
+          tpe = Type.Str(sep = None(), default = Some("centralus")), description = "Azure region"),
+        Opt(name = "voiceLang", longKey = "voice-lang", shortKey = Some('d'),
+          tpe = Type.Str(sep = None(), default = Some("en-GB")), description = "Voice language"),
+      )
+    )
+  )
+)
+
+val presentasiGroup = Group(
+  name = "presentasi",
+  description = "Presentation tools",
+  header =
+    st"""Sireum Presentasi""".render,
+  unlisted = F,
+  subs = ISZ(text2speechTool)
+)
+
 val main = Group(
   name = "sireum",
   description = "",
@@ -64,6 +115,7 @@ val main = Group(
     logika.cli.group,
     proyek.cli.group,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
+    presentasiGroup,
     server.cli.serverTool,
     tools.cli.group,
     x
