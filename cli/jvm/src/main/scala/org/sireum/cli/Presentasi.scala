@@ -114,7 +114,7 @@ object Presentasi {
             println(s"Synthesizing: $line")
             tmp.writeOver(
               st"""$echoOffOpt
-                  |curl --location --request POST 'https://${o.region.get}.tts.speech.microsoft.com/cognitiveservices/v1' --header 'Ocp-Apim-Subscription-Key: $key' --header 'Content-Type: application/ssml+xml' --header 'X-Microsoft-OutputFormat: $format' --header 'User-Agent: curl' --data-raw '<speak version="1.0" xml:lang="${o.lang.get}"><voice xml:lang="${o.voiceLang.get}" xml:gender="${o.gender.get}" name="$voice">$line</voice></speak>' -o $out""".render)
+                  |curl --location --request POST 'https://${o.region.get}.tts.speech.microsoft.com/cognitiveservices/v1' --header 'Ocp-Apim-Subscription-Key: $key' --header 'Content-Type: application/ssml+xml' --header 'X-Microsoft-OutputFormat: $format' --header 'User-Agent: curl' --data-raw '<speak version="1.0" xml:lang="${o.lang.get}"><voice xml:lang="${o.voiceLang.get}" xml:gender="${o.gender.get}" name="$voice">${ops.StringOps(line).replaceAllLiterally("'", "'\\''")}</voice></speak>' -o $out""".render)
             tmp.chmod("+x")
             proc"$tmp".console.runCheck()
             println()
