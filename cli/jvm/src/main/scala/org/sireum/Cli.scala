@@ -4215,11 +4215,11 @@ import Cli._
           |Usage: <option>* <file.txt>
           |
           |Available Options:
-          |    --force              Overview output file(s)
+          |    --force              Overwrite output file(s)
           |-o, --output             Output filename (defaults to <line>.<ext>) (expects a
           |                           path)
-          |-s, --service            Speech language (expects one of { mary, azure };
-          |                           default: mary)
+          |-s, --service            Text-to-speech service (expects one of { mary, azure
+          |                           }; default: mary)
           |-v, --voice              Voice (defaults to "en-GB-RyanNeural" for Azure,
           |                           "dfki-spike-hsmm" for MaryTTS (expects a string)
           |-h, --help               Display this information
