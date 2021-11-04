@@ -989,7 +989,7 @@ import Cli._
           |                           Sireum plugins installed if not provided (expects a
           |                           string separated by ";")
           |-v, --version            OSATE version (expects a string; default is
-          |                           "2.9.2-vfinal")""".render
+          |                           "2.10.0-vfinal")""".render
 
     var impl: Option[String] = None[String]()
     var main: Option[String] = None[String]()
@@ -1000,7 +1000,7 @@ import Cli._
     var osate: Option[String] = None[String]()
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
-    var version: Option[String] = Some("2.9.2-vfinal")
+    var version: Option[String] = Some("2.10.0-vfinal")
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
