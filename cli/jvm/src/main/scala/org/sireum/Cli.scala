@@ -116,6 +116,14 @@ object Cli {
     val version: Option[String]
   ) extends SireumTopOption
 
+  @enum object SireumLogikaVerifierFPRoundingMode {
+    'NearestTiesToEven
+    'NearestTiesToAway
+    'TowardPositive
+    'TowardNegative
+    'TowardZero
+  }
+
   @enum object SireumLogikaVerifierLogikaSolver {
     'All
     'Cvc4
@@ -128,6 +136,7 @@ object Cli {
     val noRuntime: B,
     val sourcepath: ISZ[String],
     val charBitWidth: Z,
+    val fpRounding: SireumLogikaVerifierFPRoundingMode.Type,
     val useReal: B,
     val intBitWidth: Z,
     val line: Z,
@@ -146,9 +155,9 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val cvc4RLimit: Z,
-    val cvc4VOpts: ISZ[String],
-    val cvc4SOpts: ISZ[String],
+    val cvcRLimit: Z,
+    val cvcVOpts: ISZ[String],
+    val cvcSOpts: ISZ[String],
     val simplify: B,
     val solver: SireumLogikaVerifierLogikaSolver.Type,
     val timeout: Z,
@@ -227,6 +236,14 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumProyekLogikaFPRoundingMode {
+    'NearestTiesToEven
+    'NearestTiesToAway
+    'TowardPositive
+    'TowardNegative
+    'TowardZero
+  }
+
   @enum object SireumProyekLogikaLogikaSolver {
     'All
     'Cvc4
@@ -252,6 +269,7 @@ object Cli {
     val sources: B,
     val repositories: ISZ[String],
     val charBitWidth: Z,
+    val fpRounding: SireumProyekLogikaFPRoundingMode.Type,
     val useReal: B,
     val intBitWidth: Z,
     val line: Z,
@@ -270,9 +288,9 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val cvc4RLimit: Z,
-    val cvc4VOpts: ISZ[String],
-    val cvc4SOpts: ISZ[String],
+    val cvcRLimit: Z,
+    val cvcVOpts: ISZ[String],
+    val cvcSOpts: ISZ[String],
     val simplify: B,
     val solver: SireumProyekLogikaLogikaSolver.Type,
     val timeout: Z,
@@ -333,6 +351,23 @@ object Cli {
     val scalac: ISZ[String],
     val sha3: B,
     val skipCompile: B,
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
+  ) extends SireumTopOption
+
+  @datatype class SireumProyekStatsOption(
+    val help: String,
+    val args: ISZ[String],
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
     val sources: B,
@@ -447,6 +482,49 @@ object Cli {
     val anvilTranspilerContext: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumPresentasiText2speechService {
+    'Mary
+    'Azure
+  }
+
+  @enum object SireumPresentasiText2speechOutputFormat {
+    'Mp3_48khz_192kbit
+    'Webm_24khz_16bit
+    'Ogg_48khz_16bit
+    'Pcm_48khz_16bit
+  }
+
+  @datatype class SireumPresentasiText2speechOption(
+    val help: String,
+    val args: ISZ[String],
+    val force: B,
+    val output: Option[String],
+    val service: SireumPresentasiText2speechService.Type,
+    val voice: Option[String],
+    val gender: Option[String],
+    val key: Option[String],
+    val lang: Option[String],
+    val outputFormat: SireumPresentasiText2speechOutputFormat.Type,
+    val region: Option[String],
+    val voiceLang: Option[String]
+  ) extends SireumTopOption
+
+  @enum object SireumServerServerMessage {
+    'Msgpack
+    'Json
+  }
+
+  @datatype class SireumServerOption(
+    val help: String,
+    val args: ISZ[String],
+    val message: SireumServerServerMessage.Type,
+    val log: B,
+    val noInputCache: B,
+    val noTypeCache: B,
+    val verbose: B,
+    val workers: Z
+  ) extends SireumTopOption
+
   @enum object SireumToolsBcgenBitCodecMode {
     'Program
     'Script
@@ -537,6 +615,24 @@ object Cli {
     val compile: B
   ) extends SireumTopOption
 
+  @datatype class SireumToolsOpgenOption(
+    val help: String,
+    val args: ISZ[String],
+    val license: Option[String],
+    val name: Option[String],
+    val output: Option[String],
+    val packageName: ISZ[String],
+    val exclude: ISZ[String],
+    val force: ISZ[String],
+    val noRuntime: B,
+    val sourcepath: ISZ[String],
+    val strictAliasing: B,
+    val verbose: B,
+    val save: Option[String],
+    val load: Option[String],
+    val gzip: B
+  ) extends SireumTopOption
+
   @enum object SireumToolsSergenSerializerMode {
     'Json
     'Msgpack
@@ -566,18 +662,6 @@ object Cli {
     val license: Option[String],
     val outputDir: Option[String]
   ) extends SireumTopOption
-
-  @enum object SireumXServerServerMessage {
-    'Msgpack
-    'Json
-  }
-
-  @datatype class SireumXServerOption(
-    val help: String,
-    val args: ISZ[String],
-    val message: SireumXServerServerMessage.Type,
-    val logika: Z
-  ) extends SireumTopOption
 }
 
 import Cli._
@@ -597,17 +681,21 @@ import Cli._
             |logika                   Logika tools
             |proyek                   Build tools
             |slang                    Slang tools
+            |presentasi               Presentation tools
+            |server                   Sireum server
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "presentasi", "server", "tools", "x"))
     opt match {
       case Some(string"anvil") => parseSireumAnvil(args, i + 1)
       case Some(string"hamr") => parseSireumHamr(args, i + 1)
       case Some(string"logika") => parseSireumLogika(args, i + 1)
       case Some(string"proyek") => parseSireumProyek(args, i + 1)
       case Some(string"slang") => parseSireumSlang(args, i + 1)
+      case Some(string"presentasi") => parseSireumPresentasi(args, i + 1)
+      case Some(string"server") => parseSireumServer(args, i + 1)
       case Some(string"tools") => parseSireumTools(args, i + 1)
       case Some(string"x") => parseSireumX(args, i + 1)
       case _ => return None()
@@ -1112,7 +1200,7 @@ import Cli._
           |                           Sireum plugins installed if not provided (expects a
           |                           string separated by ";")
           |-v, --version            OSATE version (expects a string; default is
-          |                           "2.9.2-vfinal")""".render
+          |                           "2.10.0-vfinal")""".render
 
     var impl: Option[String] = None[String]()
     var main: Option[String] = None[String]()
@@ -1123,7 +1211,7 @@ import Cli._
     var osate: Option[String] = None[String]()
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
-    var version: Option[String] = Some("2.9.2-vfinal")
+    var version: Option[String] = Some("2.10.0-vfinal")
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1221,6 +1309,28 @@ import Cli._
     }
   }
 
+  def parseSireumLogikaVerifierFPRoundingModeH(arg: String): Option[SireumLogikaVerifierFPRoundingMode.Type] = {
+    arg.native match {
+      case "NearestTiesToEven" => return Some(SireumLogikaVerifierFPRoundingMode.NearestTiesToEven)
+      case "NearestTiesToAway" => return Some(SireumLogikaVerifierFPRoundingMode.NearestTiesToAway)
+      case "TowardPositive" => return Some(SireumLogikaVerifierFPRoundingMode.TowardPositive)
+      case "TowardNegative" => return Some(SireumLogikaVerifierFPRoundingMode.TowardNegative)
+      case "TowardZero" => return Some(SireumLogikaVerifierFPRoundingMode.TowardZero)
+      case s =>
+        eprintln(s"Expecting one of the following: { NearestTiesToEven, NearestTiesToAway, TowardPositive, TowardNegative, TowardZero }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumLogikaVerifierFPRoundingMode(args: ISZ[String], i: Z): Option[SireumLogikaVerifierFPRoundingMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { NearestTiesToEven, NearestTiesToAway, TowardPositive, TowardNegative, TowardZero }, but none found.")
+      return None()
+    }
+    val r = parseSireumLogikaVerifierFPRoundingModeH(args(i))
+    return r
+  }
+
   def parseSireumLogikaVerifierLogikaSolverH(arg: String): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(SireumLogikaVerifierLogikaSolver.All)
@@ -1258,6 +1368,10 @@ import Cli._
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
           |                           is 32)
+          |    --fp-rounding        Rounding mode for floating point numbers (expects one
+          |                           of { NearestTiesToEven, NearestTiesToAway,
+          |                           TowardPositive, TowardNegative, TowardZero };
+          |                           default: NearestTiesToEven)
           |    --use-real           Use reals to approximate floating-point numbers
           |    --z-bitwidth         Bit-width representation for Z (integer) values
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
@@ -1299,11 +1413,11 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc4-rlimit        CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc4-vopts         Additional options for CVC4 validity checks (expects a
+          |    --cvc-rlimit         CVC4 rlimit (expects an integer; default is 1000000)
+          |    --cvc-vopts          Additional options for CVC4 validity checks (expects a
           |                           string separated by ","; default is
           |                           "--full-saturate-quant")
-          |    --cvc4-sopts         Additional options for CVC4 satisfiability checks
+          |    --cvc-sopts          Additional options for CVC4 satisfiability checks
           |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
@@ -1318,6 +1432,7 @@ import Cli._
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var charBitWidth: Z = 32
+    var fpRounding: SireumLogikaVerifierFPRoundingMode.Type = SireumLogikaVerifierFPRoundingMode.NearestTiesToEven
     var useReal: B = false
     var intBitWidth: Z = 0
     var line: Z = 0
@@ -1336,9 +1451,9 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var cvc4RLimit: Z = 1000000
-    var cvc4VOpts: ISZ[String] = ISZ("--full-saturate-quant")
-    var cvc4SOpts: ISZ[String] = ISZ[String]()
+    var cvcRLimit: Z = 1000000
+    var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
+    var cvcSOpts: ISZ[String] = ISZ[String]()
     var simplify: B = false
     var solver: SireumLogikaVerifierLogikaSolver.Type = SireumLogikaVerifierLogikaSolver.All
     var timeout: Z = 2
@@ -1368,6 +1483,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => charBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--fp-rounding") {
+           val o: Option[SireumLogikaVerifierFPRoundingMode.Type] = parseSireumLogikaVerifierFPRoundingMode(args, j + 1)
+           o match {
+             case Some(v) => fpRounding = v
              case _ => return None()
            }
          } else if (arg == "--use-real") {
@@ -1481,22 +1602,22 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-rlimit") {
+         } else if (arg == "--cvc-rlimit") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
-             case Some(v) => cvc4RLimit = v
+             case Some(v) => cvcRLimit = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-vopts") {
+         } else if (arg == "--cvc-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4VOpts = v
+             case Some(v) => cvcVOpts = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-sopts") {
+         } else if (arg == "--cvc-sopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4SOpts = v
+             case Some(v) => cvcSOpts = v
              case _ => return None()
            }
          } else if (arg == "--simplify") {
@@ -1538,7 +1659,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1553,12 +1674,13 @@ import Cli._
             |logika                   Sireum Logika for Proyek
             |publish                  Proyek publisher
             |run                      Proyek program runner
+            |stats                    Proyek statistics reporter
             |test                     Proyek test runner
             |tipe                     Slang proyek type checker""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "logika", "publish", "run", "test", "tipe"))
+    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "logika", "publish", "run", "stats", "test", "tipe"))
     opt match {
       case Some(string"assemble") => parseSireumProyekAssemble(args, i + 1)
       case Some(string"compile") => parseSireumProyekCompile(args, i + 1)
@@ -1566,6 +1688,7 @@ import Cli._
       case Some(string"logika") => parseSireumProyekLogika(args, i + 1)
       case Some(string"publish") => parseSireumProyekPublish(args, i + 1)
       case Some(string"run") => parseSireumProyekRun(args, i + 1)
+      case Some(string"stats") => parseSireumProyekStats(args, i + 1)
       case Some(string"test") => parseSireumProyekTest(args, i + 1)
       case Some(string"tipe") => parseSireumProyekTipe(args, i + 1)
       case _ => return None()
@@ -2201,6 +2324,28 @@ import Cli._
     return Some(SireumProyekIveOption(help, parseArguments(args, j), force, ultimate, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
+  def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {
+    arg.native match {
+      case "NearestTiesToEven" => return Some(SireumProyekLogikaFPRoundingMode.NearestTiesToEven)
+      case "NearestTiesToAway" => return Some(SireumProyekLogikaFPRoundingMode.NearestTiesToAway)
+      case "TowardPositive" => return Some(SireumProyekLogikaFPRoundingMode.TowardPositive)
+      case "TowardNegative" => return Some(SireumProyekLogikaFPRoundingMode.TowardNegative)
+      case "TowardZero" => return Some(SireumProyekLogikaFPRoundingMode.TowardZero)
+      case s =>
+        eprintln(s"Expecting one of the following: { NearestTiesToEven, NearestTiesToAway, TowardPositive, TowardNegative, TowardZero }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumProyekLogikaFPRoundingMode(args: ISZ[String], i: Z): Option[SireumProyekLogikaFPRoundingMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { NearestTiesToEven, NearestTiesToAway, TowardPositive, TowardNegative, TowardZero }, but none found.")
+      return None()
+    }
+    val r = parseSireumProyekLogikaFPRoundingModeH(args(i))
+    return r
+  }
+
   def parseSireumProyekLogikaLogikaSolverH(arg: String): Option[SireumProyekLogikaLogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(SireumProyekLogikaLogikaSolver.All)
@@ -2271,6 +2416,10 @@ import Cli._
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
           |                           is 32)
+          |    --fp-rounding        Rounding mode for floating point numbers (expects one
+          |                           of { NearestTiesToEven, NearestTiesToAway,
+          |                           TowardPositive, TowardNegative, TowardZero };
+          |                           default: NearestTiesToEven)
           |    --use-real           Use reals to approximate floating-point numbers
           |    --z-bitwidth         Bit-width representation for Z (integer) values
           |                           (expected 0, 8, 16, 32, 64) (expects an integer;
@@ -2312,11 +2461,11 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc4-rlimit        CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc4-vopts         Additional options for CVC4 validity checks (expects a
+          |    --cvc-rlimit         CVC4 rlimit (expects an integer; default is 1000000)
+          |    --cvc-vopts          Additional options for CVC4 validity checks (expects a
           |                           string separated by ","; default is
           |                           "--full-saturate-quant")
-          |    --cvc4-sopts         Additional options for CVC4 satisfiability checks
+          |    --cvc-sopts          Additional options for CVC4 satisfiability checks
           |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
           |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
@@ -2344,6 +2493,7 @@ import Cli._
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var charBitWidth: Z = 32
+    var fpRounding: SireumProyekLogikaFPRoundingMode.Type = SireumProyekLogikaFPRoundingMode.NearestTiesToEven
     var useReal: B = false
     var intBitWidth: Z = 0
     var line: Z = 0
@@ -2362,9 +2512,9 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var cvc4RLimit: Z = 1000000
-    var cvc4VOpts: ISZ[String] = ISZ("--full-saturate-quant")
-    var cvc4SOpts: ISZ[String] = ISZ[String]()
+    var cvcRLimit: Z = 1000000
+    var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
+    var cvcSOpts: ISZ[String] = ISZ[String]()
     var simplify: B = false
     var solver: SireumProyekLogikaLogikaSolver.Type = SireumProyekLogikaLogikaSolver.All
     var timeout: Z = 2
@@ -2472,6 +2622,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => charBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--fp-rounding") {
+           val o: Option[SireumProyekLogikaFPRoundingMode.Type] = parseSireumProyekLogikaFPRoundingMode(args, j + 1)
+           o match {
+             case Some(v) => fpRounding = v
              case _ => return None()
            }
          } else if (arg == "--use-real") {
@@ -2585,22 +2741,22 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-rlimit") {
+         } else if (arg == "--cvc-rlimit") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
-             case Some(v) => cvc4RLimit = v
+             case Some(v) => cvcRLimit = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-vopts") {
+         } else if (arg == "--cvc-vopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4VOpts = v
+             case Some(v) => cvcVOpts = v
              case _ => return None()
            }
-         } else if (arg == "--cvc4-sopts") {
+         } else if (arg == "--cvc-sopts") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
-             case Some(v) => cvc4SOpts = v
+             case Some(v) => cvcSOpts = v
              case _ => return None()
            }
          } else if (arg == "--simplify") {
@@ -2642,7 +2798,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvc4RLimit, cvc4VOpts, cvc4SOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -3157,6 +3313,153 @@ import Cli._
       }
     }
     return Some(SireumProyekRunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+  }
+
+  def parseSireumProyekStats(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Proyek Statistics Reporter
+          |
+          |Usage: <options>* <dir> [ <file.csv> ]
+          |
+          |Available Options:
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
+          |    --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |    --project            The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
+          |                           a path)
+          |    --slice              Slice the project starting from the given module IDs
+          |                           and their dependencies (expects a string separated
+          |                           by ",")
+          |    --symlink            Follow symbolic link when searching for files
+          |-v, --versions           The properties file(s) containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects path strings)
+          |
+          |Ivy Dependencies Options:
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
+          |                           cache directory) (expects a path)
+          |    --no-docs            Disable retrieval of javadoc files from Ivy
+          |                           dependencies
+          |    --no-sources         Disable retrieval of source files from Ivy
+          |                           dependencies
+          |-r, --repositories       Additional repository URLs to retrieve Ivy
+          |                           dependencies from (expects a string separated by
+          |                           ",")""".render
+
+    var ignoreRuntime: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var slice: ISZ[String] = ISZ[String]()
+    var symlink: B = false
+    var versions: ISZ[String] = ISZ[String]()
+    var cache: Option[String] = None[String]()
+    var docs: B = true
+    var sources: B = true
+    var repositories: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--slice") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--cache") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => cache = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-docs") {
+           val o: Option[B] = { j = j - 1; Some(!docs) }
+           o match {
+             case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-sources") {
+           val o: Option[B] = { j = j - 1; Some(!sources) }
+           o match {
+             case Some(v) => sources = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--repositories") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => repositories = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumProyekStatsOption(help, parseArguments(args, j), ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekTest(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -4102,6 +4405,279 @@ import Cli._
     return Some(SireumSlangTranspilersCOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding, anvilTranspilerPass, anvilTranspilerContext))
   }
 
+  def parseSireumPresentasi(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Presentasi
+            |
+            |Available modes:
+            |text2speech              Text-to-speech tool""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("presentasi", args, i, ISZ("text2speech"))
+    opt match {
+      case Some(string"text2speech") => parseSireumPresentasiText2speech(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumPresentasiText2speechServiceH(arg: String): Option[SireumPresentasiText2speechService.Type] = {
+    arg.native match {
+      case "mary" => return Some(SireumPresentasiText2speechService.Mary)
+      case "azure" => return Some(SireumPresentasiText2speechService.Azure)
+      case s =>
+        eprintln(s"Expecting one of the following: { mary, azure }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumPresentasiText2speechService(args: ISZ[String], i: Z): Option[SireumPresentasiText2speechService.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mary, azure }, but none found.")
+      return None()
+    }
+    val r = parseSireumPresentasiText2speechServiceH(args(i))
+    return r
+  }
+
+  def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {
+    arg.native match {
+      case "mp3_48khz_192kbit" => return Some(SireumPresentasiText2speechOutputFormat.Mp3_48khz_192kbit)
+      case "webm_24khz_16bit" => return Some(SireumPresentasiText2speechOutputFormat.Webm_24khz_16bit)
+      case "ogg_48khz_16bit" => return Some(SireumPresentasiText2speechOutputFormat.Ogg_48khz_16bit)
+      case "pcm_48khz_16bit" => return Some(SireumPresentasiText2speechOutputFormat.Pcm_48khz_16bit)
+      case s =>
+        eprintln(s"Expecting one of the following: { mp3_48khz_192kbit, webm_24khz_16bit, ogg_48khz_16bit, pcm_48khz_16bit }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumPresentasiText2speechOutputFormat(args: ISZ[String], i: Z): Option[SireumPresentasiText2speechOutputFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mp3_48khz_192kbit, webm_24khz_16bit, ogg_48khz_16bit, pcm_48khz_16bit }, but none found.")
+      return None()
+    }
+    val r = parseSireumPresentasiText2speechOutputFormatH(args(i))
+    return r
+  }
+
+  def parseSireumPresentasiText2speech(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Presentasi Text-to-Speech Tool
+          |
+          |Usage: <option>* <file.txt>
+          |
+          |Available Options:
+          |    --force              Overwrite output file(s)
+          |-o, --output             Output filename (defaults to <line>.<ext>) (expects a
+          |                           path)
+          |-s, --service            Text-to-speech service (expects one of { mary, azure
+          |                           }; default: mary)
+          |-v, --voice              Voice (defaults to "en-GB-RyanNeural" for Azure,
+          |                           "dfki-spike-hsmm" for MaryTTS (expects a string)
+          |-h, --help               Display this information
+          |
+          |Azure Options:
+          |-g, --gender             Voice gender (expects a string; default is "Male")
+          |-k, --key                Azure subscription key (expects a string)
+          |-l, --lang               Speech language (expects a string; default is "en-US")
+          |-f, --output-format      Audio output format (expects one of {
+          |                           mp3_48khz_192kbit, webm_24khz_16bit,
+          |                           ogg_48khz_16bit, pcm_48khz_16bit }; default:
+          |                           mp3_48khz_192kbit)
+          |-r, --region             Azure region (expects a string; default is
+          |                           "centralus")
+          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
+
+    var force: B = false
+    var output: Option[String] = None[String]()
+    var service: SireumPresentasiText2speechService.Type = SireumPresentasiText2speechService.Mary
+    var voice: Option[String] = None[String]()
+    var gender: Option[String] = Some("Male")
+    var key: Option[String] = None[String]()
+    var lang: Option[String] = Some("en-US")
+    var outputFormat: SireumPresentasiText2speechOutputFormat.Type = SireumPresentasiText2speechOutputFormat.Mp3_48khz_192kbit
+    var region: Option[String] = Some("centralus")
+    var voiceLang: Option[String] = Some("en-GB")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--force") {
+           val o: Option[B] = { j = j - 1; Some(!force) }
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--service") {
+           val o: Option[SireumPresentasiText2speechService.Type] = parseSireumPresentasiText2speechService(args, j + 1)
+           o match {
+             case Some(v) => service = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--voice") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voice = v
+             case _ => return None()
+           }
+         } else if (arg == "-g" || arg == "--gender") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => gender = v
+             case _ => return None()
+           }
+         } else if (arg == "-k" || arg == "--key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => key = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => lang = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--output-format") {
+           val o: Option[SireumPresentasiText2speechOutputFormat.Type] = parseSireumPresentasiText2speechOutputFormat(args, j + 1)
+           o match {
+             case Some(v) => outputFormat = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--region") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => region = v
+             case _ => return None()
+           }
+         } else if (arg == "-d" || arg == "--voice-lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voiceLang = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumPresentasiText2speechOption(help, parseArguments(args, j), force, output, service, voice, gender, key, lang, outputFormat, region, voiceLang))
+  }
+
+  def parseSireumServerServerMessageH(arg: String): Option[SireumServerServerMessage.Type] = {
+    arg.native match {
+      case "msgpack" => return Some(SireumServerServerMessage.Msgpack)
+      case "json" => return Some(SireumServerServerMessage.Json)
+      case s =>
+        eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumServerServerMessage(args: ISZ[String], i: Z): Option[SireumServerServerMessage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { msgpack, json }, but none found.")
+      return None()
+    }
+    val r = parseSireumServerServerMessageH(args(i))
+    return r
+  }
+
+  def parseSireumServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Server
+          |
+          |Usage: <option>*
+          |
+          |Available Options:
+          |-m, --message            Message format (expects one of { msgpack, json };
+          |                           default: msgpack)
+          |-l, --log                Enable logging
+          |-i, --no-input-cache     Disable file input caching
+          |-t, --no-type-cache      Disable type information caching
+          |-v, --verbose            Enable verbose logging
+          |-w, --workers            Number of analysis thread workers (expects an integer;
+          |                           min is 1; default is 1)
+          |-h, --help               Display this information""".render
+
+    var message: SireumServerServerMessage.Type = SireumServerServerMessage.Msgpack
+    var log: B = false
+    var noInputCache: B = false
+    var noTypeCache: B = false
+    var verbose: B = false
+    var workers: Z = 1
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-m" || arg == "--message") {
+           val o: Option[SireumServerServerMessage.Type] = parseSireumServerServerMessage(args, j + 1)
+           o match {
+             case Some(v) => message = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--log") {
+           val o: Option[B] = { j = j - 1; Some(!log) }
+           o match {
+             case Some(v) => log = v
+             case _ => return None()
+           }
+         } else if (arg == "-i" || arg == "--no-input-cache") {
+           val o: Option[B] = { j = j - 1; Some(!noInputCache) }
+           o match {
+             case Some(v) => noInputCache = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--no-type-cache") {
+           val o: Option[B] = { j = j - 1; Some(!noTypeCache) }
+           o match {
+             case Some(v) => noTypeCache = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--workers") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => workers = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumServerOption(help, parseArguments(args, j), message, log, noInputCache, noTypeCache, verbose, workers))
+  }
+
   def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     if (i >= args.size) {
       println(
@@ -4112,17 +4688,19 @@ import Cli._
             |checkstack               Native function stack size check tool
             |cligen                   Command-line interface (CLI) generator
             |ivegen                   Sireum IVE project generator
+            |opgen                    Object printer meta-generator
             |sergen                   De/Serializer generator
             |transgen                 Transformer (visitor/rewriter) generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "opgen", "sergen", "transgen"))
     opt match {
       case Some(string"bcgen") => parseSireumToolsBcgen(args, i + 1)
       case Some(string"checkstack") => parseSireumToolsCheckstack(args, i + 1)
       case Some(string"cligen") => parseSireumToolsCligen(args, i + 1)
       case Some(string"ivegen") => parseSireumToolsIvegen(args, i + 1)
+      case Some(string"opgen") => parseSireumToolsOpgen(args, i + 1)
       case Some(string"sergen") => parseSireumToolsSergen(args, i + 1)
       case Some(string"transgen") => parseSireumToolsTransgen(args, i + 1)
       case _ => return None()
@@ -4619,6 +5197,149 @@ import Cli._
     return Some(SireumToolsIvegenOption(help, parseArguments(args, j), jdk, mode, projectName, moduleName, packageName, appName, millPath, force, compile))
   }
 
+  def parseSireumToolsOpgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Object Printer Meta-generator
+          |
+          |Usage: <option>* <fully-qualified-name>
+          |
+          |Available Options:
+          |-l, --license             (expects a path)
+          |-n, --name               Name of the generated object printer generator
+          |                           (expects a string; default is "ObjectPrinter")
+          |-o, --output-dir          (expects a path)
+          |-p, --package            Package name of the generated object printer generator
+          |                           (expects a string separated by ".")
+          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |                           separated by ",")
+          |-f, --force              Fully qualified names of traits, classes, and objects
+          |                           to force full type checking on when type outlining
+          |                           is enabled (expects a string separated by ",")
+          |-r, --no-runtime         Do not use built-in runtime (use runtime in
+          |                           sourcepath)
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |    --strict-aliasing    Enable strict aliasing check
+          |    --verbose            Enable verbose mode
+          |-h, --help               Display this information
+          |
+          |Persistence Options:
+          |    --save               Path to save type information to (outline should not
+          |                           be enabled) (expects a path)
+          |    --load               Path to load type information from (expects a path)
+          |-z, --no-gzip            Disable gzip compression when saving and/or loading""".render
+
+    var license: Option[String] = None[String]()
+    var name: Option[String] = Some("ObjectPrinter")
+    var output: Option[String] = None[String]()
+    var packageName: ISZ[String] = ISZ[String]()
+    var exclude: ISZ[String] = ISZ[String]()
+    var force: ISZ[String] = ISZ[String]()
+    var noRuntime: B = false
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var strictAliasing: B = false
+    var verbose: B = false
+    var save: Option[String] = None[String]()
+    var load: Option[String] = None[String]()
+    var gzip: B = true
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => exclude = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--force") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--no-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!noRuntime) }
+           o match {
+             case Some(v) => noRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "--save") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => save = v
+             case _ => return None()
+           }
+         } else if (arg == "--load") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => load = v
+             case _ => return None()
+           }
+         } else if (arg == "-z" || arg == "--no-gzip") {
+           val o: Option[B] = { j = j - 1; Some(!gzip) }
+           o match {
+             case Some(v) => gzip = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumToolsOpgenOption(help, parseArguments(args, j), license, name, output, packageName, exclude, force, noRuntime, sourcepath, strictAliasing, verbose, save, load, gzip))
+  }
+
   def parseSireumToolsSergenSerializerModeH(arg: String): Option[SireumToolsSergenSerializerMode.Type] = {
     arg.native match {
       case "json" => return Some(SireumToolsSergenSerializerMode.Json)
@@ -4844,81 +5565,14 @@ import Cli._
         st"""Sireum eXperimental
             |
             |Available modes:
-            |server                   Sireum server""".render
+            """.render
       )
       return Some(HelpOption())
     }
-    val opt = select("x", args, i, ISZ("server"))
+    val opt = select("x", args, i, ISZ(""))
     opt match {
-      case Some(string"server") => parseSireumXServer(args, i + 1)
       case _ => return None()
     }
-  }
-
-  def parseSireumXServerServerMessageH(arg: String): Option[SireumXServerServerMessage.Type] = {
-    arg.native match {
-      case "msgpack" => return Some(SireumXServerServerMessage.Msgpack)
-      case "json" => return Some(SireumXServerServerMessage.Json)
-      case s =>
-        eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumXServerServerMessage(args: ISZ[String], i: Z): Option[SireumXServerServerMessage.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { msgpack, json }, but none found.")
-      return None()
-    }
-    val r = parseSireumXServerServerMessageH(args(i))
-    return r
-  }
-
-  def parseSireumXServer(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Sireum Server
-          |
-          |Usage: <option>*
-          |
-          |Available Options:
-          |-m, --message            Message format (expects one of { msgpack, json };
-          |                           default: msgpack)
-          |-l, --logika             Number of Logika workers (expects an integer; min is
-          |                           1; default is 1)
-          |-h, --help               Display this information""".render
-
-    var message: SireumXServerServerMessage.Type = SireumXServerServerMessage.Msgpack
-    var logika: Z = 1
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "-m" || arg == "--message") {
-           val o: Option[SireumXServerServerMessage.Type] = parseSireumXServerServerMessage(args, j + 1)
-           o match {
-             case Some(v) => message = v
-             case _ => return None()
-           }
-         } else if (arg == "-l" || arg == "--logika") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
-           o match {
-             case Some(v) => logika = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(SireumXServerOption(help, parseArguments(args, j), message, logika))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

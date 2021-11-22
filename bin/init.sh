@@ -174,6 +174,7 @@ if [[ "${PLATFORM}" == "mac" ]]; then
     JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.tar.gz
   fi
 elif [[ "${PLATFORM}" == "linux/arm" ]]; then
+  JAVA_VERSION=${JAVA_VERSION/-fx}
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_aarch64.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
   if [[ -n ${SIREUM_ZING_VERSION} ]]; then

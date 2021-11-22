@@ -46,7 +46,7 @@ def mac(): Unit = {
     return
   }
 
-  val bundle = s"graalvm-ce-java11-darwin-amd64-$graalVersion.tar.gz"
+  val bundle = s"graalvm-ce-java17-darwin-amd64-$graalVersion.tar.gz"
   val cache = Os.home / "Downloads" / "sireum" / bundle
 
   if (!cache.exists) {
@@ -59,10 +59,10 @@ def mac(): Unit = {
   }
   println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
-  (platformDir / s"graalvm-ce-java11-$graalVersion" / "Contents" / "Home").moveTo(graalDir)
-  (platformDir / s"graalvm-ce-java11-$graalVersion").removeAll()
+  (platformDir / s"graalvm-ce-java17-$graalVersion" / "Contents" / "Home").moveTo(graalDir)
+  (platformDir / s"graalvm-ce-java17-$graalVersion").removeAll()
 
-  val nativeBundle = s"native-image-installable-svm-java11-darwin-amd64-$graalVersion.jar"
+  val nativeBundle = s"native-image-installable-svm-java17-darwin-amd64-$graalVersion.jar"
   val nativeCache = Os.home / "Downloads" / "sireum" / nativeBundle
   if (!nativeCache.exists) {
     println(s"Downloading Graal's native-image ...")
@@ -85,7 +85,7 @@ def linux(): Unit = {
     return
   }
 
-  val bundle = s"graalvm-ce-java11-linux-amd64-$graalVersion.tar.gz"
+  val bundle = s"graalvm-ce-java17-linux-amd64-$graalVersion.tar.gz"
   val cache = Os.home / "Downloads" / "sireum" / bundle
 
   if (!cache.exists) {
@@ -98,9 +98,9 @@ def linux(): Unit = {
   }
   println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
-  (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
+  (platformDir / s"graalvm-ce-java17-$graalVersion").moveTo(graalDir)
 
-  val nativeBundle = s"native-image-installable-svm-java11-linux-amd64-$graalVersion.jar"
+  val nativeBundle = s"native-image-installable-svm-java17-linux-amd64-$graalVersion.jar"
   val nativeCache = Os.home / "Downloads" / "sireum" / nativeBundle
   if (!nativeCache.exists) {
     println(s"Downloading Graal's native-image ...")
@@ -123,7 +123,7 @@ def linuxArm(): Unit = {
     return
   }
 
-  val bundle = s"graalvm-ce-java11-linux-aarch64-$graalVersion.tar.gz"
+  val bundle = s"graalvm-ce-java17-linux-aarch64-$graalVersion.tar.gz"
   val cache = Os.home / "Downloads" / "sireum" / bundle
 
   if (!cache.exists) {
@@ -136,9 +136,9 @@ def linuxArm(): Unit = {
   }
   println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
-  (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
+  (platformDir / s"graalvm-ce-java17-$graalVersion").moveTo(graalDir)
 
-  val nativeBundle = s"native-image-installable-svm-java11-linux-aarch64-$graalVersion.jar"
+  val nativeBundle = s"native-image-installable-svm-java17-linux-aarch64-$graalVersion.jar"
   val nativeCache = Os.home / "Downloads" / "sireum" / nativeBundle
   if (!nativeCache.exists) {
     println(s"Downloading Graal's native-image ...")
@@ -161,7 +161,7 @@ def win(): Unit = {
     return
   }
 
-  val bundle = s"graalvm-ce-java11-windows-amd64-$graalVersion.zip"
+  val bundle = s"graalvm-ce-java17-windows-amd64-$graalVersion.zip"
   val cache = Os.home / "Downloads" / "sireum" / bundle
 
   if (!cache.exists) {
@@ -174,9 +174,9 @@ def win(): Unit = {
   }
   println(s"Extracting $cache ...")
   cache.unzipTo(platformDir)
-  (platformDir / s"graalvm-ce-java11-$graalVersion").moveTo(graalDir)
+  (platformDir / s"graalvm-ce-java17-$graalVersion").moveTo(graalDir)
 
-  val nativeBundle = s"native-image-installable-svm-java11-windows-amd64-$graalVersion.jar"
+  val nativeBundle = s"native-image-installable-svm-java17-windows-amd64-$graalVersion.jar"
   val nativeCache = Os.home / "Downloads" / "sireum" / nativeBundle
   if (!nativeCache.exists) {
     println(s"Downloading Graal's native-image ...")

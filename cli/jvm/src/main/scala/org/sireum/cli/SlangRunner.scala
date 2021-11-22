@@ -127,7 +127,7 @@ object SlangRunner {
     if (Os.env("JAVA_OPTS").isEmpty) {
       env = env :+ "JAVA_OPTS" ~> " "
     }
-    var p = Os.proc(command).at(Os.cwd).env(env)
+    var p = Os.proc(command).at(Os.cwd).env(env).standard
     if (jarFile.exists) {
       jarFile.removeOnExit()
     }
@@ -170,7 +170,7 @@ object SlangRunner {
         "--report-unsupported-elements-at-runtime", "--no-fallback", "-H:+ReportExceptionStackTraces",
         "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
         "-cp", sJar.string, "-jar", jarFile.name, nativeName)
-      r = Os.proc(command).at(jarFile.up).console.run()
+      r = Os.proc(command).at(jarFile.up).run()
       for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()
       }

@@ -317,30 +317,44 @@ object Sireum {
         return 0
       case _ =>
         Cli(File.pathSeparatorChar).parseSireum(args, 0) match {
-          case Some(o: Cli.SireumSlangTipeOption) => return cli.SlangTipe.run(o, Reporter.create)
+          case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {
+            case Either.Right(code) => return code
+            case _ => return 0
+          }
           case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
           case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o)
           case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o)
           case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
           case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
           case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
+          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o)
           case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o)
           case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o)
           case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
-          case Some(o: Cli.SireumXServerOption) => return server.Server.run(version,
-            o.message == Cli.SireumXServerServerMessage.Msgpack, o.logika)
+          case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
           case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
           case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
           case Some(o: Cli.SireumProyekLogikaOption) => return cli.Proyek.logika(o)
           case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
           case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
+          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o)
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
           case Some(o: Cli.SireumAnvilCompileOption) => return cli.Anvil.compile(o, File.pathSeparatorChar)
           case Some(o: Cli.SireumAnvilSandboxOption) => return cli.Anvil.sandbox(o)
           case Some(_: Cli.HelpOption) => return 0
+          case Some(o: Cli.SireumServerOption) =>
+            homeOpt match {
+              case Some(home) =>
+                return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.workers,
+                  !o.noInputCache, !o.noTypeCache, o.log, o.verbose, javaHomeOpt.get, scalaHomeOpt.get,
+                  home, versions.entries)
+              case _ =>
+                eprintln("Please set SIREUM_HOME env var")
+                return -1
+            }
           case _ => return -1
         }
     }

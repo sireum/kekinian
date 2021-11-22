@@ -332,7 +332,6 @@ Sireum depends on open source software libraries and applications
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Coursier](https://github.com/coursier/coursier) | [(link)](https://search.maven.org/artifact/io.get-coursier/coursier_2.13) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
-| [JavaFX](https://github.com/openjdk/jfx) | [(link)](https://search.maven.org/artifact/org.openjfx/javafx) | [GPL v2 with "Classpath" exception](https://github.com/openjdk/jfx) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
 | [Scala](https://github.com/scala/scala) | [(link)](https://search.maven.org/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
@@ -358,7 +357,7 @@ In addition, Sireum includes adaptation of the following code:
 
 | Application | License |
 | :--- | :---: |
-| [Azul Zulu JDK](https://www.azul.com/downloads/) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
+| [Azul Zulu JDK FX](https://www.azul.com/downloads/) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
 | [CVC4](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 

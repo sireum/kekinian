@@ -27,8 +27,8 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.logika.Smt2
-import org.sireum.project.{DependencyManager, ProjectUtil}
-import org.sireum.proyek.LogikaProyek
+import org.sireum.project.DependencyManager
+import org.sireum.proyek.Analysis
 
 object Proyek {
   val HOME_NOT_FOUND: Z = -1
@@ -115,7 +115,7 @@ object Proyek {
 
     println("Loading project ...")
 
-    prj = getProject(path, jsonOpt, projectOpt) match {
+    prj = org.sireum.proyek.Proyek.getProject(SireumApi.homeOpt.get, path, jsonOpt, projectOpt) match {
       case Some(pr) => pr.slice(slice)
       case _ => return ret(INVALID_PROJECT)
     }
@@ -125,7 +125,7 @@ object Proyek {
       println("Loading version dependencies ...")
     }
 
-    versions = getVersions(prj, path, versionFiles) match {
+    versions = org.sireum.proyek.Proyek.getVersions(prj, path, versionFiles, SireumApi.versions.entries) match {
       case Some(vs) => vs
       case _ => return ret(INVALID_VERSIONS)
     }
@@ -337,13 +337,18 @@ object Proyek {
       return code
     }
 
-    if (o.line != 0 && o.args.size != 2) {
+    if (o.line != 0 && (o.all || o.args.size != 2)) {
       eprintln("Line focused verification can only be used for checking a single file")
       return INVALID_LINE
     }
 
     if (o.args.size == 1 && !o.all) {
       eprintln("Either specify file(s) to check or supply the --all option")
+      return INVALID_ARGS
+    }
+
+    if (o.all && o.args.size > 1) {
+      eprintln("Cannot specify file arguments if --all is supplied")
       return INVALID_ARGS
     }
 
@@ -415,9 +420,9 @@ object Proyek {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exe, o.cvc4VOpts, o.cvc4SOpts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts)
         case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Cvc4Config(exeFilename, o.cvc4VOpts, o.cvc4SOpts)
+          smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts)
       }
     }
     if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
@@ -464,19 +469,30 @@ object Proyek {
       case _ =>
     }
 
+    val fpRoundingMode: String = o.fpRounding match {
+      case Cli.SireumProyekLogikaFPRoundingMode.NearestTiesToEven => "RNE"
+      case Cli.SireumProyekLogikaFPRoundingMode.NearestTiesToAway => "RNA"
+      case Cli.SireumProyekLogikaFPRoundingMode.TowardPositive => "RTP"
+      case Cli.SireumProyekLogikaFPRoundingMode.TowardNegative => "RTN"
+      case Cli.SireumProyekLogikaFPRoundingMode.TowardZero => "RTZ"
+    }
+
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvc4RLimit)
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val lcode = LogikaProyek.run(
+    val lcode = Analysis.run(
       root = path,
       project = prj,
       dm = dm,
-      thMapBox = MBox(HashMap.empty),
+      cacheInput = F,
+      cacheTypeHierarchy = F,
+      mapBox = MBox2(HashMap.empty, HashMap.empty),
       config = config,
       cache = Smt2.NoCache(),
       files = files,
+      vfiles = files.keys,
       line = o.line,
       par = SireumApi.parCoresOpt(o.par),
       strictAliasing = o.strictAliasing,
@@ -491,15 +507,13 @@ object Proyek {
       skipTypes = o.skipTypes,
       reporter = reporter
     )
-    if (reporter.messages.nonEmpty) {
-      println()
-      reporter.printMessages()
-    }
     if (lcode == 0) {
       println()
       println("Logika verified!")
       return 0
     } else {
+      println()
+      reporter.printMessages()
       return ILL_FORMED_PROGRAMS
     }
   }
@@ -668,6 +682,59 @@ object Proyek {
     return r
   }
 
+  def stats(o: Cli.SireumProyekStatsOption): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(2), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    val projectName = o.name.getOrElse(path.canon.name)
+    if (prj.modules.contains(projectName)) {
+      eprintln("Project name cannot be the same as a module name")
+      return INVALID_PROJECT
+    }
+
+    println()
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = F,
+      withSource = o.sources,
+      withDoc = o.docs,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    val output: Os.Path = o.args match {
+      case ISZ(_) => o.name match {
+        case Some(name) => Os.path(s"$name.csv").canon
+        case _ => Os.path("project.csv").canon
+      }
+      case ISZ(_, file) => Os.path(file).canon
+    }
+
+    output.up.mkdirAll()
+
+    val r = proyek.Stats.run(
+      root = path,
+      project = prj,
+      dm = dm,
+      par = 0,
+      strictAliasing = T,
+      followSymLink = F,
+      output = output,
+      reporter = message.Reporter.create
+    )
+
+    return r
+  }
+
   def test(o: Cli.SireumProyekTestOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
@@ -759,15 +826,18 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0)
-    val lcode = LogikaProyek.run(
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0, "RNE")
+    val lcode = Analysis.run(
       root = path,
       project = prj,
       dm = dm,
-      thMapBox = MBox(HashMap.empty),
+      cacheInput = F,
+      cacheTypeHierarchy = F,
+      mapBox = MBox2(HashMap.empty, HashMap.empty),
       config = config,
       cache = Smt2.NoCache(),
       files = HashSMap.empty,
+      vfiles = ISZ(),
       line = 0,
       par = SireumApi.parCoresOpt(o.par),
       strictAliasing = o.strictAliasing,
@@ -782,15 +852,13 @@ object Proyek {
       skipTypes = ISZ(),
       reporter = reporter
     )
-    if (reporter.messages.nonEmpty) {
-      println()
-      reporter.printMessages()
-    }
     if (lcode == 0) {
       println()
       println("Programs are well-typed!")
       return 0
     } else {
+      println()
+      reporter.printMessages()
       return ILL_FORMED_PROGRAMS
     }
   }
@@ -803,142 +871,6 @@ object Proyek {
       return None()
     }
     return Some(d.canon)
-  }
-
-  def getProject(path: Os.Path, jsonOpt: Option[String], projectOpt: Option[String]): Option[project.Project] = {
-    var prj = project.Project.empty
-    var loaded = F
-
-    {
-      jsonOpt match {
-        case Some(p) =>
-          val f = Os.path(p)
-          if (!f.isFile) {
-            eprintln(s"$p is not a file")
-            return None()
-          }
-          project.JSON.toProject(f.read) match {
-            case Either.Left(pr) =>
-              prj = pr
-              loaded = T
-            case _ =>
-              eprintln(s"Ill-formed JSON project file $p")
-              return None()
-          }
-          println()
-        case _ =>
-      }
-    }
-
-    if (!loaded) {
-      val f: Os.Path = projectOpt match {
-        case Some(p) => Os.path(p)
-        case _ => path / "bin" / "project.cmd"
-      }
-      if (!f.isFile) {
-        eprintln(s"$f is not a file")
-        return None()
-      }
-      if (f.ext =!= "cmd") {
-        eprintln(s"$f is not a .cmd Slash script file")
-        return None()
-      }
-      val r = proc"$f json".env(ISZ("SIREUM_HOME" ~> SireumApi.homeOpt.get.string)).
-        console.outLineAction((s: String) => project.ProjectUtil.projectJsonLine(s).isEmpty).redirectErr.run()
-      if (r.ok) {
-        project.ProjectUtil.projectJsonLine(r.out) match {
-          case Some(line) =>
-            project.JSON.toProject(line) match {
-              case Either.Left(pr) =>
-                prj = pr
-              case _ =>
-                eprintln(s"Ill-defined project file $f producing:")
-                eprintln(line)
-                return None()
-            }
-          case _ =>
-            eprintln(s"Failed to load project from $f")
-            println(r.out)
-            eprintln(r.err)
-            return None()
-        }
-      } else {
-        eprintln(s"Failed to load project from $f")
-        println(r.out)
-        eprintln(r.err)
-        return None()
-      }
-    }
-
-    val openDeps = prj.openDeps
-    if (openDeps.nonEmpty) {
-      for (openDep <- openDeps.entries) {
-        val (mid, deps) = openDep
-        eprintln(st"Module $mid depends on undefined modules: ${(deps, ", ")}".render)
-      }
-      return None()
-    }
-
-    val illTargets = prj.illTargets
-    if (illTargets.nonEmpty) {
-      for (illTarget <- illTargets.entries) {
-        val mid = illTarget._1
-        for (illTargetDep <- illTarget._2.entries) {
-          val (mDep, targets) = illTargetDep
-          eprintln(st"Module $mid depends on undefined target(s) of module $mDep: ${(targets, ", ")}".render)
-        }
-      }
-      return None()
-    }
-
-    ;{
-      var ok = T
-      for (m <- prj.modules.values) {
-        if (ProjectUtil.moduleSources(m).isEmpty && ProjectUtil.moduleTestSources(m).isEmpty) {
-          eprintln()
-          eprintln(s"Module ${m.id} does not have any source paths that exist among:")
-          for (p <- for (source <- m.sources ++ m.testSources) yield ProjectUtil.pathSep(ProjectUtil.moduleBasePath(m), source)) {
-            eprintln(s"* $p")
-          }
-          ok = F
-        }
-      }
-      if (!ok) {
-        return None()
-      }
-    }
-
-    return Some(prj)
-  }
-
-  def getVersions(prj: project.Project, path: Os.Path, versions: ISZ[String]): Option[HashSMap[String, String]] = {
-    val files: ISZ[Os.Path] = if (versions.nonEmpty) {
-      for (v <- versions) yield Os.path(v)
-    } else {
-      val f = path / "versions.properties"
-      if (f.exists) ISZ(f) else ISZ()
-    }
-
-    var props = HashSMap.empty[String, String]
-    props = props ++ SireumApi.versions.entries
-    for (f <- files) {
-      if (!f.isFile) {
-        eprintln(s"$f is not a file")
-        return None()
-      } else {
-        props = props ++ (for (p <- f.properties.entries) yield (ops.StringOps(p._1).replaceAllChars('%', ':'), p._2))
-      }
-    }
-
-    var useRuntimeLibrary = F
-    for (m <- prj.modules.values; ivyDep <- m.ivyDeps if ivyDep == DependencyManager.libraryKey) {
-      useRuntimeLibrary = T
-    }
-    if (!useRuntimeLibrary) {
-      props = props -- ISZ(DependencyManager.libraryKey)
-    }
-
-    return Some(props)
   }
 
 }

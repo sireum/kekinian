@@ -26,8 +26,12 @@
 /resources/vagrant/.vagrant
 out
 project.json
+project.csv
+project.pdf
 Scratch.*
 scratch.*
 stale_outputs_checked
 *.cmd.jar
 *.cmd.com
+/.server.log
+/.client.log

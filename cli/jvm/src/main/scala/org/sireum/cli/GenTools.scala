@@ -33,6 +33,7 @@ import org.sireum.lang.parser.Parser
 import org.sireum.message._
 import org.sireum.tools._
 import org.sireum.SireumApi._
+import org.sireum.lang.tipe.TypeHierarchy
 
 object GenTools {
 
@@ -533,6 +534,72 @@ object GenTools {
       println(s"Generated Sireum IVE project at $project")
       return 0
     }
+  }
+
+  def opGen(o: Cli.SireumToolsOpgenOption): Z = {
+    if (o.args.size === 0) {
+      println(o.help)
+      return 0
+    }
+    if (o.args.size =!= 1) {
+      eprintln("Expecting a single fully-qualified type name argument")
+      return -1
+    }
+
+    val dir: Os.Path = o.output match {
+      case Some(v) =>
+        val d = Os.path(v)
+        d.mkdirAll()
+        d
+      case _ => Os.cwd
+    }
+
+    val to = Cli.SireumSlangTipeOption(
+      help = o.help,
+      args = ISZ(),
+      exclude = o.exclude,
+      force = o.force,
+      noRuntime = o.noRuntime,
+      outline = T,
+      sourcepath = o.sourcepath,
+      strictAliasing = o.strictAliasing,
+      verbose = o.verbose,
+      save = o.save,
+      load = o.load,
+      gzip = o.gzip
+    )
+    val reporter = Reporter.create
+    val th: TypeHierarchy = SlangTipe.run(to, reporter) match {
+      case Either.Left(v) => v
+      case Either.Right(code) => return code
+    }
+    val lOpt: Option[String] = o.license match {
+      case Some(v) =>
+        val f = Os.path(v)
+        if (f.exists && f.isFile) {
+          Some(
+            st"""/*
+                | ${ops.StringOps(f.read).trim}
+                | */""".render)
+        } else {
+          eprintln(s"$f is not a file")
+          return -1
+        }
+      case _ => None()
+    }
+    val pOpt: Option[ISZ[String]] = if (o.packageName.nonEmpty) Some(o.packageName) else None()
+    val topClassName: ISZ[String] = for (e <- ops.StringOps(o.args(0)).split((c: C) => c === '.')) yield ops.StringOps(e).trim
+    val ocgen = ObjectPrinterGen(lOpt, pOpt, o.name.get, topClassName, th)
+    val r = ocgen.gen(reporter)
+    if (reporter.hasIssue) {
+      reporter.printMessages()
+      return -1
+    }
+
+    val f = dir / s"${ocgen.name}.scala"
+    f.writeOver(r.render)
+    println(s"Wrote $f")
+    return 0
   }
 
   def serGen(o: Cli.SireumToolsSergenOption): Z = {
