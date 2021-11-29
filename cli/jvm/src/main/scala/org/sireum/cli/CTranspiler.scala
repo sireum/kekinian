@@ -553,7 +553,8 @@ object CTranspiler {
       libOnly = o.libOnly,
       stableTypeId = o.stableTypeId,
       cmakeIncludes = cmakeIncludes,
-      cmakePlusIncludes = cmakePlusIncludes
+      cmakePlusIncludes = cmakePlusIncludes,
+      anvilConfig = StaticTranspiler.AnvilConfig.NOP()
     )
 
     val trans = StaticTranspiler(config, tsr)
