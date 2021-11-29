@@ -181,7 +181,11 @@ object Sireum {
     for (key <- p.keys().asScala) {
       r = r + key.toString.replace('%', ':') ~> p.get(key).toString
     }
-    r = r + DependencyManager.libraryKey ~> commitHash.value.substring(0, 10)
+    val hash = commitHash.value.substring(0, 10)
+    r = r + DependencyManager.macrosKey ~> hash
+    r = r + DependencyManager.testKey ~> hash
+    r = r + DependencyManager.librarySharedKey ~> hash
+    r = r + DependencyManager.libraryKey ~> hash
     r
   }
 
