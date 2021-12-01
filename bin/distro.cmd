@@ -385,29 +385,6 @@ def patchVMOptions(p: Os.Path): Unit = {
   println("done!")
 }
 
-def patchImages(): Unit = {
-  if (isUltimate) {
-    return
-  }
-  val platformImplJar = libDir / "platform-impl.jar"
-  val distroDir = home / "resources" / "distro"
-  print(s"Patching $platformImplJar ... ")
-  (distroDir / "idea").removeAll()
-  proc"$pwd7z x $platformImplJar idea${Os.fileSep}IdeaApplicationInfo.xml".at(distroDir).runCheck()
-  val iai = distroDir / "idea" / "IdeaApplicationInfo.xml"
-  val content = iai.read
-  iai.writeOver(
-    ops.StringOps(ops.StringOps(content).
-      replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "svg-small=\"/idea-ce_16.png\"")).
-      replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", "svg-small=\"/idea-ce_16.png\""))
-  proc"$pwd7z a $platformImplJar idea${Os.fileSep}IdeaApplicationInfo.xml".at(distroDir).runCheck()
-  (distroDir / "idea").removeAll()
-  proc"$pwd7z d $platformImplJar idea-ce_16.svg idea-ce_16@2x.svg idea-ce-eap_16.svg idea-ce-eap_16@2x.svg".at(distroDir / "images").runCheck()
-  proc"$pwd7z a $platformImplJar idea_community_about.png idea_community_about@2x.png idea_community_logo.png idea_community_logo@2x.png idea-ce.svg idea-ce-eap.svg idea-ce_16.png idea-ce_16@2x.png".
-    at(distroDir / "images" / (if (isDev) "dev" else "release")).runCheck()
-  println("done!")
-}
-
 def patchExe(): Unit = {
   if (isUltimate) {
     return
@@ -469,8 +446,16 @@ def patchIcon(isWin: B): Unit = {
   if (isWin) {
     patchExe()
   }
-  val iconsJar = libDir / "platform-impl.jar"
-  print(s"Patching $iconsJar ... ")
+}
+
+def patchPlatformImpl(): Unit = {
+  val iconsPath = home / "resources" / "distro" / "icons"
+  val platformImplJar = libDir / "platform-impl.jar"
+  val tempDir = libDir / "platform-impl-temp"
+  tempDir.removeAll()
+  tempDir.mkdirAll()
+  print(s"Patching $platformImplJar ... ")
+  platformImplJar.unzipTo(tempDir)
   val entriesToUpdate: ISZ[String] =
     for (f <- ISZ[String](
       "Logo_welcomeScreen.png",
@@ -495,7 +480,28 @@ def patchIcon(isWin: B): Unit = {
       "idea_CE.ico",
       "idea_logo_welcome.png"
     ) if !ignoredIcons.contains(f)) yield f
-  Os.proc(ISZ[String](pwd7z.string, "a", iconsJar.string) ++ entriesToUpdate).at(iconsPath).runCheck()
+  for (e <- entriesToUpdate) {
+    (iconsPath / e).copyOverTo(tempDir / e)
+  }
+
+  val distroDir = home / "resources" / "distro"
+  val iai = tempDir / "idea" / "IdeaApplicationInfo.xml"
+  val content = iai.read
+  iai.writeOver(
+    ops.StringOps(ops.StringOps(content).
+      replaceAllLiterally("svg-small=\"/idea-ce_16.svg\"", "svg-small=\"/idea-ce_16.png\"")).
+      replaceAllLiterally("svg-small=\"/idea-ce-eap_16.svg\"", "svg-small=\"/idea-ce_16.png\""))
+  for (e <- ISZ("idea-ce_16.svg", "idea-ce_16@2x.svg", "idea-ce-eap_16.svg", "idea-ce-eap_16@2x.svg")) {
+    (tempDir / e).removeAll()
+  }
+  val d = distroDir / "images" / (if (isDev) "dev" else "release")
+  for (e <- ISZ("idea_community_about.png", "idea_community_about@2x.png", "idea_community_logo.png", "idea_community_logo@2x.png", "idea-ce.svg", "idea-ce-eap.svg", "idea-ce_16.png", "idea-ce_16@2x.png")) {
+    (d / e).copyOverTo(tempDir / e)
+  }
+  val platformImplTempJar = libDir / "platform-impl-temp.jar"
+  tempDir.zipTo(platformImplTempJar)
+  platformImplTempJar.moveOverTo(platformImplJar)
+  tempDir.removeAll()
   println("done!")
 }
 
@@ -531,7 +537,7 @@ def setupMac(ideaDrop: Os.Path): Unit = {
   deletePlugins()
   extractPlugins()
   patchIcon(F)
-  patchImages()
+  patchPlatformImpl()
   patchIdeaProperties(sireumAppDir / "Contents" / "Info.plist")
   patchVMOptions(sireumAppDir / "Contents" / "bin" / "idea.vmoptions")
   proc"codesign --force --deep --sign - $sireumAppDir".run()
@@ -548,7 +554,7 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
   deletePlugins()
   extractPlugins()
   patchIcon(F)
-  patchImages()
+  patchPlatformImpl()
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.vmoptions")
   (ideaDir / "bin" / "idea.vmoptions").removeAll()
@@ -597,7 +603,7 @@ def setupWin(ideaDrop: Os.Path): Unit = {
   deletePlugins()
   extractPlugins()
   patchIcon(T)
-  patchImages()
+  patchPlatformImpl()
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.exe.vmoptions")
   (ideaDir / "bin" / "idea.exe").removeAll()
