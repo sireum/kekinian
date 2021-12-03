@@ -159,6 +159,10 @@ object SlangRunner {
         return 0
       }
       println(s"Generating native image $nativ ...")
+      val tempJar = Os.temp()
+      sJar.copyOverTo(tempJar)
+      tempJar.removeOnExit()
+      Asm.eraseNonNative(sJar)
       val flags: ISZ[String] = Os.kind match {
         case Os.Kind.Mac => ISZ()
         case Os.Kind.Linux => ISZ("--static")
@@ -171,6 +175,7 @@ object SlangRunner {
         "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
         "-cp", sJar.string, "-jar", jarFile.name, nativeName)
       r = Os.proc(command).at(jarFile.up).run()
+      tempJar.copyOverTo(sJar)
       for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()
       }
