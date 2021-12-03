@@ -280,10 +280,13 @@ object Proyek {
       return code
     }
 
-    val projectName = o.name.getOrElse(path.canon.name)
+    var projectName = o.name.getOrElse(path.canon.name)
     if (prj.modules.contains(projectName)) {
-      eprintln("Project name cannot be the same as a module name")
-      return INVALID_PROJECT
+      projectName = s"$projectName-proyek"
+      if (prj.modules.contains(projectName)) {
+        eprintln(s"Could not use project name ${o.name.getOrElse(path.canon.name)} or $projectName as they are used as module names")
+        return INVALID_PROJECT
+      }
     }
 
     if (o.ultimate) {
