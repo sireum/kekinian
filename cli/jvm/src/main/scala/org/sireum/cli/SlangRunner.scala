@@ -170,11 +170,11 @@ object SlangRunner {
         case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
         case _ => return 0
       }
-      command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time",
+      command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time", "--allow-incomplete-classpath",
         "--report-unsupported-elements-at-runtime", "--no-fallback", "-H:+ReportExceptionStackTraces",
         "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
         "-cp", sJar.string, "-jar", jarFile.name, nativeName)
-      r = Os.proc(command).at(jarFile.up).run()
+      r = Os.proc(command).at(jarFile.up).redirectErr.run()
       tempJar.copyOverTo(sJar)
       for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()
@@ -191,7 +191,7 @@ object SlangRunner {
       } else {
         (wd / s"$nativeName.exe").removeAll()
         eprintln(s"Failed to generate native executable $nativ, exit code: ${r.exitCode}")
-        eprint(r.err)
+        eprintln(r.out)
         return GraalError
       }
     } else {
