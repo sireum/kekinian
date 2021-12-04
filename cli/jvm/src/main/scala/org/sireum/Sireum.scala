@@ -25,9 +25,6 @@
 
 package org.sireum
 
-import javafx.stage.Stage
-
-import java.io.File
 import org.sireum.message.Reporter
 import org.sireum.project.DependencyManager
 
@@ -326,7 +323,7 @@ object Sireum {
         println(versions)
         return 0
       case _ =>
-        Cli(File.pathSeparatorChar).parseSireum(args, 0) match {
+        Cli(Os.pathSepChar).parseSireum(args, 0) match {
           case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {
             case Either.Right(code) => return code
             case _ => return 0
@@ -396,7 +393,7 @@ object Sireum {
   }
 
   class JFX extends javafx.application.Application {
-    override def start(primaryStage: Stage): Unit = {
+    override def start(primaryStage: javafx.stage.Stage): Unit = {
       jfxInit = true
     }
   }
