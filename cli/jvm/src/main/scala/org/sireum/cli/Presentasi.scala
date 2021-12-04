@@ -192,6 +192,11 @@ object Presentasi {
     val path: Os.Path = o.args match {
       case ISZ() =>
         println(o.help)
+        println()
+        println(
+          st"""Available MaryTTS voices are: cmu-bdl-hsmm, cmu-rms-hsmm, cmu-slt-hsmm, dfki-obadiah-hsmm, dfki-prudence-hsmm, dfki-spike-hsmm
+              |
+              |For Azure, please refer to https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/rest-text-to-speech""".render)
         return 0
       case ISZ(p) =>
         Os.path(p)
