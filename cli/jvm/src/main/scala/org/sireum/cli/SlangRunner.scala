@@ -162,7 +162,7 @@ object SlangRunner {
       val tempJar = Os.temp()
       sJar.copyOverTo(tempJar)
       tempJar.removeOnExit()
-      Asm.eraseNonNative(sJar)
+      Asm.eraseNonNative(jarFile)
       val flags: ISZ[String] = Os.kind match {
         case Os.Kind.Mac => ISZ()
         case Os.Kind.Linux => ISZ("--static")
