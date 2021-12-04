@@ -92,13 +92,25 @@ val text2speechTool: Tool = Tool(
   )
 )
 
+
+val pgenTool: Tool = Tool(
+  name = "gen",
+  command = "gen",
+  description = "Presentation generator",
+  header = "Sireum Presentasi Generator",
+  usage = "<option>* <path>",
+  usageDescOpt = None(),
+  opts = text2speechTool.opts - text2speechTool.opts(1),
+  groups = ISZ(text2speechTool.groups(0)(opts = text2speechTool.groups(0).opts - text2speechTool.groups(0).opts(3)))
+)
+
 val presentasiGroup = Group(
   name = "presentasi",
   description = "Presentation tools",
   header =
     st"""Sireum Presentasi""".render,
   unlisted = F,
-  subs = ISZ(text2speechTool)
+  subs = ISZ(pgenTool, text2speechTool)
 )
 
 val main = Group(

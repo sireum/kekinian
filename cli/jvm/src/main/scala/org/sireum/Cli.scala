@@ -450,6 +450,24 @@ object Cli {
     val forwarding: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumPresentasiGenService {
+    'Mary
+    'Azure
+  }
+
+  @datatype class SireumPresentasiGenOption(
+    val help: String,
+    val args: ISZ[String],
+    val force: B,
+    val service: SireumPresentasiGenService.Type,
+    val voice: Option[String],
+    val gender: Option[String],
+    val key: Option[String],
+    val lang: Option[String],
+    val region: Option[String],
+    val voiceLang: Option[String]
+  ) extends SireumTopOption
+
   @enum object SireumPresentasiText2speechService {
     'Mary
     'Azure
@@ -4157,15 +4175,134 @@ import Cli._
         st"""Sireum Presentasi
             |
             |Available modes:
+            |gen                      Presentation generator
             |text2speech              Text-to-speech tool""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("presentasi", args, i, ISZ("text2speech"))
+    val opt = select("presentasi", args, i, ISZ("gen", "text2speech"))
     opt match {
+      case Some(string"gen") => parseSireumPresentasiGen(args, i + 1)
       case Some(string"text2speech") => parseSireumPresentasiText2speech(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumPresentasiGenServiceH(arg: String): Option[SireumPresentasiGenService.Type] = {
+    arg.native match {
+      case "mary" => return Some(SireumPresentasiGenService.Mary)
+      case "azure" => return Some(SireumPresentasiGenService.Azure)
+      case s =>
+        eprintln(s"Expecting one of the following: { mary, azure }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumPresentasiGenService(args: ISZ[String], i: Z): Option[SireumPresentasiGenService.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mary, azure }, but none found.")
+      return None()
+    }
+    val r = parseSireumPresentasiGenServiceH(args(i))
+    return r
+  }
+
+  def parseSireumPresentasiGen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Presentasi Generator
+          |
+          |Usage: <option>* <path>
+          |
+          |Available Options:
+          |    --force              Overwrite output file(s)
+          |-s, --service            Text-to-speech service (expects one of { mary, azure
+          |                           }; default: mary)
+          |-v, --voice              Voice (defaults to "en-GB-RyanNeural" for Azure,
+          |                           "dfki-spike-hsmm" for MaryTTS (expects a string)
+          |-h, --help               Display this information
+          |
+          |Azure Options:
+          |-g, --gender             Voice gender (expects a string; default is "Male")
+          |-k, --key                Azure subscription key (expects a string)
+          |-l, --lang               Speech language (expects a string; default is "en-US")
+          |-r, --region             Azure region (expects a string; default is
+          |                           "centralus")
+          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
+
+    var force: B = false
+    var service: SireumPresentasiGenService.Type = SireumPresentasiGenService.Mary
+    var voice: Option[String] = None[String]()
+    var gender: Option[String] = Some("Male")
+    var key: Option[String] = None[String]()
+    var lang: Option[String] = Some("en-US")
+    var region: Option[String] = Some("centralus")
+    var voiceLang: Option[String] = Some("en-GB")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--force") {
+           val o: Option[B] = { j = j - 1; Some(!force) }
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--service") {
+           val o: Option[SireumPresentasiGenService.Type] = parseSireumPresentasiGenService(args, j + 1)
+           o match {
+             case Some(v) => service = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--voice") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voice = v
+             case _ => return None()
+           }
+         } else if (arg == "-g" || arg == "--gender") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => gender = v
+             case _ => return None()
+           }
+         } else if (arg == "-k" || arg == "--key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => key = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => lang = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--region") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => region = v
+             case _ => return None()
+           }
+         } else if (arg == "-d" || arg == "--voice-lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voiceLang = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), force, service, voice, gender, key, lang, region, voiceLang))
   }
 
   def parseSireumPresentasiText2speechServiceH(arg: String): Option[SireumPresentasiText2speechService.Type] = {

@@ -114,4 +114,10 @@ import org.sireum._
   @pure def parCores(percentage: Z): Z = $
 
   @pure def parCoresOpt(percentageOpt: Option[Z]): Z = $
+
+  def checkImage(uri: String): B = $
+
+  def getSoundDuration(uri: String): Option[Z] = $
+
+  def getVideoDuration(uri: String): Option[Z] = $
 }

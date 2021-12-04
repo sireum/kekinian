@@ -25,14 +25,18 @@
 
 package org.sireum
 
+import javafx.stage.Stage
+
 import java.io.File
 import org.sireum.message.Reporter
 import org.sireum.project.DependencyManager
 
 object Sireum {
 
-  def main(args: Array[Predef.String]): Unit = {
+  def main(args: Array[Predef.String]): Unit = try {
     System.exit(run(ISZ(args.toSeq.map(s => s: String): _*)).toInt)
+  } finally {
+    if (jfxInit) javafx.application.Platform.exit()
   }
 
   def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): ISZ[Os.Path] = {
@@ -198,6 +202,8 @@ object Sireum {
       versions.get(scalacPluginKey).get)
   }
 
+  var jfxInit: Boolean = false
+
   def homeFound: B = {
     if (homeOpt.isEmpty) {
       eprintln("Could not detect Sireum's home!")
@@ -338,6 +344,12 @@ object Sireum {
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
           case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
+          case Some(o: Cli.SireumPresentasiGenOption) =>
+            val r = NativeUtil.nonNative[Z](-1, () => cli.Presentasi.gen(o))
+            if (r == -1) {
+              eprintln("The tool is not available in native mode")
+            }
+            return r
           case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
           case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
           case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
@@ -382,4 +394,66 @@ object Sireum {
     }
     return r
   }
+
+  class JFX extends javafx.application.Application {
+    override def start(primaryStage: Stage): Unit = {
+      jfxInit = true
+    }
+  }
+
+  def initJavaFX(): Unit = NativeUtil.nonNative((), () => {
+    if (jfxInit) {
+      return
+    }
+    val t = new Thread(() => javafx.application.Application.launch(classOf[JFX]))
+    t.setDaemon(true)
+    t.start()
+    while (!jfxInit) scala.util.Try(Thread.sleep(100))
+  })
+
+  def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), () => try {
+    initJavaFX()
+    var ready = false
+    var duration: Z = 0
+    val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
+    mediaPlayer.setOnReady({ () =>
+      duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
+      ready = true
+    })
+    while (!ready) Thread.sleep(100)
+    Some(duration)
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace()
+      None[Z]()
+  })
+
+  def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), () => try {
+    initJavaFX()
+    var ready = false
+    var duration: Z = 0
+    val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
+    val mediaView = new javafx.scene.media.MediaView(mediaPlayer)
+    mediaPlayer.setOnReady({ () =>
+      duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
+      ready = true
+    })
+    while (!ready) Thread.sleep(100)
+    Some(duration)
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace()
+      None[Z]()
+  })
+
+  def checkImage(uri: String): B = NativeUtil.nonNative(F, () => try {
+    initJavaFX()
+    val image = new javafx.scene.image.Image(uri.value)
+    val imageView = new javafx.scene.image.ImageView(image)
+    T
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace()
+      F
+  })
 }
