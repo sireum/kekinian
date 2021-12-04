@@ -192,6 +192,7 @@ object SlangRunner {
         (wd / s"$nativeName.exe").removeAll()
         eprintln(s"Failed to generate native executable $nativ, exit code: ${r.exitCode}")
         eprintln(r.out)
+        eprintln(r.err)
         return GraalError
       }
     } else {
