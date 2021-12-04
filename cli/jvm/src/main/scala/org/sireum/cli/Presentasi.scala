@@ -199,7 +199,7 @@ object Presentasi {
               |For Azure, please refer to https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/rest-text-to-speech""".render)
         return 0
       case ISZ(p) =>
-        Os.path(p)
+        Os.path(p).canon
       case _ =>
         return INVALID_ARGS
     }
@@ -389,7 +389,7 @@ object Presentasi {
                   medias = medias ++ sounds
                   curr = last
                 case _ =>
-                  curr = curr + (if (end == 0.0) dur else conversions.R.toZ(conversions.F64.toR(end - start)) + 1)
+                  curr = curr + gap + (if (end == 0.0) dur else conversions.R.toZ(conversions.F64.toR(end - start)) + 1)
               }
             case _ =>
               reporter.error(None(), "presentasi", s"Could not load video ${entry.path}")
