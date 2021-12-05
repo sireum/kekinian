@@ -276,7 +276,7 @@ object Presentasi {
         SireumApi.getSoundDuration(p.toUri) match {
           case Some(dur) if code == 0 => return sound(filename = p.name, duration = dur)
           case _ =>
-            reporter.error(None(), "presentasi", s"""Failed to convert to speech: "${sound.text}"""")
+            reporter.error(None(), "presentasi", s"""Failed to load: "${sound.text}"""")
             return sound
         }
 
@@ -284,33 +284,78 @@ object Presentasi {
 
       var sounds = ISZ[Media]()
       var curr = start
+
       def newSound: Sound = {
         return Sound("", "", 0, curr + spec.gap)
       }
 
+      def parseVolume(vol: String, vpath: String): F64 = {
+        F64(vol) match {
+          case Some(v) if 0.0 <= v && v <= 1.0 =>
+            return v
+          case _ =>
+            reporter.error(None(), "presentasi", s"Invalid volume for $vpath [0.0 .. 1.0]: $vol")
+            return 1.0
+        }
+      }
+
       var currSound = newSound
+      def storeSound(): Unit = {
+        if (currSound.text =!= "") {
+          val sound = process(currSound)
+          sounds = sounds :+ sound
+          curr = curr + sound.duration + spec.gap
+        }
+        currSound = newSound
+      }
       for (l <- ops.StringOps(text).split((c: C) => c === '\n')) {
         ops.StringOps(l).trim match {
-          case string"" =>
-            if (currSound.text =!= "") {
-              val sound = process(currSound)
-              sounds = sounds :+ sound
-              curr = curr + sound.duration + spec.gap
-            }
-            currSound = newSound
+          case string"" => storeSound()
           case line =>
             val lineOps = ops.StringOps(line)
             if (lineOps.startsWith("[") && lineOps.endsWith("]")) {
-              if (currSound.text =!= "") {
-                val sound = process(currSound)
-                sounds = sounds :+ sound
-                curr = curr + sound.duration + spec.gap
-              }
-              currSound = newSound
-              Z(lineOps.substring(1, line.size - 1)) match {
-                case Some(n) => currSound = currSound(timeline = currSound.timeline - spec.gap + n)
+              val dir = ops.StringOps(lineOps.substring(1, line.size - 1)).trim
+              Z(dir) match {
+                case Some(n) =>
+                  storeSound()
+                  currSound = currSound(timeline = currSound.timeline - spec.gap + n)
                 case _ =>
-                  reporter.error(None(), "presentasi", s"Could not parse time delay: $line")
+                  var volume: F64 = 0.0
+                  val apath: Os.Path = if (ops.StringOps(dir).indexOf(';') >= 0) {
+                    ops.StringOps(dir).split((c: C) => c === ';') match {
+                      case ISZ(vol, p) =>
+                        volume = parseVolume(ops.StringOps(vol).trim, p)
+                        Os.path(ops.StringOps(p).trim)
+                      case _ =>
+                        reporter.error(None(), "presentasi", s"Could not parse: $line (expecting [ <volume> ; ] <audio-path> )")
+                        Os.path("")
+                    }
+                  } else {
+                    Os.path(dir)
+                  }
+                  if (apath.string === "") {
+                    // skip
+                  } else if (apath.exists) {
+                    val target = audio / apath.name
+                    if (target.string != apath.string) {
+                      apath.copyOverTo(target)
+                      println(s"Wrote $target")
+                      println()
+                    }
+                    SireumApi.getSoundDuration(apath.toUri) match {
+                      case Some(dur) =>
+                        if (currSound.text =!= "") {
+                          storeSound()
+                        }
+                        currSound = currSound(filename = target.name, duration = dur)
+                        sounds = sounds :+ currSound
+                        curr = currSound.timeline + dur
+                        currSound = newSound
+                      case _ => reporter.error(None(), "presentasi", s"Failed to load: $apath")
+                    }
+                  } else {
+                    reporter.error(None(), "presentasi", s"$apath does not exist")
+                  }
               }
             } else {
               currSound = currSound(text = if (currSound.text === "") line else s"${currSound.text} $line")
@@ -404,12 +449,14 @@ object Presentasi {
     }
     
     var mediaSTs = ISZ[ST]()
-    for (media <- medias) {
-      media match {
-        case media: Image => mediaSTs = mediaSTs :+ imageTemplate(media.filename, media.timeline)
-        case media: Video => mediaSTs = mediaSTs :+ videoTemplate(media.filename, media.timeline, media.muted, media.start, media.end)
-        case media: Sound => mediaSTs = mediaSTs :+ soundTemplate(media.filename, media.timeline)
+    var previousTimelineOpt: Option[Z] = None()
+    for (i <- medias.indices) {
+      medias(i) match {
+        case media: Image => mediaSTs = mediaSTs :+ imageTemplate(media.filename, media.timeline, i, previousTimelineOpt)
+        case media: Video => mediaSTs = mediaSTs :+ videoTemplate(media.filename, media.timeline, media.muted, media.start, media.end, i, previousTimelineOpt)
+        case media: Sound => mediaSTs = mediaSTs :+ soundTemplate(media.filename, media.timeline, i, previousTimelineOpt)
       }
+      previousTimelineOpt = Some(medias(i).timeline)
     }
 
     val f = source / s"${spec.name}.java"
@@ -418,14 +465,30 @@ object Presentasi {
     return 0
   }
 
-  @strictpure def soundTemplate(filename: String, timeline: Z): ST =
-    st"""medias.add(new Sound(getResourceUri("/audio/$filename"), ${timeline}L));"""
+  @pure def localTemplate(timeline: Z, i: Z, prevTimelineOpt: Option[Z]): ST = {
+    prevTimelineOpt match {
+      case Some(prevTimeline) =>
+        if (prevTimeline == timeline) {
+          return st"""final long t_$i = t_${i - 1}"""
+        } else {
+          return st"""final long t_$i = t_${i - 1} + ${timeline - prevTimelineOpt.get}L"""
+        }
+      case _ =>
+        return st"""final long t_$i = ${timeline}L"""
+    }
+  }
 
-  @strictpure def imageTemplate(filename: String, timeline: Z): ST =
-    st"""medias.add(new Image(getResourceUri("/image/$filename"), ${timeline}L));"""
+  @strictpure def soundTemplate(filename: String, timeline: Z, i: Z, prevTimelineOpt: Option[Z]): ST =
+    st"""${localTemplate(timeline, i, prevTimelineOpt)};
+        |medias.add(new Sound(getResourceUri("/audio/$filename"), t_$i));"""
 
-  @strictpure def videoTemplate(filename: String, timeline: Z, muted: B, start: F64, end: F64): ST =
-    st"""medias.add(new Video(getResourceUri("/video/$filename"), ${timeline}L, $muted, $start, $end));"""
+  @strictpure def imageTemplate(filename: String, timeline: Z, i: Z, prevTimelineOpt: Option[Z]): ST =
+    st"""${localTemplate(timeline, i, prevTimelineOpt)};
+        |medias.add(new Image(getResourceUri("/image/$filename"), t_$i));"""
+
+  @strictpure def videoTemplate(filename: String, timeline: Z, muted: B, start: F64, end: F64, i: Z, prevTimelineOpt: Option[Z]): ST =
+    st"""${localTemplate(timeline, i, prevTimelineOpt)};
+        |medias.add(new Video(getResourceUri("/video/$filename"), t_$i, $muted, $start, $end));"""
   
   @strictpure def presentasiTemplate(name: String, trailing: Z, granularity: Z, textVolume: F64, medias: ISZ[ST]): ST =
     st"""// Auto-generated by Sireum Presentasi
@@ -452,7 +515,9 @@ object Presentasi {
         |    public final static double TEXT_VOLUME = $textVolume;
         |
         |    public interface Media {
+        |        String getUri();
         |        boolean isReady();
+        |        boolean hasError();
         |        long getDurationMillis();
         |        long getTimeline();
         |    }
@@ -468,8 +533,14 @@ object Presentasi {
         |            this.imageView = new ImageView(new javafx.scene.image.Image(uri));
         |        }
         |
+        |        public String getUri() { return this.uri; }
+        |
         |        public boolean isReady() {
         |            return true;
+        |        }
+        |
+        |        public boolean hasError() {
+        |            return false;
         |        }
         |
         |        public long getDurationMillis() {
@@ -477,7 +548,7 @@ object Presentasi {
         |        }
         |
         |        public long getTimeline() {
-        |            return timeline;
+        |            return this.timeline;
         |        }
         |    }
         |
@@ -486,6 +557,7 @@ object Presentasi {
         |        private final long timeline;
         |        public final MediaPlayer mediaPlayer;
         |        private boolean ready = false;
+        |        private boolean error = false;
         |        private long duration = 0L;
         |
         |        public Sound(String uri, long timeline) {
@@ -496,18 +568,25 @@ object Presentasi {
         |                this.ready = true;
         |                this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
         |            });
+        |            this.mediaPlayer.setOnError(() -> this.error = true);
         |        }
+        |
+        |        public String getUri() { return this.uri; }
         |
         |        public boolean isReady() {
         |            return this.ready;
         |        }
         |
+        |        public boolean hasError() {
+        |            return this.error;
+        |        }
+        |
         |        public long getDurationMillis() {
-        |            return duration;
+        |            return this.duration;
         |        }
         |
         |        public long getTimeline() {
-        |            return timeline;
+        |            return this.timeline;
         |        }
         |    }
         |
@@ -519,6 +598,7 @@ object Presentasi {
         |        public final double startMillis;
         |        public final double endMillis;
         |        private boolean ready;
+        |        private boolean error;
         |        private long duration;
         |
         |        public Video(String uri, long timeline, boolean muted, double startMs, double endMs) {
@@ -527,7 +607,7 @@ object Presentasi {
         |            this.startMillis = startMs;
         |            this.endMillis = endMs;
         |            this.muted = muted;
-        |            MediaPlayer mediaPlayer = new MediaPlayer(new javafx.scene.media.Media(uri));
+        |            final MediaPlayer mediaPlayer = new MediaPlayer(new javafx.scene.media.Media(uri));
         |            mediaPlayer.setOnReady(() -> {
         |                this.ready = true;
         |                if (endMs > 0.0) {
@@ -536,30 +616,35 @@ object Presentasi {
         |                    this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
         |                }
         |            });
+        |            mediaPlayer.setOnError(() -> this.error = true);
         |            this.mediaView = new MediaView(mediaPlayer);
         |        }
         |
+        |        public String getUri() { return this.uri; }
+        |
         |        public boolean isReady() {
-        |            return ready;
+        |            return this.ready;
         |        }
         |
+        |        public boolean hasError() { return this.error; }
+        |
         |        public long getDurationMillis() {
-        |            return duration;
+        |            return this.duration;
         |        }
         |
         |        public long getTimeline() {
-        |            return timeline;
+        |            return this.timeline;
         |        }
         |    }
         |
-        |    LinkedList<Media> medias = new LinkedList<>();
-        |    Stage stage = null;
-        |    long startTime = 0;
-        |    int slideNo = 0;
+        |    private final LinkedList<Media> medias = new LinkedList<>();
+        |    private Stage stage = null;
+        |    private long startTime = 0;
+        |    private int slideNo = 0;
         |
         |    public static String getResourceUri(String path) {
         |        try {
-        |            URL url = Presentasi.class.getResource(path);
+        |            final URL url = Presentasi.class.getResource(path);
         |            if (url != null) {
         |                return url.toURI().toASCIIString();
         |            }
@@ -573,12 +658,12 @@ object Presentasi {
         |
         |    @Override
         |    public void init() {
-        |        List<String> args = getParameters().getRaw();
+        |        final List<String> args = getParameters().getRaw();
         |        switch (args.size()) {
         |            case 0:
         |                break;
         |            case 1:
-        |                String arg = args.get(0);
+        |                final String arg = args.get(0);
         |                try {
         |                    if (arg.charAt(0) == '#') {
         |                        slideNo = Integer.parseInt(arg.substring(1));
@@ -599,16 +684,25 @@ object Presentasi {
         |
         |        ${(medias, "\n")}
         |
-        |        Rectangle2D rect = Screen.getPrimary().getBounds();
-        |        double width = rect.getWidth();
-        |        double height = rect.getHeight();
-        |        Media last = medias.getLast();
-        |        for (Media media : medias) while (!media.isReady()) sleep(100);
+        |        final Rectangle2D rect = Screen.getPrimary().getBounds();
+        |        final double width = rect.getWidth();
+        |        final double height = rect.getHeight();
+        |        final Media last = medias.getLast();
+        |        for (final Media media : medias) {
+        |            while (!media.isReady()) {
+        |                if (media.hasError()) {
+        |                    System.err.println("Could not load " + media.getUri());
+        |                    System.err.flush();
+        |                    Platform.exit();
+        |                }
+        |                sleep(100);
+        |            }
+        |        }
         |        Thread thread = new Thread(() -> {
         |            while (Presentasi.this.stage == null) Presentasi.sleep(100);
+        |            final int size = medias.size();
         |            long start = System.currentTimeMillis();
         |            int i = 0;
-        |            int size = medias.size();
         |            if (slideNo > 0) {
         |                int j = 0;
         |                while (i < size && j < slideNo) {
@@ -627,16 +721,16 @@ object Presentasi {
         |                if (i < size) start = start - medias.get(i).getTimeline();
         |            }
         |            while (i < size) {
-        |                Media media = medias.get(i);
+        |                final Media media = medias.get(i);
         |                while (System.currentTimeMillis() - start <= media.getTimeline()) Presentasi.sleep(TIMELINE_GRANULARITY);
         |                if (media instanceof Sound) {
-        |                    MediaPlayer mediaPlayer = ((Sound) media).mediaPlayer;
+        |                    final MediaPlayer mediaPlayer = ((Sound) media).mediaPlayer;
         |                    mediaPlayer.setVolume(TEXT_VOLUME);
         |                    mediaPlayer.play();
         |                } else if (media instanceof Image) {
-        |                    Image graphic = (Image) media;
-        |                    StackPane root = new StackPane();
-        |                    ImageView imageView = graphic.imageView;
+        |                    final Image graphic = (Image) media;
+        |                    final StackPane root = new StackPane();
+        |                    final ImageView imageView = graphic.imageView;
         |                    root.getChildren().add(imageView);
         |                    imageView.setPreserveRatio(true);
         |                    imageView.setSmooth(true);
@@ -645,9 +739,9 @@ object Presentasi {
         |                    stage.getScene().setRoot(root);
         |                    Platform.runLater(() -> stage.show());
         |                } else if (media instanceof Video) {
-        |                    Video movie = (Video) media;
-        |                    StackPane root = new StackPane();
-        |                    MediaView mediaView = movie.mediaView;
+        |                    final Video movie = (Video) media;
+        |                    final StackPane root = new StackPane();
+        |                    final MediaView mediaView = movie.mediaView;
         |                    root.getChildren().add(mediaView);
         |                    mediaView.setPreserveRatio(true);
         |                    mediaView.setSmooth(true);
@@ -655,7 +749,7 @@ object Presentasi {
         |                    mediaView.setFitHeight(height);
         |                    stage.getScene().setRoot(root);
         |                    Platform.runLater(() -> {
-        |                        MediaPlayer player = mediaView.getMediaPlayer();
+        |                        final MediaPlayer player = mediaView.getMediaPlayer();
         |                        player.setStartTime(Duration.millis(movie.startMillis));
         |                        if (movie.endMillis > 0.0) player.setStopTime(Duration.millis(movie.endMillis));
         |                        player.setVolume(1.0);
@@ -666,7 +760,7 @@ object Presentasi {
         |                }
         |                i++;
         |            }
-        |            long fin = last.getTimeline() + last.getDurationMillis() + TRAILING;
+        |            final long fin = last.getTimeline() + last.getDurationMillis() + TRAILING;
         |            while (System.currentTimeMillis() - start <= fin) Presentasi.sleep(TIMELINE_GRANULARITY);
         |            Platform.exit();
         |        });
@@ -687,7 +781,7 @@ object Presentasi {
         |        primaryStage.setFullScreen(true);
         |        primaryStage.setResizable(false);
         |        primaryStage.setFullScreenExitHint("");
-        |        Scene scene = new Scene(new StackPane(), primaryStage.getMaxWidth(), primaryStage.getMaxHeight());
+        |        final Scene scene = new Scene(new StackPane(), primaryStage.getMaxWidth(), primaryStage.getMaxHeight());
         |        primaryStage.setScene(scene);
         |        stage = primaryStage;
         |    }

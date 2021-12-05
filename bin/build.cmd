@@ -56,9 +56,10 @@ def usage(): Unit = {
     st"""Sireum /build
         |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
         |       | tipe             | compile[-js]       | test         | mill
-        |       | regen-project    | regen-slang        | regen-logika | regen-air
-        |       | regen-act        | regen-server       | regen-cliopt | regen-cli
-        |       | regen-fmide-cli  | m2[-lib[-js]]      | jitpack      | ghpack
+        |       | regen-project    | regen-presentasi   | regen-slang  | regen-logika
+        |       | regen-air        | regen-act          | regen-server | regen-cliopt
+        |       | regen-cli        | regen-fmide-cli
+        |       | m2[-lib[-js]]    | jitpack            | ghpack
         |       | cvc4             | z3                 | ram                      )*
       """.render)
 }
@@ -336,6 +337,14 @@ def regenProject(): Unit = {
     s"${home / "license.txt"}", "-m", "json", s"${projectPackagePath / "Project.scala"}")).at(projectPackagePath).console.run()
 }
 
+
+def regenPresentasi(): Unit = {
+  val presentasiPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "presentasi"
+  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.presentasi", "-l",
+    s"${home / "license.txt"}", "-m", "json", s"${presentasiPackagePath / "Presentation.scala"}")).at(presentasiPackagePath).console.run()
+}
+
+
 def regenCliOpt(): Unit = {
   val cliPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "cli"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.cli", "-l",
@@ -602,6 +611,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
       case string"regen-project" => regenProject()
+      case string"regen-presentasi" => regenPresentasi()
       case string"regen-cliopt" => regenCliOpt()
       case string"regen-air" => regenAir()
       case string"regen-act" => regenAct()
