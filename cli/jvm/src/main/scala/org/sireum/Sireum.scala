@@ -456,15 +456,19 @@ object Sireum {
       val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
       var error = false
       var duration: Z = 0
+      mediaPlayer.setOnReady(new Runnable {
+        override def run(): Unit = {
+          duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
+          latch.countDown()
+        }
+      })
+      mediaPlayer.setOnError(new Runnable {
+        override def run(): Unit = {
+          error = true
+          latch.countDown()
+        }
+      })
       val mediaView = new javafx.scene.media.MediaView(mediaPlayer)
-      mediaPlayer.setOnReady({ () =>
-        duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
-        latch.countDown()
-      })
-      mediaPlayer.setOnError({ () =>
-        error = true
-        latch.countDown()
-      })
       latch.await()
       if (error) None[Z]() else Some(duration)
     } catch {
