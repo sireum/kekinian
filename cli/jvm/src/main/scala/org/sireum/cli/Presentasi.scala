@@ -363,6 +363,8 @@ object Presentasi {
         }
       }
 
+      storeSound()
+
       if (sounds.isEmpty) {
         return (sounds, start)
       } else {

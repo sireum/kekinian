@@ -410,16 +410,19 @@ object Sireum {
 
   def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), () => try {
     initJavaFX()
-    var ready = false
+    val latch = new java.util.concurrent.CountDownLatch(1)
     var duration: Z = 0
     var error = false
     val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
     mediaPlayer.setOnReady({ () =>
       duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
-      ready = true
+      latch.countDown()
     })
-    mediaPlayer.setOnError(() => error = true)
-    while (!ready && !error) Thread.sleep(100)
+    mediaPlayer.setOnError({ () =>
+      error = true
+      latch.countDown()
+    })
+    latch.await()
     if (error) None[Z]() else Some(duration)
   } catch {
     case t: Throwable =>
@@ -429,17 +432,20 @@ object Sireum {
 
   def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), () => try {
     initJavaFX()
-    var ready = false
+    val latch = new java.util.concurrent.CountDownLatch(1)
+    val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
     var error = false
     var duration: Z = 0
-    val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
     val mediaView = new javafx.scene.media.MediaView(mediaPlayer)
     mediaPlayer.setOnReady({ () =>
       duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
-      ready = true
+      latch.countDown()
     })
-    mediaPlayer.setOnError(() => error = true)
-    while (!ready && !error) Thread.sleep(100)
+    mediaPlayer.setOnError({ () =>
+      error = true
+      latch.countDown()
+    })
+    latch.await()
     if (error) None[Z]() else Some(duration)
   } catch {
     case t: Throwable =>
