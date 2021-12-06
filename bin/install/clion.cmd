@@ -37,6 +37,11 @@ val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
 val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
 val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
 
+val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
+  case Some(dir) => Os.path(dir)
+  case _ => Os.home / "Downloads" / "sireum"
+}
+
 def deleteSources(dir: Os.Path): Unit = {
   for (f <- Os.Path.walk(dir, F, F, (p: Os.Path) => ops.StringOps(p.name).endsWith(".java") || ops.StringOps(p.name).endsWith(".scala"))) {
     f.removeAll()
@@ -54,7 +59,7 @@ def mac(): Unit = {
   }
 
   val bundle = s"CLion-$clionVersion${if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") "-aarch64" else ""}.dmg"
-  val cache = Os.home / "Downloads" / "sireum" / bundle
+  val cache = cacheDir / bundle
 
   if (!cache.exists) {
     cache.up.mkdirAll()
@@ -93,7 +98,7 @@ def linux(isArm: B): Unit = {
   }
 
   val bundle = s"CLion-$clionVersion.tar.gz"
-  val cache = Os.home / "Downloads" / "sireum" / bundle
+  val cache = cacheDir / bundle
 
   if (!cache.exists) {
     cache.up.mkdirAll()
@@ -155,7 +160,7 @@ def win(): Unit = {
   }
 
   val bundle = s"CLion-$clionVersion.win.zip"
-  val cache = Os.home / "Downloads" / "sireum" / bundle
+  val cache = cacheDir / bundle
 
   if (!cache.exists) {
     cache.up.mkdirAll()

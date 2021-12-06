@@ -36,6 +36,12 @@ val cores: String = Os.cliArgs match {
   case _ => "4"
 }
 
+val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
+  case Some(dir) => Os.path(dir)
+  case _ => Os.home / "Downloads" / "sireum"
+}
+
+
 def opam(dir: Os.Path, bundle: String): Unit = {
   println(
     st"""Note that:
@@ -49,7 +55,7 @@ def opam(dir: Os.Path, bundle: String): Unit = {
   dir.removeAll()
   opamExe.removeAll()
 
-  val cache = Os.home / "Downloads" / "sireum" / bundle
+  val cache = cacheDir / bundle
 
   if (!cache.exists) {
     println(s"Downloading $cache ...")
