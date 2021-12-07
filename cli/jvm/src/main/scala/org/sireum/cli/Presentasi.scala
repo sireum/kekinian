@@ -303,14 +303,19 @@ object Presentasi {
           |        final double height = rect.getHeight();
           |
           |        for (final Media media : medias) {
+          |            final String uri = media.getUri();
+          |            System.out.print("Loading " + uri + " ... ");
+          |            System.out.flush();
           |            while (!media.isReady()) {
           |                if (media.hasError()) {
-          |                    System.err.println("Could not load " + media.getUri());
+          |                    System.err.println("failed");
           |                    System.err.flush();
           |                    Platform.exit();
           |                }
           |                sleep(100);
           |            }
+          |            System.out.println("done");
+          |            System.out.flush();
           |        }
           |        final Thread thread = new Thread(() -> {
           |            while (Presentasi.this.stage == null) Presentasi.sleep(100);
