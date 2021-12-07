@@ -487,7 +487,10 @@ object Presentasi {
           voiceLang = o.voiceLang
         ))
         temp.removeAll()
-        SireumApi.getSoundDuration(p.toUri) match {
+        println(s"Loading $p ...")
+        val dur = SireumApi.getSoundDuration(p.toUri)
+        println()
+        dur match {
           case Some(dur) if code == 0 => return sound(filename = p.name, duration = dur)
           case _ =>
             reporter.error(None(), "presentasi", s"""Failed to load: "${sound.text}"""")
@@ -600,7 +603,10 @@ object Presentasi {
             println(s"Wrote $target")
             println()
           }
-          if (SireumApi.checkImage(p.toUri)) {
+          println(s"Loading $p ...")
+          val ok = SireumApi.checkImage(p.toUri)
+          println()
+          if (ok) {
             val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
             medias = medias :+ Image(target.name, curr + gap)
             val (sounds, last) = processText(entry.text, curr)
@@ -617,7 +623,10 @@ object Presentasi {
             println(s"Wrote $target")
             println()
           }
-          SireumApi.getVideoDuration(p.toUri) match {
+          println(s"Loading $p ...")
+          val dur = SireumApi.getVideoDuration(p.toUri)
+          println()
+          dur match {
             case Some(dur) =>
               val durR = conversions.Z.toR(dur)
               val start: F64 = if (entry.start < 0.0) {
