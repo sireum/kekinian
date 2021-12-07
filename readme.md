@@ -1,5 +1,6 @@
 # Sireum: A High Assurance System Engineering Platform
 
+[![License](https://img.shields.io/badge/License-BSD_2--Clause-brightgreen.svg)](https://github.com/sireum/kekinian/blob/master/license.md)
 [![Actions Status](https://github.com/sireum/kekinian/workflows/macOS/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-macOS.yml) 
 [![Actions Status](https://github.com/sireum/kekinian/workflows/Linux/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-linux.yml) 
 [![Actions Status](https://github.com/sireum/kekinian/workflows/Windows/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-windows.yml) 
@@ -56,9 +57,41 @@ things up by virtue of having no JVM boot up time.
 
 ## Available Products
 
-* [Slang](http://slang.sireum.org): The Sireum Programming Language
+* [**Slang**](http://slang.sireum.org): 
+  The Sireum Programming Language
+  
+  (ISoLA 2021: [presentation](https://bit.ly/slang-isola21), [paper](https://link.springer.com/chapter/10.1007%2F978-3-030-89159-6_17);
+  [simple examples](https://github.com/sireum/slang-by-examples))
 
-* [HAMR](http://hamr.sireum.org): A **H**igh **A**ssurance **M**odel-based **R**apid Engineering of Embedded Systems
+
+* [**HAMR**](http://hamr.sireum.org): 
+  Slang-based **H**igh **A**ssurance **M**odel-based **R**apid Engineering of Embedded Systems
+  
+  (ISoLA 2021: [presentation](https://bit.ly/hamr-isola21), [paper](https://link.springer.com/chapter/10.1007%2F978-3-030-89159-6_18)) 
+
+
+* **Logika**: Slang Program Verifier and Proof Assistant 
+
+  (see it in action as part of the [Slang ISoLA 2021 presentation](https://bit.ly/slang-isola21);
+  the Logika predecessor pedagogical tool for teaching, along with its documentation and course notes, are available at:
+  http://logika.v3.sireum.org)
+
+
+* **IVE**: Slang IntelliJ-based **I**ntegrated **V**erification **E**nvironment
+
+  (see it in action as part of the [Slang ISoLA 2021 presentation](https://bit.ly/slang-isola21))
+
+
+* **Proyek**: Incremental and Parallel Slang Build Tool
+
+  (also suitable for Java and Scala/Scala.js projects;
+  examples: [simple](https://github.com/sireum/proyek-example), [for Sireum itself](https://github.com/sireum/kekinian/blob/master/bin/project.cmd))
+
+
+* **Presentasi**: JavaFX Presentation Generator from Slang-based Specifications
+
+  (including text-to-speech synthesizers; [example](https://github.com/sireum/presentasi-example))
+
 
 ## Installing
 
