@@ -34,6 +34,11 @@ val sireumJar = homeBin / "sireum.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 var cores: Z = 4
 
+val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
+  case Some(dir) => Os.path(dir)
+  case _ => Os.home / "Downloads" / "sireum"
+}
+
 def ccl(p: String): Unit = {
   val cclVersion = "1.11.5"
   val cclUrlPrefix = s"https://github.com/Clozure/ccl/releases/download/v$cclVersion/"
@@ -52,7 +57,7 @@ def ccl(p: String): Unit = {
 
   val bundle = cclBundleMap.get(p).get
 
-  val cache = Os.home / "Downloads" / "sireum" / bundle
+  val cache = cacheDir / bundle
 
   if (!cache.exists) {
     cache.up.mkdirAll()
@@ -85,7 +90,7 @@ def acl2(p: String): Unit = {
   }
 
   val bundle = s"acl2-$acl2Version.tar.gz"
-  val cache = Os.home / "Downloads" / "sireum" / bundle
+  val cache = cacheDir / bundle
 
   if (!cache.exists) {
     cache.up.mkdirAll()
