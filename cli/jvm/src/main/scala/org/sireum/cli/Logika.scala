@@ -87,8 +87,8 @@ object Logika {
         }
       case _ => None()
     }
-    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc4) {
-      val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
+    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc) {
+      val exeFilename: String = if (Os.isWin) s"cvc.exe" else "cvc"
       SireumApi.homeOpt match {
         case Some(home) =>
           val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
@@ -181,7 +181,7 @@ object Logika {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-              config.cvc4RLimit, fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
+              config.cvcRLimit, fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
               config.simplifiedQuery, reporter),
             logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
@@ -267,7 +267,7 @@ object Logika {
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
-        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs, config.cvc4RLimit,
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs, config.cvcRLimit,
           config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, reporter),
         logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()

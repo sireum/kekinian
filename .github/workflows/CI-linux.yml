@@ -40,8 +40,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            bin/linux/cvc4
-            bin/linux/.cvc4.ver
+            bin/linux/cvc
+            bin/linux/.cvc.ver
             bin/linux/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Test

@@ -102,7 +102,7 @@ object Cli {
 
   @enum object SireumLogikaVerifierLogikaSolver {
     'All
-    'Cvc4
+    'Cvc
     'Z3
   }
 
@@ -222,7 +222,7 @@ object Cli {
 
   @enum object SireumProyekLogikaLogikaSolver {
     'All
-    'Cvc4
+    'Cvc
     'Z3
   }
 
@@ -1141,17 +1141,17 @@ import Cli._
   def parseSireumLogikaVerifierLogikaSolverH(arg: String): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(SireumLogikaVerifierLogikaSolver.All)
-      case "cvc4" => return Some(SireumLogikaVerifierLogikaSolver.Cvc4)
+      case "cvc" => return Some(SireumLogikaVerifierLogikaSolver.Cvc)
       case "z3" => return Some(SireumLogikaVerifierLogikaSolver.Z3)
       case s =>
-        eprintln(s"Expecting one of the following: { all, cvc4, z3 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { all, cvc, z3 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumLogikaVerifierLogikaSolver(args: ISZ[String], i: Z): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, cvc4, z3 }, but none found.")
+      eprintln("Expecting one of the following: { all, cvc, z3 }, but none found.")
       return None()
     }
     val r = parseSireumLogikaVerifierLogikaSolverH(args(i))
@@ -1220,15 +1220,15 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc-rlimit         CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc-vopts          Additional options for CVC4 validity checks (expects a
+          |    --cvc-rlimit         CVC rlimit (expects an integer; default is 1000000)
+          |    --cvc-vopts          Additional options for CVC validity checks (expects a
           |                           string separated by ","; default is
           |                           "--full-saturate-quant")
-          |    --cvc-sopts          Additional options for CVC4 satisfiability checks
+          |    --cvc-sopts          Additional options for CVC satisfiability checks
           |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
-          |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
-          |                           default: all)
+          |-m, --solver             SMT2 solver (expects one of { all, cvc, z3 }; default:
+          |                           all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)
           |    --z3-vopts           Additional options for Z3 validity checks (expects a
@@ -2156,17 +2156,17 @@ import Cli._
   def parseSireumProyekLogikaLogikaSolverH(arg: String): Option[SireumProyekLogikaLogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(SireumProyekLogikaLogikaSolver.All)
-      case "cvc4" => return Some(SireumProyekLogikaLogikaSolver.Cvc4)
+      case "cvc" => return Some(SireumProyekLogikaLogikaSolver.Cvc)
       case "z3" => return Some(SireumProyekLogikaLogikaSolver.Z3)
       case s =>
-        eprintln(s"Expecting one of the following: { all, cvc4, z3 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { all, cvc, z3 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumProyekLogikaLogikaSolver(args: ISZ[String], i: Z): Option[SireumProyekLogikaLogikaSolver.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, cvc4, z3 }, but none found.")
+      eprintln("Expecting one of the following: { all, cvc, z3 }, but none found.")
       return None()
     }
     val r = parseSireumProyekLogikaLogikaSolverH(args(i))
@@ -2268,15 +2268,15 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc-rlimit         CVC4 rlimit (expects an integer; default is 1000000)
-          |    --cvc-vopts          Additional options for CVC4 validity checks (expects a
+          |    --cvc-rlimit         CVC rlimit (expects an integer; default is 1000000)
+          |    --cvc-vopts          Additional options for CVC validity checks (expects a
           |                           string separated by ","; default is
           |                           "--full-saturate-quant")
-          |    --cvc-sopts          Additional options for CVC4 satisfiability checks
+          |    --cvc-sopts          Additional options for CVC satisfiability checks
           |                           (expects a string separated by ",")
           |    --simplify           Simplify SMT2 query
-          |-m, --solver             SMT2 solver (expects one of { all, cvc4, z3 };
-          |                           default: all)
+          |-m, --solver             SMT2 solver (expects one of { all, cvc, z3 }; default:
+          |                           all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)
           |    --z3-vopts           Additional options for Z3 validity checks (expects a

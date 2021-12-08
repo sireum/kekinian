@@ -406,8 +406,8 @@ object Proyek {
         }
       case _ => None()
     }
-    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc4) {
-      val exeFilename: String = if (Os.isWin) s"cvc4.exe" else "cvc4"
+    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc) {
+      val exeFilename: String = if (Os.isWin) s"cvc.exe" else "cvc"
       SireumApi.homeOpt match {
         case Some(home) =>
           val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename

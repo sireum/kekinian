@@ -40,8 +40,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            bin/mac/cvc4
-            bin/mac/.cvc4.ver
+            bin/mac/cvc
+            bin/mac/.cvc.ver
             bin/mac/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Test
