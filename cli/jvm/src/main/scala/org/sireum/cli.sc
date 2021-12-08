@@ -61,28 +61,39 @@ val text2speechTool: Tool = Tool(
     Opt(name = "force", longKey = "force", shortKey = None(),
       tpe = Type.Flag(F),
       description = "Overwrite output file(s)"),
+    Opt(name = "lang", longKey = "lang", shortKey = Some('l'),
+      tpe = Type.Str(sep = None(), default = Some("en-US")), description = "Speech language (for AWS or Azure)"),
     Opt(name = "output", longKey = "output", shortKey = Some('o'),
       tpe = Type.Path(F, None()),
       description = "Output filename (defaults to <line>.<ext>)"),
+    Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
+      tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
+        "mp3", "webm", "ogg", "pcm")),
+      description = "Audio output format (for AWS or Azure)"),
     Opt(name = "service", longKey = "service", shortKey = Some('s'),
-      tpe = Type.Choice(name = "service", sep = None(), elements = ISZ("mary", "azure")), description = "Text-to-speech service"),
+      tpe = Type.Choice(name = "service", sep = None(), elements = ISZ("mary", "aws", "azure")),
+      description = "Text-to-speech service"),
     Opt(name = "voice", longKey = "voice", shortKey = Some('v'),
       tpe = Type.Str(sep = None(), default = None()),
-      description = "Voice (defaults to \"en-GB-RyanNeural\" for Azure, \"dfki-spike-hsmm\" for MaryTTS"),
+      description = "Voice (defaults to \"dfki-spike-hsmm\" for MaryTTS, \"Amy\" for AWS, \"en-GB-RyanNeural\" for Azure)"),
   ),
   groups = ISZ(
+    OptGroup(
+      name = "AWS", opts = ISZ(
+        Opt(name = "awsPath", longKey = "aws-path", shortKey = Some('a'),
+          tpe = Type.Path(F, Some("aws")),
+          description = "Path to AWS command-line interface (CLI)"),
+        Opt(name = "engine", longKey = "engine", shortKey = Some('e'),
+          tpe = Type.Choice(name = "engine", sep = None(), elements = ISZ("neural", "standard")),
+          description = "Voice engine"),
+      ),
+    ),
     OptGroup(
       name = "Azure", opts = ISZ(
         Opt(name = "gender", longKey = "gender", shortKey = Some('g'),
           tpe = Type.Str(sep = None(), default = Some("Male")), description = "Voice gender"),
         Opt(name = "key", longKey = "key", shortKey = Some('k'),
           tpe = Type.Str(sep = None(), default = None()), description = "Azure subscription key"),
-        Opt(name = "lang", longKey = "lang", shortKey = Some('l'),
-          tpe = Type.Str(sep = None(), default = Some("en-US")), description = "Speech language"),
-        Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
-          tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
-            "mp3_48khz_192kbit", "webm_24khz_16bit", "ogg_48khz_16bit", "pcm_48khz_16bit")),
-          description = "Audio output format"),
         Opt(name = "region", longKey = "region", shortKey = Some('r'),
           tpe = Type.Str(sep = None(), default = Some("centralus")), description = "Azure region"),
         Opt(name = "voiceLang", longKey = "voice-lang", shortKey = Some('d'),
@@ -100,9 +111,10 @@ val pgenTool: Tool = Tool(
   header = "Sireum Presentasi Generator",
   usage = "<option>* <path>",
   usageDescOpt = None(),
-  opts = text2speechTool.opts - text2speechTool.opts(1),
-  groups = ISZ(text2speechTool.groups(0)(opts = text2speechTool.groups(0).opts - text2speechTool.groups(0).opts(3)))
+  opts = text2speechTool.opts - text2speechTool.opts(2) - text2speechTool.opts(3),
+  groups = text2speechTool.groups
 )
+
 
 val presentasiGroup = Group(
   name = "presentasi",

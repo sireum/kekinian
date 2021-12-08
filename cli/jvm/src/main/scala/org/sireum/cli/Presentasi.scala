@@ -56,6 +56,8 @@ object Presentasi {
     println(
       st"""Available MaryTTS voices are: cmu-bdl-hsmm, cmu-rms-hsmm, cmu-slt-hsmm, dfki-obadiah-hsmm, dfki-prudence-hsmm, dfki-spike-hsmm
           |
+          |For AWS, please refer to https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
+          |
           |For Azure, please refer to https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/rest-text-to-speech""".render)
     return 0
   }
@@ -454,9 +456,12 @@ object Presentasi {
     }
 
     val reporter = Reporter.create
-    val (service, ext): (Cli.SireumPresentasiText2speechService.Type, String) =
-      if (o.service == Cli.SireumPresentasiGenService.Azure) (Cli.SireumPresentasiText2speechService.Azure, "mp3")
-      else (Cli.SireumPresentasiText2speechService.Mary, "wav")
+    val (service, ext): (Cli.SireumPresentasiText2speechService.Type, String) = o.service match {
+      case Cli.SireumPresentasiGenService.Azure => (Cli.SireumPresentasiText2speechService.Azure, "mp3")
+      case Cli.SireumPresentasiGenService.Aws => (Cli.SireumPresentasiText2speechService.Aws, "mp3")
+      case Cli.SireumPresentasiGenService.Mary => (Cli.SireumPresentasiText2speechService.Mary, "wav")
+    }
+
     def processText(text: String, start: Z): (ISZ[Media], Z) = {
       def fingerprint(t: String): String = {
         val c = crypto.SHA3.init256
@@ -472,6 +477,10 @@ object Presentasi {
         val p = audio / filename
         val temp = Os.tempFix("", ".txt")
         temp.writeOver(sound.text)
+        val engine: Cli.SireumPresentasiText2speechEngine.Type = o.engine match {
+          case Cli.SireumPresentasiGenEngine.Neural => Cli.SireumPresentasiText2speechEngine.Neural
+          case Cli.SireumPresentasiGenEngine.Standard => Cli.SireumPresentasiText2speechEngine.Standard
+        }
         val code = text2speech(Cli.SireumPresentasiText2speechOption(
           help = "",
           args = ISZ(temp.string),
@@ -479,12 +488,14 @@ object Presentasi {
           output = Some(p.string),
           service = service,
           voice = o.voice,
+          awsPath = o.awsPath,
           gender = o.gender,
           key = o.key,
           lang = o.lang,
-          outputFormat = Cli.SireumPresentasiText2speechOutputFormat.Mp3_48khz_192kbit,
+          outputFormat = Cli.SireumPresentasiText2speechOutputFormat.Mp3,
           region = o.region,
-          voiceLang = o.voiceLang
+          voiceLang = o.voiceLang,
+          engine = engine
         ))
         temp.removeAll()
         println(s"Loading $p ...")
@@ -772,10 +783,10 @@ object Presentasi {
         tmp.removeOnExit()
         val voice = o.voice.getOrElseEager("en-GB-RyanNeural")
         val (format, ext): (String, String) = o.outputFormat match {
-          case Cli.SireumPresentasiText2speechOutputFormat.Mp3_48khz_192kbit => ("audio-48khz-192kbitrate-mono-mp3", "mp3")
-          case Cli.SireumPresentasiText2speechOutputFormat.Pcm_48khz_16bit => ("raw-48khz-16bit-mono-pcm", "wav")
-          case Cli.SireumPresentasiText2speechOutputFormat.Webm_24khz_16bit => ("webm-24khz-16bit-mono-opus", "webm")
-          case Cli.SireumPresentasiText2speechOutputFormat.Ogg_48khz_16bit => ("ogg-48khz-16bit-mono-opus", "ogg")
+          case Cli.SireumPresentasiText2speechOutputFormat.Mp3 => ("audio-48khz-192kbitrate-mono-mp3", "mp3")
+          case Cli.SireumPresentasiText2speechOutputFormat.Pcm => ("raw-48khz-16bit-mono-pcm", "wav")
+          case Cli.SireumPresentasiText2speechOutputFormat.Webm => ("webm-24khz-16bit-mono-opus", "webm")
+          case Cli.SireumPresentasiText2speechOutputFormat.Ogg => ("ogg-48khz-16bit-mono-opus", "ogg")
         }
         for (line <- inputFile.readLineStream if ops.StringOps(line).trim.size > 0) {
           val out = outputFile(output, inputFile.name, i, line, ext)
@@ -784,6 +795,41 @@ object Presentasi {
             tmp.writeOver(
               st"""$echoOffOpt
                   |curl --location --request POST 'https://${o.region.get}.tts.speech.microsoft.com/cognitiveservices/v1' --header 'Ocp-Apim-Subscription-Key: $key' --header 'Content-Type: application/ssml+xml' --header 'X-Microsoft-OutputFormat: $format' --header 'User-Agent: curl' --data-raw '<speak version="1.0" xml:lang="${o.lang.get}"><voice xml:lang="${o.voiceLang.get}" xml:gender="${o.gender.get}" name="$voice">${ops.StringOps(line).replaceAllLiterally("'", "'\\''")}</voice></speak>' -o $out""".render)
+            tmp.chmod("+x")
+            proc"$tmp".console.runCheck()
+            println()
+          } else {
+            println(s"Skipping already generated: $line")
+            println()
+          }
+          i = i + 1
+        }
+      case Cli.SireumPresentasiText2speechService.Aws =>
+        val aws = Os.path(o.awsPath.get)
+        val tmp = Os.tempFix("", if (Os.isWin) ".bat" else "")
+        val echoOffOpt: Option[String] = if (Os.isWin) Some("@echo off") else None()
+        tmp.removeOnExit()
+        var i = 1
+        val voice = o.voice.getOrElseEager("Amy")
+        val engine: String = o.engine match {
+          case Cli.SireumPresentasiText2speechEngine.Neural => "neural"
+          case Cli.SireumPresentasiText2speechEngine.Standard => "standard"
+        }
+        val (outputFormat, ext, rate): (String, String, Z) = o.outputFormat match {
+          case Cli.SireumPresentasiText2speechOutputFormat.Mp3 => ("mp3", "mp3", 24000)
+          case Cli.SireumPresentasiText2speechOutputFormat.Ogg => ("ogg_vorbis", "ogg", 24000)
+          case Cli.SireumPresentasiText2speechOutputFormat.Pcm => ("pcm", "wav", 16000)
+          case Cli.SireumPresentasiText2speechOutputFormat.Webm =>
+            eprintln("AWS does not support webm output format")
+            return -1
+        }
+        for (line <- inputFile.readLineStream if ops.StringOps(line).trim.size > 0) {
+          val out = outputFile(output, inputFile.name, i, line, ext)
+          if (!out.exists || o.force) {
+            println(s"Synthesizing: $line")
+            tmp.writeOver(
+              st"""$echoOffOpt
+                  |$aws polly synthesize-speech --engine $engine --language-code ${o.lang} --output-format $outputFormat --sample-rate $rate --text "<speak>$line</speak>" --text-type "ssml" --voice-id "$voice" $out""".render)
             tmp.chmod("+x")
             proc"$tmp".console.runCheck()
             println()
