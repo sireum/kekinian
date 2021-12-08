@@ -388,11 +388,11 @@ In addition, Sireum includes adaptation of the following code:
 
 ### Application Dependencies
 
-| Application | License |
-| :--- | :---: |
+| Application                                         | License |
+|:----------------------------------------------------| :---: |
 | [Azul Zulu JDK FX](https://www.azul.com/downloads/) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
-| [CVC4](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
-| [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
+| [CVC4/5](https://github.com/cvc5/cvc5)              | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
+| [Z3](https://github.com/Z3Prover/z3)                | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
 Sireum stores small, pre-built binary executables in its submodule repositories for
 [macOS](https://github.com/sireum/bin-mac), 
