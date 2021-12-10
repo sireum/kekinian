@@ -384,7 +384,7 @@ def regenLogika(): Unit = {
 def regenAir(): Unit = {
   val airRootPath = home / "hamr" / "air"
   val airPackagePath = airRootPath / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "ir"
-  val asts: ISZ[String] = ISZ("AadlAST.scala", "BlessAST.scala", "Emv2AST.scala", "SmfAST.scala")
+  val asts: ISZ[String] = ISZ("AadlAST.scala", "BlessAST.scala", "Emv2AST.scala", "GumboAST.scala", "SmfAST.scala")
 
   Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
     "-m", "immutable,mutable") ++ asts).at(airPackagePath).console.run()
