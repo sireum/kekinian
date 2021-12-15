@@ -172,7 +172,7 @@ object Logika {
         }
         val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll,
-          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode)
+          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -260,7 +260,7 @@ object Logika {
       }
       val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll,
-        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode)
+        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =
