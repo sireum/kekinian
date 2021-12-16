@@ -76,11 +76,11 @@ object HAMR {
             return -1
         }
       }
-    return codeGenH2(model, o)
+    return if(codeGenReporter(model, o).hasError) 1 else 0
   }
 
-  // JAVA/OSATE interface
-  def codeGenH(model: Aadl,
+  // JAVA/OSATE interface returning a reporter
+  def codeGenR(model: Aadl,
                //
                verbose: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
@@ -104,7 +104,7 @@ object HAMR {
                aadlRootDir: Option[String],
                //
                experimentalOptions: ISZ[String]
-             ): Z = {
+              ): Reporter = {
 
     val o = Cli.SireumHamrCodegenOption(
       help = "",
@@ -135,10 +135,10 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    return codeGenH2(model, o)
+    return codeGenReporter(model, o)
   }
 
-  def codeGenH2(model: Aadl, o: Cli.SireumHamrCodegenOption): Z = {
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption): Reporter = {
 
     var reporter = Reporter.create
 
@@ -202,7 +202,7 @@ object HAMR {
 
     val results = SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _ )
 
-    return if(reporter.hasError) 1 else 0
+    return reporter
   }
 
   def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
