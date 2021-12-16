@@ -487,6 +487,7 @@ object Proyek {
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = Analysis.run(
       root = path,
+      outDirName = o.outputDirName.get,
       project = prj,
       dm = dm,
       cacheInput = F,
@@ -832,6 +833,7 @@ object Proyek {
     val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0, "RNE", F)
     val lcode = Analysis.run(
       root = path,
+      outDirName = "out",
       project = prj,
       dm = dm,
       cacheInput = F,
