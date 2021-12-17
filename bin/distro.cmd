@@ -55,6 +55,7 @@ import org.sireum._
 var isDev: B = T
 var buildSfx: B = F
 var isUltimate: B = F
+var isServer: B = F
 val devSuffix: String = if (isDev) "-dev" else ""
 var platform: String = Os.kind match {
   case Os.Kind.Mac => "mac"
@@ -87,6 +88,12 @@ val cliArgs = Os.cliArgs
     isDev = T
   }
 
+  def parseServer(): Unit = {
+    isUltimate = T
+    isServer = T
+    isDev = T
+  }
+
   def parseRelease(): Unit = {
     if (!isUltimate) {
       isDev = F
@@ -105,6 +112,8 @@ val cliArgs = Os.cliArgs
           |-s, --sfx        Build sfx package
           |-u, --ultimate   Use IntelliJ Ultimate edition
           |                   (always non-release version)
+          |    --server     Use IntelliJ Ultimate edition for remote dev
+          |                   (always non-release version)
           |-h               Display this information""".render
     )
     Os.exit(0)
@@ -116,6 +125,7 @@ val cliArgs = Os.cliArgs
       case string"--release" => parseRelease()
       case string"--sfx" => parseSfx()
       case string"--ultimate" => parseUltimate()
+      case string"--server" => parseServer()
       case string"-p" => parsePlatform()
       case string"-r" => parseRelease()
       case string"-s" => parseSfx()
@@ -127,9 +137,14 @@ val cliArgs = Os.cliArgs
 }
 
 
+if (isServer && Os.kind != Os.Kind.Linux) {
+  eprintln(s"Server setup is only available in Linux")
+  Os.exit(-1)
+}
+
 val homeBin = Os.slashDir
 val home = homeBin.up.canon
-val ideaDir: Os.Path = home / "bin" / platform / (if (isUltimate) "idea-ultimate" else "idea")
+val ideaDir: Os.Path = home / "bin" / platform / (if (isServer) "idea-server" else if (isUltimate) "idea-ultimate" else "idea")
 val sireumAppDir: Os.Path = ideaDir / s"IVE.app"
 val delPlugins = ISZ[String]("android", "Kotlin", "smali")
 val pluginPrefix: String = "org.sireum.version.plugin."
@@ -356,6 +371,9 @@ def extractPlugins(): Unit = {
 }
 
 def patchIdeaProperties(p: Os.Path): Unit = {
+  if (isServer) {
+    return
+  }
   print(s"Patching $p ... ")
   val content = p.read
   val ult: String = if (isUltimate) "-ult" else ""
@@ -515,6 +533,9 @@ def deleteSources(): Unit = {
 }
 
 def deletePlugins(): Unit = {
+  if (isServer) {
+    return
+  }
   for (p <- delPlugins) {
     print(s"Removing $p plugin ... ")
     (pluginsDir / p).removeAll()
@@ -547,13 +568,29 @@ def setupMac(ideaDrop: Os.Path): Unit = {
 }
 
 def setupLinux(ideaDrop: Os.Path): Unit = {
-  val ideaDirParent = ideaDir.up.canon
-  proc"tar xfz $ideaDrop".at(ideaDirParent).runCheck()
-  for (p <- ideaDirParent.list if ops.StringOps(p.name).startsWith("idea-IC-")) {
-    p.moveOverTo(ideaDir)
+  if (isServer) {
+    var dist = Os.home / ".cache" / "JetBrains" / "RemoteDev" / "dist"
+    for (p <- dist.list if p.isDir && ops.StringOps(p.name).contains("_ideaIU-")) {
+      if (dist.name === "dist" || p.lastModified >= dist.lastModified) {
+        dist = p
+      }
+    }
+    if (dist.name === "dist") {
+      eprintln(s"Could not find IntelliJ Ultimate for remote development in $dist")
+      Os.exit(-1)
+    }
+    ideaDir.mklink(dist)
+  } else {
+    val ideaDirParent = ideaDir.up.canon
+    proc"tar xfz $ideaDrop".at(ideaDirParent).runCheck()
+    for (p <- ideaDirParent.list if ops.StringOps(p.name).startsWith("idea-IC-")) {
+      p.moveOverTo(ideaDir)
+    }
   }
   deleteSources()
-  println("done!")
+  if (!isServer) {
+    println("done!")
+  }
   deletePlugins()
   extractPlugins()
   patchIcon(F)
@@ -592,8 +629,10 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
       }
     }
   }
-  ideash.moveOverTo(ideaDir / "bin" / "IVE.sh")
-  ideash.mklink(ideaDir / "bin" / "IVE.sh")
+  if (!isServer) {
+    ideash.moveOverTo(ideaDir / "bin" / "IVE.sh")
+    ideash.mklink(ideaDir / "bin" / "IVE.sh")
+  }
 }
 
 
@@ -672,13 +711,15 @@ def build(): Unit = {
   val buildDir = ideaDir.up.canon
   buildDir.mkdirAll()
   val ideaDrop = ideaCacheDir / filename
-  if (!ideaDrop.exists) {
+  if (!ideaDrop.exists && !isServer) {
     print(s"Downloading from $url ... ")
     (ideaCacheDir / filename).downloadFrom(url)
     println("done!")
   }
   downloadPlugins()
-  print(s"Extracting $ideaDrop ... ")
+  if (!isServer) {
+    print(s"Extracting $ideaDrop ... ")
+  }
   ideaDir.removeAll()
   platform match {
     case string"mac" => setupMac(ideaDrop)

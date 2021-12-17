@@ -289,16 +289,31 @@ object Proyek {
       }
     }
 
-    if (o.ultimate) {
-      if (!SireumApi.ideaUltimateDir.exists) {
-        eprintln("Sireum IVE Ultimate is not installed")
-        return IDEA_NOT_FOUND
-      }
-    } else {
-      if (!SireumApi.ideaDir.exists) {
-        eprintln("Sireum IVE is not installed")
-        return IDEA_NOT_FOUND
-      }
+    val ideaDir: Os.Path = (SireumApi.ideaDir.exists, SireumApi.ideaUltimateDir.exists, SireumApi.ideaServerDir.exists) match {
+      case (T, F, F) => SireumApi.ideaDir
+      case (F, T, T) => SireumApi.ideaUltimateDir
+      case (F, F, T) => SireumApi.ideaServerDir
+      case _ =>
+        o.edition match {
+          case Cli.SireumProyekIveEdition.Community =>
+            if (!SireumApi.ideaDir.exists) {
+              eprintln("Sireum IVE is not installed")
+              return IDEA_NOT_FOUND
+            }
+            SireumApi.ideaDir
+          case Cli.SireumProyekIveEdition.Ultimate =>
+            if (!SireumApi.ideaUltimateDir.exists) {
+              eprintln("Sireum IVE Ultimate is not installed")
+              return IDEA_NOT_FOUND
+            }
+            SireumApi.ideaUltimateDir
+          case Cli.SireumProyekIveEdition.Server =>
+            if (!SireumApi.ideaServerDir.exists) {
+              eprintln("Sireum IVE Server is not installed")
+              return IDEA_NOT_FOUND
+            }
+            SireumApi.ideaServerDir
+        }
     }
 
     println()
@@ -322,9 +337,10 @@ object Proyek {
       dm = dm,
       outDirName = o.outputDirName.get,
       jbrVersion = SireumApi.jbrVer,
-      ideaDir = if (o.ultimate) SireumApi.ideaUltimateDir else SireumApi.ideaDir,
-      isUltimate = o.ultimate,
-      isDev = o.ultimate || SireumApi.isDev,
+      ideaDir = ideaDir.canon,
+      isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
+      isServer = o.edition == Cli.SireumProyekIveEdition.Server,
+      isDev = o.edition != Cli.SireumProyekIveEdition.Community || SireumApi.isDev,
       force = o.force
     )
 

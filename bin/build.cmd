@@ -54,13 +54,13 @@ import org.sireum.project.DependencyManager
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup[-ultimate] | project[-ultimate] | fresh        | native
-        |       | tipe             | compile[-js]       | test         | mill
-        |       | regen-project    | regen-presentasi   | regen-slang  | regen-logika
-        |       | regen-air        | regen-act          | regen-server | regen-cliopt
+        |Usage: ( setup[-ultimate  | -server]           | project[-ultimate | -server]
+        |       | fresh            | native             | tipe              | compile[-js]
+        |       | test             | mill               | jitpack           | ghpack
+        |       | regen-project    | regen-presentasi   | regen-slang       | regen-logika
+        |       | regen-air        | regen-act          | regen-server      | regen-cliopt
         |       | regen-cli        | regen-fmide-cli
-        |       | m2[-lib[-js]]    | jitpack            | ghpack
-        |       | cvc              | z3                 | ram                      )*
+        |       | m2[-lib[-js]]    |cvc                 | z3                | ram          )*
       """.render)
 }
 
@@ -492,38 +492,39 @@ def ghpack(): Unit = {
   }
 }
 
-def setup(isUltimate: B): Unit = {
+def setup(isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
   build(F, F)
-  proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else ""}".at(home).console.runCheck()
-  project(T, isUltimate)
+  proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else if (isServer) " --server" else ""}".at(home).console.runCheck()
+  val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
+  project(T, isUltimate, isServer)
   Os.kind match {
     case Os.Kind.Win =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "win" / "idea" / "bin" / "IVE.exe"}")
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "win" / s"idea$suffix" / "bin" / "IVE.exe"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "win" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.Linux =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "idea" / "bin" / "IVE.sh"}")
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / "IVE.sh"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.LinuxArm =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "arm" / "idea" / "bin" / "IVE.sh"}")
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "arm" / s"idea$suffix" / "bin" / "IVE.sh"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "arm" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.Mac =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "mac" / "idea" / "IVE.app"}")
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "mac" / s"idea$suffix" / "IVE.app"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "mac" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case _ =>
   }
 }
 
-def project(skipBuild: B, isUltimate: B): Unit = {
+def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
   if (!skipBuild) {
     build(F, F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive --force${if (isUltimate) " --ultimate" else ""} .".at(home).console.runCheck()
+  proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} .".at(home).console.runCheck()
 }
 
 def ram(): Unit = {
@@ -531,7 +532,7 @@ def ram(): Unit = {
     val ramdisk = Os.path("/Volumes") / "RAM"
     val ramdiskHome = ramdisk / home.name
     if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
-      setup(F)
+      setup(F, F)
     }
     if (ramdisk.exists) {
       proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
@@ -610,10 +611,12 @@ if (Os.cliArgs.isEmpty) {
     Os.cliArgs(i) match {
       case string"fresh" => build(T, F)
       case string"native" => build(F, T)
-      case string"setup" => setup(F)
-      case string"setup-ultimate" => setup(T)
-      case string"project" => project(F, F)
-      case string"project-ultimate" => project(F, T)
+      case string"setup" => setup(F, F)
+      case string"setup-ultimate" => setup(T, F)
+      case string"setup-server" => setup(F, T)
+      case string"project" => project(F, F, F)
+      case string"project-ultimate" => project(F, T, F)
+      case string"project-server" => project(F, F, T)
       case string"tipe" => tipe()
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)

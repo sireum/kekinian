@@ -166,6 +166,10 @@ object Sireum {
     if (platform == "mac") (homeOpt.get / "bin" / platform / "idea-ultimate").list.elements.
       find(_.string.value.endsWith(".app")).get / "Contents"
     else homeOpt.get / "bin" / platform / "idea-ultimate"
+  lazy val ideaServerDir: Os.Path =
+    if (platform == "mac") (homeOpt.get / "bin" / platform / "idea-server").list.elements.
+      find(_.string.value.endsWith(".app")).get / "Contents"
+    else homeOpt.get / "bin" / platform / "idea-server"
   lazy val ideaLibDir: Os.Path = ideaDir / "lib"
   lazy val ideaPluginsDir: Os.Path = ideaDir / "plugins"
   lazy val versions: Map[String, String] = {
@@ -323,6 +327,8 @@ object Sireum {
         println()
         println(versions)
         return 0
+      case ISZ(string"--test-cli") =>
+        return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).isEmpty) 0 else -1
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
           case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {

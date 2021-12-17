@@ -53,6 +53,8 @@ import org.sireum._
 
   def ideaUltimateDir: Os.Path = $
 
+  def ideaServerDir: Os.Path = $
+
   def ideaLibDir: Os.Path = $
 
   def ideaPluginsDir: Os.Path = $

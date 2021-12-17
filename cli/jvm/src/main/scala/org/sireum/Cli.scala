@@ -193,11 +193,17 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumProyekIveEdition {
+    'Community
+    'Ultimate
+    'Server
+  }
+
   @datatype class SireumProyekIveOption(
     val help: String,
     val args: ISZ[String],
     val force: B,
-    val ultimate: B,
+    val edition: SireumProyekIveEdition.Type,
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -1983,6 +1989,26 @@ import Cli._
     return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
+  def parseSireumProyekIveEditionH(arg: String): Option[SireumProyekIveEdition.Type] = {
+    arg.native match {
+      case "community" => return Some(SireumProyekIveEdition.Community)
+      case "ultimate" => return Some(SireumProyekIveEdition.Ultimate)
+      case "server" => return Some(SireumProyekIveEdition.Server)
+      case s =>
+        eprintln(s"Expecting one of the following: { community, ultimate, server }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumProyekIveEdition(args: ISZ[String], i: Z): Option[SireumProyekIveEdition.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { community, ultimate, server }, but none found.")
+      return None()
+    }
+    val r = parseSireumProyekIveEditionH(args(i))
+    return r
+  }
+
   def parseSireumProyekIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum IVE Proyek Generator
@@ -1992,7 +2018,9 @@ import Cli._
           |Available Options:
           |-f, --force              Force generation of application-wide configurations
           |                           (e.g., JDK info, etc.)
-          |-u, --ultimate           Use IntelliJ Ultimate edition
+          |-e, --edition            IntelliJ edition (auto-detected if there is only one
+          |                           installed) (expects one of { community, ultimate,
+          |                           server }; default: community)
           |-h, --help               Display this information
           |
           |Project Options:
@@ -2030,7 +2058,7 @@ import Cli._
           |                           ",")""".render
 
     var force: B = false
-    var ultimate: B = false
+    var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -2057,10 +2085,10 @@ import Cli._
              case Some(v) => force = v
              case _ => return None()
            }
-         } else if (arg == "-u" || arg == "--ultimate") {
-           val o: Option[B] = { j = j - 1; Some(!ultimate) }
+         } else if (arg == "-e" || arg == "--edition") {
+           val o: Option[SireumProyekIveEdition.Type] = parseSireumProyekIveEdition(args, j + 1)
            o match {
-             case Some(v) => ultimate = v
+             case Some(v) => edition = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -2144,7 +2172,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekIveOption(help, parseArguments(args, j), force, ultimate, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), force, edition, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {

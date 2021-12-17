@@ -181,7 +181,7 @@ object HAMR {
         help = po.help,
         args = po.args,
         force = po.force,
-        ultimate = po.ultimate,
+        edition = if (po.ultimate) Cli.SireumProyekIveEdition.Ultimate else Cli.SireumProyekIveEdition.Community,
         ignoreRuntime= po.ignoreRuntime,
         json = po.json,
         name = po.name,
