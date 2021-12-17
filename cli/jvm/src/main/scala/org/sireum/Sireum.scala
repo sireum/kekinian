@@ -328,7 +328,7 @@ object Sireum {
         println(versions)
         return 0
       case ISZ(string"--test-cli") =>
-        return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).isEmpty) 0 else -1
+        return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
           case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {
