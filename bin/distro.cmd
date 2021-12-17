@@ -569,8 +569,14 @@ def setupMac(ideaDrop: Os.Path): Unit = {
 
 def setupLinux(ideaDrop: Os.Path): Unit = {
   if (isServer) {
+    val ideaVerOps = ops.StringOps(ideaVer)
+    val rel: String = ideaVerOps.split((c: C) => c === '.') match {
+      case ISZ(_, r, _) => r
+      case ISZ(_, r) => r
+    }
+    val namePart = s"_ideaIU-${ideaVerOps.substring(2, 4)}$rel"
     var dist = Os.home / ".cache" / "JetBrains" / "RemoteDev" / "dist"
-    for (p <- dist.list if p.isDir && ops.StringOps(p.name).contains("_ideaIU-")) {
+    for (p <- dist.list if p.isDir && ops.StringOps(p.name).contains(namePart)) {
       if (dist.name === "dist" || p.lastModified >= dist.lastModified) {
         dist = p
       }
