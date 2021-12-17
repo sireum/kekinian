@@ -327,7 +327,7 @@ object Sireum {
         println()
         println(versions)
         return 0
-      case ISZ(string"--test-cli") =>
+      case ISZ(string"--test-cli", _*) =>
         return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
