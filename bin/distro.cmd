@@ -449,6 +449,9 @@ def patchIcon(isWin: B): Unit = {
 }
 
 def patchPlatformImpl(): Unit = {
+  if (isUltimate) {
+    return
+  }
   val iconsPath = home / "resources" / "distro" / "icons"
   val platformImplJar = libDir / "platform-impl.jar"
   val tempDir = libDir / "platform-impl-temp"
