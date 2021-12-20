@@ -504,7 +504,7 @@ def setup(isUltimate: B, isServer: B): Unit = {
       println(s"Java Development Kit (JDK) is available at ${homeBin / "win" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.Linux =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / "IVE.sh"}")
+      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / (if (isServer) "idea.sh" else "IVE.sh")}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.LinuxArm =>
