@@ -289,10 +289,11 @@ object Proyek {
       }
     }
 
-    val ideaDir: Os.Path = (SireumApi.ideaDir.exists, SireumApi.ideaUltimateDir.exists, SireumApi.ideaServerDir.exists) match {
+    val ideaDir: Os.Path = (SireumApi.ideaDir.exists, SireumApi.ideaUltimateDir.exists,
+      SireumApi.ideaServerDir.map((p: Os.Path) => p.exists).getOrElseEager(F)) match {
       case (T, F, F) => SireumApi.ideaDir
       case (F, T, T) => SireumApi.ideaUltimateDir
-      case (F, F, T) => SireumApi.ideaServerDir
+      case (F, F, T) => SireumApi.ideaServerDir.get
       case _ =>
         o.edition match {
           case Cli.SireumProyekIveEdition.Community =>
@@ -308,11 +309,13 @@ object Proyek {
             }
             SireumApi.ideaUltimateDir
           case Cli.SireumProyekIveEdition.Server =>
-            if (!SireumApi.ideaServerDir.exists) {
-              eprintln("Sireum IVE Server is not installed")
-              return IDEA_NOT_FOUND
+            SireumApi.ideaServerDir match {
+              case Some(p) if p.exists =>
+              case _ =>
+                eprintln("Sireum IVE Server is not installed")
+                return IDEA_NOT_FOUND
             }
-            SireumApi.ideaServerDir
+            SireumApi.ideaServerDir.get
         }
     }
 
