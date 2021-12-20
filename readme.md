@@ -213,6 +213,32 @@ the local git repository.
 
 After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good fix-point) and `build.cmd setup`.
 
+#### Remote Development Setup (Experimental)
+
+You can project Sireum IVE so it can be viewed by a web browser using 
+[JetBrains Projector](https://lp.jetbrains.com/projector/) that ships with IVE.
+To launch, click on "Projector" in the IVE status bar.
+
+Alternatively, IntelliJ Ultimate now supports remote development from a Linux server reachable using ssh, and 
+Sireum IVE can be set up on top of it:
+
+1. Use [JetBrains Gateway](https://www.jetbrains.com/remote-development/gateway/) to
+   install an IntelliJ Ultimate instance in the Linux server.
+   
+   Note that the supported instance version of IntelliJ should be compatible with 
+   what is listed in [version.properties](versions.properties) with property key
+   `org.sireum.version.idea` property key). If the listed property value is 
+   `20XX.Y.Z` or `20XX.Y`, then you need to IntelliJ Ultimate build that starts
+   with`XXY`.
+   
+2. Connect to the server and install Sireum:
+
+   ```
+   git clone --recursive https://github.com/sireum/kekinian
+   kekinian/bin/build.cmd setup-server
+   ```
+   
+3. Open the `kekinian` path above with JetBrains Gateway/Client.
 
 #### Using Vagrant and VirtualBox
 
