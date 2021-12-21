@@ -5,7 +5,7 @@ if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                               
   exec "$0.com" "$@"                                                                                        #
 else                                                                                                        #
   rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"                                                   #
+  exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"                                                      #
 fi                                                                                                          #
 :BOF
 setlocal
@@ -25,7 +25,7 @@ import org.sireum._
 
 if (Os.kind != Os.Kind.Linux) {
   eprintln("This feature is only available on Linux amd64")
-  Os.exit(0)
+  Os.exit(-1)
 }
 
 val version = "2.13.6"
