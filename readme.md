@@ -221,14 +221,14 @@ You can project Sireum IVE so it can be viewed by a web browser using
 [JetBrains Projector](https://lp.jetbrains.com/projector/) that ships with IVE.
 To launch, click on "Projector" in the IVE status bar.
 
-If you use Linux, you can launch Sireum IVE headless-ly by first install Projector Server:
+If you use Linux, you can launch Sireum IVE headless-ly by first installing the projector server:
 
 ```bash
 $SIREUM_HOME/bin/install/projector-server.cmd
 $SIREUM_HOME/bin/linux/idea/bin/projector-server.sh
 ```
 
-Then open http://*<machine-ip>*:8887 in a browser.
+Then open http://*`<machine-ip>`*:8887 in a browser.
 
 ##### Using JetBrains Gateway
 
