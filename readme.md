@@ -215,11 +215,24 @@ After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good 
 
 #### Remote Development Setup (Experimental)
 
+##### Using JetBrains Projector
+
 You can project Sireum IVE so it can be viewed by a web browser using 
 [JetBrains Projector](https://lp.jetbrains.com/projector/) that ships with IVE.
 To launch, click on "Projector" in the IVE status bar.
 
-Alternatively, IntelliJ Ultimate now supports remote development from a Linux server reachable using ssh, and 
+If you use Linux, you can launch Sireum IVE headless-ly by first install Projector Server:
+
+```bash
+$SIREUM_HOME/bin/install/projector-server.cmd
+$SIREUM_HOME/bin/linux/idea/bin/projector-server.sh
+```
+
+Then open http://*<machine-ip>*:8887 in a browser.
+
+##### Using JetBrains Gateway
+
+IntelliJ Ultimate now supports remote development from a Linux server reachable using ssh, and 
 Sireum IVE can be set up on top of it:
 
 1. Use [JetBrains Gateway](https://www.jetbrains.com/remote-development/gateway/) to
