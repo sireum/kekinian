@@ -134,7 +134,7 @@ if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
 fi
 : ${SCALA_VERSION=$(getVersion "org.scala-lang%scala-library%")}
 cd ${SIREUM_HOME}/bin
-SCALA_DROP_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.zip
+SCALA_DROP_URL=https://github.com/sireum/rolling/releases/download/scala/scala-${SCALA_VERSION}.zip
 SCALA_DROP="${SCALA_DROP_URL##*/}"
 grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
 if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then

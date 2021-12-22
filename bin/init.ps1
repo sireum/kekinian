@@ -94,7 +94,7 @@ if ($scala_update) {
   $scala_drop = "$cache_dir\scala-$scala_version.zip"
   if (!(Test-Path "$scala_drop")) {
     "Please wait while downloading Scala $scala_version ..."
-    $scala_url = "https://downloads.lightbend.com/scala/$scala_version/scala-$scala_version.zip"
+    $scala_url = "https://github.com/sireum/rolling/releases/download/scala/scala-$scala_version.zip"
     Invoke-WebRequest -Uri "$scala_url" -OutFile "$scala_drop"
   }
   "Extracting Scala $scala_version ..."
