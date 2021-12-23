@@ -272,6 +272,45 @@ object Proyek {
   }
 
   def ive(o: Cli.SireumProyekIveOption): Z = {
+    if (o.empty) {
+      val p: Os.Path = o.project match {
+        case Some(f) => Os.path(f)
+        case _ => Os.cwd / "bin" / "project.cmd"
+      }
+      p.up.mkdirAll()
+      if (p.exists) {
+        eprintln(s"$p already exists")
+        return INVALID_PROJECT
+      }
+      p.writeOver(
+        st"""::#! 2> /dev/null                                   #
+            |@ 2>/dev/null # 2>nul & echo off & goto BOF         #
+            |if [ -z $${SIREUM_HOME} ]; then                      #
+            |  echo "Please set SIREUM_HOME env var"             #
+            |  exit -1                                           #
+            |fi                                                  #
+            |exec $${SIREUM_HOME}/bin/sireum slang run "$$0" "$$@"  #
+            |:BOF
+            |setlocal
+            |if not defined SIREUM_HOME (
+            |  echo Please set SIREUM_HOME env var
+            |  exit /B -1
+            |)
+            |%SIREUM_HOME%\bin\sireum.bat slang run "%0" %*
+            |exit /B %errorlevel%
+            |::!#
+            |// #Sireum
+            |
+            |import org.sireum._
+            |import org.sireum.project.ProjectUtil._
+            |import org.sireum.project.Project
+            |
+            |val project = Project.empty
+            |projectCli(Os.cliArgs, project)""".render
+      )
+      p.chmod("+x")
+    }
+
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)

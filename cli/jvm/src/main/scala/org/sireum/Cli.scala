@@ -202,6 +202,7 @@ object Cli {
   @datatype class SireumProyekIveOption(
     val help: String,
     val args: ISZ[String],
+    val empty: B,
     val force: B,
     val edition: SireumProyekIveEdition.Type,
     val ignoreRuntime: B,
@@ -2016,6 +2017,7 @@ import Cli._
           |Usage: <options>* <dir>
           |
           |Available Options:
+          |    --empty              Create an empty project definition
           |-f, --force              Force generation of application-wide configurations
           |                           (e.g., JDK info, etc.)
           |-e, --edition            IntelliJ edition (auto-detected if there is only one
@@ -2057,6 +2059,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
+    var empty: B = false
     var force: B = false
     var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
     var ignoreRuntime: B = false
@@ -2079,7 +2082,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-f" || arg == "--force") {
+        } else if (arg == "--empty") {
+           val o: Option[B] = { j = j - 1; Some(!empty) }
+           o match {
+             case Some(v) => empty = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--force") {
            val o: Option[B] = { j = j - 1; Some(!force) }
            o match {
              case Some(v) => force = v
@@ -2172,7 +2181,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekIveOption(help, parseArguments(args, j), force, edition, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, force, edition, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {
