@@ -7,7 +7,8 @@
 [![Actions Status](https://github.com/sireum/kekinian/workflows/macOS-CompCert/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-macOS-compcert.yml) 
 [![Actions Status](https://github.com/sireum/kekinian/workflows/Linux-CompCert/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-linux-compcert.yml) 
 [![](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
- 
+[![Download!](http://files.sireum.org/case-env-build.png)](https://bit.ly/case-env)
+
 ## Overview
 
 Sireum Kekinian is the most recent evolution of the Sireum platform whose 
@@ -101,6 +102,14 @@ can be done incrementally while the binary distribution requires complete
 re-installation. On the other hand, source distribution requires more setup.
 As Sireum is currently in its early active development phase, it is highly
 recommended to use the source distribution.
+
+Additionally, it is included in a prebuilt
+[case-env.ova](https://github.com/sireum/case-env) Debian VM
+(which includes [seL4](https://sel4.systems),
+[CompCert](https://compcert.org),
+[OSATE](https://osate.org),
+[FMIDE](https://github.com/loonwerks/formal-methods-workbench), etc.;
+respective tool license terms apply).
 
 ### Binary Distributions
 
