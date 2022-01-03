@@ -344,6 +344,7 @@ object Sireum {
           case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
+          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o)
           case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
             val r = NativeUtil.nonNative[Z](-1, () => cli.Presentasi.gen(o))
@@ -498,4 +499,8 @@ object Sireum {
 
   def checkImage(uri: String): B = NativeUtil.nonNative(F, checkImageH(uri))
 
+  def parseGrammar(uriOpt: Option[String],
+                   input: String,
+                   reporter: message.Reporter): Option[parser.ParseTree.Result] =
+    parser.SireumAntlr3ParserUtil.parseGrammar(uriOpt, input, reporter)
 }

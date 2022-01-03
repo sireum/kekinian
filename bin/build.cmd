@@ -54,13 +54,13 @@ import org.sireum.project.DependencyManager
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup[-ultimate  | -server]           | project[-ultimate | -server]
-        |       | fresh            | native             | tipe              | compile[-js]
-        |       | test             | mill               | jitpack           | ghpack
-        |       | regen-project    | regen-presentasi   | regen-slang       | regen-logika
-        |       | regen-air        | regen-act          | regen-server      | regen-cliopt
-        |       | regen-cli        | regen-fmide-cli
-        |       | m2[-lib[-js]]    |cvc                 | z3                | ram          )*
+        |Usage: ( setup[-ultimate  | -server]            | project[-ultimate | -server]
+        |       | fresh            | native              | tipe              | compile[-js]
+        |       | test             | mill                | jitpack           | ghpack
+        |       | regen-project    | regen-presentasi    | regen-slang       | regen-logika
+        |       | regen-air        | regen-act           | regen-server      | regen-cliopt
+        |       | regen-parser     | regen-parser-antlr3 | regen-cli        | regen-fmide-cli
+        |       | m2[-lib[-js]]    |cvc                  | z3                | ram          )*
       """.render)
 }
 
@@ -414,6 +414,15 @@ def regenServer(): Unit = {
   )).at(protocolPackagePath).console.run()
 }
 
+def regenParser(isSlang: B): Unit = {
+  val parserPackagePath = home / "parser" / "shared" / "src" / "main" / "scala" / "org" / "sireum"/ "parser"
+  val parserResourcesPackagePath = home / "parser" / "jvm" / "src" / "main" / "resources"
+  val license = home / "license.txt"
+  val input = parserResourcesPackagePath / "SireumAntlr3.g"
+  val mode: String = if (isSlang) "slang" else "antlr3"
+  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar $input".at(parserPackagePath).console.run()
+}
+
 def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
   Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
@@ -630,6 +639,8 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-air" => regenAir()
       case string"regen-act" => regenAct()
       case string"regen-server" => regenServer()
+      case string"regen-parser" => regenParser(T)
+      case string"regen-parser-antlr3" => regenParser(T)
       case string"regen-cli" => regenCli()
       case string"regen-fmide-cli" => regenFmideCli()
       case string"m2" => m2()

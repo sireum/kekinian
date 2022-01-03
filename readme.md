@@ -31,7 +31,7 @@ parser that uses [scalameta](http://scalameta.org),
 the runtime library and the Slang [codebase](https://github.com/sireum/slang) 
 itself (and analyses on top of it) are written using Slang.
 
-Slang programs run on the JVM (Java 8+), in the browser or Node.js 
+Slang programs run on the JVM (Java 11+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
 via [Graal](http://graalvm.org) targeting macOS, Linux, and Windows on amd64, and
 macOS and Linux on aarch64.
@@ -410,7 +410,9 @@ Sireum depends on open source software libraries and applications
 
 | Library | Maven | License |
 | :--- | :---: | :---: | 
+| [Antlr3](https://github.com/antlr/antlr3) | [(link)](https://search.maven.org/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
+| [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
 | [Coursier](https://github.com/coursier/coursier) | [(link)](https://search.maven.org/artifact/io.get-coursier/coursier_2.13) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
@@ -425,22 +427,23 @@ Sireum depends on open source software libraries and applications
 | [Scala.js: jQuery Facade](https://github.com/jducoeur/jquery-facade) | [(link)](https://search.maven.org/artifact/org.querki/jquery-facade_sjs1_2.13) | [MIT](https://github.com/jducoeur/jquery-facade/blob/master/README.md#license) |
 | [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://search.maven.org/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
 
-In addition, Sireum includes adaptation of the following code:
+In addition, Sireum includes adaptation of the following artifact:
 
 | Source | Adaptation | License |
 | :--- | :--- | :---: | 
-| [diff_match_patch](https://github.com/google/diff-match-patch/blob/master/java/src/name/fraser/neil/plaintext/diff_match_patch.java) | [DiffMatchPatch](https://github.com/sireum/runtime/blob/master/library/jvm/src/main/java/org/sireum/DiffMatchPatch.java) | [Apache 2.0](https://github.com/google/diff-match-patch/blob/master/LICENSE) |
+| [ANTLRv3.g](https://github.com/antlr/grammars-v3/blob/master/Antlrv3/ANTLRv3.g) | [SireumAntlr3.g](https://github.com/sireum/parser/blob/master/jvm/src/main/resources/SireumAntlr3.g) | [BSD3](https://github.com/antlr/grammars-v3/blob/master/Antlrv3/ANTLRv3.g) |
+| [diff_match_patch.java](https://github.com/google/diff-match-patch/blob/master/java/src/name/fraser/neil/plaintext/diff_match_patch.java) | [DiffMatchPatch](https://github.com/sireum/runtime/blob/master/library/jvm/src/main/java/org/sireum/DiffMatchPatch.java) | [Apache 2.0](https://github.com/google/diff-match-patch/blob/master/LICENSE) |
 | [Geny](https://github.com/com-lihaoyi/geny) | [Jen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/Jen.scala) & [MJen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/MJen.scala) | [MIT](https://github.com/com-lihaoyi/geny/blob/master/LICENSE) |
 | [SHA3IUF](https://github.com/brainhub/SHA3IUF) | [SHA3](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/crypto/SHA3.scala) | [MIT](https://github.com/brainhub/SHA3IUF/blob/master/LICENSE) |
 | [UnsafeUtils](https://github.com/plokhotnyuk/jsoniter-scala/tree/e089f06c2d8b4bdb87a6874e17bf716e8608b117/jsoniter-scala-examples/src/main/scala-2.13/com/github/plokhotnyuk/jsoniter_scala/examples) | [UnsafeUtils](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/java/org/sireum/%24internal/UnsafeUtils.java) | [MIT](https://github.com/plokhotnyuk/jsoniter-scala/blob/e089f06c2d8b4bdb87a6874e17bf716e8608b117/LICENSE)
 
 ### Application Dependencies
 
-| Application                                         | License |
-|:----------------------------------------------------| :---: |
+| Application | License |
+| :--- | :---: |
 | [Azul Zulu JDK FX](https://www.azul.com/downloads/) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
-| [CVC4/5](https://github.com/cvc5/cvc5)              | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
-| [Z3](https://github.com/Z3Prover/z3)                | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
+| [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
+| [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
 Sireum stores small, pre-built binary executables in its submodule repositories for
 [macOS](https://github.com/sireum/bin-mac), 
@@ -465,13 +468,13 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Mill](https://github.com/com-lihaoyi/mill) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
 
-| IntelliJ Plugin                                                                | License |
-|:-------------------------------------------------------------------------------| :---: |
-| [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4)                   | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
-| [ASM](https://plugins.jetbrains.com/plugin/10302-asm-bytecode-viewer)          | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
-| [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview)           | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
-| [Projector](https://plugins.jetbrains.com/plugin/16015-projector)              | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/projector-server/blob/master/GPLv2%2BCPE.txt) |
+| IntelliJ Plugin | License |
+|  :---  | :---: |
+| [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
+| [ASM](https://plugins.jetbrains.com/plugin/10302-asm-bytecode-viewer) | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
+| [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
+| [Projector](https://plugins.jetbrains.com/plugin/16015-projector) | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/projector-server/blob/master/GPLv2%2BCPE.txt) |
 | [ReStructuredText](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
-| [Scala](https://plugins.jetbrains.com/plugin/1347-scala)                       | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
-| [Sireum](https://github.com/sireum/intellij-plugin)                            | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
-| [Slang Injector](https://github.com/sireum/intellij-injector)                  | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
+| [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
+| [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
+| [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |

@@ -141,6 +141,22 @@ object Cli {
     val z3SOpts: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumParserGenParserGenMode {
+    'Slang
+    'Antlr3
+  }
+
+  @datatype class SireumParserGenOption(
+    val help: String,
+    val args: ISZ[String],
+    val memoize: B,
+    val mode: SireumParserGenParserGenMode.Type,
+    val name: Option[String],
+    val license: Option[String],
+    val outputDir: Option[String],
+    val packageName: ISZ[String]
+  ) extends SireumTopOption
+
   @datatype class SireumProyekAssembleOption(
     val help: String,
     val args: ISZ[String],
@@ -687,6 +703,7 @@ import Cli._
             |Available modes:
             |hamr                     HAMR tools
             |logika                   Logika tools
+            |parser                   Parser tools
             |proyek                   Build tools
             |slang                    Slang tools
             |presentasi               Presentation tools
@@ -695,11 +712,12 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "proyek", "slang", "presentasi", "server", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "parser", "proyek", "slang", "presentasi", "server", "tools", "x"))
     opt match {
       case Some(string"anvil") => parseSireumAnvil(args, i + 1)
       case Some(string"hamr") => parseSireumHamr(args, i + 1)
       case Some(string"logika") => parseSireumLogika(args, i + 1)
+      case Some(string"parser") => parseSireumParser(args, i + 1)
       case Some(string"proyek") => parseSireumProyek(args, i + 1)
       case Some(string"slang") => parseSireumSlang(args, i + 1)
       case Some(string"presentasi") => parseSireumPresentasi(args, i + 1)
@@ -1490,6 +1508,125 @@ import Cli._
       }
     }
     return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+  }
+
+  def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Parser Tools
+            |
+            |Available modes:
+            |gen                      Parser generator""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("parser", args, i, ISZ("gen"))
+    opt match {
+      case Some(string"gen") => parseSireumParserGen(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumParserGenParserGenModeH(arg: String): Option[SireumParserGenParserGenMode.Type] = {
+    arg.native match {
+      case "slang" => return Some(SireumParserGenParserGenMode.Slang)
+      case "antlr3" => return Some(SireumParserGenParserGenMode.Antlr3)
+      case s =>
+        eprintln(s"Expecting one of the following: { slang, antlr3 }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumParserGenParserGenMode(args: ISZ[String], i: Z): Option[SireumParserGenParserGenMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { slang, antlr3 }, but none found.")
+      return None()
+    }
+    val r = parseSireumParserGenParserGenModeH(args(i))
+    return r
+  }
+
+  def parseSireumParserGen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Parser Generator
+          |
+          |Usage: <option>* <file.g>
+          |
+          |Available Options:
+          |-z, --memoize            Use memoization in the generated parser
+          |-m, --mode               Grammar input parsing/lexing engines (expects one of {
+          |                           slang, antlr3 }; default: slang)
+          |-n, --name               Type simple name for the generated parser/lexer suffix
+          |                           (default: the grammar file name without extension)
+          |                           (expects a string)
+          |-l, --license            License file to be inserted in the file header
+          |                           (expects a path)
+          |-o, --output-dir         Output directory for the generated transformer Slang
+          |                           files (expects a path; default is ".")
+          |-p, --package            Package name for the generated parser/lexer (expects a
+          |                           string separated by ".")
+          |-h, --help               Display this information""".render
+
+    var memoize: B = false
+    var mode: SireumParserGenParserGenMode.Type = SireumParserGenParserGenMode.Slang
+    var name: Option[String] = None[String]()
+    var license: Option[String] = None[String]()
+    var outputDir: Option[String] = Some(".")
+    var packageName: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-z" || arg == "--memoize") {
+           val o: Option[B] = { j = j - 1; Some(!memoize) }
+           o match {
+             case Some(v) => memoize = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[SireumParserGenParserGenMode.Type] = parseSireumParserGenParserGenMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, license, outputDir, packageName))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {

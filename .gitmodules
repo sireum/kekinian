@@ -43,3 +43,6 @@
 [submodule "bin/mac"]
 	path = bin/mac
 	url = https://github.com/sireum/bin-mac
+[submodule "parser"]
+	path = parser
+	url = https://github.com/sireum/parser

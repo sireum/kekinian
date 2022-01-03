@@ -137,6 +137,7 @@ val main = Group(
     anvil.cli.group,
     hamr,
     logika.cli.group,
+    parser.cli.group,
     proyek.cli.group,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
     presentasiGroup,

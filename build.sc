@@ -31,6 +31,7 @@ import $file.tools.Tools
 import $file.alir.Alir
 import $file.transpilers.Transpilers
 import $file.logika.Logika
+import $file.parser.Parser
 import $file.hamr.air.Air
 import $file.hamr.codegen.art.Art
 import $file.hamr.codegen.Codegen
@@ -106,6 +107,10 @@ object logika extends Logika.Module with runtime.testProvider {
 
 object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
+}
+
+object parser extends Parser.Module with runtime.testProvider {
+  final override def libraryObject = runtime.library
 }
 
 object hamr extends mill.Module {

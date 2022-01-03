@@ -122,4 +122,8 @@ import org.sireum._
   def getSoundDuration(uri: String): Option[Z] = $
 
   def getVideoDuration(uri: String): Option[Z] = $
+
+  def parseGrammar(uriOpt: Option[String],
+                   input: String,
+                   reporter: message.Reporter): Option[parser.ParseTree.Result] = $
 }
