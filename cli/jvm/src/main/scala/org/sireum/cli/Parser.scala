@@ -34,6 +34,13 @@ object Parser {
   def gen(o: Cli.SireumParserGenOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
+      println()
+      println("The LL(k) input grammar specification is a subset of ANTLR3's grammar (processed as a codepoint stream):")
+      println("https://github.com/sireum/parser/blob/master/jvm/src/main/resources/SireumAntlr3.g")
+      println("Note: literals in the form of '\\\\u{<hex>}' are interpreted as unicode char <hex> (0 <= <hex> <= 10FFFF).")
+      println()
+      println("Please first check your input grammar using ANTLRWorks available at:")
+      println("https://github.com/sireum/antlrworks/releases")
       return 0
     }
     val licenseOpt: Option[ST] = path2fileOpt("license file", o.license, T) match {
