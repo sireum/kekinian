@@ -152,6 +152,7 @@ object Cli {
     val memoize: B,
     val mode: SireumParserGenParserGenMode.Type,
     val name: Option[String],
+    val predictive: B,
     val license: Option[String],
     val outputDir: Option[String],
     val packageName: ISZ[String]
@@ -1559,6 +1560,7 @@ import Cli._
           |-n, --name               Type simple name for the generated parser/lexer suffix
           |                           (default: the grammar file name without extension)
           |                           (expects a string)
+          |    --non-predictive     Make the generated parser non-predictive
           |-l, --license            License file to be inserted in the file header
           |                           (expects a path)
           |-o, --output-dir         Output directory for the generated transformer Slang
@@ -1570,6 +1572,7 @@ import Cli._
     var memoize: B = false
     var mode: SireumParserGenParserGenMode.Type = SireumParserGenParserGenMode.Slang
     var name: Option[String] = None[String]()
+    var predictive: B = true
     var license: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
     var packageName: ISZ[String] = ISZ[String]()
@@ -1599,6 +1602,12 @@ import Cli._
              case Some(v) => name = v
              case _ => return None()
            }
+         } else if (arg == "--non-predictive") {
+           val o: Option[B] = { j = j - 1; Some(!predictive) }
+           o match {
+             case Some(v) => predictive = v
+             case _ => return None()
+           }
          } else if (arg == "-l" || arg == "--license") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -1626,7 +1635,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, license, outputDir, packageName))
+    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, predictive, license, outputDir, packageName))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {

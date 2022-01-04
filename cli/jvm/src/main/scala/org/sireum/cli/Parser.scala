@@ -84,7 +84,7 @@ object Parser {
       reporter.printMessages()
       return -1
     }
-    parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, reporter) match {
+    parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, o.predictive, reporter) match {
       case Some(out) =>
         dest.writeOver(out.render)
         println(s"Wrote $dest")
