@@ -40,10 +40,10 @@ object Parser {
       println(o.help)
       println()
       println("The LL(k) input grammar specification is a subset of ANTLR3's grammar (processed as a codepoint stream)")
-      println("extended with ANTLR4 full unicode form '\\u{<hex>}':")
+      println("extended with the following full unicode input form '\\\\u{<hex>}':")
       println("https://github.com/sireum/parser/blob/master/jvm/src/main/resources/SireumAntlr3.g")
       println()
-      println("If not using '\\u{<hex>}', please first check the input grammar using ANTLRWorks available at:")
+      println("If not using '\\\\u{<hex>}', please first check the input grammar using ANTLRWorks available at:")
       println("https://github.com/sireum/antlrworks/releases")
       return 0
     }
