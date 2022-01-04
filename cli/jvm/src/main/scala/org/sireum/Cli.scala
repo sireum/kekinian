@@ -152,6 +152,7 @@ object Cli {
     val memoize: B,
     val mode: SireumParserGenParserGenMode.Type,
     val name: Option[String],
+    val backtracking: B,
     val predictive: B,
     val license: Option[String],
     val outputDir: Option[String],
@@ -1557,9 +1558,10 @@ import Cli._
           |-z, --memoize            Use memoization in the generated parser
           |-m, --mode               Grammar input parsing/lexing engines (expects one of {
           |                           slang, antlr3 }; default: slang)
-          |-n, --name               Type simple name for the generated parser/lexer suffix
+          |-n, --name               Type simple name for the generated parser/lexer prefix
           |                           (default: the grammar file name without extension)
           |                           (expects a string)
+          |    --no-backtracking    Disable backtracking in the generated parser
           |    --non-predictive     Make the generated parser non-predictive
           |-l, --license            License file to be inserted in the file header
           |                           (expects a path)
@@ -1572,6 +1574,7 @@ import Cli._
     var memoize: B = false
     var mode: SireumParserGenParserGenMode.Type = SireumParserGenParserGenMode.Slang
     var name: Option[String] = None[String]()
+    var backtracking: B = true
     var predictive: B = true
     var license: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
@@ -1600,6 +1603,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-backtracking") {
+           val o: Option[B] = { j = j - 1; Some(!backtracking) }
+           o match {
+             case Some(v) => backtracking = v
              case _ => return None()
            }
          } else if (arg == "--non-predictive") {
@@ -1635,7 +1644,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, predictive, license, outputDir, packageName))
+    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, backtracking, predictive, license, outputDir, packageName))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {

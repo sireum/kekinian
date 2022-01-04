@@ -54,14 +54,16 @@ import org.sireum.project.DependencyManager
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup[-ultimate  | -server]            | project[-ultimate | -server]
-        |       | fresh            | native              | tipe              | compile[-js]
-        |       | test             | mill                | jitpack           | ghpack
-        |       | regen-project    | regen-presentasi    | regen-slang       | regen-logika
-        |       | regen-air        | regen-act           | regen-server      | regen-cliopt
-        |       | regen-parser     | regen-parser-antlr3 | regen-cli        | regen-fmide-cli
-        |       | m2[-lib[-js]]    |cvc                  | z3                | ram          )*
-      """.render)
+        |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
+        |       | fresh            | native            | tipe
+        |       | compile[-js]     | test              | m2[-lib[-js]]
+        |       | regen-project    | regen-presentasi  | regen-slang
+        |       | regen-logika     | regen-air         | regen-act
+        |       | regen-server     | regen-parser      | regen-parser-antlr3
+        |       | regen-cliopt     | regen-cli         | regen-fmide-cli
+        |       | cvc              | z3                | ram
+        |       | mill             | jitpack           | ghpack                       )*
+        |""".render)
 }
 
 val proyekName: String = "sireum-proyek"
@@ -277,7 +279,7 @@ def build(fresh: B, isNative: B): Unit = {
     var r: String = ""
     val pr = proc"git status --porcelain".at(home).run()
     if (ops.StringOps(s"${pr.out}${pr.err}").trim === "") {
-      val vOutOps =  ops.StringOps(proc"$sireum -v".run().out)
+      val vOutOps = ops.StringOps(proc"$sireum -v".run().out)
       if (vOutOps.contains("*") ||
         !vOutOps.contains(ops.StringOps(proc"git log -n 1 --date=format:%Y%m%d --pretty=format:4.%cd.%h".run().out).trim)) {
         r = " --recompile cli"
@@ -329,7 +331,7 @@ def test(): Unit = {
   val packageNames = ISZ[String](
     "org.sireum"
   )
-  var names = ISZ[String](
+  val names = ISZ[String](
     "org.sireum.lang",
     "org.sireum.tools",
     "org.sireum.logika",
@@ -415,12 +417,12 @@ def regenServer(): Unit = {
 }
 
 def regenParser(isSlang: B): Unit = {
-  val parserPackagePath = home / "parser" / "shared" / "src" / "main" / "scala" / "org" / "sireum"/ "parser"
+  val parserPackagePath = home / "parser" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser"
   val parserResourcesPackagePath = home / "parser" / "jvm" / "src" / "main" / "resources"
   val license = home / "license.txt"
   val input = parserResourcesPackagePath / "SireumAntlr3.g"
   val mode: String = if (isSlang) "slang" else "antlr3"
-  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar $input".at(parserPackagePath).console.run()
+  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar --no-backtracking $input".at(parserPackagePath).console.run()
 }
 
 def regenCli(): Unit = {
@@ -458,6 +460,7 @@ def m2Lib(isJs: B): Unit = {
     }
     halt("Could not detect Slang library version")
   }
+
   val target: String = if (isJs) "--target js" else "--target jvm"
   proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version . org.sireum.kekinian".at(home).console.runCheck()
 }
@@ -640,7 +643,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-act" => regenAct()
       case string"regen-server" => regenServer()
       case string"regen-parser" => regenParser(T)
-      case string"regen-parser-antlr3" => regenParser(T)
+      case string"regen-parser-antlr3" => regenParser(F)
       case string"regen-cli" => regenCli()
       case string"regen-fmide-cli" => regenFmideCli()
       case string"m2" => m2()

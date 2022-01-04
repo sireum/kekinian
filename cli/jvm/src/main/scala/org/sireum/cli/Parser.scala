@@ -31,18 +31,28 @@ import org.sireum.SireumApi._
 
 object Parser {
 
+  val INVALID_OPTIONS: Z = -1
+  val INVALID_OUTDIR: Z = -2
+  val INVALID_INPUT: Z = -3
+
   def gen(o: Cli.SireumParserGenOption): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
-      println("The LL(k) input grammar specification is a subset of ANTLR3's grammar (processed as a codepoint stream):")
+      println("The LL(k) input grammar specification is a subset of ANTLR3's grammar (processed as a codepoint stream)")
+      println("extended with ANTLR4 full unicode form '\\u{<hex>}':")
       println("https://github.com/sireum/parser/blob/master/jvm/src/main/resources/SireumAntlr3.g")
-      println("Note: literals in the form of '\\\\u{<hex>}' are interpreted as unicode char <hex> (0 <= <hex> <= 10FFFF).")
       println()
-      println("Please first check your input grammar using ANTLRWorks available at:")
+      println("If not using '\\u{<hex>}', please first check the input grammar using ANTLRWorks available at:")
       println("https://github.com/sireum/antlrworks/releases")
       return 0
     }
+
+    if (!o.predictive && !o.backtracking) {
+      eprintln("Cannot generate non-predictive parsers without backtracking")
+      return INVALID_OPTIONS
+    }
+
     val licenseOpt: Option[ST] = path2fileOpt("license file", o.license, T) match {
       case Some(f) => Some(
         st"""/*
@@ -55,7 +65,7 @@ object Parser {
     val destDir = path2fileOpt("output directory", o.outputDir, T).get
     if (!destDir.isDir) {
       eprintln(s"Path $destDir is not a directory")
-      return -1
+      return INVALID_OUTDIR
     }
 
     val name: String = o.name match {
@@ -77,14 +87,14 @@ object Parser {
     }
     if (reporter.hasError) {
       reporter.printMessages()
-      return -1
+      return INVALID_INPUT
     }
     val ast = parser.GrammarAstBuilder(rOpt.get).build(reporter)
     if (reporter.hasError) {
       reporter.printMessages()
-      return -1
+      return INVALID_INPUT
     }
-    parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, o.predictive, reporter) match {
+    parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, o.predictive, o.backtracking, reporter) match {
       case Some(out) =>
         dest.writeOver(out.render)
         println(s"Wrote $dest")
