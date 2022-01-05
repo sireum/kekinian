@@ -89,6 +89,19 @@ things up by virtue of having no JVM boot up time.
   examples: [simple](https://github.com/sireum/proyek-example), [for Sireum itself](https://github.com/sireum/kekinian/blob/master/bin/project.cmd))
 
 
+* **Parser Generator**: LL(*k*), PEG/Packrat, or "mixed" (*k*-lookahead with backtracking) Slang parser generator
+
+  It generates readable, easy-to-debug parser/lexer over Unicode codepoints in Slang, which can be compiled further 
+  to native or Javascript.
+  The [input grammar](https://github.com/sireum/parser/blob/master/jvm/src/main/resources/SireumAntlr3.g) 
+  is a small subset of ANTLR3's grammar with [IDE](bin/install/antlrworks.cmd) support. 
+  As an example, the parser generator uses its own
+  [generated parser/lexer](https://github.com/sireum/parser/blob/master/shared/src/main/scala/org/sireum/parser/SireumGrammarParser.scala) 
+  to parse its input grammar to build general
+  [parse trees](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/parser/ParseTree.scala)
+  (that come with a generic tree rewriting algorithm for binary operators with configurable precedence/associativity rules after parsing).
+
+
 * **Presentasi**: JavaFX Presentation Generator from Slang-based Specifications
 
   (including text-to-speech synthesizers; [example](https://github.com/sireum/presentasi-example))
