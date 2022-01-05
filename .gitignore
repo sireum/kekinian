@@ -5,6 +5,8 @@
 /.metadata
 /.metals
 /.vscode
+/bin/antlrworks.jar
+/bin/.antlrworks.jar.ver
 /bin/.sireum-win.jar
 /bin/mill
 /bin/mill.bat
