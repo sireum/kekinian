@@ -61,6 +61,7 @@ def usage(): Unit = {
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
         |       | regen-cliopt     | regen-cli         | regen-fmide-cli
+        |       | regen-json
         |       | cvc              | z3                | ram
         |       | mill             | jitpack           | ghpack                       )*
         |""".render)
@@ -438,6 +439,15 @@ def regenFmideCli(): Unit = {
 }
 
 
+def regenJson(): Unit = {
+  val jsonPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser" / "json"
+  val parserResourcesPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "resources"
+  val license = home / "license.txt"
+  val input = parserResourcesPackagePath / "JSON.g"
+  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser.json -m slang -n Json --no-backtracking $input".at(jsonPackagePath).console.run()
+}
+
+
 def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
@@ -646,6 +656,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-parser-antlr3" => regenParser(F)
       case string"regen-cli" => regenCli()
       case string"regen-fmide-cli" => regenFmideCli()
+      case string"regen-json" => regenJson()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)
