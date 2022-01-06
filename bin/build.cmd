@@ -440,11 +440,11 @@ def regenFmideCli(): Unit = {
 
 
 def regenJson(): Unit = {
-  val jsonPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser" / "json"
+  val jsonPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser"
   val parserResourcesPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "resources"
   val license = home / "license.txt"
   val input = parserResourcesPackagePath / "JSON.g"
-  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser.json -m slang -n Json --no-backtracking $input".at(jsonPackagePath).console.run()
+  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking $input".at(jsonPackagePath).console.run()
 }
 
 
