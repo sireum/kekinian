@@ -102,21 +102,25 @@ object Sireum {
         case _: Throwable => None()
       }
     }
-    val scalacPluginJar = rOpt match {
-      case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
-      case _ if isNative => initInfo.scalacPlugin
-      case _ => homeNotFound()
+    val scalacPluginJarOpt = rOpt match {
+      case Some(home) => Some(home / "lib" / s"scalac-plugin-$scalacPluginVer.jar")
+      case _ if isNative => Some(initInfo.scalacPlugin)
+      case _ => None()
     }
-    if (!scalacPluginJar.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
-      val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
-      if (!scalacPluginCache.exists) {
-        scalacPluginCache.up.mkdirAll()
-        println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
-        scalacPluginCache.downloadFrom(s"https://github.com/sireum/scalac-plugin/releases/download/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
-        println()
-      }
-      scalacPluginJar.up.mkdirAll()
-      scalacPluginCache.copyOverTo(scalacPluginJar)
+    scalacPluginJarOpt match {
+      case Some(scalacPluginJar) =>
+        if (!scalacPluginJar.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
+          val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
+          if (!scalacPluginCache.exists) {
+            scalacPluginCache.up.mkdirAll()
+            println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
+            scalacPluginCache.downloadFrom(s"https://github.com/sireum/scalac-plugin/releases/download/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
+            println()
+          }
+          scalacPluginJar.up.mkdirAll()
+          scalacPluginCache.copyOverTo(scalacPluginJar)
+        }
+      case _ =>
     }
     rOpt
   }
