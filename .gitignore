@@ -31,6 +31,7 @@ out
 project.json
 project.csv
 project.pdf
+project.numbers
 Scratch.*
 scratch.*
 stale_outputs_checked
