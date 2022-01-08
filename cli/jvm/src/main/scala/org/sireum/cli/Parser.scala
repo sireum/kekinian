@@ -81,7 +81,7 @@ object Parser {
     val fileInfo = st"""// This file is auto-generated from ${src.name}
                        |"""
 
-    val rOpt: Option[parser.ParseTree.Result] = o.mode match {
+    val rOpt: Option[parser.ParseTree] = o.mode match {
       case Cli.SireumParserGenParserGenMode.Slang => parser.SireumGrammarParser.parse(Some(src.toUri), src.read, reporter)
       case _ => SireumApi.parseGrammar(Some(src.toUri), src.read, reporter)
     }

@@ -505,6 +505,6 @@ object Sireum {
 
   def parseGrammar(uriOpt: Option[String],
                    input: String,
-                   reporter: message.Reporter): Option[parser.ParseTree.Result] =
+                   reporter: message.Reporter): Option[parser.ParseTree] =
     parser.SireumAntlr3ParserUtil.parseGrammar(uriOpt, input, reporter)
 }
