@@ -376,7 +376,6 @@ object Presentasi {
           |                    mediaView.setSmooth(true);
           |                    mediaView.setFitWidth(width);
           |                    mediaView.setFitHeight(height);
-          |                    stage.getScene().setRoot(root);
           |                    final MediaPlayer player = mediaView.getMediaPlayer();
           |                    player.setStartTime(Duration.millis(video.startMillis));
           |                    player.setRate(video.rate);
@@ -384,8 +383,12 @@ object Presentasi {
           |                    player.setVolume(1.0);
           |                    player.setMute(video.muted);
           |                    Platform.runLater(() -> {
-          |                        stage.show();
           |                        player.play();
+          |                        if (video.startMillis > 0) {
+          |                            sleep(250);
+          |                        }
+          |                        stage.getScene().setRoot(root);
+          |                        stage.show();
           |                    });
           |                }
           |                i++;
