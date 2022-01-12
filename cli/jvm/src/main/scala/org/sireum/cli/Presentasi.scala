@@ -385,7 +385,7 @@ object Presentasi {
           |                    Platform.runLater(() -> {
           |                        player.play();
           |                        if (video.startMillis > 0) {
-          |                            sleep(250);
+          |                            Presentasi.sleep(250);
           |                        }
           |                        stage.getScene().setRoot(root);
           |                        stage.show();
