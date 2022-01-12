@@ -126,7 +126,6 @@ object Presentasi {
           |
           |public class $name extends Application {
           |
-          |    public final static long TRAILING = $trailing;
           |    public final static long TIMELINE_GRANULARITY = $granularity;
           |    public final static double TEXT_VOLUME = $textVolume;
           |
@@ -259,6 +258,9 @@ object Presentasi {
           |    private Stage stage = null;
           |    private long startTime = 0;
           |    private int slideNo = 0;
+          |    private boolean fullScreen = true;
+          |    private double width = -1;
+          |    private double height = -1;
           |
           |    public static String getResourceUri(final String path) {
           |        try {
@@ -277,36 +279,38 @@ object Presentasi {
           |    @Override
           |    public void init() {
           |        final List<String> args = getParameters().getRaw();
-          |        switch (args.size()) {
-          |            case 0:
-          |                break;
-          |            case 1:
-          |                final String arg = args.get(0);
+          |        if (args.size() > 0) {
+          |            for (String arg : getParameters().getRaw()) {
           |                try {
-          |                    if (arg.charAt(0) == '#') {
+          |                    int i = arg.indexOf('x');
+          |                    if (i >= 0) {
+          |                        width = Integer.parseInt(arg.substring(0, i));
+          |                        height = Integer.parseInt(arg.substring(i + 1));
+          |                        fullScreen = false;
+          |                    } else if (arg.charAt(0) == '#') {
           |                        slideNo = Integer.parseInt(arg.substring(1));
+          |                        startTime = 0;
           |                    } else {
           |                        startTime = Long.parseLong(arg);
+          |                        slideNo = 0;
           |                    }
           |                } catch (Throwable t) {
           |                    System.err.println("Invalid argument " + arg);
           |                    System.err.flush();
           |                    Platform.exit();
           |                }
-          |                break;
-          |            default:
-          |                System.err.println("Invalid arguments");
-          |                System.err.flush();
-          |                Platform.exit();
+          |            }
           |        }
           |
           |        ${(medias, "\n")}
           |
           |        final long end = ${end}L; // ${formatTime(end)}
           |
-          |        final Rectangle2D rect = Screen.getPrimary().getBounds();
-          |        final double width = rect.getWidth();
-          |        final double height = rect.getHeight();
+          |        if (width == -1 || height == -1) {
+          |            final Rectangle2D rect = Screen.getPrimary().getBounds();
+          |            width = rect.getWidth();
+          |            height = rect.getHeight();
+          |        }
           |
           |        for (final Media media : medias) {
           |            final String uri = media.getUri();
@@ -403,10 +407,10 @@ object Presentasi {
           |
           |    @Override
           |    public void start(final Stage primaryStage) {
-          |        primaryStage.setFullScreen(true);
-          |        primaryStage.setResizable(false);
           |        primaryStage.setFullScreenExitHint("");
-          |        final Scene scene = new Scene(new StackPane(), primaryStage.getMaxWidth(), primaryStage.getMaxHeight());
+          |        primaryStage.setFullScreen(fullScreen);
+          |        primaryStage.setResizable(!fullScreen);
+          |        final Scene scene = new Scene(new StackPane(), width, height);
           |        primaryStage.setScene(scene);
           |        this.stage = primaryStage;
           |    }
