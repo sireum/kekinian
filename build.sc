@@ -24,7 +24,6 @@
  */
 
 import mill._
-import ammonite.ops._
 import $file.runtime.Runtime
 import $file.slang.Slang
 import $file.tools.Tools
@@ -181,7 +180,7 @@ object cli extends Cli.Module {
 
 
 object buildModule extends mill.Module {
-  override def millSourcePath = super.millSourcePath / up / "build"
+  override def millSourcePath = super.millSourcePath / os.up / "build"
 }
 
 def build() = T.command {
@@ -202,13 +201,13 @@ private def currPlatform: String = {
   import scala.util.{Properties => ps}
   if (ps.isMac) "mac"
   else if (ps.isLinux) {
-    val arch = %%("uname", "-m")(os.pwd).out.trim 
+    val arch = os.proc("uname", "-m", os.pwd).call().out.trim
     if (arch == "aarch64") "linux/arm" else "linux"
   } else if (ps.isWin) "win"
   else throw new UnsupportedOperationException("Unsupported platform")
 }
 
-private def log(r: CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
+private def log(r: os.CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
   val logger = ctx.log
   val out = r.out.string
   val err = r.err.string
