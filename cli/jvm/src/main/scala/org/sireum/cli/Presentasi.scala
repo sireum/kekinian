@@ -689,8 +689,8 @@ object Presentasi {
                   curr = last
                 case _ =>
                   curr = curr + gap + (
-                    if (end == 0.0) conversions.R.toZ(conversions.Z.toR(dur) * conversions.F64.toR(rate)) + 1
-                    else conversions.R.toZ(conversions.F64.toR(end - start)) + 1)
+                    if (end == 0.0) conversions.R.toZ(conversions.Z.toR(dur) / conversions.F64.toR(rate)) + 1
+                    else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
               }
             case _ =>
               reporter.error(None(), "presentasi", s"Could not load video ${entry.path}")
