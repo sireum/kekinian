@@ -523,10 +523,8 @@ object Presentasi {
       }
 
       var sounds = ISZ[Media]()
-      var curr = start
-
-      def newSound: Sound = {
-        return Sound("", "", 0, curr + spec.delay)
+      def newSound(curr: Z): Sound = {
+        return Sound("", "", 0, curr)
       }
 
       def parseVolume(vol: String, vpath: String): F64 = {
@@ -539,18 +537,21 @@ object Presentasi {
         }
       }
 
-      var currSound = newSound
+      var currSound = newSound(start)
       def storeSound(): Unit = {
         if (currSound.text =!= "") {
           val sound = process(currSound)
           sounds = sounds :+ sound
-          curr = curr + sound.duration + spec.delay
+          currSound = newSound(sound.timeline + sound.duration)
+        } else {
+          currSound = newSound(currSound.timeline)
         }
-        currSound = newSound
       }
       for (l <- ops.StringOps(text).split((c: C) => c === '\n')) {
         ops.StringOps(l).trim match {
-          case string"" => storeSound()
+          case string"" =>
+            storeSound()
+            currSound = currSound(timeline = currSound.timeline + spec.delay)
           case line =>
             val lineOps = ops.StringOps(line)
             if (lineOps.startsWith("[") && lineOps.endsWith("]")) {
@@ -558,7 +559,7 @@ object Presentasi {
               Z(dir) match {
                 case Some(n) =>
                   storeSound()
-                  currSound = currSound(timeline = currSound.timeline - spec.delay + n)
+                  currSound = currSound(timeline = currSound.timeline + n)
                 case _ =>
                   var volume: F64 = 0.0
                   val apath: Os.Path = if (ops.StringOps(dir).indexOf(';') >= 0) {
@@ -586,11 +587,11 @@ object Presentasi {
                       case Some(dur) =>
                         if (currSound.text =!= "") {
                           storeSound()
+                          currSound = currSound(timeline = currSound.timeline + spec.delay)
                         }
                         currSound = currSound(filename = target.name, duration = dur)
                         sounds = sounds :+ currSound
-                        curr = currSound.timeline + dur
-                        currSound = newSound
+                        currSound = newSound(currSound.timeline + dur)
                       case _ => reporter.error(None(), "presentasi", s"Failed to load: $apath")
                     }
                   } else {
