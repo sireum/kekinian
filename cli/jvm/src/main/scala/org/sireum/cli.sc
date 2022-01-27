@@ -111,7 +111,11 @@ val pgenTool: Tool = Tool(
   header = "Sireum Presentasi Generator",
   usage = "<option>* <path>",
   usageDescOpt = None(),
-  opts = text2speechTool.opts - text2speechTool.opts(2) - text2speechTool.opts(3),
+  opts = (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
+    Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
+      tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
+        "mp3", "pcm")),
+      description = "Audio output format (for AWS or Azure)")),
   groups = text2speechTool.groups
 )
 

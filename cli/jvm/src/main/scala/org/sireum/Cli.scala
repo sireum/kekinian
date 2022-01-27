@@ -38,6 +38,30 @@ object Cli {
 
   @datatype class HelpOption extends SireumTopOption
 
+  @enum object SireumAnvilCompileStage {
+    'All
+    'Hls
+    'Hw
+    'Sw
+    'Os
+  }
+
+  @datatype class SireumAnvilCompileOption(
+    val help: String,
+    val args: ISZ[String],
+    val stage: ISZ[SireumAnvilCompileStage.Type],
+    val transpilerArgs: Option[String],
+    val sandboxPath: Option[String]
+  ) extends SireumTopOption
+
+  @datatype class SireumAnvilSandboxOption(
+    val help: String,
+    val args: ISZ[String],
+    val excludeSireum: B,
+    val xilinxUnifiedPath: Option[String],
+    val petalinuxInstallerPath: Option[String]
+  ) extends SireumTopOption
+
   @enum object SireumHamrCodegenHamrPlatform {
     'JVM
     'Linux
@@ -475,6 +499,11 @@ object Cli {
     val forwarding: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumPresentasiGenOutputFormat {
+    'Mp3
+    'Pcm
+  }
+
   @enum object SireumPresentasiGenService {
     'Mary
     'Aws
@@ -491,6 +520,7 @@ object Cli {
     val args: ISZ[String],
     val force: B,
     val lang: Option[String],
+    val outputFormat: SireumPresentasiGenOutputFormat.Type,
     val service: SireumPresentasiGenService.Type,
     val voice: Option[String],
     val awsPath: Option[String],
@@ -703,6 +733,7 @@ import Cli._
             |Build ${SireumApi.version}
             |
             |Available modes:
+            |anvil                    Anvil tool
             |hamr                     HAMR tools
             |logika                   Logika tools
             |parser                   Parser tools
@@ -736,14 +767,192 @@ import Cli._
         st"""Sireum Anvil
             |
             |Available modes:
-            """.render
+            |compile                  Compile one or more stages
+            |sandbox                  Create a premade anvil execution environment.""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("anvil", args, i, ISZ(""))
+    val opt = select("anvil", args, i, ISZ("compile", "sandbox"))
     opt match {
+      case Some(string"compile") => parseSireumAnvilCompile(args, i + 1)
+      case Some(string"sandbox") => parseSireumAnvilSandbox(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumAnvilCompileStageH(arg: String): Option[SireumAnvilCompileStage.Type] = {
+    arg.native match {
+      case "all" => return Some(SireumAnvilCompileStage.All)
+      case "hls" => return Some(SireumAnvilCompileStage.Hls)
+      case "hw" => return Some(SireumAnvilCompileStage.Hw)
+      case "sw" => return Some(SireumAnvilCompileStage.Sw)
+      case "os" => return Some(SireumAnvilCompileStage.Os)
+      case s =>
+        eprintln(s"Expecting one of the following: { all, hls, hw, sw, os }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumAnvilCompileStage(args: ISZ[String], i: Z): Option[SireumAnvilCompileStage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { all, hls, hw, sw, os }, but none found.")
+      return None()
+    }
+    val r = parseSireumAnvilCompileStageH(args(i))
+    return r
+  }
+
+  def parseSireumAnvilCompileStages(args: ISZ[String], i: Z): Option[ISZ[SireumAnvilCompileStage.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumAnvilCompileStage", ',', T)
+    if (tokensOpt.isEmpty) {
+      return None()
+    }
+    var r = ISZ[SireumAnvilCompileStage.Type]()
+    for (token <- tokensOpt.get) {
+      val e = parseSireumAnvilCompileStageH(token)
+      e match {
+        case Some(v) => r = r :+ v
+        case _ => return None()
+      }
+    }
+    return Some(r)
+  }
+
+  def parseSireumAnvilCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Compile one or more stages
+          |
+          |Usage: <option>* ( <slang-file> )* <slang-file#method-to-accel>
+          |
+          |Available Options:
+          |    --stage              Run the selected stages. Note that "all" is just
+          |                           shortcut for "hls,hw,sw,os". (expects one or more of
+          |                           { all, hls, hw, sw, os }; default: all)
+          |    --transpiler-args-file
+          |                          [File containing args to be forwarded to the
+          |                           transpiler.Anvil will intercept the transpiler's
+          |                           "--output" flag and use it to create a
+          |                           workspace.Each flag/value should be on its own line.
+          |                           For
+          |                           example:
+          --sourcepath
+          path/to/src
+          --name
+          my_project
+          --stable-type-id
+          --unroll
+          ...etc]
+          |                           (expects a path)
+          |    --sandbox-path       [Optional path to a sandbox that execution will be
+          |                           delegated to.Type "anvil sandbox help" for more
+          |                           info.] (expects a path)
+          |-h, --help               Display this information""".render
+
+    var stage: ISZ[SireumAnvilCompileStage.Type] = ISZ(SireumAnvilCompileStage.All)
+    var transpilerArgs: Option[String] = None[String]()
+    var sandboxPath: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--stage") {
+           val o: Option[ISZ[SireumAnvilCompileStage.Type]] = parseSireumAnvilCompileStages(args, j + 1)
+           o match {
+             case Some(v) => stage = v
+             case _ => return None()
+           }
+         } else if (arg == "--transpiler-args-file") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => transpilerArgs = v
+             case _ => return None()
+           }
+         } else if (arg == "--sandbox-path") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => sandboxPath = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumAnvilCompileOption(help, parseArguments(args, j), stage, transpilerArgs, sandboxPath))
+  }
+
+  def parseSireumAnvilSandbox(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Create a linux sandbox that may optionally be hooked into Anvil or used as a debugging workspace.
+          |
+          |Usage: "sandbox" (args)* <output-path>
+          |
+          |Available Options:
+          |-s, --exclude-sireum     [Indicates that Sireum should NOT be included in the
+          |                           sandbox.Sireum enables sandboxing for Anvil's
+          |                           "hls#transpiler_pass" and "sw" compilation
+          |                           stages.This flag only exists for convenience.]
+          |-x, --xilinx-unified-path    
+          |                          [Path to Xilinx_Unified_2020.1_0602_1208.tar.gz.
+          |                           Enables sandboxing for Anvil's "hls#vivado_hls" and
+          |                           "hw" compilation stages.Download from
+          |                           https://www.xilinx.com/member/forms/download/xef.html?filename=Xilinx_Unified_2020.1_0602_1208.tar.gz
+          |                           (login required)] (expects a path)
+          |-p, --petalinux-installer-path    
+          |                          [Path to petalinux-v2020.1-final-installer.run.
+          |                           Enables sandboxing for Anvil's "os" compilation
+          |                           stages.Download from
+          |                           https://www.xilinx.com/member/forms/download/xef.html?filename=petalinux-v2020.1-final-installer.run
+          |                           (login required)] (expects a path)
+          |-h, --help               Display this information""".render
+
+    var excludeSireum: B = false
+    var xilinxUnifiedPath: Option[String] = None[String]()
+    var petalinuxInstallerPath: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-s" || arg == "--exclude-sireum") {
+           val o: Option[B] = { j = j - 1; Some(!excludeSireum) }
+           o match {
+             case Some(v) => excludeSireum = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--xilinx-unified-path") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => xilinxUnifiedPath = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--petalinux-installer-path") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => petalinuxInstallerPath = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumAnvilSandboxOption(help, parseArguments(args, j), excludeSireum, xilinxUnifiedPath, petalinuxInstallerPath))
   }
 
   def parseSireumHamr(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -4396,6 +4605,25 @@ import Cli._
     }
   }
 
+  def parseSireumPresentasiGenOutputFormatH(arg: String): Option[SireumPresentasiGenOutputFormat.Type] = {
+    arg.native match {
+      case "mp3" => return Some(SireumPresentasiGenOutputFormat.Mp3)
+      case "pcm" => return Some(SireumPresentasiGenOutputFormat.Pcm)
+      case s =>
+        eprintln(s"Expecting one of the following: { mp3, pcm }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumPresentasiGenOutputFormat(args: ISZ[String], i: Z): Option[SireumPresentasiGenOutputFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mp3, pcm }, but none found.")
+      return None()
+    }
+    val r = parseSireumPresentasiGenOutputFormatH(args(i))
+    return r
+  }
+
   def parseSireumPresentasiGenServiceH(arg: String): Option[SireumPresentasiGenService.Type] = {
     arg.native match {
       case "mary" => return Some(SireumPresentasiGenService.Mary)
@@ -4445,6 +4673,8 @@ import Cli._
           |    --force              Overwrite output file(s)
           |-l, --lang               Speech language (for AWS or Azure) (expects a string;
           |                           default is "en-US")
+          |-f, --output-format      Audio output format (for AWS or Azure) (expects one of
+          |                           { mp3, pcm }; default: mp3)
           |-s, --service            Text-to-speech service (expects one of { mary, aws,
           |                           azure }; default: mary)
           |-v, --voice              Voice (defaults to "dfki-spike-hsmm" for MaryTTS,
@@ -4467,6 +4697,7 @@ import Cli._
 
     var force: B = false
     var lang: Option[String] = Some("en-US")
+    var outputFormat: SireumPresentasiGenOutputFormat.Type = SireumPresentasiGenOutputFormat.Mp3
     var service: SireumPresentasiGenService.Type = SireumPresentasiGenService.Mary
     var voice: Option[String] = None[String]()
     var awsPath: Option[String] = Some("aws")
@@ -4493,6 +4724,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => lang = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--output-format") {
+           val o: Option[SireumPresentasiGenOutputFormat.Type] = parseSireumPresentasiGenOutputFormat(args, j + 1)
+           o match {
+             case Some(v) => outputFormat = v
              case _ => return None()
            }
          } else if (arg == "-s" || arg == "--service") {
@@ -4552,7 +4789,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), force, lang, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {
