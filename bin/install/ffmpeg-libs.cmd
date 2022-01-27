@@ -32,9 +32,9 @@ val version = "2.13.6"
 
 val bundle = s"ffmpeg-$version-libs.zip"
 val url = s"https://github.com/sireum/rolling/releases/download/ffmpeg/$bundle"
-val homeBin = Os.slashDir.up.canon
-val javaLib = homeBin / "linux" / "java" / "lib"
-val licenseDir = javaLib / s"ffmpeg-$version-license"
+val home = Os.slashDir.up.up.canon
+val lib = home / "lib" / "linux"
+val licenseDir = lib / s"ffmpeg-$version-license"
 
 if (licenseDir.exists) {
   Os.exit(0)
@@ -54,6 +54,6 @@ if (!cache.exists) {
 }
 
 println(s"Extracting $cache ...")
-javaLib.mkdirAll()
-cache.unzipTo(javaLib)
+lib.mkdirAll()
+cache.unzipTo(lib)
 println()

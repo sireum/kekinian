@@ -32,6 +32,9 @@ elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
     export JAVA_HOME="${SIREUM_HOME}/bin/${PLATFORM}/java"
     JAVA="${JAVA_HOME}/bin/java"
   fi
+  if [[ -d "${SIREUM_HOME}/lib/$PLATFORM" ]]; then
+    export LD_LIBRARY_PATH=${SIREUM_HOME}/lib/$PLATFORM:$LD_LIBRARY_PATH
+  fi
 fi
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
 if [[ -f ${NATIVE} ]] && [[ ${NATIVE} -nt ${SIREUM_JAR} ]]; then
