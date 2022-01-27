@@ -507,4 +507,109 @@ object Sireum {
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] =
     parser.SireumAntlr3ParserUtil.parseGrammar(uriOpt, input, reporter)
+
+
+  def pcm2wav(path: Os.Path, srate: Z): Unit = {
+    val rate = srate.toInt
+
+    def rawToWave(rawFile: java.io.File, waveFile: java.io.File): Unit = {
+      import java.io.DataInputStream
+      import java.io.DataOutputStream
+      import java.io.FileInputStream
+      import java.io.FileOutputStream
+      import java.io.IOException
+      import java.nio.ByteBuffer
+      import java.nio.ByteOrder
+      def fullyReadFileToBytes(f: java.io.File) = {
+        val size = f.length.asInstanceOf[Int]
+        val bytes = new Array[Byte](size)
+        val tmpBuff = new Array[Byte](size)
+        val fis = new FileInputStream(f)
+        try {
+          var read = fis.read(bytes, 0, size)
+          if (read < size) {
+            var remain = size - read
+            while ( {
+              remain > 0
+            }) {
+              read = fis.read(tmpBuff, 0, remain)
+              System.arraycopy(tmpBuff, 0, bytes, size - remain, read)
+              remain -= read
+            }
+          }
+        } catch {
+          case e: IOException =>
+            throw e
+        } finally fis.close()
+        bytes
+      }
+
+      def writeInt(output: DataOutputStream, value: Int): Unit = {
+        output.write(value >> 0)
+        output.write(value >> 8)
+        output.write(value >> 16)
+        output.write(value >> 24)
+      }
+
+      def writeShort(output: DataOutputStream, value: Short): Unit = {
+        output.write(value >> 0)
+        output.write(value >> 8)
+      }
+
+      def writeString(output: DataOutputStream, value: Predef.String): Unit = {
+        for (i <- 0 until value.length) {
+          output.write(value.charAt(i))
+        }
+      }
+      val rawData = new Array[Byte](rawFile.length.asInstanceOf[Int])
+      var input: DataInputStream = null
+      try {
+        input = new DataInputStream(new FileInputStream(rawFile))
+        input.read(rawData)
+      } finally if (input != null) input.close()
+      var output: DataOutputStream = null
+      try {
+        val data = fullyReadFileToBytes(rawFile)
+        output = new DataOutputStream(new FileOutputStream(waveFile))
+        writeString(output, "RIFF") // chunk id
+
+        writeInt(output, 36 + rawData.length) // chunk size
+
+        writeString(output, "WAVE") // format
+
+        writeString(output, "fmt ") // subchunk 1 id
+
+        writeInt(output, 16) // subchunk 1 size
+
+        writeShort(output, 1.toShort) // audio format (1 = PCM)
+
+        writeShort(output, 1.toShort) // number of channels
+
+        writeInt(output, rate) // sample rate
+
+        writeInt(output, rate * 2) // byte rate
+
+        writeShort(output, 2.toShort) // block align
+
+        writeShort(output, 16.toShort) // bits per sample
+
+        writeString(output, "data") // subchunk 2 id
+
+        writeInt(output, rawData.length) // subchunk 2 size
+
+        // Audio data (conversion big endian -> little endian)
+        val shorts = new Array[Short](rawData.length / 2)
+        ByteBuffer.wrap(rawData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer.get(shorts)
+        val bytes = ByteBuffer.allocate(shorts.length * 2)
+        for (s <- shorts) {
+          bytes.putShort(s)
+        }
+        output.write(data)
+      } finally if (output != null) output.close()
+    }
+
+    val f = new java.io.File(path.canon.value.value)
+    rawToWave(f, f)
+  }
+
 }

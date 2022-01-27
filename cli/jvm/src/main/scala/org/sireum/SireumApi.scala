@@ -126,4 +126,6 @@ import org.sireum._
   def parseGrammar(uriOpt: Option[String],
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] = $
+
+  def pcm2wav(path: Os.Path, srate: Z): Unit = $
 }
