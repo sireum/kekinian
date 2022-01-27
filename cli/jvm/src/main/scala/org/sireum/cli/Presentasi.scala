@@ -170,7 +170,7 @@ object Presentasi {
           |    public final static class Sound implements Media {
           |        public final String uri;
           |        private final long timeline;
-          |        public final MediaPlayer mediaPlayer;
+          |        public MediaPlayer mediaPlayer;
           |        private boolean ready = false;
           |        private boolean error = false;
           |        private long duration = 0L;
@@ -178,12 +178,19 @@ object Presentasi {
           |        public Sound(final String path, final long timeline) {
           |            this.uri = getResourceUri(path);
           |            this.timeline = timeline;
-          |            this.mediaPlayer = new MediaPlayer(new javafx.scene.media.Media(uri));
-          |            this.mediaPlayer.setOnReady(() -> {
-          |                this.ready = true;
-          |                this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
-          |            });
-          |            this.mediaPlayer.setOnError(() -> this.error = true);
+          |            try {
+          |              this.mediaPlayer = new MediaPlayer(new javafx.scene.media.Media(uri));
+          |              this.mediaPlayer.setOnReady(() -> {
+          |                  this.ready = true;
+          |                  this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
+          |              });
+          |              this.mediaPlayer.setOnError(() -> this.error = true);
+          |            } catch (Throwable e) {
+          |              e.printStackTrace();
+          |              System.err.println("Could not load: " + path);
+          |              System.err.flush();
+          |              System.exit(-1);
+          |            }
           |        }
           |
           |        public String getUri() { return this.uri; }
@@ -208,7 +215,7 @@ object Presentasi {
           |    public final static class Video implements Media {
           |        public final String uri;
           |        private final long timeline;
-          |        public final MediaView mediaView;
+          |        public MediaView mediaView;
           |        public final boolean muted;
           |        public final double rate;
           |        public final double startMillis;
@@ -224,17 +231,24 @@ object Presentasi {
           |            this.startMillis = startMs;
           |            this.endMillis = endMs;
           |            this.muted = muted;
-          |            final MediaPlayer mediaPlayer = new MediaPlayer(new javafx.scene.media.Media(uri));
-          |            mediaPlayer.setOnReady(() -> {
-          |                this.ready = true;
-          |                if (endMs > 0.0) {
-          |                    this.duration = (long) Math.ceil(endMs - startMs);
-          |                } else {
-          |                    this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
-          |                }
-          |            });
-          |            mediaPlayer.setOnError(() -> this.error = true);
-          |            this.mediaView = new MediaView(mediaPlayer);
+          |            try {
+          |              final MediaPlayer mediaPlayer = new MediaPlayer(new javafx.scene.media.Media(uri));
+          |              mediaPlayer.setOnReady(() -> {
+          |                  this.ready = true;
+          |                  if (endMs > 0.0) {
+          |                      this.duration = (long) Math.ceil(endMs - startMs);
+          |                  } else {
+          |                      this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
+          |                  }
+          |              });
+          |              mediaPlayer.setOnError(() -> this.error = true);
+          |              this.mediaView = new MediaView(mediaPlayer);
+          |            } catch (Throwable e) {
+          |              e.printStackTrace();
+          |              System.err.println("Could not load: " + path);
+          |              System.err.flush();
+          |              System.exit(-1);
+          |            }
           |        }
           |
           |        public String getUri() { return this.uri; }
@@ -661,9 +675,9 @@ object Presentasi {
               } else {
                 entry.start
               }
-              val end: F64 = if (entry.end == 0.0) {
+              val end: F64 = if (entry.end == 0.0 || conversions.F64.toR(entry.end) > durR) {
                 0.0
-              } else if (entry.end < start || conversions.F64.toR(entry.end) > durR) {
+              } else if (entry.end < start) {
                 reporter.error(None(), "presentasi", s"Invalid end for video ${entry.path}: ${entry.end}")
                 0.0
               } else {
