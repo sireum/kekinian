@@ -68,7 +68,7 @@ val text2speechTool: Tool = Tool(
       description = "Output filename (defaults to <line>.<ext>)"),
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
       tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
-        "mp3", "webm", "ogg", "pcm")),
+        "mp3", "webm", "ogg", "wav")),
       description = "Audio output format (for AWS or Azure)"),
     Opt(name = "service", longKey = "service", shortKey = Some('s'),
       tpe = Type.Choice(name = "service", sep = None(), elements = ISZ("mary", "aws", "azure")),
@@ -114,7 +114,7 @@ val pgenTool: Tool = Tool(
   opts = (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
       tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
-        "mp3", "pcm")),
+        "mp3", "wav")),
       description = "Audio output format (for AWS or Azure)")),
   groups = text2speechTool.groups
 )

@@ -518,7 +518,7 @@ object Presentasi {
 
     val (format, ext): (Cli.SireumPresentasiText2speechOutputFormat.Type, String) = o.outputFormat match {
       case Cli.SireumPresentasiGenOutputFormat.Mp3 => (Cli.SireumPresentasiText2speechOutputFormat.Mp3, "mp3")
-      case Cli.SireumPresentasiGenOutputFormat.Pcm => (Cli.SireumPresentasiText2speechOutputFormat.Pcm, "wav")
+      case Cli.SireumPresentasiGenOutputFormat.Wav => (Cli.SireumPresentasiText2speechOutputFormat.Wav, "wav")
     }
 
     def processText(text: String, start: Z): (ISZ[Media], Z) = {
@@ -862,7 +862,7 @@ object Presentasi {
         val voice = o.voice.getOrElseEager("en-GB-RyanNeural")
         val (format, ext): (String, String) = o.outputFormat match {
           case Cli.SireumPresentasiText2speechOutputFormat.Mp3 => ("audio-48khz-192kbitrate-mono-mp3", "mp3")
-          case Cli.SireumPresentasiText2speechOutputFormat.Pcm => ("raw-48khz-16bit-mono-pcm", "wav")
+          case Cli.SireumPresentasiText2speechOutputFormat.Wav => ("raw-48khz-16bit-mono-pcm", "wav")
           case Cli.SireumPresentasiText2speechOutputFormat.Webm => ("webm-24khz-16bit-mono-opus", "webm")
           case Cli.SireumPresentasiText2speechOutputFormat.Ogg => ("ogg-48khz-16bit-mono-opus", "ogg")
         }
@@ -899,7 +899,7 @@ object Presentasi {
         val (outputFormat, ext, rate): (String, String, Z) = o.outputFormat match {
           case Cli.SireumPresentasiText2speechOutputFormat.Mp3 => ("mp3", "mp3", 24000)
           case Cli.SireumPresentasiText2speechOutputFormat.Ogg => ("ogg_vorbis", "ogg", 24000)
-          case Cli.SireumPresentasiText2speechOutputFormat.Pcm => ("pcm", "wav", 16000)
+          case Cli.SireumPresentasiText2speechOutputFormat.Wav => ("pcm", "wav", 16000)
           case Cli.SireumPresentasiText2speechOutputFormat.Webm =>
             eprintln("AWS does not support webm output format")
             return -1

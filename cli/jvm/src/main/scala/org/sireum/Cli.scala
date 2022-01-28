@@ -501,7 +501,7 @@ object Cli {
 
   @enum object SireumPresentasiGenOutputFormat {
     'Mp3
-    'Pcm
+    'Wav
   }
 
   @enum object SireumPresentasiGenService {
@@ -535,7 +535,7 @@ object Cli {
     'Mp3
     'Webm
     'Ogg
-    'Pcm
+    'Wav
   }
 
   @enum object SireumPresentasiText2speechService {
@@ -4608,16 +4608,16 @@ import Cli._
   def parseSireumPresentasiGenOutputFormatH(arg: String): Option[SireumPresentasiGenOutputFormat.Type] = {
     arg.native match {
       case "mp3" => return Some(SireumPresentasiGenOutputFormat.Mp3)
-      case "pcm" => return Some(SireumPresentasiGenOutputFormat.Pcm)
+      case "wav" => return Some(SireumPresentasiGenOutputFormat.Wav)
       case s =>
-        eprintln(s"Expecting one of the following: { mp3, pcm }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { mp3, wav }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumPresentasiGenOutputFormat(args: ISZ[String], i: Z): Option[SireumPresentasiGenOutputFormat.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { mp3, pcm }, but none found.")
+      eprintln("Expecting one of the following: { mp3, wav }, but none found.")
       return None()
     }
     val r = parseSireumPresentasiGenOutputFormatH(args(i))
@@ -4674,7 +4674,7 @@ import Cli._
           |-l, --lang               Speech language (for AWS or Azure) (expects a string;
           |                           default is "en-US")
           |-f, --output-format      Audio output format (for AWS or Azure) (expects one of
-          |                           { mp3, pcm }; default: mp3)
+          |                           { mp3, wav }; default: mp3)
           |-s, --service            Text-to-speech service (expects one of { mary, aws,
           |                           azure }; default: mary)
           |-v, --voice              Voice (defaults to "dfki-spike-hsmm" for MaryTTS,
@@ -4797,16 +4797,16 @@ import Cli._
       case "mp3" => return Some(SireumPresentasiText2speechOutputFormat.Mp3)
       case "webm" => return Some(SireumPresentasiText2speechOutputFormat.Webm)
       case "ogg" => return Some(SireumPresentasiText2speechOutputFormat.Ogg)
-      case "pcm" => return Some(SireumPresentasiText2speechOutputFormat.Pcm)
+      case "wav" => return Some(SireumPresentasiText2speechOutputFormat.Wav)
       case s =>
-        eprintln(s"Expecting one of the following: { mp3, webm, ogg, pcm }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { mp3, webm, ogg, wav }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumPresentasiText2speechOutputFormat(args: ISZ[String], i: Z): Option[SireumPresentasiText2speechOutputFormat.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { mp3, webm, ogg, pcm }, but none found.")
+      eprintln("Expecting one of the following: { mp3, webm, ogg, wav }, but none found.")
       return None()
     }
     val r = parseSireumPresentasiText2speechOutputFormatH(args(i))
@@ -4865,7 +4865,7 @@ import Cli._
           |-o, --output             Output filename (defaults to <line>.<ext>) (expects a
           |                           path)
           |-f, --output-format      Audio output format (for AWS or Azure) (expects one of
-          |                           { mp3, webm, ogg, pcm }; default: mp3)
+          |                           { mp3, webm, ogg, wav }; default: mp3)
           |-s, --service            Text-to-speech service (expects one of { mary, aws,
           |                           azure }; default: mary)
           |-v, --voice              Voice (defaults to "dfki-spike-hsmm" for MaryTTS,
