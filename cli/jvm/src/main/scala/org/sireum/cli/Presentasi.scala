@@ -517,8 +517,9 @@ object Presentasi {
     }
 
     val (format, ext): (Cli.SireumPresentasiText2speechOutputFormat.Type, String) = o.outputFormat match {
-      case Cli.SireumPresentasiGenOutputFormat.Mp3 => (Cli.SireumPresentasiText2speechOutputFormat.Mp3, "mp3")
-      case Cli.SireumPresentasiGenOutputFormat.Wav => (Cli.SireumPresentasiText2speechOutputFormat.Wav, "wav")
+      case Cli.SireumPresentasiGenOutputFormat.Mp3 if o.service != Cli.SireumPresentasiGenService.Mary =>
+        (Cli.SireumPresentasiText2speechOutputFormat.Mp3, "mp3")
+      case _ => (Cli.SireumPresentasiText2speechOutputFormat.Wav, "wav")
     }
 
     def processText(text: String, start: Z): (ISZ[Media], Z) = {
