@@ -4667,7 +4667,7 @@ import Cli._
     val help =
       st"""Sireum Presentasi Generator
           |
-          |Usage: <option>* <path>
+          |Usage: <option>* <path> <arg>*
           |
           |Available Options:
           |    --force              Overwrite output file(s)

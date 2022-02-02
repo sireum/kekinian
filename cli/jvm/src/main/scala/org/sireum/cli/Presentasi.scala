@@ -453,10 +453,7 @@ object Presentasi {
 
     val path: Os.Path = o.args match {
       case ISZ() => return printHelp(o.help)
-      case ISZ(p) => Os.path(p).canon
-      case _ =>
-        eprintln(st"Invalid arguments: ${(o.args, " ")}".render)
-        return INVALID_ARGS
+      case ISZ(p, _*) => Os.path(p).canon
     }
     val presentasi = path / "bin" / "presentasi.cmd"
     if (!presentasi.exists) {
@@ -465,8 +462,8 @@ object Presentasi {
     }
 
     val outTemp = Os.temp()
-    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(presentasi.string), None(),
-      Some(outTemp.string), F, F))
+    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(presentasi.string, o.service.string,
+      o.voice.getOrElseEager("default")) ++ ops.ISZOps(o.args).drop(1), None(), Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(outTemp.read)
       return INVALID_SPEC
@@ -731,15 +728,16 @@ object Presentasi {
                 1.0
               }
               medias = medias :+ Video(target.name, dur, curr + gap, start, end, entry.textOpt.nonEmpty, volume, rate)
+              val newCurr = curr + gap + (
+                if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
+                else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
               entry.textOpt match {
                 case Some(text) =>
                   val (sounds, last) = processText(text, curr)
                   medias = medias ++ sounds
-                  curr = last
+                  curr = if (entry.useVideoDuration) newCurr else last
                 case _ =>
-                  curr = curr + gap + (
-                    if (end == 0.0) conversions.R.toZ(conversions.Z.toR(dur) / conversions.F64.toR(rate)) + 1
-                    else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
+                  curr = newCurr
               }
             case _ =>
               reporter.error(None(), "presentasi", s"Could not load video ${entry.path}")

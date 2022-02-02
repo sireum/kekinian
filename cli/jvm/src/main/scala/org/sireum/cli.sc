@@ -109,7 +109,7 @@ val pgenTool: Tool = Tool(
   command = "gen",
   description = "Presentation generator",
   header = "Sireum Presentasi Generator",
-  usage = "<option>* <path>",
+  usage = "<option>* <path> <arg>*",
   usageDescOpt = None(),
   opts = (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
