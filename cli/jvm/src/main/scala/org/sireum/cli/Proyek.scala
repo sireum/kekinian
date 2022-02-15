@@ -382,7 +382,7 @@ object Proyek {
       ideaDir = ideaDir.canon,
       isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
       isServer = o.edition == Cli.SireumProyekIveEdition.Server,
-      isDev = o.edition != Cli.SireumProyekIveEdition.Community || SireumApi.isDev,
+      isDev = SireumApi.isDev,
       force = o.force
     )
 
