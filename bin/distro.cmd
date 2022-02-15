@@ -589,7 +589,8 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
   } else {
     val ideaDirParent = ideaDir.up.canon
     proc"tar xfz $ideaDrop".at(ideaDirParent).runCheck()
-    for (p <- ideaDirParent.list if ops.StringOps(p.name).startsWith("idea-IC-")) {
+
+    for (p <- ideaDirParent.list if ops.StringOps(p.name).startsWith(s"idea-${if (isUltimate) "IU" else "IC"}-")) {
       p.moveOverTo(ideaDir)
     }
   }
