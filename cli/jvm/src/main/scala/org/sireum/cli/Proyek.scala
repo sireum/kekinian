@@ -569,13 +569,13 @@ object Proyek {
       skipTypes = o.skipTypes,
       reporter = reporter
     )
+    reporter.printMessages()
     if (lcode == 0) {
       println()
       println("Logika verified!")
       return 0
     } else {
       println()
-      reporter.printMessages()
       return ILL_FORMED_PROGRAMS
     }
   }
