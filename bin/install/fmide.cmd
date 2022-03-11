@@ -45,25 +45,25 @@ import Cli._
           |
           |Available Options:
           |    --agree              AGREE version (expects a string; default is
-          |                           "agree_2.7.0")
+          |                           "agree_2.8.0")
           |    --briefcase          BriefCASE version (expects a string; default is
-          |                           "briefcase_0.5.1")
+          |                           "briefcase_0.7.0")
           |    --eclipse            Eclipse release version (expects a string; default is
-          |                           "2020-06")
+          |                           "2021-03")
           |    --hamr               Sireum HAMR version (expects a string; default is
           |                           "1.0.2109141821.effe14b")
           |    --osate              OSATE version (expects a string; default is
-          |                           "2.9.0-vfinal")
+          |                           "2.10.2-vfinal")
           |    --resolute           Resolute version (expects a string; default is
-          |                           "resolute_2.7.1")
+          |                           "resolute_3.0.0")
           |-h, --help               Display this information""".render
 
-    var agree: Option[String] = Some("agree_2.7.0")
-    var briefcase: Option[String] = Some("briefcase_0.5.1")
-    var eclipse: Option[String] = Some("2020-06")
+    var agree: Option[String] = Some("agree_2.8.0")
+    var briefcase: Option[String] = Some("briefcase_0.7.0")
+    var eclipse: Option[String] = Some("2021-03")
     var hamr: Option[String] = Some("1.0.2109141821.effe14b")
-    var osate: Option[String] = Some("2.9.0-vfinal")
-    var resolute: Option[String] = Some("resolute_2.7.1")
+    var osate: Option[String] = Some("2.10.2-vfinal")
+    var resolute: Option[String] = Some("resolute_3.0.0")
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -380,15 +380,15 @@ val eclipseVersion = option.eclipse.get
 val osateVersion = option.osate.get
 
 val agreeId = "com.rockwellcollins.atc.agree.feature.feature.group"
-val agreeUrl = "https://raw.githubusercontent.com/loonwerks/AGREE-Updates/master"
+val agreeUrl = "http://ca-trustedsystems-dev-us-east-1.s3-website-us-east-1.amazonaws.com/p2/snapshots/agree/,https://raw.githubusercontent.com/loonwerks/AGREE-Updates/master"
 val agreeVersion = lookupVersion("AGREE", agreeUrl, option.agree.get)
 
 val resoluteId = "com.rockwellcollins.atc.resolute.feature.feature.group"
-val resoluteUrl = "https://raw.githubusercontent.com/loonwerks/Resolute-Updates/master"
+val resoluteUrl = "http://ca-trustedsystems-dev-us-east-1.s3-website-us-east-1.amazonaws.com/p2/snapshots/resolute/,https://raw.githubusercontent.com/loonwerks/Resolute-Updates/master"
 val resoluteVersion = lookupVersion("Resolute", resoluteUrl, option.resolute.get)
 
 val briefCaseId = "com.collins.trustedsystems.briefcase.feature.feature.group"
-val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,https://raw.githubusercontent.com/loonwerks/BriefCASE-Updates/master"
+val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,http://ca-trustedsystems-dev-us-east-1.s3-website-us-east-1.amazonaws.com/p2/snapshots/briefcase/,https://raw.githubusercontent.com/loonwerks/BriefCASE-Updates/master"
 val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase.get)
 
 val hamrCliId = "org.sireum.aadl.osate.cli.feature.feature.group"
