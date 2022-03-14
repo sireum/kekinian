@@ -95,7 +95,8 @@ object Phantom {
     }
 
     // directory supplied via arg, or options filled in, but not both
-    val dirOrProj = projectDir.nonEmpty != (projects.nonEmpty && main.nonEmpty && o.impl.nonEmpty)
+    val dirOrProj = (projectDir.nonEmpty && (projects.isEmpty && main.isEmpty && o.impl.isEmpty)) ||
+      (projectDir.isEmpty && (projects.nonEmpty && main.nonEmpty && o.impl.nonEmpty))
 
     val justInstall = o.update && projectDir.isEmpty && (projects.isEmpty && main.isEmpty && o.impl.isEmpty)
 
@@ -122,13 +123,14 @@ object Phantom {
 
         val cliFeature: PFeature = PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
         val hamrFeature: PFeature = PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
+        val awasFeature: PFeature = PFeature("AWAS", "org.sireum.aadl.osate.awas.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
 
         def add(f: PFeature, _features: ISZ[PFeature]): ISZ[PFeature] = {
           if(!ops.ISZOps(_features).exists(p => p.id == f.id)) { return _features :+ f }
           else { return _features }
         }
 
-        features = add(hamrFeature, add(cliFeature, features))
+        features = add(awasFeature, add(hamrFeature, add(cliFeature, features)))
 
         if (ret == 0 && (o.update || !phantom.featuresInstalled(features, osateExe))) {
           ret = phantom.update(osateExe, features)
