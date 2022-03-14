@@ -24,6 +24,7 @@ object Cli {
   @datatype class FmideOption(
     val help: String,
     val args: ISZ[String],
+    val awas: Option[String],
     val agree: Option[String],
     val briefcase: Option[String],
     val eclipse: Option[String],
@@ -44,6 +45,8 @@ import Cli._
           |Usage: <option>* [ fixed | latest ]
           |
           |Available Options:
+          |    --awas               AWAS version (expects a string; default is
+          |                           "1.2022.01051723.29d9922")
           |    --agree              AGREE version (expects a string; default is
           |                           "agree_2.8.0")
           |    --briefcase          BriefCASE version (expects a string; default is
@@ -51,17 +54,18 @@ import Cli._
           |    --eclipse            Eclipse release version (expects a string; default is
           |                           "2021-03")
           |    --hamr               Sireum HAMR version (expects a string; default is
-          |                           "1.0.2109141821.effe14b")
+          |                           "1.2022.01051723.29d9922")
           |    --osate              OSATE version (expects a string; default is
           |                           "2.10.2-vfinal")
           |    --resolute           Resolute version (expects a string; default is
           |                           "resolute_3.0.0")
           |-h, --help               Display this information""".render
 
+    var awas: Option[String] = Some("1.2022.01051723.29d9922")
     var agree: Option[String] = Some("agree_2.8.0")
     var briefcase: Option[String] = Some("briefcase_0.7.0")
     var eclipse: Option[String] = Some("2021-03")
-    var hamr: Option[String] = Some("1.0.2109141821.effe14b")
+    var hamr: Option[String] = Some("1.2022.01051723.29d9922")
     var osate: Option[String] = Some("2.10.2-vfinal")
     var resolute: Option[String] = Some("resolute_3.0.0")
     var j = i
@@ -72,7 +76,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--agree") {
+        } else if (arg == "--awas") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => awas = v
+             case _ => return None()
+           }
+         } else if (arg == "--agree") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => agree = v
@@ -117,7 +127,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(FmideOption(help, parseArguments(args, j), agree, briefcase, eclipse, hamr, osate, resolute))
+    return Some(FmideOption(help, parseArguments(args, j), awas, agree, briefcase, eclipse, hamr, osate, resolute))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
@@ -391,12 +401,14 @@ val briefCaseId = "com.collins.trustedsystems.briefcase.feature.feature.group"
 val briefCaseUrl = s"https://download.eclipse.org/releases/$eclipseVersion,http://ca-trustedsystems-dev-us-east-1.s3-website-us-east-1.amazonaws.com/p2/snapshots/briefcase/,https://raw.githubusercontent.com/loonwerks/BriefCASE-Updates/master"
 val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase.get)
 
+val awasId = "org.sireum.aadl.osate.awas.feature.feature.group"
 val hamrCliId = "org.sireum.aadl.osate.cli.feature.feature.group"
 val hamrId = "org.sireum.aadl.osate.hamr.feature.feature.group"
 val hamrUrl = "https://raw.githubusercontent.com/sireum/osate-update-site/master"
 val hamrVersion: String = lookupVersion("HAMR", hamrUrl, option.hamr.get)
+val awasVersion: String = lookupVersion("AWAS", hamrUrl, option.awas.get)
 
-val features = s"$hamrCliId=$hamrUrl/$hamrVersion;$hamrId=$hamrUrl/$hamrVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
+val features = s"$hamrCliId=$hamrUrl/$hamrVersion;$hamrId=$hamrUrl/$hamrVersion;$awasId=$hamrUrl/$awasVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
 val verContent = s"eclipse=$eclipseVersion;osate=$osateVersion;$features"
 val ver: Os.Path = if (Os.isMac) fmideDir / "Contents" / "Eclipse" / "VER"  else fmideDir / "VER"
 

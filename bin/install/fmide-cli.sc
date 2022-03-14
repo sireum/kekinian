@@ -10,6 +10,8 @@ val fmideTool: Tool = Tool(
   usage = "<option>* [ fixed | latest ]",
   usageDescOpt = None(),
   opts = ISZ(
+    Opt(name = "awas", longKey = "awas", shortKey = None(),
+      tpe = Type.Str(sep = None(), default = Some("1.2022.01051723.29d9922")), description = "AWAS version"),
     Opt(name = "agree", longKey = "agree", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("agree_2.8.0")), description = "AGREE version"),
     Opt(name = "briefcase", longKey = "briefcase", shortKey = None(),
@@ -17,7 +19,7 @@ val fmideTool: Tool = Tool(
     Opt(name = "eclipse", longKey = "eclipse", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("2021-03")), description = "Eclipse release version"),
     Opt(name = "hamr", longKey = "hamr", shortKey = None(),
-      tpe = Type.Str(sep = None(), default = Some("1.0.2109141821.effe14b")), description = "Sireum HAMR version"),
+      tpe = Type.Str(sep = None(), default = Some("1.2022.01051723.29d9922")), description = "Sireum HAMR version"),
     Opt(name = "osate", longKey = "osate", shortKey = None(),
       tpe = Type.Str(sep = None(), default = Some("2.10.2-vfinal")), description = "OSATE version"),
     Opt(name = "resolute", longKey = "resolute", shortKey = None(),
