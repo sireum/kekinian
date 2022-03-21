@@ -25,11 +25,11 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val compCertVersion = "3.9"
-val menhirVersion = "20210310"
-val coqVersion = "8.13.2"
-val ocamlVersion = "4.12.0"
-val opamVersion = "2.0.8"
+val compCertVersion = "3.10"
+val menhirVersion = "20220210"
+val coqVersion = "8.15.0"
+val ocamlVersion = "4.13.1"
+val opamVersion = "2.1.2"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(4).string
