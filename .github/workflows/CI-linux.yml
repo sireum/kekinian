@@ -50,4 +50,6 @@ jobs:
           cd $GITHUB_WORKSPACE
           .ci/build.sh test
           .ci/linux-native.sh
+          bin/install/projector-server.cmd
+          bin/install/ffmpeg-libs.cmd
 
