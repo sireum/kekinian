@@ -121,6 +121,7 @@ object Phantom {
           }
         }
 
+        val baseFeature: PFeature = PFeature("Sireum", "org.sireum.aadl.osate.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
         val cliFeature: PFeature = PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
         val hamrFeature: PFeature = PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
         val awasFeature: PFeature = PFeature("AWAS", "org.sireum.aadl.osate.awas.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
@@ -130,7 +131,7 @@ object Phantom {
           else { return _features }
         }
 
-        features = add(awasFeature, add(hamrFeature, add(cliFeature, features)))
+        features = add(baseFeature, add(awasFeature, add(hamrFeature, add(cliFeature, features))))
 
         if (ret == 0 && (o.update || !phantom.featuresInstalled(features, osateExe))) {
           ret = phantom.update(osateExe, features)
