@@ -73,14 +73,14 @@ things up by virtue of having no JVM boot up time.
 
 * **Logika**: The Sireum Verification Framework. 
 
-  (see it in action in the [2022 TCCoE presentation](https://github.com/sireum/tccoe22-logika);
+  (see it in action in the [TCCoE 2022 presentation](https://github.com/sireum/tccoe22-logika);
   the Logika predecessor pedagogical tool for teaching, along with its documentation and course notes, are available at:
   http://logika.v3.sireum.org)
 
 
 * **IVE**: Slang IntelliJ-based **I**ntegrated **V**erification **E**nvironment
 
-  (see it in action in the [2022 TCCoE presentation](https://github.com/sireum/tccoe22-logika))
+  (see it in action in the [TCCoE 2022 presentation on Logika](https://github.com/sireum/tccoe22-logika))
 
 
 * **Proyek**: Incremental and Parallel Slang Build Tool
@@ -105,7 +105,7 @@ things up by virtue of having no JVM boot up time.
 * **Presentasi**: JavaFX Presentation Generator from Slang-based Specifications
 
   (including text-to-speech synthesizers; [simple example](https://github.com/sireum/presentasi-example),
-  [2022 TCCoE Presentasion on Logika](https://github.com/sireum/tccoe22-logika))
+  [TCCoE 2022 presentation on Logika](https://github.com/sireum/tccoe22-logika))
 
 
 ## Installing
