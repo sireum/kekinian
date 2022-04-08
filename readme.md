@@ -71,16 +71,16 @@ things up by virtue of having no JVM boot up time.
   (ISoLA 2021: [presentation](https://bit.ly/hamr-isola21), [paper](https://link.springer.com/chapter/10.1007%2F978-3-030-89159-6_18)) 
 
 
-* **Logika**: Slang Program Verifier and Proof Assistant 
+* **Logika**: The Sireum Verification Framework. 
 
-  (see it in action as part of the [Slang ISoLA 2021 presentation](https://bit.ly/slang-isola21);
+  (see it in action in the [2022 TCCoE presentation](https://github.com/sireum/tccoe22-logika);
   the Logika predecessor pedagogical tool for teaching, along with its documentation and course notes, are available at:
   http://logika.v3.sireum.org)
 
 
 * **IVE**: Slang IntelliJ-based **I**ntegrated **V**erification **E**nvironment
 
-  (see it in action as part of the [Slang ISoLA 2021 presentation](https://bit.ly/slang-isola21))
+  (see it in action in the [2022 TCCoE presentation](https://github.com/sireum/tccoe22-logika))
 
 
 * **Proyek**: Incremental and Parallel Slang Build Tool
@@ -104,7 +104,8 @@ things up by virtue of having no JVM boot up time.
 
 * **Presentasi**: JavaFX Presentation Generator from Slang-based Specifications
 
-  (including text-to-speech synthesizers; [example](https://github.com/sireum/presentasi-example))
+  (including text-to-speech synthesizers; [simple example](https://github.com/sireum/presentasi-example),
+  [2022 TCCoE Presentasion on Logika](https://github.com/sireum/tccoe22-logika))
 
 
 ## Installing
