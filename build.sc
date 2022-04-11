@@ -115,6 +115,7 @@ object parser extends Parser.Module with runtime.testProvider {
 object hamr extends mill.Module {
 
   object air extends Air.Module {
+    final override def slangTipeObject = slang.tipe
     final override def libraryObject = runtime.library
     final override def testObject = runtime.test
   }
@@ -127,6 +128,8 @@ object hamr extends mill.Module {
 
     object common extends Codegen.Module.Common {
       final override def airObject = air
+
+      final override def slangFrontendObject = slang.frontend
     }
 
     object act extends Act.Module {
