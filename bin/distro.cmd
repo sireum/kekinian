@@ -146,7 +146,7 @@ val homeBin = Os.slashDir
 val home = homeBin.up.canon
 val ideaDir: Os.Path = home / "bin" / platform / (if (isServer) "idea-server" else if (isUltimate) "idea-ultimate" else "idea")
 val sireumAppDir: Os.Path = ideaDir / s"IVE.app"
-val delPlugins = ISZ[String]("android", "Kotlin", "smali", "Ktor")
+val delPlugins = ISZ[String]("android", "smali", "Ktor")
 val pluginPrefix: String = "org.sireum.version.plugin."
 val versions = HashMap ++ (home / "versions.properties").properties.entries
 
@@ -466,17 +466,17 @@ def patchIcon(isWin: B): Unit = {
   }
 }
 
-def patchPlatformImpl(): Unit = {
+def patchApp(): Unit = {
   if (isUltimate) {
     return
   }
   val iconsPath = home / "resources" / "distro" / "icons"
-  val platformImplJar = libDir / "platform-impl.jar"
-  val tempDir = libDir / "platform-impl-temp"
+  val appJar = libDir / "app.jar"
+  val tempDir = libDir / "app-temp"
   tempDir.removeAll()
   tempDir.mkdirAll()
-  print(s"Patching $platformImplJar ... ")
-  platformImplJar.unzipTo(tempDir)
+  print(s"Patching $appJar ... ")
+  appJar.unzipTo(tempDir)
   val entriesToUpdate: ISZ[String] =
     for (f <- ISZ[String](
       "Logo_welcomeScreen.png",
@@ -519,9 +519,9 @@ def patchPlatformImpl(): Unit = {
   for (e <- ISZ("idea_community_about.png", "idea_community_about@2x.png", "idea_community_logo.png", "idea_community_logo@2x.png", "idea-ce.svg", "idea-ce-eap.svg", "idea-ce_16.png", "idea-ce_16@2x.png")) {
     (d / e).copyOverTo(tempDir / e)
   }
-  val platformImplTempJar = libDir / "platform-impl-temp.jar"
-  tempDir.zipTo(platformImplTempJar)
-  platformImplTempJar.moveOverTo(platformImplJar)
+  val appTempJar = libDir / "app-temp.jar"
+  tempDir.zipTo(appTempJar)
+  appTempJar.moveOverTo(appJar)
   tempDir.removeAll()
   println("done!")
 }
@@ -561,7 +561,7 @@ def setupMac(ideaDrop: Os.Path): Unit = {
   deletePlugins()
   extractPlugins()
   patchIcon(F)
-  patchPlatformImpl()
+  patchApp()
   patchIdeaProperties(sireumAppDir / "Contents" / "Info.plist")
   patchVMOptions(sireumAppDir / "Contents" / "bin" / "idea.vmoptions")
   proc"codesign --force --deep --sign - $sireumAppDir".run()
@@ -601,7 +601,7 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
   deletePlugins()
   extractPlugins()
   patchIcon(F)
-  patchPlatformImpl()
+  patchApp()
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.vmoptions")
   (ideaDir / "bin" / "idea.vmoptions").removeAll()
@@ -652,7 +652,7 @@ def setupWin(ideaDrop: Os.Path): Unit = {
   deletePlugins()
   extractPlugins()
   patchIcon(T)
-  patchPlatformImpl()
+  patchApp()
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.exe.vmoptions")
   (ideaDir / "bin" / "idea.exe").removeAll()
