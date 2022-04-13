@@ -71,7 +71,7 @@ things up by virtue of having no JVM boot up time.
   (ISoLA 2021: [presentation](https://bit.ly/hamr-isola21), [paper](https://link.springer.com/chapter/10.1007%2F978-3-030-89159-6_18)) 
 
 
-* **Logika**: The Sireum Verification Framework. 
+* **Logika**: The Sireum Verification Framework
 
   (see it in action in the [TCCoE 2022 presentation](https://github.com/sireum/tccoe22-logika);
   the Logika predecessor pedagogical tool for teaching, along with its documentation and course notes, are available at:
@@ -376,11 +376,11 @@ then, to build Sireum native executable:
   ```
 
 * **Windows**:
+    
+  * Visual Studio 2022 Enterprise
 
-  * Visual Studio 2017 Community
-  
     ```cmd
-    call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
     %SIREUM_HOME%\bin\build.cmd native
     ```
 
@@ -388,6 +388,13 @@ then, to build Sireum native executable:
   
     ```cmd
     call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+    %SIREUM_HOME%\bin\build.cmd native
+    ```
+
+  * Visual Studio 2017 Community
+  
+    ```cmd
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
     %SIREUM_HOME%\bin\build.cmd native
     ```
   
