@@ -139,21 +139,7 @@ the appropriate [Minisign](https://jedisct1.github.io/minisign/) signature file
 for the specific platform, then run:
 
 ```console
-minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -Vm <installer-file>
-```
-
-Alternatively, you can also use a port of [OpenBSD's signify](https://man.openbsd.org/signify) for your
-operating system (e.g., `signify-openbsd` in Ubuntu) instead of `minisign` as follows:
-
-```console
-signify-openbsd -V -p sireum.pub -x <installer-file>.minisig -m <installer-file>
-```
-
-where `sireum.pub`'s content is:
-
-```
-untrusted comment: Sireum
-RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb
+minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -VHm <installer-file>
 ```
 
 Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [Using Sireum](#using-sireum).
