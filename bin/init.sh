@@ -67,7 +67,7 @@ uncompress() {
   elif hash 7z 2>/dev/null; then
     7z x -y $1 > /dev/null
   else
-    echo "Either unzip or 7z is required, but none found."
+    >&2 echo "Either unzip or 7z is required, but none found."
     exit 1
   fi
 }
@@ -78,7 +78,7 @@ download() {
   elif hash wget 2>/dev/null; then
     wget -qO $1 $2
   else
-    echo "Either curl or wget is required, but none found."
+    >&2 echo "Either curl or wget is required, but none found."
     exit 1
   fi
 }
