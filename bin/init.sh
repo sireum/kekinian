@@ -94,14 +94,14 @@ SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd ${SIREUM_HOME}
 if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
-  $(download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar)
+  download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar
   chmod +x bin/sireum.jar
   if [[ ! -f bin/sireum ]]; then
-    $(download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum)
+    download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
     chmod +x bin/sireum
   fi
   if [[ ! -f versions.properties ]]; then
-    $(download versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties)
+    download versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   fi
   echo
 fi
@@ -119,7 +119,7 @@ cd ${SIREUM_HOME}/lib
 if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
   if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
     echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-    $(download ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL})
+    download ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
     echo
   fi
   cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
@@ -140,10 +140,10 @@ grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_U
 if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
   if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
     echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
-    $(download ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL})
+    download ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
   fi
   echo "Extracting Scala ${SCALA_VERSION} ..."
-  $(uncompress ${SIREUM_CACHE}/${SCALA_DROP})
+  uncompress ${SIREUM_CACHE}/${SCALA_DROP}
   echo
   rm -fR scala
   mv scala-${SCALA_VERSION} scala
@@ -200,7 +200,7 @@ grep -q ${JAVA_VERSION} java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDAT
 if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
   if [[ ! -f ${SIREUM_CACHE}/${JAVA_DROP} ]]; then
       echo "Please wait while downloading ${JAVA_NAME} ${JAVA_VERSION} ..."
-      $(download  ${SIREUM_CACHE}/${JAVA_DROP} ${JAVA_DROP_URL})
+      download  ${SIREUM_CACHE}/${JAVA_DROP} ${JAVA_DROP_URL}
   fi
   echo "Extracting ${JAVA_NAME} ${JAVA_VERSION} ..."
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
@@ -208,7 +208,7 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
     rm -fR java
     mv ${JAVA_DIR} java
   else
-    $(uncompress ${SIREUM_CACHE}/${JAVA_DROP})
+    uncompress ${SIREUM_CACHE}/${JAVA_DROP}
     rm -fR java
     mv ${JAVA_DIR} java
   fi
