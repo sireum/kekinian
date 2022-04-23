@@ -471,6 +471,12 @@ object Cli {
     val gzip: B
   ) extends SireumTopOption
 
+  @enum object SireumSlangTranspilersCAnvilExecutionPass {
+    'None
+    'First
+    'Second
+  }
+
   @datatype class SireumSlangTranspilersCOption(
     val help: String,
     val args: ISZ[String],
@@ -496,7 +502,9 @@ object Cli {
     val save: Option[String],
     val load: Option[String],
     val customConstants: ISZ[String],
-    val forwarding: ISZ[String]
+    val forwarding: ISZ[String],
+    val anvilTranspilerPass: SireumSlangTranspilersCAnvilExecutionPass.Type,
+    val anvilTranspilerContext: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumPresentasiGenOutputFormat {
@@ -4332,6 +4340,26 @@ import Cli._
     }
   }
 
+  def parseSireumSlangTranspilersCAnvilExecutionPassH(arg: String): Option[SireumSlangTranspilersCAnvilExecutionPass.Type] = {
+    arg.native match {
+      case "none" => return Some(SireumSlangTranspilersCAnvilExecutionPass.None)
+      case "first" => return Some(SireumSlangTranspilersCAnvilExecutionPass.First)
+      case "second" => return Some(SireumSlangTranspilersCAnvilExecutionPass.Second)
+      case s =>
+        eprintln(s"Expecting one of the following: { none, first, second }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumSlangTranspilersCAnvilExecutionPass(args: ISZ[String], i: Z): Option[SireumSlangTranspilersCAnvilExecutionPass.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { none, first, second }, but none found.")
+      return None()
+    }
+    val r = parseSireumSlangTranspilersCAnvilExecutionPassH(args(i))
+    return r
+  }
+
   def parseSireumSlangTranspilersC(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Slang Embedded To C Transpiler
@@ -4403,7 +4431,16 @@ import Cli._
           |                           expression (expects a string separated by ";")
           |-w, --forward            Object forwarding, each in form of <name>=<name>,
           |                           where <name> is a fully qualified name of an object
-          |                           (expects a string separated by ",")""".render
+          |                           (expects a string separated by ",")
+          |
+          |Anvil Options:
+          |    --anvil-transpiler-pass
+          |                          Instructs the transpiler to run a particular Anvil
+          |                           transpiler pass with option. (expects one of { none,
+          |                           first, second }; default: none)
+          |    --anvil-transpiler-context
+          |                          Additional information for the transpiler. (expects a
+          |                           string separated by ";")""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
@@ -4428,6 +4465,8 @@ import Cli._
     var load: Option[String] = None[String]()
     var customConstants: ISZ[String] = ISZ[String]()
     var forwarding: ISZ[String] = ISZ[String]()
+    var anvilTranspilerPass: SireumSlangTranspilersCAnvilExecutionPass.Type = SireumSlangTranspilersCAnvilExecutionPass.None
+    var anvilTranspilerContext: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -4574,6 +4613,18 @@ import Cli._
              case Some(v) => forwarding = v
              case _ => return None()
            }
+         } else if (arg == "--anvil-transpiler-pass") {
+           val o: Option[SireumSlangTranspilersCAnvilExecutionPass.Type] = parseSireumSlangTranspilersCAnvilExecutionPass(args, j + 1)
+           o match {
+             case Some(v) => anvilTranspilerPass = v
+             case _ => return None()
+           }
+         } else if (arg == "--anvil-transpiler-context") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => anvilTranspilerContext = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -4583,7 +4634,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumSlangTranspilersCOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding))
+    return Some(SireumSlangTranspilersCOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, apps, bitWidth, projectName, stackSize, customArraySizes, maxArraySize, maxStringSize, cmakeIncludes, exts, libOnly, excludeBuild, plugins, fingerprint, stableTypeId, unroll, save, load, customConstants, forwarding, anvilTranspilerPass, anvilTranspilerContext))
   }
 
   def parseSireumPresentasi(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -6161,5 +6212,4 @@ import Cli._
 // @formatter:on
 
 // BEGIN USER CODE
-
 // END USER CODE
