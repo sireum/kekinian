@@ -364,7 +364,7 @@ object Sireum {
           case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
           case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o)
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
-          case Some(o: Cli.SireumAnvilCompileOption) => return cli.Anvil.compile(o, File.pathSeparatorChar)
+          case Some(o: Cli.SireumAnvilCompileOption) => return cli.Anvil.compile(o, Os.pathSepChar)
           case Some(o: Cli.SireumAnvilSandboxOption) => return cli.Anvil.sandbox(o)
           case Some(_: Cli.HelpOption) => return 0
           case Some(o: Cli.SireumServerOption) =>
