@@ -4,8 +4,6 @@ while [[ -h $SIREUM_SCRIPT ]]; do DIR=$(dirname "$SIREUM_SCRIPT"); SYM=$(readlin
 export SIREUM_HOME=$(cd -P $(dirname "$SIREUM_SCRIPT")/.. && pwd -P)
 if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
   SIREUM_PROVIDED_JAVA=true
-else
-  SCALA_HOME=$SIREUM_HOME/bin/scala
 fi
 JAVA=java
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
@@ -37,6 +35,9 @@ elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
   if [[ -d "${SIREUM_HOME}/lib/$PLATFORM" ]]; then
     export LD_LIBRARY_PATH=${SIREUM_HOME}/lib/$PLATFORM:$LD_LIBRARY_PATH
   fi
+fi
+if [[ -z ${SIREUM_PROVIDED_SCALA} ]]; then
+  export SCALA_HOME=$SIREUM_HOME/bin/scala
 fi
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
 if [[ -f ${NATIVE} ]] && [[ ${NATIVE} -nt ${SIREUM_JAR} ]]; then
