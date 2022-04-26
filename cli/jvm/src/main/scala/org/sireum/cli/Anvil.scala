@@ -44,25 +44,22 @@ object Anvil {
     return AnvilSandbox.install(context)
   }
 
-  // needs pathSep because File.pathSeparatorChar is java.io
-  def compile(args: Cli.SireumAnvilCompileOption, pathSep: C): Z = {
-    expect(args.transpilerArgs.nonEmpty, st"Transpiler args cannot be empty.")
-    expect(args.transpilerArgs.map((pathString: String) => Os.path(pathString)).exists(path => path.exists && path.isFile), st"The transpiler-args.")
-    expect(args.stage.nonEmpty, st"At least one stage must be specified.")
-
-    val unparsed: ISZ[String] = Os.path(args.transpilerArgs.get).readLines
-    val parseResult: Option[Cli.SireumTopOption] = Cli(pathSep).parseSireumSlangTranspilers(unparsed, z"0")
-    val optWorkspace: Option[CompileContext] = parseResult.flatMap((cliOpt: Cli.SireumTopOption) => convertCliOpt(args, cliOpt))
-
-    expect(optWorkspace.nonEmpty, st"Unable to parse transpiler args")
-    val context: CompileContext = optWorkspace.get
-
-    return AnvilCompiler.compile(context)
+  def compile(args: Cli.SireumAnvilCompileOption): Z = {
+    validate(args) // fail fast if possible
+    val hc: HardwareContext = HardwareContext_Zynq_7000_SoC_ZedBoard() // hardware descriptors
+    val tc: ToolchainContext = DefaultToolchainContext() // toolchain support
+    val ec: ExecutionContext = createExecutionContext(args) // execution plan
+    val tm = (m: TranspilersCOptionMirror) => CTranspiler.run(mirrorToPrototype(m))
+    return AnvilCompiler.compile(hc, tc, ec, tm)
   }
 
-  def handleTranspilerArgs(args: Cli.SireumAnvilCompileOption, transpilerArgs: Cli.SireumSlangTranspilersCOption): CompileContext = {
-    expect(transpilerArgs.output.nonEmpty, st"The transpiler does not support a default --output path when called by anvil.")
+  def validate(args: Cli.SireumAnvilCompileOption): Unit = {
+    expect(args.stage.nonEmpty, st"At least one stage must be specified.")
+    expect(args.transpilerArgs.nonEmpty, st"Transpiler args cannot be empty.")
+    expect(args.transpilerArgs.map((pathString: String) => Os.path(pathString)).exists(path => path.exists && path.isFile), st"The transpiler-args.")
+  }
 
+  def createExecutionContext(args: Cli.SireumAnvilCompileOption): ExecutionContext = {
     /*
      * Creates a new SandboxContext and hides its implementation type
      */
@@ -89,13 +86,17 @@ object Anvil {
     }
 
     // convert cliOpt stages to a Set of anvil stages
-    val stages: ISZ[Context.CompileStage.Type] = args.stage.flatMap((s: SireumAnvilCompileStage.Type) => convertStage(s))
+    val stages: ISZ[Context.CompileStage.Type] = {
+      expect(args.stage.nonEmpty, st"At least one stage must be specified.")
+      args.stage.flatMap((s: SireumAnvilCompileStage.Type) => convertStage(s))
+    }
 
     // validate the passed sandbox-path (if present)
     // todo confirm that path has VagrantFile (easy sanity check for users)
     val sandboxRoot: Option[Os.Path] = getPathOpt(string"sandbox-path", args.sandboxPath, true)
 
     // get the workspace's root path
+    val transpilerArgs = parseTranspilerArgs(args)
     val projectRoot: Os.Path = getPath(string"output-dir", transpilerArgs.output, false)
 
     // parse and validate method descriptor
@@ -103,23 +104,36 @@ object Anvil {
     val methodName = ISZOps(methodDescriptor).last
 
     // create the project and (optionally) the sandbox to interact with the project in
-    val project: ProjectContext = SimpleProjectContext(ProjectWorkspace(projectRoot), methodName, transpilerArgs.apps)
+    val mirror: TranspilersCOptionMirror = prototypeToMirror(transpilerArgs)
+    val project: ProjectContext = SimpleProjectContext(ProjectWorkspace(projectRoot), methodName, mirror)
     val sandbox: Option[SandboxContext] = sandboxRoot
       .map((localPath: Os.Path) => SandboxWorkspace(localPath))
       .map((sandboxWorkspace: SandboxWorkspace) => createSandboxContext(sandboxWorkspace))
 
-    // full context for anvil compilation is the hardware, a supporting toolchain, and an execution plan
-    val hardware: HardwareContext = HardwareContext_Zynq_7000_SoC_ZedBoard()
-    val toolchain: ToolchainContext = DefaultToolchainContext()
-    val env = SimpleExecutionContext(project, sandbox, seqToSet(stages))
-
-    return DefaultCompileContext(hardware, toolchain, env)
+    return SimpleExecutionContext(project, sandbox, seqToSet(stages))
   }
 
-  def convertCliOpt(args: Cli.SireumAnvilCompileOption, cliOpt: Cli.SireumTopOption): Option[CompileContext] = {
-    cliOpt match {
-      case o: SireumSlangTranspilersCOption => Some[CompileContext](handleTranspilerArgs(args, o))
-      case _ => return None[CompileContext]()
+  def parseTranspilerArgs(args: Cli.SireumAnvilCompileOption): Cli.SireumSlangTranspilersCOption = {
+    val transpilerArgs: String = {
+      expect(args.transpilerArgs.nonEmpty, st"Transpiler args cannot be empty.")
+      expect(args.transpilerArgs.map((pathString: String) => Os.path(pathString)).exists(path => path.exists && path.isFile), st"The transpiler-args.")
+      args.transpilerArgs.get
+    }
+
+    val topOption: Cli.SireumTopOption = {
+      val cli = Cli(Os.pathSepChar)
+      val lines = Os.path(transpilerArgs).readLines
+      val cliOpt = cli.parseSireumSlangTranspilers(lines, z"0")
+      expect(cliOpt.nonEmpty, st"Unable to parse transpiler args $transpilerArgs")
+      cliOpt.get
+    }
+
+    topOption match {
+      case o: SireumSlangTranspilersCOption => {
+        expect(o.output.nonEmpty, st"The transpiler does not support a default --output path when called by anvil.")
+        return o
+      }
+      case e => halt(st"Expected transpiler args but got $e".render)
     }
   }
 
@@ -147,8 +161,86 @@ object Anvil {
   def expect(requirement: B, message: ST): Unit = {
     if (!requirement) {
       eprintln(message.render)
-      Os.exit(z"1")
+      halt(message.render)
     }
+  }
+
+  @pure def prototypeToMirror(prototype: SireumSlangTranspilersCOption): TranspilersCOptionMirror = {
+    @pure def convertInner(innerPrototype: SireumSlangTranspilersCAnvilExecutionPass.Type): TranspilersCAnvilExecutionPassMirror.Type = {
+      innerPrototype match {
+        case SireumSlangTranspilersCAnvilExecutionPass.None => return TranspilersCAnvilExecutionPassMirror.None
+        case SireumSlangTranspilersCAnvilExecutionPass.First => return TranspilersCAnvilExecutionPassMirror.First
+        case SireumSlangTranspilersCAnvilExecutionPass.Second => return TranspilersCAnvilExecutionPassMirror.Second
+      }
+    }
+    return TranspilersCOptionMirror(
+      help = prototype.help,
+      args = prototype.args,
+      sourcepath = prototype.sourcepath,
+      strictAliasing = prototype.strictAliasing,
+      output = prototype.output,
+      verbose = prototype.verbose,
+      apps = prototype.apps,
+      bitWidth = prototype.bitWidth,
+      projectName = prototype.projectName,
+      stackSize = prototype.stackSize,
+      customArraySizes = prototype.customArraySizes,
+      maxArraySize = prototype.maxArraySize,
+      maxStringSize = prototype.maxStringSize,
+      cmakeIncludes = prototype.cmakeIncludes,
+      exts = prototype.exts,
+      libOnly = prototype.libOnly,
+      excludeBuild = prototype.excludeBuild,
+      plugins = prototype.plugins,
+      fingerprint = prototype.fingerprint,
+      stableTypeId = prototype.stableTypeId,
+      unroll = prototype.unroll,
+      save = prototype.save,
+      load = prototype.load,
+      customConstants = prototype.customConstants,
+      forwarding = prototype.forwarding,
+      anvilTranspilerPass = convertInner(prototype.anvilTranspilerPass),
+      anvilTranspilerContext = prototype.anvilTranspilerContext
+    )
+  }
+
+  @pure def mirrorToPrototype(mirror: TranspilersCOptionMirror): SireumSlangTranspilersCOption = {
+    @pure def convertInner(innerMirror: TranspilersCAnvilExecutionPassMirror.Type): SireumSlangTranspilersCAnvilExecutionPass.Type = {
+      innerMirror match {
+        case TranspilersCAnvilExecutionPassMirror.None => return SireumSlangTranspilersCAnvilExecutionPass.None
+        case TranspilersCAnvilExecutionPassMirror.First => return SireumSlangTranspilersCAnvilExecutionPass.First
+        case TranspilersCAnvilExecutionPassMirror.Second => return SireumSlangTranspilersCAnvilExecutionPass.Second
+      }
+    }
+    return SireumSlangTranspilersCOption(
+      help = mirror.help,
+      args = mirror.args,
+      sourcepath = mirror.sourcepath,
+      strictAliasing = mirror.strictAliasing,
+      output = mirror.output,
+      verbose = mirror.verbose,
+      apps = mirror.apps,
+      bitWidth = mirror.bitWidth,
+      projectName = mirror.projectName,
+      stackSize = mirror.stackSize,
+      customArraySizes = mirror.customArraySizes,
+      maxArraySize = mirror.maxArraySize,
+      maxStringSize = mirror.maxStringSize,
+      cmakeIncludes = mirror.cmakeIncludes,
+      exts = mirror.exts,
+      libOnly = mirror.libOnly,
+      excludeBuild = mirror.excludeBuild,
+      plugins = mirror.plugins,
+      fingerprint = mirror.fingerprint,
+      stableTypeId = mirror.stableTypeId,
+      unroll = mirror.unroll,
+      save = mirror.save,
+      load = mirror.load,
+      customConstants = mirror.customConstants,
+      forwarding = mirror.forwarding,
+      anvilTranspilerPass = convertInner(mirror.anvilTranspilerPass),
+      anvilTranspilerContext = mirror.anvilTranspilerContext
+    )
   }
 
 }
