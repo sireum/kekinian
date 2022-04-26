@@ -9,6 +9,7 @@ del "%~dp0win\sireum.exe" > nul 2>&1
 del "%~dp0win\.sireum.exe" > nul 2>&1
 set JAVA=java.exe
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
+if not defined SIREUM_PROVIDED_SCALA set SCALA_HOME=%SIREUM_HOME%/bin/scala
 if not defined SIREUM_PROVIDED_JAVA set JAVA=%JAVA_HOME%\bin\java.exe
 copy /Y "%~dp0sireum.jar" "%~dp0.sireum-win.jar" > nul 2>&1
 "%JAVA%" -Djava.net.useSystemProxies=true %JAVA_OPTS% -jar "%~dp0.sireum-win.jar" %*
