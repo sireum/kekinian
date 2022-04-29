@@ -90,6 +90,7 @@ object HAMR {
                noProyekIve: B,
                noEmbedArt: B,
                devicesAsThreads: B,
+               genSbtMill: B,
                //
                slangAuxCodeDir: ISZ[String],
                slangOutputCDirectory: Option[String],
@@ -119,6 +120,7 @@ object HAMR {
       noProyekIve = noProyekIve,
       noEmbedArt = noEmbedArt,
       devicesAsThreads = devicesAsThreads,
+      genSbtMill = genSbtMill,
       //
       slangAuxCodeDirs = slangAuxCodeDir,
       slangOutputCDir = slangOutputCDirectory,
@@ -219,6 +221,7 @@ object HAMR {
       noProyekIve = o.noProyekIve,
       noEmbedArt = o.noEmbedArt,
       devicesAsThreads = o.devicesAsThreads,
+      genSbtMill = o.genSbtMill,
       //
       slangAuxCodeDirs = o.slangAuxCodeDirs,
       slangOutputCDir = o.slangOutputCDir,
