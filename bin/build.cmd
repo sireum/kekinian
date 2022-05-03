@@ -176,17 +176,17 @@ def installCVC(kind: Os.Kind.Type): Unit = {
     return
   }
 
-  val (sub, filename): (String, String) = (gen, kind) match {
-    case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Windows.exe")
-    case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux")
-    case (string"5", Os.Kind.Mac) => (s"cvc$gen-$version", s"cvc$gen-macOS")
-    case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe")
-    case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt")
-    case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt")
+  val (sub, filename, dropname): (String, String, String) = (gen, kind) match {
+    case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
+    case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
+    case (string"5", Os.Kind.Mac) => (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
+    case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
+    case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt", s"cvc$gen-$version-x86_64-linux-opt")
+    case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt", s"cvc$gen-$version-macos-opt")
     case _ => return
   }
 
-  val drop = cache / filename
+  val drop = cache / dropname
 
   if (!drop.exists) {
     println(s"Please wait while downloading CVC$gen $version ...")
