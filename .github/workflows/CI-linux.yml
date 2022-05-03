@@ -51,6 +51,4 @@ jobs:
           .ci/build.sh test
           .ci/linux-native.sh
           rm bin/linux/sireum
-          bin/build.cmd setup
-          bin/install/projector-server.cmd
           bin/install/ffmpeg-libs.cmd
