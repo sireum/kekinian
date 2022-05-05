@@ -52,3 +52,4 @@ jobs:
           .ci/linux-native.sh
           rm bin/linux/sireum
           bin/install/ffmpeg-libs.cmd
+          bin/sireum proyek logika --slice library-shared --all --par 100 --timeout 5000 .

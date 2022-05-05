@@ -58,6 +58,8 @@ jobs:
           set errorlevel=
           call .ci\build.bat test || goto :error
           call .ci\win-native.bat || goto :error
+          del bin\win\sireum.exe || goto :error
+          bin\sireum.bat proyek logika --slice library-shared --all --par 100 --timeout 5000 . || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%

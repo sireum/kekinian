@@ -50,3 +50,5 @@ jobs:
           cd $GITHUB_WORKSPACE
           .ci/build.sh test
           .ci/mac-native.sh
+          rm bin/mac/sireum
+          bin/sireum proyek logika --slice library-shared --all --par 100 --timeout 5000 .
