@@ -48,8 +48,8 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
+          .ci/build.sh
           .ci/build.sh test
           .ci/linux-native.sh
           rm bin/linux/sireum
           bin/install/ffmpeg-libs.cmd
-          bin/sireum proyek logika --slice library-shared --all --par 100 --timeout 5000 .

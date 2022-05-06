@@ -340,8 +340,10 @@ def test(): Unit = {
     "org.sireum.hamr.codegen.test.expensive"
   ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
-    at(home).console.runCheck()
+    at(home).console.echo.runCheck()
   println()
+  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5000 $home".
+    at(home).console.echo.runCheck()
 }
 
 

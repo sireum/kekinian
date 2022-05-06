@@ -48,7 +48,7 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
+          .ci/build.sh
           .ci/build.sh test
           .ci/mac-native.sh
           rm bin/mac/sireum
-          bin/sireum proyek logika --slice library-shared --all --par 100 --timeout 5000 .
