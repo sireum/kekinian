@@ -104,9 +104,9 @@ object Logika {
               f.string
             case _ => p.string
           }
-          smt2Configs = smt2Configs :+ logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts)
+          smt2Configs = smt2Configs :+ logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts, o.cvcRLimit)
         case _ =>
-          smt2Configs = smt2Configs :+ logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts)
+          smt2Configs = smt2Configs :+ logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts, o.cvcRLimit)
       }
     }
     if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Z3) {
