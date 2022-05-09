@@ -127,7 +127,6 @@ def installZ3(kind: Os.Kind.Type): Unit = {
 
   println("Extracting Z3 ...")
   bundle.unzipTo(dir.up)
-  println()
 
   for (p <- dir.up.list if ops.StringOps(p.name).startsWith("z3-")) {
     dir.removeAll()
@@ -148,62 +147,71 @@ def z3(): Unit = {
   println("Installing Z3 for macOS ...")
   println()
   installZ3(Os.Kind.Mac)
+  println()
 
   println("Installing Z3 for Linux ...")
   println()
   installZ3(Os.Kind.Linux)
+  println()
 
   println("Installing Z3 for Windows ...")
   println()
   installZ3(Os.Kind.Win)
+  println()
 }
 
 
 def installCVC(kind: Os.Kind.Type): Unit = {
-  val (macLinuxGen, macLinuxVersion, winGen, winVersion): (String, String, String, String) =
+  def installCVCGen(gen: String, version: String): Unit = {
+    val genOpt: Option[String] = if (gen == "4") None() else Some(gen)
+    val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) st"cvc$genOpt.exe" else st"cvc$genOpt").render
+    val ver = homeBin / platformKind(kind) / st".cvc$genOpt.ver".render
+
+    val VER = s"$gen-$version"
+
+    if (ver.exists && ver.read == VER) {
+      return
+    }
+
+    val (sub, filename, dropname): (String, String, String) = (gen, kind) match {
+      case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
+      case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
+      case (string"5", Os.Kind.Mac) => (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
+      case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
+      case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt", s"cvc$gen-$version-x86_64-linux-opt")
+      case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt", s"cvc$gen-$version-macos-opt")
+      case _ => return
+    }
+
+    val drop = cache / dropname
+
+    if (!drop.exists) {
+      println(s"Please wait while downloading CVC$gen $version ...")
+      drop.up.mkdirAll()
+      drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
+    }
+
+    drop.copyOverTo(exe)
+
+    kind match {
+      case Os.Kind.Linux => exe.chmod("+x")
+      case Os.Kind.Mac => exe.chmod("+x")
+      case _ =>
+    }
+
+    ver.writeOver(VER)
+    println()
+  }
+  val (gen1, genVersion1, gen2, genVersion2): (String, String, String, String) =
     ops.StringOps(versions.get("org.sireum.version.cvc").get).split((c: C) => c === '-' || c === ',') match {
-      case ISZ(mlGen, mlVersion, wGen, wVersion) => (mlGen, mlVersion, wGen, wVersion)
+      case ISZ(g1, gv1, g2, gv2) => (g1, gv1, g2, gv2)
       case ISZ(string"1.8") => ("4", "1.8", "4", "1.8")
       case ISZ(version) => ("5", version, "5", version)
     }
-  val (gen, version): (String, String) = if (kind == Os.Kind.Win) (winGen, winVersion) else (macLinuxGen, macLinuxVersion)
-  val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) s"cvc.exe" else s"cvc")
-  val ver = homeBin / platformKind(kind) / s".cvc.ver"
-
-  val VER = s"$gen-$version"
-
-  if (ver.exists && ver.read == VER) {
-    return
+  installCVCGen(gen1, genVersion1)
+  if (gen1 != gen2) {
+    installCVCGen(gen2, genVersion2)
   }
-
-  val (sub, filename, dropname): (String, String, String) = (gen, kind) match {
-    case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
-    case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
-    case (string"5", Os.Kind.Mac) => (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
-    case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
-    case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt", s"cvc$gen-$version-x86_64-linux-opt")
-    case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt", s"cvc$gen-$version-macos-opt")
-    case _ => return
-  }
-
-  val drop = cache / dropname
-
-  if (!drop.exists) {
-    println(s"Please wait while downloading CVC$gen $version ...")
-    drop.up.mkdirAll()
-    drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
-  }
-
-  drop.copyOverTo(exe)
-  println()
-
-  kind match {
-    case Os.Kind.Linux => exe.chmod("+x")
-    case Os.Kind.Mac => exe.chmod("+x")
-    case _ =>
-  }
-
-  ver.writeOver(VER)
 }
 
 
@@ -211,14 +219,17 @@ def cvc(): Unit = {
   println("Installing CVC for macOS ...")
   println()
   installCVC(Os.Kind.Mac)
+  println()
 
   println("Installing CVC for Linux ...")
   println()
   installCVC(Os.Kind.Linux)
+  println()
 
   println("Installing CVC for Windows ...")
   println()
   installCVC(Os.Kind.Win)
+  println()
 }
 
 
