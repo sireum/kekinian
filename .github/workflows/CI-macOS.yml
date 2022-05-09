@@ -41,7 +41,9 @@ jobs:
         with:
           path: |
             bin/mac/cvc
+            bin/mac/cvc5
             bin/mac/.cvc.ver
+            bin/mac/.cvc5.ver
             bin/mac/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Test

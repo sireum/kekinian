@@ -41,7 +41,9 @@ jobs:
         with:
           path: |
             bin\win\cvc.exe
+            bin\win\cvc5.exe
             bin\win\.cvc.ver
+            bin\win\.cvc5.ver
             bin\win\z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Configure Pagefile

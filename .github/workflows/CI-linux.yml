@@ -42,6 +42,8 @@ jobs:
           path: |
             bin/linux/cvc
             bin/linux/.cvc.ver
+            bin/linux/cvc5
+            bin/linux/.cvc5.ver
             bin/linux/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Test

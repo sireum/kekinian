@@ -29,6 +29,17 @@ jobs:
         with:
           path: cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-coursier
+      - name: Cache SMT2 solvers
+        id: cache-smt2
+        uses: actions/cache@v2
+        with:
+          path: |
+            bin/mac/cvc
+            bin/mac/cvc5
+            bin/mac/.cvc.ver
+            bin/mac/.cvc5.ver
+            bin/mac/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Cache CompCert
         id: cache-compcert
         uses: actions/cache@v2
