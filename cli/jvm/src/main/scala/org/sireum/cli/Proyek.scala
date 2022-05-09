@@ -464,8 +464,7 @@ object Proyek {
         }
       case _ => None()
     }
-    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc) {
-      val exeFilename: String = if (Os.isWin) s"cvc.exe" else "cvc"
+    def cvc(exeFilename: String): Unit = {
       SireumApi.homeOpt match {
         case Some(home) =>
           val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
@@ -485,6 +484,12 @@ object Proyek {
         case _ =>
           smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts, o.cvcRLimit)
       }
+    }
+    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc4) {
+      cvc(if (Os.isWin) s"cvc.exe" else "cvc")
+    }
+    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc5) {
+      cvc(if (Os.isWin) s"cvc5.exe" else "cvc5")
     }
     if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
       val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
@@ -540,7 +545,7 @@ object Proyek {
 
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F, o.sequential)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = Analysis.run(
@@ -888,7 +893,7 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0, "RNE", F)
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0, "RNE", F, F)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",

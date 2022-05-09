@@ -127,7 +127,8 @@ object Cli {
 
   @enum object SireumLogikaVerifierLogikaSolver {
     'All
-    'Cvc
+    'Cvc4
+    'Cvc5
     'Z3
   }
 
@@ -159,6 +160,7 @@ object Cli {
     val cvcRLimit: Z,
     val cvcVOpts: ISZ[String],
     val cvcSOpts: ISZ[String],
+    val sequential: B,
     val simplify: B,
     val solver: SireumLogikaVerifierLogikaSolver.Type,
     val timeout: Z,
@@ -272,7 +274,8 @@ object Cli {
 
   @enum object SireumProyekLogikaLogikaSolver {
     'All
-    'Cvc
+    'Cvc4
+    'Cvc5
     'Z3
   }
 
@@ -317,6 +320,7 @@ object Cli {
     val cvcRLimit: Z,
     val cvcVOpts: ISZ[String],
     val cvcSOpts: ISZ[String],
+    val sequential: B,
     val simplify: B,
     val solver: SireumProyekLogikaLogikaSolver.Type,
     val timeout: Z,
@@ -1402,17 +1406,18 @@ import Cli._
   def parseSireumLogikaVerifierLogikaSolverH(arg: String): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(SireumLogikaVerifierLogikaSolver.All)
-      case "cvc" => return Some(SireumLogikaVerifierLogikaSolver.Cvc)
+      case "cvc4" => return Some(SireumLogikaVerifierLogikaSolver.Cvc4)
+      case "cvc5" => return Some(SireumLogikaVerifierLogikaSolver.Cvc5)
       case "z3" => return Some(SireumLogikaVerifierLogikaSolver.Z3)
       case s =>
-        eprintln(s"Expecting one of the following: { all, cvc, z3 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { all, cvc4, cvc5, z3 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumLogikaVerifierLogikaSolver(args: ISZ[String], i: Z): Option[SireumLogikaVerifierLogikaSolver.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, cvc, z3 }, but none found.")
+      eprintln("Expecting one of the following: { all, cvc4, cvc5, z3 }, but none found.")
       return None()
     }
     val r = parseSireumLogikaVerifierLogikaSolverH(args(i))
@@ -1487,9 +1492,10 @@ import Cli._
           |                           "--full-saturate-quant")
           |    --cvc-sopts          Additional options for CVC satisfiability checks
           |                           (expects a string separated by ",")
-          |    --simplify           Simplify SMT2 query
-          |-m, --solver             SMT2 solver (expects one of { all, cvc, z3 }; default:
-          |                           all)
+          |    --smt2-seq           Disable SMT2 solvers parallelization
+          |    --simplify           Simplify SMT2 query (experimental)
+          |-m, --solver             SMT2 solver (expects one of { all, cvc4, cvc5, z3 };
+          |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)
           |    --z3-vopts           Additional options for Z3 validity checks (expects a
@@ -1522,6 +1528,7 @@ import Cli._
     var cvcRLimit: Z = 1000000
     var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
     var cvcSOpts: ISZ[String] = ISZ[String]()
+    var sequential: B = false
     var simplify: B = false
     var solver: SireumLogikaVerifierLogikaSolver.Type = SireumLogikaVerifierLogikaSolver.All
     var timeout: Z = 2
@@ -1688,6 +1695,12 @@ import Cli._
              case Some(v) => cvcSOpts = v
              case _ => return None()
            }
+         } else if (arg == "--smt2-seq") {
+           val o: Option[B] = { j = j - 1; Some(!sequential) }
+           o match {
+             case Some(v) => sequential = v
+             case _ => return None()
+           }
          } else if (arg == "--simplify") {
            val o: Option[B] = { j = j - 1; Some(!simplify) }
            o match {
@@ -1727,7 +1740,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, sequential, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2582,17 +2595,18 @@ import Cli._
   def parseSireumProyekLogikaLogikaSolverH(arg: String): Option[SireumProyekLogikaLogikaSolver.Type] = {
     arg.native match {
       case "all" => return Some(SireumProyekLogikaLogikaSolver.All)
-      case "cvc" => return Some(SireumProyekLogikaLogikaSolver.Cvc)
+      case "cvc4" => return Some(SireumProyekLogikaLogikaSolver.Cvc4)
+      case "cvc5" => return Some(SireumProyekLogikaLogikaSolver.Cvc5)
       case "z3" => return Some(SireumProyekLogikaLogikaSolver.Z3)
       case s =>
-        eprintln(s"Expecting one of the following: { all, cvc, z3 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { all, cvc4, cvc5, z3 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumProyekLogikaLogikaSolver(args: ISZ[String], i: Z): Option[SireumProyekLogikaLogikaSolver.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, cvc, z3 }, but none found.")
+      eprintln("Expecting one of the following: { all, cvc4, cvc5, z3 }, but none found.")
       return None()
     }
     val r = parseSireumProyekLogikaLogikaSolverH(args(i))
@@ -2700,9 +2714,10 @@ import Cli._
           |                           "--full-saturate-quant")
           |    --cvc-sopts          Additional options for CVC satisfiability checks
           |                           (expects a string separated by ",")
-          |    --simplify           Simplify SMT2 query
-          |-m, --solver             SMT2 solver (expects one of { all, cvc, z3 }; default:
-          |                           all)
+          |    --smt2-seq           Disable SMT2 solvers parallelization
+          |    --simplify           Simplify SMT2 query (experimental)
+          |-m, --solver             SMT2 solver (expects one of { all, cvc4, cvc5, z3 };
+          |                           default: all)
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)
           |    --z3-vopts           Additional options for Z3 validity checks (expects a
@@ -2748,6 +2763,7 @@ import Cli._
     var cvcRLimit: Z = 1000000
     var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
     var cvcSOpts: ISZ[String] = ISZ[String]()
+    var sequential: B = false
     var simplify: B = false
     var solver: SireumProyekLogikaLogikaSolver.Type = SireumProyekLogikaLogikaSolver.All
     var timeout: Z = 2
@@ -2992,6 +3008,12 @@ import Cli._
              case Some(v) => cvcSOpts = v
              case _ => return None()
            }
+         } else if (arg == "--smt2-seq") {
+           val o: Option[B] = { j = j - 1; Some(!sequential) }
+           o match {
+             case Some(v) => sequential = v
+             case _ => return None()
+           }
          } else if (arg == "--simplify") {
            val o: Option[B] = { j = j - 1; Some(!simplify) }
            o match {
@@ -3031,7 +3053,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, sequential, simplify, solver, timeout, z3VOpts, z3SOpts))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

@@ -87,8 +87,7 @@ object Logika {
         }
       case _ => None()
     }
-    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc) {
-      val exeFilename: String = if (Os.isWin) s"cvc.exe" else "cvc"
+    def cvc(exeFilename: String): Unit = {
       SireumApi.homeOpt match {
         case Some(home) =>
           val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
@@ -108,6 +107,12 @@ object Logika {
         case _ =>
           smt2Configs = smt2Configs :+ logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts, o.cvcRLimit)
       }
+    }
+    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc4) {
+      cvc(if (Os.isWin) s"cvc.exe" else "cvc")
+    }
+    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc5) {
+      cvc(if (Os.isWin) s"cvc5.exe" else "cvc5")
     }
     if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Z3) {
       val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
@@ -172,7 +177,7 @@ object Logika {
         }
         val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll,
-          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
+          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F, o.sequential)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -182,7 +187,7 @@ object Logika {
           logika.Logika.checkScript(Some(f.value), content, config,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
               config.cvcRLimit, fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
-              config.simplifiedQuery, reporter),
+              config.simplifiedQuery, config.smt2Seq, reporter),
             logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -260,7 +265,7 @@ object Logika {
       }
       val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll,
-        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
+        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F, o.sequential)
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =
@@ -268,7 +273,8 @@ object Logika {
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs, config.cvcRLimit,
-          config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, reporter),
+          config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery,
+          config.smt2Seq, reporter),
         logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
