@@ -125,13 +125,6 @@ object Cli {
     'TowardZero
   }
 
-  @enum object SireumLogikaVerifierLogikaSolver {
-    'All
-    'Cvc4
-    'Cvc5
-    'Z3
-  }
-
   @datatype class SireumLogikaVerifierOption(
     val help: String,
     val args: ISZ[String],
@@ -151,21 +144,16 @@ object Cli {
     val logVc: B,
     val logVcDir: Option[String],
     val par: Option[Z],
-    val ramFolder: Option[String],
     val dontSplitFunQuant: B,
     val splitAll: B,
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val cvcRLimit: Z,
-    val cvcVOpts: ISZ[String],
-    val cvcSOpts: ISZ[String],
     val sequential: B,
     val simplify: B,
-    val solver: SireumLogikaVerifierLogikaSolver.Type,
-    val timeout: Z,
-    val z3VOpts: ISZ[String],
-    val z3SOpts: ISZ[String]
+    val smt2SatConfigs: Option[String],
+    val smt2ValidConfigs: Option[String],
+    val timeout: Z
   ) extends SireumTopOption
 
   @enum object SireumParserGenParserGenMode {
@@ -272,13 +260,6 @@ object Cli {
     'TowardZero
   }
 
-  @enum object SireumProyekLogikaLogikaSolver {
-    'All
-    'Cvc4
-    'Cvc5
-    'Z3
-  }
-
   @datatype class SireumProyekLogikaOption(
     val help: String,
     val args: ISZ[String],
@@ -311,21 +292,16 @@ object Cli {
     val logVc: B,
     val logVcDir: Option[String],
     val par: Option[Z],
-    val ramFolder: Option[String],
     val dontSplitFunQuant: B,
     val splitAll: B,
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val cvcRLimit: Z,
-    val cvcVOpts: ISZ[String],
-    val cvcSOpts: ISZ[String],
     val sequential: B,
     val simplify: B,
-    val solver: SireumProyekLogikaLogikaSolver.Type,
-    val timeout: Z,
-    val z3VOpts: ISZ[String],
-    val z3SOpts: ISZ[String]
+    val smt2SatConfigs: Option[String],
+    val smt2ValidConfigs: Option[String],
+    val timeout: Z
   ) extends SireumTopOption
 
   @enum object SireumProyekPublishTarget {
@@ -1403,27 +1379,6 @@ import Cli._
     return r
   }
 
-  def parseSireumLogikaVerifierLogikaSolverH(arg: String): Option[SireumLogikaVerifierLogikaSolver.Type] = {
-    arg.native match {
-      case "all" => return Some(SireumLogikaVerifierLogikaSolver.All)
-      case "cvc4" => return Some(SireumLogikaVerifierLogikaSolver.Cvc4)
-      case "cvc5" => return Some(SireumLogikaVerifierLogikaSolver.Cvc5)
-      case "z3" => return Some(SireumLogikaVerifierLogikaSolver.Z3)
-      case s =>
-        eprintln(s"Expecting one of the following: { all, cvc4, cvc5, z3 }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumLogikaVerifierLogikaSolver(args: ISZ[String], i: Z): Option[SireumLogikaVerifierLogikaSolver.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, cvc4, cvc5, z3 }, but none found.")
-      return None()
-    }
-    val r = parseSireumLogikaVerifierLogikaSolverH(args(i))
-    return r
-  }
-
   def parseSireumLogikaVerifier(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Logika Verifier for Slang
@@ -1474,8 +1429,6 @@ import Cli._
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
-          |    --ram-folder         RAM folder to temporarily store various artifacts
-          |                           (e.g., SMT2 solvers) (expects a path)
           |
           |Path Splitting Options:
           |    --dont-split-pfq     Do not force splitting in quantifiers and proof
@@ -1486,22 +1439,17 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc-rlimit         CVC rlimit (expects an integer; default is 1000000)
-          |    --cvc-vopts          Additional options for CVC validity checks (expects a
-          |                           string separated by ","; default is
-          |                           "--full-saturate-quant")
-          |    --cvc-sopts          Additional options for CVC satisfiability checks
-          |                           (expects a string separated by ",")
           |    --smt2-seq           Disable SMT2 solvers parallelization
           |    --simplify           Simplify SMT2 query (experimental)
-          |-m, --solver             SMT2 solver (expects one of { all, cvc4, cvc5, z3 };
-          |                           default: all)
+          |    --solver-sat         SMT2 configurations for satisfiability queries
+          |                           (expects a string; default is
+          |                           "cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
+          |    --solver-valid       SMT2 configurations for validity queries (expects a
+          |                           string; default is
+          |                           "cvc4,--full-saturate-quant,--rlimit=1000000; z3;
+          |                           cvc5,--finite-model-find,--rlimit=1000000")
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           min is 1; default is 2)
-          |    --z3-vopts           Additional options for Z3 validity checks (expects a
-          |                           string separated by ",")
-          |    --z3-sopts           Additional options for Z3 satisfiability checks
-          |                           (expects a string separated by ",")""".render
+          |                           min is 1; default is 2)""".render
 
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
@@ -1519,21 +1467,16 @@ import Cli._
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
     var par: Option[Z] = None()
-    var ramFolder: Option[String] = None[String]()
     var dontSplitFunQuant: B = false
     var splitAll: B = false
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var cvcRLimit: Z = 1000000
-    var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
-    var cvcSOpts: ISZ[String] = ISZ[String]()
     var sequential: B = false
     var simplify: B = false
-    var solver: SireumLogikaVerifierLogikaSolver.Type = SireumLogikaVerifierLogikaSolver.All
+    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
+    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
     var timeout: Z = 2
-    var z3VOpts: ISZ[String] = ISZ[String]()
-    var z3SOpts: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1641,12 +1584,6 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
-         } else if (arg == "--ram-folder") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => ramFolder = v
-             case _ => return None()
-           }
          } else if (arg == "--dont-split-pfq") {
            val o: Option[B] = { j = j - 1; Some(!dontSplitFunQuant) }
            o match {
@@ -1677,24 +1614,6 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--cvc-rlimit") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
-           o match {
-             case Some(v) => cvcRLimit = v
-             case _ => return None()
-           }
-         } else if (arg == "--cvc-vopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => cvcVOpts = v
-             case _ => return None()
-           }
-         } else if (arg == "--cvc-sopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => cvcSOpts = v
-             case _ => return None()
-           }
          } else if (arg == "--smt2-seq") {
            val o: Option[B] = { j = j - 1; Some(!sequential) }
            o match {
@@ -1707,28 +1626,22 @@ import Cli._
              case Some(v) => simplify = v
              case _ => return None()
            }
-         } else if (arg == "-m" || arg == "--solver") {
-           val o: Option[SireumLogikaVerifierLogikaSolver.Type] = parseSireumLogikaVerifierLogikaSolver(args, j + 1)
+         } else if (arg == "--solver-sat") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => solver = v
+             case Some(v) => smt2SatConfigs = v
+             case _ => return None()
+           }
+         } else if (arg == "--solver-valid") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => smt2ValidConfigs = v
              case _ => return None()
            }
          } else if (arg == "-t" || arg == "--timeout") {
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => timeout = v
-             case _ => return None()
-           }
-         } else if (arg == "--z3-vopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => z3VOpts = v
-             case _ => return None()
-           }
-         } else if (arg == "--z3-sopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => z3SOpts = v
              case _ => return None()
            }
          } else {
@@ -1740,7 +1653,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, sequential, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2592,27 +2505,6 @@ import Cli._
     return r
   }
 
-  def parseSireumProyekLogikaLogikaSolverH(arg: String): Option[SireumProyekLogikaLogikaSolver.Type] = {
-    arg.native match {
-      case "all" => return Some(SireumProyekLogikaLogikaSolver.All)
-      case "cvc4" => return Some(SireumProyekLogikaLogikaSolver.Cvc4)
-      case "cvc5" => return Some(SireumProyekLogikaLogikaSolver.Cvc5)
-      case "z3" => return Some(SireumProyekLogikaLogikaSolver.Z3)
-      case s =>
-        eprintln(s"Expecting one of the following: { all, cvc4, cvc5, z3 }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumProyekLogikaLogikaSolver(args: ISZ[String], i: Z): Option[SireumProyekLogikaLogikaSolver.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, cvc4, cvc5, z3 }, but none found.")
-      return None()
-    }
-    val r = parseSireumProyekLogikaLogikaSolverH(args(i))
-    return r
-  }
-
   def parseSireumProyekLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Logika for Proyek
@@ -2696,8 +2588,6 @@ import Cli._
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
-          |    --ram-folder         RAM folder to temporarily store various artifacts
-          |                           (e.g., SMT2 solvers) (expects a path)
           |
           |Path Splitting Options:
           |    --dont-split-pfq     Do not force splitting in quantifiers and proof
@@ -2708,22 +2598,17 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
-          |    --cvc-rlimit         CVC rlimit (expects an integer; default is 1000000)
-          |    --cvc-vopts          Additional options for CVC validity checks (expects a
-          |                           string separated by ","; default is
-          |                           "--full-saturate-quant")
-          |    --cvc-sopts          Additional options for CVC satisfiability checks
-          |                           (expects a string separated by ",")
           |    --smt2-seq           Disable SMT2 solvers parallelization
           |    --simplify           Simplify SMT2 query (experimental)
-          |-m, --solver             SMT2 solver (expects one of { all, cvc4, cvc5, z3 };
-          |                           default: all)
+          |    --solver-sat         SMT2 configurations for satisfiability queries
+          |                           (expects a string; default is
+          |                           "cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
+          |    --solver-valid       SMT2 configurations for validity queries (expects a
+          |                           string; default is
+          |                           "cvc4,--full-saturate-quant,--rlimit=1000000; z3;
+          |                           cvc5,--finite-model-find,--rlimit=1000000")
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
-          |                           min is 1; default is 2)
-          |    --z3-vopts           Additional options for Z3 validity checks (expects a
-          |                           string separated by ",")
-          |    --z3-sopts           Additional options for Z3 satisfiability checks
-          |                           (expects a string separated by ",")""".render
+          |                           min is 1; default is 2)""".render
 
     var all: B = false
     var strictAliasing: B = false
@@ -2754,21 +2639,16 @@ import Cli._
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
     var par: Option[Z] = None()
-    var ramFolder: Option[String] = None[String]()
     var dontSplitFunQuant: B = false
     var splitAll: B = false
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var cvcRLimit: Z = 1000000
-    var cvcVOpts: ISZ[String] = ISZ("--full-saturate-quant")
-    var cvcSOpts: ISZ[String] = ISZ[String]()
     var sequential: B = false
     var simplify: B = false
-    var solver: SireumProyekLogikaLogikaSolver.Type = SireumProyekLogikaLogikaSolver.All
+    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
+    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
     var timeout: Z = 2
-    var z3VOpts: ISZ[String] = ISZ[String]()
-    var z3SOpts: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -2954,12 +2834,6 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
-         } else if (arg == "--ram-folder") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => ramFolder = v
-             case _ => return None()
-           }
          } else if (arg == "--dont-split-pfq") {
            val o: Option[B] = { j = j - 1; Some(!dontSplitFunQuant) }
            o match {
@@ -2990,24 +2864,6 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--cvc-rlimit") {
-           val o: Option[Z] = parseNum(args, j + 1, None(), None())
-           o match {
-             case Some(v) => cvcRLimit = v
-             case _ => return None()
-           }
-         } else if (arg == "--cvc-vopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => cvcVOpts = v
-             case _ => return None()
-           }
-         } else if (arg == "--cvc-sopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => cvcSOpts = v
-             case _ => return None()
-           }
          } else if (arg == "--smt2-seq") {
            val o: Option[B] = { j = j - 1; Some(!sequential) }
            o match {
@@ -3020,28 +2876,22 @@ import Cli._
              case Some(v) => simplify = v
              case _ => return None()
            }
-         } else if (arg == "-m" || arg == "--solver") {
-           val o: Option[SireumProyekLogikaLogikaSolver.Type] = parseSireumProyekLogikaLogikaSolver(args, j + 1)
+         } else if (arg == "--solver-sat") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
-             case Some(v) => solver = v
+             case Some(v) => smt2SatConfigs = v
+             case _ => return None()
+           }
+         } else if (arg == "--solver-valid") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => smt2ValidConfigs = v
              case _ => return None()
            }
          } else if (arg == "-t" || arg == "--timeout") {
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => timeout = v
-             case _ => return None()
-           }
-         } else if (arg == "--z3-vopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => z3VOpts = v
-             case _ => return None()
-           }
-         } else if (arg == "--z3-sopts") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => z3SOpts = v
              case _ => return None()
            }
          } else {
@@ -3053,7 +2903,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, ramFolder, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, cvcRLimit, cvcVOpts, cvcSOpts, sequential, simplify, solver, timeout, z3VOpts, z3SOpts))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

@@ -26,7 +26,7 @@
 package org.sireum.cli
 
 import org.sireum._
-import org.sireum.logika.Smt2
+import org.sireum.logika.{Smt2, Smt2Invoke}
 import org.sireum.project.DependencyManager
 import org.sireum.proyek.Analysis
 
@@ -451,68 +451,20 @@ object Proyek {
         return INVALID_INT_WIDTH
     }
 
-    var smt2Configs = ISZ[org.sireum.logika.Smt2Config]()
-    val rfOpt: Option[Os.Path] = o.ramFolder match {
-      case Some(rf) =>
-        val rfp = Os.path(rf)
-        if (rfp.isDir) {
-          rfp.removeAll()
-          Some(rfp)
-        } else {
-          eprintln(s"$rf is not a directory")
-          return INVALID_RAM_DIR
-        }
-      case _ => None()
+    val nameExePathMap: HashMap[String, String] = SireumApi.homeOpt match {
+      case Some(sireumHome) => Smt2Invoke.nameExePathMap(sireumHome)
+      case _ =>
+        val exeOpt: Option[String] = if (Os.isWin) Some(".exe") else None()
+        HashMap.empty[String, String] ++ ISZ[(String, String)](
+          "cvc4" ~> st"cvc4$exeOpt".render,
+          "cvc5" ~> st"cvc5$exeOpt".render,
+          "z3" ~> st"z3$exeOpt".render,
+        )
     }
-    def cvc(exeFilename: String): Unit = {
-      SireumApi.homeOpt match {
-        case Some(home) =>
-          val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
-          val exe: String = rfOpt match {
-            case Some(rfp) =>
-              val d = rfp / "sireum"
-              d.mkdirAll()
-              val f = d / p.name
-              if (!(f.isFile && f.length == p.length)) {
-                f.removeAll()
-                p.copyOverTo(f)
-              }
-              f.string
-            case _ => p.string
-          }
-          smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts, o.cvcRLimit)
-        case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts, o.cvcRLimit)
-      }
-    }
-    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc4) {
-      cvc(if (Os.isWin) s"cvc.exe" else "cvc")
-    }
-    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Cvc5) {
-      cvc(if (Os.isWin) s"cvc5.exe" else "cvc5")
-    }
-    if (o.solver == Cli.SireumProyekLogikaLogikaSolver.All || o.solver == Cli.SireumProyekLogikaLogikaSolver.Z3) {
-      val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
-      SireumApi.homeOpt match {
-        case Some(home) =>
-          val p: Os.Path = home / "bin" / SireumApi.platform / "z3" / "bin" / exeFilename
-          val exe: String = rfOpt match {
-            case Some(rfp) =>
-              val d = rfp / "sireum"
-              d.mkdirAll()
-              val f = d / p.name
-              if (!(f.isFile && f.length == p.length)) {
-                f.removeAll()
-                p.copyOverTo(f)
-              }
-              f.string
-            case _ => p.string
-          }
-          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exe, o.z3VOpts, o.z3SOpts)
-        case _ =>
-          smt2Configs = smt2Configs :+ org.sireum.logika.Z3Config(exeFilename, o.z3VOpts, o.z3SOpts)
-      }
-    }
+
+    val smt2Configs =
+      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout).left ++
+        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs).left
 
     val dm = project.DependencyManager(
       project = prj,
@@ -545,7 +497,7 @@ object Proyek {
 
     val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F, o.sequential)
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
 
     val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = Analysis.run(
@@ -893,7 +845,7 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, 0, "RNE", F, F)
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, "RNE", F, F)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",
