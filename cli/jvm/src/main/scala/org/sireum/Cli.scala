@@ -1263,9 +1263,9 @@ import Cli._
           |-h, --help               Display this information
           |
           |OSATE Options:
-          |-o, --osate              Existing OSATE installation path, otherwise an
-          |                           internal version of OSATE will be used (expects a
-          |                           path)
+          |-o, --osate              Either the path to an existing installation of OSATE,
+          |                           or the path where OSATE should be installed (expects
+          |                           a path)
           |-u, --update             Update (or install) features
           |    --features           Plugin features to update/install, each of the form
           |                           <feature-id>=<repo-url-1>,...,<repo-url-N>. Latest

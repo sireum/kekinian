@@ -54,6 +54,10 @@ object Phantom {
           addError(s"Path for OSATE is not a directory: $d")
           return -1
         }
+        if (Os.isMac && cand.ext != "app") {
+          addError(s"osate option must have an app extension on Macs (e.g. change to ${cand}.app)")
+          return -1
+        }
         Some(cand)
       case _ => None()
     }
