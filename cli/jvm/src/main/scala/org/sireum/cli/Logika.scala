@@ -87,7 +87,7 @@ object Logika {
     }
 
     val smt2Configs =
-      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout).left ++
+      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000).left ++
         Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs).left
 
     def verifyScripts(): Z = {
