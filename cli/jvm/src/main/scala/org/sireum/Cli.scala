@@ -1443,11 +1443,12 @@ import Cli._
           |    --simplify           Simplify SMT2 query (experimental)
           |    --solver-sat         SMT2 configurations for satisfiability queries
           |                           (expects a string; default is
-          |                           "cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
+          |                           "cvc4,--rlimit=1000000; z3;
+          |                           cvc5,--finite-model-find,--rlimit=1000000")
           |    --solver-valid       SMT2 configurations for validity queries (expects a
           |                           string; default is
           |                           "cvc4,--full-saturate-quant,--rlimit=1000000; z3;
-          |                           cvc5,--finite-model-find,--rlimit=1000000")
+          |                           cvc5,--full-saturate-quant,--rlimit=1000000")
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)""".render
 
@@ -1474,8 +1475,8 @@ import Cli._
     var splitMatch: B = false
     var sequential: B = false
     var simplify: B = false
-    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
-    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
+    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
+    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--full-saturate-quant,--rlimit=1000000")
     var timeout: Z = 2
     var j = i
     var isOption = T
@@ -2602,11 +2603,12 @@ import Cli._
           |    --simplify           Simplify SMT2 query (experimental)
           |    --solver-sat         SMT2 configurations for satisfiability queries
           |                           (expects a string; default is
-          |                           "cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
+          |                           "cvc4,--rlimit=1000000; z3;
+          |                           cvc5,--finite-model-find,--rlimit=1000000")
           |    --solver-valid       SMT2 configurations for validity queries (expects a
           |                           string; default is
           |                           "cvc4,--full-saturate-quant,--rlimit=1000000; z3;
-          |                           cvc5,--finite-model-find,--rlimit=1000000")
+          |                           cvc5,--full-saturate-quant,--rlimit=1000000")
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)""".render
 
@@ -2646,8 +2648,8 @@ import Cli._
     var splitMatch: B = false
     var sequential: B = false
     var simplify: B = false
-    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--rlimit=1000000")
-    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
+    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
+    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--full-saturate-quant,--rlimit=1000000")
     var timeout: Z = 2
     var j = i
     var isOption = T
