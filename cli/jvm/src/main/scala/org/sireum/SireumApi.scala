@@ -83,15 +83,9 @@ import org.sireum._
 
   def path2fileOpt(pathFor: String, path: Option[String], checkExist: B): Option[Os.Path] = $
 
-  def currentTimeMillis: Z = $
-
   def readGzipContent(path: Os.Path): Option[ISZ[U8]] = $
 
   def writeGzipContent(path: Os.Path, content: ISZ[U8]): B = $
-
-  def totalMemory: Z = $
-
-  def freeMemory: Z = $
 
   def formatMb(bytes: Z): String = $
 
@@ -110,8 +104,6 @@ import org.sireum._
   def run(args: ISZ[String]): Z = $
 
   def initRuntimeLibrary(): Unit = $
-
-  @pure def availableCores: Z = $
 
   @pure def parCores(percentage: Z): Z = $
 

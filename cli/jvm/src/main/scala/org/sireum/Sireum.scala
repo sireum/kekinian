@@ -237,8 +237,6 @@ object Sireum {
     } else T
   }
 
-  def currentTimeMillis: Z = System.currentTimeMillis()
-
   def readGzipContent(path: Os.Path): Option[ISZ[U8]] = {
     import _root_.java.io.{File, FileInputStream}
     import _root_.java.util.zip.GZIPInputStream
@@ -276,10 +274,6 @@ object Sireum {
         return F
     } finally gos.close()
   }
-
-  def totalMemory: Z = Runtime.getRuntime.totalMemory()
-
-  def freeMemory: Z = Runtime.getRuntime.freeMemory()
 
   def formatMb(bytes: Z): String = f"${bytes.toLong / 1024d / 1024d}%.2f"
 
@@ -385,10 +379,8 @@ object Sireum {
     org.sireum.lang.FrontEnd.checkedLibraryReporter
   }
 
-  def availableCores: Z = Runtime.getRuntime.availableProcessors
-
   def parCores(percentage: Z): Z = {
-    val maxCores = availableCores
+    val maxCores = Os.numOfProcessors
     val r = percentage * maxCores / 100
     return if (r <= 1) 1 else if (r >= maxCores) maxCores else r
   }
