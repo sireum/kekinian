@@ -21,6 +21,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+$OriginalProgressPreference = $Global:ProgressPreference
+$Global:ProgressPreference = 'SilentlyContinue'
+
 if ($Env:SIREUM_CACHE) {
   $cache_dir = "$Env:SIREUM_CACHE"
 } else {
@@ -79,6 +82,7 @@ if (!(Test-Path "$scalac_plugin_lib")) {
 
 
 if ($Env:SIREUM_PROVIDED_SCALA) {
+  $Global:ProgressPreference = $OriginalProgressPreference
   Exit
 }
 $scala_version = $properties["org.scala-lang%scala-library%"]
@@ -109,6 +113,7 @@ if ($scala_update) {
 
 
 if ($Env:SIREUM_PROVIDED_JAVA) {
+  $Global:ProgressPreference = $OriginalProgressPreference
   Exit
 }
 $java_version = $properties["org.sireum.version.zulu"]
@@ -136,3 +141,5 @@ if ($java_update) {
   Move "$sireum_home\bin\win\zulu$java_version-win_x64" "$sireum_home\bin\win\java"
   "$java_version" | Set-Content "$java_ver_path"
 }
+
+$Global:ProgressPreference = $OriginalProgressPreference
