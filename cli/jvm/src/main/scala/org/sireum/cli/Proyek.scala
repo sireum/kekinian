@@ -463,8 +463,8 @@ object Proyek {
     }
 
     val smt2Configs =
-      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000).left ++
-        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs).left
+      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000, o.rlimit).left ++
+        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs, o.rlimit).left
 
     val dm = project.DependencyManager(
       project = prj,
@@ -495,7 +495,7 @@ object Proyek {
       case Cli.SireumProyekLogikaFPRoundingMode.TowardZero => "RTZ"
     }
 
-    val config = org.sireum.logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+    val config = org.sireum.logika.Config(smt2Configs, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
 
@@ -845,7 +845,8 @@ object Proyek {
     )
 
     val reporter = org.sireum.logika.Logika.Reporter.create
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(), F, F, F, F, F, F, F, "RNE", F, F)
+    val config = org.sireum.logika.Config(ISZ(), F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
+      F, F, F, F, F, F, F, "RNE", F, F)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",

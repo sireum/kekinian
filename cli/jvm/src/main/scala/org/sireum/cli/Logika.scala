@@ -87,8 +87,8 @@ object Logika {
     }
 
     val smt2Configs =
-      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000).left ++
-        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs).left
+      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000, o.rlimit).left ++
+        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs, o.rlimit).left
 
     def verifyScripts(): Z = {
       if (o.noRuntime) {
@@ -128,9 +128,9 @@ object Logika {
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardNegative => "RTN"
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
         }
-        val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-          o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll,
-          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
+        val config = logika.Config(smt2Configs, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+          o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
+          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -216,9 +216,9 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardNegative => "RTN"
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
-      val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-        o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll,
-        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
+      val config = logika.Config(smt2Configs, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+        o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
+        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
       val plugins = logika.Logika.defaultPlugins
       val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =

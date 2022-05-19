@@ -149,6 +149,7 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
+    val rlimit: Z,
     val sequential: B,
     val simplify: B,
     val smt2SatConfigs: Option[String],
@@ -297,6 +298,7 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
+    val rlimit: Z,
     val sequential: B,
     val simplify: B,
     val smt2SatConfigs: Option[String],
@@ -1439,16 +1441,16 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
+          |    --rlimit             SMT2 solver resource limit (expects an integer; min is
+          |                           0; default is 1000000)
           |    --smt2-seq           Disable SMT2 solvers parallelization
           |    --simplify           Simplify SMT2 query (experimental)
           |    --solver-sat         SMT2 configurations for satisfiability queries
-          |                           (expects a string; default is
-          |                           "cvc4,--rlimit=1000000; z3;
-          |                           cvc5,--finite-model-find,--rlimit=1000000")
+          |                           (expects a string; default is "cvc4; z3;
+          |                           cvc5,--finite-model-find")
           |    --solver-valid       SMT2 configurations for validity queries (expects a
-          |                           string; default is
-          |                           "cvc4,--full-saturate-quant,--rlimit=1000000; z3;
-          |                           cvc5,--full-saturate-quant,--rlimit=1000000")
+          |                           string; default is "cvc4,--full-saturate-quant; z3;
+          |                           cvc5,--full-saturate-quant")
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)""".render
 
@@ -1473,10 +1475,11 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
+    var rlimit: Z = 1000000
     var sequential: B = false
     var simplify: B = false
-    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
-    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--full-saturate-quant,--rlimit=1000000")
+    var smt2SatConfigs: Option[String] = Some("cvc4; z3; cvc5,--finite-model-find")
+    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant")
     var timeout: Z = 2
     var j = i
     var isOption = T
@@ -1615,6 +1618,12 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
+         } else if (arg == "--rlimit") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => rlimit = v
+             case _ => return None()
+           }
          } else if (arg == "--smt2-seq") {
            val o: Option[B] = { j = j - 1; Some(!sequential) }
            o match {
@@ -1654,7 +1663,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2599,16 +2608,16 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
+          |    --rlimit             SMT2 solver resource limit (expects an integer; min is
+          |                           0; default is 1000000)
           |    --smt2-seq           Disable SMT2 solvers parallelization
           |    --simplify           Simplify SMT2 query (experimental)
           |    --solver-sat         SMT2 configurations for satisfiability queries
-          |                           (expects a string; default is
-          |                           "cvc4,--rlimit=1000000; z3;
-          |                           cvc5,--finite-model-find,--rlimit=1000000")
+          |                           (expects a string; default is "cvc4; z3;
+          |                           cvc5,--finite-model-find")
           |    --solver-valid       SMT2 configurations for validity queries (expects a
-          |                           string; default is
-          |                           "cvc4,--full-saturate-quant,--rlimit=1000000; z3;
-          |                           cvc5,--full-saturate-quant,--rlimit=1000000")
+          |                           string; default is "cvc4,--full-saturate-quant; z3;
+          |                           cvc5,--full-saturate-quant")
           |-t, --timeout            Timeout (seconds) for SMT2 solver (expects an integer;
           |                           min is 1; default is 2)""".render
 
@@ -2646,10 +2655,11 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
+    var rlimit: Z = 1000000
     var sequential: B = false
     var simplify: B = false
-    var smt2SatConfigs: Option[String] = Some("cvc4,--rlimit=1000000; z3; cvc5,--finite-model-find,--rlimit=1000000")
-    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant,--rlimit=1000000; z3; cvc5,--full-saturate-quant,--rlimit=1000000")
+    var smt2SatConfigs: Option[String] = Some("cvc4; z3; cvc5,--finite-model-find")
+    var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant")
     var timeout: Z = 2
     var j = i
     var isOption = T
@@ -2866,6 +2876,12 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
+         } else if (arg == "--rlimit") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => rlimit = v
+             case _ => return None()
+           }
          } else if (arg == "--smt2-seq") {
            val o: Option[B] = { j = j - 1; Some(!sequential) }
            o match {
@@ -2905,7 +2921,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
