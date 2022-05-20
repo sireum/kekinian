@@ -99,6 +99,7 @@ object Cli {
 
   @enum object SireumHamrPhantomPhantomMode {
     'Json
+    'Json_compact
     'Msgpack
   }
 
@@ -1197,16 +1198,17 @@ import Cli._
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
     arg.native match {
       case "json" => return Some(SireumHamrPhantomPhantomMode.Json)
+      case "json_compact" => return Some(SireumHamrPhantomPhantomMode.Json_compact)
       case "msgpack" => return Some(SireumHamrPhantomPhantomMode.Msgpack)
       case s =>
-        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { json, json_compact, msgpack }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumHamrPhantomPhantomMode(args: ISZ[String], i: Z): Option[SireumHamrPhantomPhantomMode.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
+      eprintln("Expecting one of the following: { json, json_compact, msgpack }, but none found.")
       return None()
     }
     val r = parseSireumHamrPhantomPhantomModeH(args(i))
@@ -1232,8 +1234,8 @@ import Cli._
           |-s, --sys-impl           Name of the system implementation. (expects a string)
           |-a, --main-package       AADL main package file that contains a system
           |                           implementation. (expects a path)
-          |-m, --mode               Serialization method (expects one of { json, msgpack
-          |                           }; default: json)
+          |-m, --mode               Serialization method (expects one of { json,
+          |                           json_compact, msgpack }; default: json)
           |-f, --output-file        AIR output file path (expects a path)
           |-p, --projects           OSATE project directories, each must contain an OSATE
           |                           '.project' file (expects path strings)
