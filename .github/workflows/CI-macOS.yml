@@ -50,7 +50,7 @@ jobs:
             bin/mac/.menhir.ver
             bin/mac/.alt-ergo.ver
             bin/mac/opam
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties','bin/install/alt-ergo.cmd') }}-smt2
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties','bin/install/opam.cmd','bin/install/alt-ergo.cmd') }}-smt2
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier

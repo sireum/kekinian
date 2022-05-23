@@ -50,6 +50,8 @@ def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
   val ver = platformDir / ".alt-ergo.ver"
 
+  (Os.slashDir / "opam.cmd").slash(ISZ())
+
   if (ver.exists && ver.read === altErgoVersion) {
     return
   }
@@ -61,7 +63,6 @@ def install(platformDir: Os.Path): Unit = {
         |  (see: https://github.com/OCamlPro/alt-ergo/blob/next/LICENSE.md)
         |""".render)
 
-  (Os.slashDir / "opam.cmd").slash(ISZ())
   (Os.slashDir / "menhir.cmd").slash(ISZ())
 
   altErgo(opamDir)

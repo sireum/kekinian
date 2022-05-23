@@ -68,7 +68,7 @@ def opam(dir: Os.Path, bundle: String): Unit = {
 def install(platformDir: Os.Path, opamSuffix: String): Unit = {
   val opamDir = platformDir / ".opam"
   val ver = platformDir / ".opam.ver"
-  val oVer = s"$opamVersion-$ocamlVersion-$duneVersion"
+  val oVer = s"$opamVersion-20220523.0"
 
   if (ver.exists && ver.read === oVer) {
     return

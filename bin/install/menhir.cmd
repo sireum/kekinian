@@ -49,11 +49,11 @@ def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
   val ver = platformDir / ".menhir.ver"
 
+  (Os.slashDir / "opam.cmd").slash(ISZ())
+
   if (ver.exists && ver.read === menhirVersion) {
     return
   }
-
-  (Os.slashDir / "opam.cmd").slash(ISZ())
 
   menhir(opamDir)
 

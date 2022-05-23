@@ -50,6 +50,8 @@ def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
   val ver = platformDir / ".compcert.ver"
 
+  (Os.slashDir / "opam.cmd").slash(ISZ())
+
   if (ver.exists && ver.read === compCertVersion) {
     return
   }
@@ -62,7 +64,6 @@ def install(platformDir: Os.Path): Unit = {
         |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
         |""".render)
 
-  (Os.slashDir / "opam.cmd").slash(ISZ())
   (Os.slashDir / "menhir.cmd").slash(ISZ())
   (Os.slashDir / "coq.cmd").slash(ISZ())
   compCert(opamDir)

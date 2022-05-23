@@ -60,6 +60,8 @@ def install(platformDir: Os.Path): Unit = {
   val ver = platformDir / ".coq.ver"
   val ideVer = platformDir / ".coqide.ver"
 
+  (Os.slashDir / "opam.cmd").slash(ISZ())
+
   if (isIde && ideVer.exists && ideVer.read === coqVersion) {
     return
   }
@@ -68,8 +70,6 @@ def install(platformDir: Os.Path): Unit = {
   if (!isIde && coqExists) {
     return
   }
-
-  (Os.slashDir / "opam.cmd").slash(ISZ())
 
   coq(opamDir)
 
