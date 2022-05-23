@@ -45,7 +45,12 @@ jobs:
             bin/linux/cvc5
             bin/linux/.cvc5.ver
             bin/linux/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+            bin/linux/.opam
+            bin/linux/.opam.ver
+            bin/linux/.menhir.ver
+            bin/linux/.alt-ergo.ver
+            bin/linux/opam
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties','bin/install/alt-ergo.cmd') }}-smt2
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
@@ -55,3 +60,4 @@ jobs:
           .ci/linux-native.sh
           rm bin/linux/sireum
           bin/install/ffmpeg-libs.cmd
+          bin/install/alt-ergo.cmd

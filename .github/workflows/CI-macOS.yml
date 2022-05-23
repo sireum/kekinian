@@ -45,7 +45,12 @@ jobs:
             bin/mac/.cvc.ver
             bin/mac/.cvc5.ver
             bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+            bin/mac/.opam
+            bin/mac/.opam.ver
+            bin/mac/.menhir.ver
+            bin/mac/.alt-ergo.ver
+            bin/mac/opam
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties','bin/install/alt-ergo.cmd') }}-smt2
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
@@ -54,3 +59,4 @@ jobs:
           .ci/build.sh test
           .ci/mac-native.sh
           rm bin/mac/sireum
+          bin/install/alt-ergo.cmd
