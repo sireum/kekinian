@@ -62,6 +62,7 @@ def install(platformDir: Os.Path): Unit = {
         |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
         |""".render)
 
+  (Os.slashDir / "opam.cmd").slash(ISZ())
   (Os.slashDir / "menhir.cmd").slash(ISZ())
   (Os.slashDir / "coq.cmd").slash(ISZ())
   compCert(opamDir)
