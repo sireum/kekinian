@@ -56,7 +56,7 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           .ci/build.sh
+          bin/install/alt-ergo.cmd
           .ci/build.sh test
           .ci/mac-native.sh
           rm bin/mac/sireum
-          bin/install/alt-ergo.cmd
