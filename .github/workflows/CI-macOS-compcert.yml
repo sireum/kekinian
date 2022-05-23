@@ -45,9 +45,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
+            bin/mac/.compcert.ver
+            bin/mac/.coq.ver
+            bin/mac/.menhir.ver
             bin/mac/.opam
             bin/mac/opam
-            bin/mac/.compcert.ver
           key: ${{ runner.os }}-${{ hashFiles('bin/install/compcert.cmd') }}-compcert
       - name: Test
         run: |

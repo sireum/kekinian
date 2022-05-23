@@ -24,8 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
-val home = homeBin.up.canon
-val compCertVersion = "3.10"
+val menhirVersion = "20211128"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -38,35 +37,30 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 }
 
 
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
+def menhir(dir: Os.Path): Unit = {
+  println(s"Installing Menhir $menhirVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"menhir=$menhirVersion", "-y", "-j", cores)).console.runCheck()
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".menhir.ver"
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read === menhirVersion) {
     return
   }
 
-  println(
-    st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
-        |""".render)
+  (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
+  menhir(opamDir)
 
-  ver.writeOver(compCertVersion)
+  ver.writeOver(menhirVersion)
 
-  println(s"CompCert is installed")
+  (platformDir / ".alt-ergo.ver").removeAll()
+  (platformDir / ".compcert.ver").removeAll()
+
+  println(s"Menhir is installed")
 }
 
 

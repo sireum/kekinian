@@ -24,8 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
-val home = homeBin.up.canon
-val compCertVersion = "3.10"
+val altErgoVersion = "2.4.1"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -38,35 +37,35 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 }
 
 
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
+def altErgo(dir: Os.Path): Unit = {
+  val env = ISZ("PATH" ~> s"${Os.env("PATH").get}${Os.pathSep}${dir.up.canon}")
+  println(s"Installing Alt-Ergo $altErgoVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"alt-ergo=$altErgoVersion", "-y", "-j", cores)).env(env).console.runCheck()
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".alt-ergo.ver"
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read === altErgoVersion) {
     return
   }
 
   println(
     st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
+        |  Alt-Ergo is not free software.
+        |  This public release can only be used for non-commercial purposes.
+        |  (see: https://github.com/OCamlPro/alt-ergo/blob/next/LICENSE.md)
         |""".render)
 
   (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
 
-  ver.writeOver(compCertVersion)
+  altErgo(opamDir)
 
-  println(s"CompCert is installed")
+  ver.writeOver(altErgoVersion)
+
+  println(s"Alt-Ergo is installed")
 }
 
 

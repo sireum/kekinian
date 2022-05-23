@@ -25,11 +25,14 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val compCertVersion = "3.10"
+val coqVersion = "8.15.0"
 
-val cores: String = Os.cliArgs match {
-  case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
-  case _ => s"${Os.numOfProcessors}"
+val (cores, isIde): (String, B) = Os.cliArgs match {
+  case ISZ(n) => (Z(n).getOrElse(Os.numOfProcessors).string, F)
+  case ISZ(string"ide") => (Os.numOfProcessors.string, T)
+  case ISZ(n, string"ide") => (Z(n).getOrElse(Os.numOfProcessors).string, T)
+  case ISZ(string"ide", n) => (Z(n).getOrElse(Os.numOfProcessors).string, T)
+  case _ => (Os.numOfProcessors.string, F)
 }
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
@@ -37,36 +40,41 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
   case _ => Os.home / "Downloads" / "sireum"
 }
 
-
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
+def coq(dir: Os.Path): Unit = {
+  println(s"Installing Coq${if (isIde) " IDE" else ""} $coqVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq${if (isIde) "ide" else ""}=$coqVersion", "-y", "-j", cores)).console.runCheck()
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".coq.ver"
+  val ideVer = platformDir / ".coqide.ver"
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (isIde && ideVer.exists && ideVer.read === coqVersion) {
     return
   }
 
-  println(
-    st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
-        |""".render)
+  val coqExists = ver.exists && ver.read === coqVersion
+  if (!isIde && coqExists) {
+    return
+  }
 
-  (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
+  (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  ver.writeOver(compCertVersion)
+  coq(opamDir)
 
-  println(s"CompCert is installed")
+  if (isIde) {
+    ideVer.writeOver(coqVersion)
+  }
+
+  if (!coqExists) {
+    (platformDir / ".compcert.ver").removeAll()
+  }
+
+  ver.writeOver(coqVersion)
+
+  println(s"Coq${if (isIde) " IDE" else ""} is installed")
 }
 
 

@@ -25,7 +25,9 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val compCertVersion = "3.10"
+val ocamlVersion = "4.06.1"
+val opamVersion = "2.1.2"
+val duneVersion = "2.9.3"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -38,42 +40,61 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 }
 
 
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
+def opam(dir: Os.Path, bundle: String): Unit = {
+  val opamExe = (dir.up / "opam").canon
+
+  dir.removeAll()
+  opamExe.removeAll()
+
+  val cache = cacheDir / bundle
+
+  if (!cache.exists) {
+    println(s"Downloading $cache ...")
+    cache.downloadFrom(s"https://github.com/ocaml/opam/releases/download/$opamVersion/$bundle")
+    println()
+  }
+
+  cache.copyOverTo(opamExe)
+  opamExe.chmod("+x")
+
+  println(s"Initializing opam with OCaml $ocamlVersion in $dir ...")
+  Os.proc(ISZ(opamExe.string, "init", s"--root=$dir", s"--comp=$ocamlVersion", "--no-self-upgrade", "--no-setup", "--disable-sandboxing", "--reinit", "-a", "-j", cores)).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "repo", "add", s"--root=$dir", "--no-self-upgrade", "coq-released", "https://coq.inria.fr/opam/released")).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"dune=$duneVersion", "-y", "-j", cores)).runCheck()
   println()
 }
 
-def install(platformDir: Os.Path): Unit = {
+def install(platformDir: Os.Path, opamSuffix: String): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".opam.ver"
+  val oVer = s"$opamVersion-$ocamlVersion-$duneVersion"
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read === oVer) {
     return
   }
 
-  println(
-    st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
-        |""".render)
+  opamDir.removeAll()
 
-  (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
+  opam(opamDir, s"opam-$opamVersion-$opamSuffix")
 
-  ver.writeOver(compCertVersion)
+  ver.writeOver(oVer)
+  (platformDir / ".alt-ergo.ver").removeAll()
+  (platformDir / ".coq.ver").removeAll()
+  (platformDir / ".coqide.ver").removeAll()
+  (platformDir / ".compcert.ver").removeAll()
+  (platformDir / ".menhir.ver").removeAll()
 
-  println(s"CompCert is installed")
+  println(s"OPAM is installed")
 }
 
 
 Os.kind match {
-  case Os.Kind.Mac => install(homeBin / "mac")
-  case Os.Kind.Linux => install(homeBin / "linux")
-  case Os.Kind.LinuxArm => install(homeBin / "linux" / "arm")
+  case Os.Kind.Mac =>
+    install(homeBin / "mac",
+      if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") "arm64-macos"
+      else "x86_64-macos")
+  case Os.Kind.Linux => install(homeBin / "linux", "x86_64-linux")
+  case Os.Kind.LinuxArm => install(homeBin / "linux" / "arm", "arm64-linux")
   case _ =>
     eprintln("Unsupported platform")
     Os.exit(-1)
