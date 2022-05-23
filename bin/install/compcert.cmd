@@ -40,7 +40,9 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 
 def compCert(dir: Os.Path): Unit = {
   println(s"Installing CompCert $compCertVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
   Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
   println()
 }
 

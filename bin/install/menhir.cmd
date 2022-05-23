@@ -39,7 +39,9 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 
 def menhir(dir: Os.Path): Unit = {
   println(s"Installing Menhir $menhirVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "menhir", "-y")).runCheck()
   Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"menhir=$menhirVersion", "-y", "-j", cores)).console.runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", "menhir", s"$menhirVersion", "-y")).runCheck()
   println()
 }
 
