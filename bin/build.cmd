@@ -55,13 +55,13 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
-        |       | fresh            | native            | tipe
-        |       | compile[-js]     | test              | m2[-lib[-js]]
+        |       | jar              | fresh             | native
+        |       | tipe             | compile[-js]      | test
         |       | regen-project    | regen-presentasi  | regen-slang
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
         |       | regen-cliopt     | regen-cli         | regen-fmide-cli
-        |       | regen-json
+        |       | regen-json       | m2[-lib[-js]]
         |       | cvc              | z3                | ram
         |       | mill             | jitpack           | ghpack                       )*
         |""".render)
@@ -353,7 +353,7 @@ def test(): Unit = {
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
     at(home).console.echo.runCheck()
   println()
-  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5000 $home".
+  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 $home".
     at(home).console.echo.runCheck()
 }
 
@@ -530,9 +530,9 @@ def ghpack(): Unit = {
   }
 }
 
-def setup(isUltimate: B, isServer: B): Unit = {
+def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
-  build(F, F)
+  build(fresh, F)
   proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else if (isServer) " --server" else ""}".at(home).console.runCheck()
   val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
   project(T, isUltimate, isServer)
@@ -570,7 +570,7 @@ def ram(): Unit = {
     val ramdisk = Os.path("/Volumes") / "RAM"
     val ramdiskHome = ramdisk / home.name
     if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
-      setup(F, F)
+      setup(F, F, F)
     }
     if (ramdisk.exists) {
       proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
@@ -633,7 +633,11 @@ def ram(): Unit = {
   }
 }
 
-if (!(home / "runtime" / "build.sc").exists) {
+@pure def builtIn: Os.Path = {
+  return home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "BuiltInTypes.slang"
+}
+
+if (!builtIn.exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
   eprintln("git submodule update --init --recursive --remote")
   Os.exit(-1)
@@ -643,15 +647,51 @@ installZ3(Os.kind)
 installCVC(Os.kind)
 
 if (Os.cliArgs.isEmpty) {
-  build(F, F)
+  val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified
+  val idea = homeBin / platform / "idea"
+  val ideaUlt = homeBin / platform / "idea-ultimate"
+  val version: B = sireumJar.exists && (home / "versions.properties").lastModified > sireumJar.lastModified
+  val isCommunity: B = (fresh | version) & idea.exists
+  val isUltimate: B = (fresh | version) & ideaUlt.exists
+
+  if (fresh) {
+    println(s"Modifications to ${builtIn.name} detected ... ")
+    println()
+  } else if (version & (isCommunity | isUltimate)) {
+    println(s"Modifications to version.properties detected ... ")
+    println()
+  }
+  if (fresh | version) {
+    (isCommunity, isUltimate) match {
+      case (T, T) => println(s"Rebuilding ${idea.name} and ${ideaUlt.name} ...")
+      case (T, F) => println(s"Rebuilding ${idea.name} ...")
+      case (F, T) => println(s"Rebuilding ${ideaUlt.name} ...")
+      case _ => println(s"Forcing fresh compilation ...")
+    }
+    println()
+  }
+  if (isCommunity || isUltimate) {
+    if (isCommunity) {
+      setup(fresh, F, F)
+    }
+    if (isUltimate) {
+      if (isCommunity) {
+        println()
+      }
+      setup(!isCommunity & fresh, T, F)
+    }
+  } else {
+    build(fresh, F)
+  }
 } else {
   for (i <- 0 until Os.cliArgs.size) {
     Os.cliArgs(i) match {
+      case string"jar" => build(F, F)
       case string"fresh" => build(T, F)
       case string"native" => build(F, T)
-      case string"setup" => setup(F, F)
-      case string"setup-ultimate" => setup(T, F)
-      case string"setup-server" => setup(F, T)
+      case string"setup" => setup(F, F, F)
+      case string"setup-ultimate" => setup(F, T, F)
+      case string"setup-server" => setup(F, F, T)
       case string"project" => project(F, F, F)
       case string"project-ultimate" => project(F, T, F)
       case string"project-server" => project(F, F, T)
