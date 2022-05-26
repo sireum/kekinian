@@ -650,27 +650,33 @@ if (Os.cliArgs.isEmpty) {
   val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified
   val idea = homeBin / platform / "idea"
   val ideaUlt = homeBin / platform / "idea-ultimate"
+  val ideaServer = homeBin / platform / "idea-server"
   val version: B = sireumJar.exists && (home / "versions.properties").lastModified > sireumJar.lastModified
   val isCommunity: B = (fresh | version) & idea.exists
   val isUltimate: B = (fresh | version) & ideaUlt.exists
+  val isServer: B = (fresh | version) & ideaServer.exists
 
   if (fresh) {
     println(s"Modifications to ${builtIn.name} detected ... ")
     println()
-  } else if (version & (isCommunity | isUltimate)) {
+  } else if (version & (isCommunity | isUltimate | isServer)) {
     println(s"Modifications to version.properties detected ... ")
     println()
   }
-  if (fresh | version) {
-    (isCommunity, isUltimate) match {
-      case (T, T) => println(s"Rebuilding ${idea.name} and ${ideaUlt.name} ...")
-      case (T, F) => println(s"Rebuilding ${idea.name} ...")
-      case (F, T) => println(s"Rebuilding ${ideaUlt.name} ...")
-      case _ => println(s"Forcing fresh compilation ...")
+  if (fresh || version) {
+    (isCommunity, isUltimate, isServer) match {
+      case (T, T, T) => println(s"Rebuilding IVE, IVE Server, and IVE Ultimate  ...")
+      case (T, T, F) => println(s"Rebuilding IVE and IVE Ultimate ...")
+      case (T, F, T) => println(s"Rebuilding IVE and IVE Server ...")
+      case (T, F, F) => println(s"Rebuilding IVE ...")
+      case (F, T, T) => println(s"Rebuilding IVE Server and IVE Ultimate ...")
+      case (F, T, F) => println(s"Rebuilding IVE Ultimate ...")
+      case (F, F, T) => println(s"Rebuilding IVE Server ...")
+      case (F, F, F) => println(s"Forcing fresh compilation ...")
     }
     println()
   }
-  if (isCommunity || isUltimate) {
+  if (isCommunity || isUltimate || isServer) {
     if (isCommunity) {
       setup(fresh, F, F)
     }
@@ -678,7 +684,13 @@ if (Os.cliArgs.isEmpty) {
       if (isCommunity) {
         println()
       }
-      setup(!isCommunity & fresh, T, F)
+      setup(!isCommunity && fresh, T, F)
+    }
+    if (isServer) {
+      if (isCommunity || isUltimate) {
+        println()
+      }
+      setup(!isCommunity && !isUltimate && fresh, F, T)
     }
   } else {
     build(fresh, F)
