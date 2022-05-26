@@ -189,7 +189,7 @@ as well as their dependencies.
 Set the `SIREUM_HOME` env var to the `kekinian` path above.
 
 To update later on, simply do a `git pull --recurse-submodules` and re-run 
-`build.cmd setup` (or simply `build.cmd` to rebuild Sireum CLI tools).
+`build.cmd`.
 Note that after a `setup` update, it is best to invalidate IntelliJ's cache files 
 and restart by using IntelliJ's `File -> Invalidate Caches...` 
 menu item and select `Clear all file system cache and Local History`.
