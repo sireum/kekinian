@@ -11,7 +11,7 @@ exit /B %errorlevel%
 // #Sireum
 import org.sireum._
 
-val version = "1.8.0"
+val version = "1.8.1"
 
 if (Os.kind != Os.Kind.Linux) {
   eprintln("This feature is only available on Linux amd64")
