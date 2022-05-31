@@ -29,7 +29,7 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Os.Path
 import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, TranspilerConfig}
-import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform}
+import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.message._
 
@@ -82,7 +82,7 @@ object HAMR {
     return if (reporter.hasError) 1 else 0
   }
 
-  // JAVA/OSATE interface returning a reporter
+  // JAVA/OSATE interface
   def codeGenR(model: Aadl,
                //
                verbose: B,
@@ -107,8 +107,10 @@ object HAMR {
                camkesAuxCodeDirs: ISZ[String],
                aadlRootDir: Option[String],
                //
-               experimentalOptions: ISZ[String]
-              ): Reporter = {
+               experimentalOptions: ISZ[String],
+
+               reporter: Reporter
+              ): Z = {
 
     val o = Cli.SireumHamrCodegenOption(
       help = "",
@@ -140,14 +142,12 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    val reporter = Reporter.create
-
     codeGenReporter(model, o, reporter)
 
-    return reporter
+    return if(reporter.hasError) 1 else 0
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): Unit = {
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
 
     // call back function
     def transpile(ao: TranspilerConfig): Z = {
@@ -208,9 +208,7 @@ object HAMR {
 
     val ops = toCodeGenOptions(o)
 
-    SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _)
-
-    return
+    return SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _)
   }
 
   def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
