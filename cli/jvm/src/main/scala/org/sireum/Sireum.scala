@@ -378,7 +378,7 @@ object Sireum {
           case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o, reporter)
           case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o, reporter)
           case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o, reporter)
-          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
+          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o, reporter)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             reporter match {

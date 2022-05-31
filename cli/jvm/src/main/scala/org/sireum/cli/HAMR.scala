@@ -38,7 +38,7 @@ object HAMR {
   val toolName: String = "HAMR"
 
   // cli interface
-  def codeGen(o: Cli.SireumHamrCodegenOption): Z = {
+  def codeGen(o: Cli.SireumHamrCodegenOption, reporter: Reporter): Z = {
     o.args.size match {
       case z"0 " => println(o.help); return 0
       case _ =>
@@ -49,7 +49,7 @@ object HAMR {
     val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
       inputFile.get.read
     } else {
-      val fname: String = if(inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
+      val fname: String = if (inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
       eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
       return -1
     }
@@ -68,15 +68,18 @@ object HAMR {
           return -1
       }
     }
-      else {
-        irJSON.toAadl(input) match {
-          case Either.Left(m) => m
-          case Either.Right(m) =>
-            eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
-            return -1
-        }
+    else {
+      irJSON.toAadl(input) match {
+        case Either.Left(m) => m
+        case Either.Right(m) =>
+          eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
+          return -1
       }
-    return if(codeGenReporter(model, o).hasError) 1 else 0
+    }
+
+    codeGenReporter(model, o, reporter)
+
+    return if (reporter.hasError) 1 else 0
   }
 
   // JAVA/OSATE interface returning a reporter
@@ -137,12 +140,14 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    return codeGenReporter(model, o)
+    val reporter = Reporter.create
+
+    codeGenReporter(model, o, reporter)
+
+    return reporter
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption): Reporter = {
-
-    var reporter = Reporter.create
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): Unit = {
 
     // call back function
     def transpile(ao: TranspilerConfig): Z = {
@@ -173,7 +178,7 @@ object HAMR {
         cmakeIncludes = ao.cmakeIncludes,
         strictAliasing = F
       )
-      
+
       return CTranspiler.run(sstco, reporter)
     }
 
@@ -184,7 +189,7 @@ object HAMR {
         args = po.args,
         force = po.force,
         edition = if (po.ultimate) Cli.SireumProyekIveEdition.Ultimate else Cli.SireumProyekIveEdition.Community,
-        ignoreRuntime= po.ignoreRuntime,
+        ignoreRuntime = po.ignoreRuntime,
         json = po.json,
         name = po.name,
         outputDirName = po.outputDirName,
@@ -203,9 +208,9 @@ object HAMR {
 
     val ops = toCodeGenOptions(o)
 
-    val results = SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _ )
+    SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _)
 
-    return reporter
+    return
   }
 
   def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
