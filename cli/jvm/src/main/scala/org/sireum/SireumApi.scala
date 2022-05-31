@@ -103,6 +103,10 @@ import org.sireum._
 
   def run(args: ISZ[String]): Z = $
 
+  def runWithReporter(args: ISZ[String], reporter: message.Reporter): (Z /* exit code */, String /* stdout */, String /* stderr */) = $
+
+  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: message.Reporter): (Z /* exit code */, String /* stdout */, String /* stderr */) = $
+
   def initRuntimeLibrary(): Unit = $
 
   @pure def parCores(percentage: Z): Z = $

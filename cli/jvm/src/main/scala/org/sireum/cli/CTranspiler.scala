@@ -51,7 +51,7 @@ object CTranspiler {
   val PluginError: Z = -11
   val TranspilingError: Z = -12
 
-  def run(o: Cli.SireumSlangTranspilersCOption): Z = {
+  def run(o: Cli.SireumSlangTranspilersCOption, reporter: Reporter): Z = {
     def readFile(f: Os.Path): (Option[String], String) = {
       return (Some(f.toUri), f.read)
     }
@@ -298,14 +298,13 @@ object CTranspiler {
           (p._1.typeHierarchy, p._2)
         }
         if (rep.hasIssue) {
-          rep.printMessages()
+          reporter.reports(rep.messages)
+          reporter.printMessages()
           return InvalidLibrary
         }
         thl
     }
     stopTime()
-
-    val reporter = Reporter.create
 
     if (o.verbose) {
       println()
@@ -316,7 +315,8 @@ object CTranspiler {
     val t = FrontEnd.parseProgramAndGloballyResolve(0, for (p <- sources) yield FrontEnd.Input(p._2, p._1),
       th.nameMap, th.typeMap)
     if (t._1.hasIssue) {
-      t._1.printMessages()
+      reporter.reports(t._1.messages)
+      reporter.printMessages()
       return InvalidSources
     }
     stopTime()

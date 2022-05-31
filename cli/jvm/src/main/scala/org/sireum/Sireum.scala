@@ -312,7 +312,42 @@ object Sireum {
     }
   }
 
-  def run(args: ISZ[String]): Z = {
+  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: Reporter): (Z, String, String) =
+    runWithReporter(args, reporter, Some(input))
+
+  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
+    val oldOut = System.out
+    val oldErr = System.err
+    val oldIn = System.in
+    val bout = new java.io.ByteArrayOutputStream
+    val berr = new java.io.ByteArrayOutputStream
+    val out = new java.io.PrintStream(bout)
+    val err = new java.io.PrintStream(berr)
+    inputOpt match {
+      case Some(input) =>
+        System.setIn(new java.io.ByteArrayInputStream(input.value.getBytes("UTF-8")))
+      case _ =>
+    }
+    System.setErr(err)
+    System.setOut(out)
+
+    try {
+      (run(args, reporter), bout.toString("UTF-8"), berr.toString("UTF-8"))
+    } catch {
+      case t: Throwable =>
+        val sw = new java.io.PrintWriter(new java.io.StringWriter)
+        t.printStackTrace(sw)
+        sw.flush()
+        reporter.internalError(None(), "Sireum", sw.toString)
+        (42, bout.toString("UTF-8"), berr.toString("UTF-8"))
+    } finally {
+      System.setErr(oldErr)
+      System.setOut(oldOut)
+      if (inputOpt.nonEmpty) System.setIn(oldIn)
+    }
+  }
+
+  def run(args: ISZ[String], reporter: Reporter = Reporter.create): Z = {
     args match {
       case ISZ(string"-v") =>
         println(s"Sireum v$version${if (isNative) " (native)" else ""}")
@@ -331,21 +366,29 @@ object Sireum {
             case _ => return 0
           }
           case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
-          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o)
-          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o)
+          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o, reporter)
+          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o, reporter)
           case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
           case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
           case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
-          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o)
-          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o)
-          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o)
+          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o, reporter)
+          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o, reporter)
+          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o, reporter)
           case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
-          case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
-          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o)
+          case Some(o: Cli.SireumLogikaVerifierOption) =>
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
+              case _ =>
+                val rep = logika.Logika.Reporter.create
+                val exitCode = cli.Logika.run(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
+          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o, reporter)
           case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
-            val r = NativeUtil.nonNative[Z](-1, () => cli.Presentasi.gen(o))
+            val r = NativeUtil.nonNative[Z](-1, () => cli.Presentasi.gen(o, reporter))
             if (r == -1) {
               eprintln("The tool is not available in native mode")
             }
@@ -353,12 +396,28 @@ object Sireum {
           case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
           case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
           case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
-          case Some(o: Cli.SireumProyekLogikaOption) => return cli.Proyek.logika(o)
+          case Some(o: Cli.SireumProyekLogikaOption) =>
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
+              case _ =>
+                val rep = logika.Logika.Reporter.create
+                val exitCode = cli.Proyek.logika(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
           case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
           case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
-          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o)
+          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o, reporter)
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
-          case Some(o: Cli.SireumProyekTipeOption) => return cli.Proyek.tipe(o)
+          case Some(o: Cli.SireumProyekTipeOption) =>
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
+              case _ =>
+                val rep = logika.Logika.Reporter.create
+                val exitCode = cli.Proyek.tipe(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
           case Some(_: Cli.HelpOption) => return 0
           case Some(o: Cli.SireumServerOption) =>
             homeOpt match {

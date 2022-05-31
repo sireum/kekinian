@@ -35,7 +35,7 @@ object Parser {
   val INVALID_OUTDIR: Z = -2
   val INVALID_INPUT: Z = -3
 
-  def gen(o: Cli.SireumParserGenOption): Z = {
+  def gen(o: Cli.SireumParserGenOption, reporter: message.Reporter): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
@@ -73,7 +73,6 @@ object Parser {
       case _ => ops.StringOps(ops.StringOps(src.name).substring(0, src.name.size - (src.ext.size + 1))).firstToUpper
     }
     val dest = destDir / s"${name}Parser.scala"
-    val reporter = message.Reporter.create
     val packageOpt: Option[ST] =
       if (o.packageName.isEmpty) None() else Some(
         st"""package ${(o.packageName, ".")}

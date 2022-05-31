@@ -389,7 +389,7 @@ object Proyek {
     return r
   }
 
-  def logika(o: Cli.SireumProyekLogikaOption): Z = {
+  def logika(o: Cli.SireumProyekLogikaOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -499,7 +499,6 @@ object Proyek {
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
 
-    val reporter = org.sireum.logika.Logika.Reporter.create
     val lcode = Analysis.run(
       root = path,
       outDirName = o.outputDirName.get,
@@ -701,7 +700,7 @@ object Proyek {
     return r
   }
 
-  def stats(o: Cli.SireumProyekStatsOption): Z = {
+  def stats(o: Cli.SireumProyekStatsOption, reporter: message.Reporter): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), Some(2), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -748,7 +747,7 @@ object Proyek {
       strictAliasing = T,
       followSymLink = F,
       output = output,
-      reporter = message.Reporter.create
+      reporter = reporter
     )
 
     return r
@@ -818,7 +817,7 @@ object Proyek {
     return r
   }
 
-  def tipe(o: Cli.SireumProyekTipeOption): Z = {
+  def tipe(o: Cli.SireumProyekTipeOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -844,7 +843,6 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val reporter = org.sireum.logika.Logika.Reporter.create
     val config = org.sireum.logika.Config(ISZ(), F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
       F, F, F, F, F, F, F, "RNE", F, F)
     val lcode = Analysis.run(

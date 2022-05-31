@@ -38,7 +38,7 @@ object Logika {
   val INVALID_VC_DIR: Z = -4
   val INVALID_SOURCE_PATH: Z = -5
 
-  def run(o: Cli.SireumLogikaVerifierOption): Z = {
+  def run(o: Cli.SireumLogikaVerifierOption, reporter: logika.Logika.Reporter): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
@@ -135,7 +135,6 @@ object Logika {
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
-          val reporter = logika.Logika.Reporter.create
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
@@ -220,7 +219,6 @@ object Logika {
         o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
       val plugins = logika.Logika.defaultPlugins
-      val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy

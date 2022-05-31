@@ -174,7 +174,7 @@ object HAMR {
         strictAliasing = F
       )
       
-      return CTranspiler.run(sstco)
+      return CTranspiler.run(sstco, reporter)
     }
 
     // call back function

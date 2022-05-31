@@ -67,7 +67,7 @@ object Presentasi {
     return 0
   }
 
-  def gen(o: Cli.SireumPresentasiGenOption): Z = {
+  def gen(o: Cli.SireumPresentasiGenOption, reporter: Reporter): Z = {
 
     @pure def formatTime(millis: Z): String = {
       def format(n: Z, digits: Z): String = {
@@ -483,7 +483,6 @@ object Presentasi {
     image.mkdirAll()
     video.mkdirAll()
 
-    val reporter = Reporter.create
     val audioDir = (resources / "audio").canon
     var audio = audioDir
     val service: Cli.SireumPresentasiText2speechService.Type = o.service match {
