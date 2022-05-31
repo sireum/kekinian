@@ -330,15 +330,19 @@ object Sireum {
     }
     System.setErr(err)
     System.setOut(out)
-
     try {
-      (run(args, reporter), bout.toString("UTF-8"), berr.toString("UTF-8"))
+      val exitCode = run(args, reporter)
+      System.out.flush()
+      System.err.flush()
+      (exitCode, bout.toString("UTF-8"), berr.toString("UTF-8"))
     } catch {
       case t: Throwable =>
         val sw = new java.io.PrintWriter(new java.io.StringWriter)
         t.printStackTrace(sw)
         sw.flush()
         reporter.internalError(None(), "Sireum", sw.toString)
+        System.out.flush()
+        System.err.flush()
         (42, bout.toString("UTF-8"), berr.toString("UTF-8"))
     } finally {
       System.setErr(oldErr)
