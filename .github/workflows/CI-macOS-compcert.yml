@@ -48,6 +48,7 @@ jobs:
             bin/mac/.compcert.ver
             bin/mac/.coq.ver
             bin/mac/.menhir.ver
+            bin/mac/.opam.ver
             bin/mac/.opam
             bin/mac/opam
           key: ${{ runner.os }}-${{ hashFiles('bin/install/opam.cmd','bin/install/compcert.cmd') }}-compcert
