@@ -315,7 +315,7 @@ object Sireum {
   def runWithInputAndReporter(args: ISZ[String], input: String, reporter: Reporter): (Z, String, String) =
     runWithReporter(args, reporter, Some(input))
 
-  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
+  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = this.synchronized {
     val oldOut = System.out
     val oldErr = System.err
     val oldIn = System.in
