@@ -126,9 +126,11 @@ object Sireum {
   }
 
   lazy val javaHomeOpt: Option[Os.Path] = {
-    var rOpt = Os.env("JAVA_HOME").map(Os.path(_))
-    if (rOpt.isEmpty) {
-      rOpt = homeOpt.map(_ / "bin" / platform / "java")
+    var rOpt: Option[Os.Path] =
+      if (Os.env("SIREUM_PROVIDED_JAVA") == Some("true")) None()
+      else homeOpt.map(_ / "bin" / platform / "java")
+    if (rOpt.isEmpty || !rOpt.get.exists) {
+      rOpt = Os.env("JAVA_HOME").map(Os.path(_))
       rOpt match {
         case Some(r) if r.exists =>
         case _ if isNative => rOpt = Some(initInfo.javaHome)
@@ -139,9 +141,11 @@ object Sireum {
   }
 
   lazy val scalaHomeOpt: Option[Os.Path] = {
-    var rOpt: Option[Os.Path] = Os.env("SCALA_HOME").map(Os.path(_))
-    if (rOpt.isEmpty) {
-      rOpt = homeOpt.map(_ / "bin" / "scala")
+    var rOpt: Option[Os.Path] =
+      if (Os.env("SIREUM_PROVIDED_SCALA") == Some("true")) None()
+      else homeOpt.map(_ / "bin" / "scala")
+    if (rOpt.isEmpty || !rOpt.get.exists) {
+      rOpt = Os.env("SCALA_HOME").map(Os.path(_))
       rOpt match {
         case Some(r) if r.exists =>
         case _ if isNative => rOpt = Some(initInfo.scalaHome)
