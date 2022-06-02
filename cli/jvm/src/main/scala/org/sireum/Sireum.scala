@@ -323,6 +323,9 @@ object Sireum {
   }
 
   def proc(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = this.synchronized {
+    def firstErr(): ISZ[String] = {
+      halt(s"The first path command should be 'sireum${if (Os.isWin) ".bat" else ""}'")
+    }
     p match {
       case p: Os.Proc if p.envMap.nonEmpty || p.shouldPrintEnv || p.timeoutInMillis > 0 || p.outLineActionOpt.nonEmpty || p.errLineActionOpt.nonEmpty =>
         println("Some proc options are ignored (e.g., env, timeout, line action, etc.)")
@@ -331,9 +334,11 @@ object Sireum {
     }
 
     val args: ISZ[String] = p.cmds match {
-      case ISZ(first,  _*) if Os.path(first).name === "sireum" => ops.ISZOps(p.cmds).drop(1)
-      case _ =>
-        halt(s"The first path command should be 'sireum'")
+      case ISZ(first,  _*) =>
+        val firstName = Os.path(first).name
+        if (firstName === "sireum" || firstName === "sireum.bat") ops.ISZOps(p.cmds).drop(1)
+        else firstErr()
+      case _ => firstErr()
     }
 
     val oldOut = System.out
