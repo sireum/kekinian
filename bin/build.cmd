@@ -360,40 +360,45 @@ def test(): Unit = {
 
 def regenProject(): Unit = {
   val projectPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "project"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.project", "-l",
-    s"${home / "license.txt"}", "-m", "json", s"${projectPackagePath / "Project.scala"}")).at(projectPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.project", "-l", s"${home / "license.txt"}",
+    "-m", "json", "-o", projectPackagePath.string, s"${projectPackagePath / "Project.scala"}")).console,
+    message.Reporter.create)
 }
 
 
 def regenPresentasi(): Unit = {
   val presentasiPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "presentasi"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.presentasi", "-l",
-    s"${home / "license.txt"}", "-m", "json", s"${presentasiPackagePath / "Presentation.scala"}")).at(presentasiPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.presentasi", "-l",
+    s"${home / "license.txt"}", "-m", "json", "-o", presentasiPackagePath.string,
+    s"${presentasiPackagePath / "Presentation.scala"}")).console, message.Reporter.create)
 }
 
 
 def regenCliOpt(): Unit = {
   val cliPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "cli"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.cli", "-l",
-    s"${home / "license.txt"}", "-m", "json", s"${cliPackagePath / "CliOpt.scala"}")).at(cliPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.cli", "-l", s"${home / "license.txt"}",
+    "-m", "json", "-o", cliPackagePath.string, s"${cliPackagePath / "CliOpt.scala"}")).console, message.Reporter.create)
 }
 
 
 def regenSlang(): Unit = {
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangPackagePath = home / "slang" / "tipe" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", s"${astPackagePath / "AST.scala"}", s"${astPackagePath / "Typed.scala"}")).at(astPackagePath).console.run()
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
-    s"${home / "license.txt"}", "-m", "json,msgpack", s"${slangPackagePath / "symbol" / "Info.scala"}",
-    s"${astPackagePath / "AST.scala"}", s"${astPackagePath / "Typed.scala"}")).at(slangPackagePath / "tipe").console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", astPackagePath.string, s"${astPackagePath / "AST.scala"}",
+    s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
+    s"${home / "license.txt"}", "-m", "json,msgpack", "-o", (slangPackagePath / "tipe").string,
+    s"${slangPackagePath / "symbol" / "Info.scala"}", s"${astPackagePath / "AST.scala"}",
+    s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
 }
 
 
 def regenLogika(): Unit = {
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-e", "Composite",
-    "-m", "immutable,mutable", "-n", "State", s"${logikaPackagePath / "State.scala"}")).at(logikaPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-e", "Composite",
+    "-m", "immutable,mutable", "-n", "State", "-o", logikaPackagePath.string,
+    s"${logikaPackagePath / "State.scala"}")).console, message.Reporter.create)
 }
 
 
@@ -405,17 +410,19 @@ def regenAir(): Unit = {
   val slangPath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangAsts = ISZ[String]("AST.scala", "Typed.scala").map((m: String) => (slangPath / m).value)
 
-  Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
-    "-m", "immutable,mutable") ++ airAsts ++ slangAsts).at(airPath).console.run()
-  Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l", s"${airRootPath / "license.txt"}",
-    "-m", "json,msgpack") ++ airAsts ++ slangAsts).at(airPath).console.run()
+  Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
+    "-m", "immutable,mutable", "-o", airPath.string) ++ airAsts ++ slangAsts).console, message.Reporter.create)
+  Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l",
+    s"${airRootPath / "license.txt"}", "-m", "json,msgpack", "-o", airPath.string) ++ airAsts ++ slangAsts).console,
+    message.Reporter.create)
 }
 
 
 def regenAct(): Unit = {
   val actPackagePath = home / "hamr" / "codegen" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "act" / "ast"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", s"${actPackagePath / "ActAst.scala"}")).at(actPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", actPackagePath.string, s"${actPackagePath / "ActAst.scala"}")).console,
+    message.Reporter.create)
 }
 
 
@@ -423,14 +430,14 @@ def regenServer(): Unit = {
   val protocolPackagePath = home / "server" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "server" / "protocol"
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.server.protocol", "-l",
-    s"${home / "license.txt"}", "-m", "msgpack,json",
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.server.protocol", "-l",
+    s"${home / "license.txt"}", "-m", "msgpack,json", "-o", protocolPackagePath.string,
     s"${protocolPackagePath / "Message.scala"}",
     s"${logikaPackagePath / "State.scala"}",
     s"${logikaPackagePath / "Config.scala"}",
     s"${logikaPackagePath / "Smt2Query.scala"}",
     s"${astPackagePath / "Typed.scala"}"
-  )).at(protocolPackagePath).console.run()
+  )).console, message.Reporter.create)
 }
 
 def regenParser(isSlang: B): Unit = {
@@ -439,19 +446,20 @@ def regenParser(isSlang: B): Unit = {
   val license = home / "license.txt"
   val input = parserResourcesPackagePath / "SireumAntlr3.g"
   val mode: String = if (isSlang) "slang" else "antlr3"
-  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar --no-backtracking $input".at(parserPackagePath).console.run()
+  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar --no-backtracking -o $parserPackagePath $input".console,
+    message.Reporter.create)
 }
 
 def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
-    s"${sireumPackagePath / "cli.sc"}")).at(sireumPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
+    "-o", sireumPackagePath.string, s"${sireumPackagePath / "cli.sc"}")).console, message.Reporter.create)
 }
 
 def regenFmideCli(): Unit = {
   val installPath = homeBin / "install"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-s", "fmide.cmd",
-    s"${installPath / "fmide-cli.sc"}")).at(installPath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-s", "fmide.cmd", "-o", installPath.string,
+    s"${installPath / "fmide-cli.sc"}")).console, message.Reporter.create)
 }
 
 
@@ -460,7 +468,8 @@ def regenJson(): Unit = {
   val parserResourcesPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "resources"
   val license = home / "license.txt"
   val input = parserResourcesPackagePath / "JSON.g"
-  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking $input".at(jsonPackagePath).console.run()
+  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking -o $jsonPackagePath $input".console,
+    message.Reporter.create)
 }
 
 
