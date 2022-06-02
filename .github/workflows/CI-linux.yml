@@ -29,12 +29,6 @@ jobs:
         with:
           path: cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
-      - name: Cache Graal
-        id: cache-graal
-        uses: actions/cache@v2
-        with:
-          path: bin/linux/graal
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
       - name: Cache SMT2 solvers
         id: cache-smt2
         uses: actions/cache@v2
@@ -58,6 +52,15 @@ jobs:
           .ci/build.sh
           bin/install/alt-ergo.cmd
           .ci/build.sh test
-          .ci/linux-native.sh
-          rm bin/linux/sireum
           bin/install/ffmpeg-libs.cmd
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v2
+        with:
+          path: bin/linux/graal
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
+      - name: Test
+        run: |
+          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
+          cd $GITHUB_WORKSPACE
+          .ci/linux-native.sh
