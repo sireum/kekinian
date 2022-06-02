@@ -301,7 +301,8 @@ def build(fresh: B, isNative: B): Unit = {
   }
   val nativ: String = if (isNative) " --native" else ""
 
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ .".at(home).console.run()
+  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ $home".console,
+    message.Reporter.create)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
     if (isNative) {
@@ -331,7 +332,8 @@ def tipe(): Unit = {
 def compile(isJs: B): Unit = {
   tipe()
   println("Compiling ...")
-  proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} .".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} $home".console,
+    message.Reporter.create)
   println()
 }
 
@@ -349,12 +351,11 @@ def test(): Unit = {
     "org.sireum.logika",
     "org.sireum.proyek",
     "org.sireum.hamr.codegen.test.expensive"
-  ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
-  proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
-    at(home).console.echo.runCheck()
+  )
+  Sireum.procCheck(proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
+    console.echo, message.Reporter.create)
   println()
-  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 $home".
-    at(home).console.echo.runCheck()
+  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 $home".console.echo.runCheck()
 }
 
 
@@ -477,7 +478,8 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} $home org.sireum.kekinian".console,
+    message.Reporter.create)
   return kekinianRepo
 }
 
@@ -497,7 +499,8 @@ def m2Lib(isJs: B): Unit = {
   }
 
   val target: String = if (isJs) "--target js" else "--target jvm"
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version . org.sireum.kekinian".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version $home org.sireum.kekinian".console,
+    message.Reporter.create)
 }
 
 def jitpack(): Unit = {
@@ -512,7 +515,7 @@ def jitpack(): Unit = {
         |}""".render
   )
   sc.removeOnExit()
-  proc"$sireum slang run $sc".console.run()
+  Sireum.procCheck(proc"$sireum slang run $sc".console, message.Reporter.create)
 }
 
 def ghpack(): Unit = {
@@ -571,7 +574,8 @@ def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
     build(F, F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} .".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console,
+    message.Reporter.create)
 }
 
 def ram(): Unit = {
