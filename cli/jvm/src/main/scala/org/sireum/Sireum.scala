@@ -312,29 +312,81 @@ object Sireum {
     }
   }
 
-  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: Reporter): (Z, String, String) =
-    runWithReporter(args, reporter, Some(input))
+  def procCheck(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = {
+    val r = proc(p, reporter)
+    if (!r.ok) {
+      halt(
+        st"""Error encountered when running: ${(p.cmds, " ")}, exit code: ${r.exitCode}
+            |${if (p.isErrAsOut) r.out else r.err}""".render)
+    }
+    r
+  }
 
-  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = this.synchronized {
+  def proc(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = this.synchronized {
+    p match {
+      case p: Os.Proc if p.envMap.nonEmpty || p.shouldPrintEnv || p.timeoutInMillis > 0 || p.outLineActionOpt.nonEmpty || p.errLineActionOpt.nonEmpty =>
+        println("Some proc options are ignored (e.g., env, timeout, line action, etc.)")
+        println()
+      case _ =>
+    }
+
+    val args: ISZ[String] = p.cmds match {
+      case ISZ(first,  _*) if Os.path(first).name === "sireum" => ops.ISZOps(p.cmds).drop(1)
+      case _ =>
+        halt(s"The first path command should be 'sireum'")
+    }
+
     val oldOut = System.out
     val oldErr = System.err
     val oldIn = System.in
-    val bout = new java.io.ByteArrayOutputStream
-    val berr = new java.io.ByteArrayOutputStream
+    val bout = new java.io.ByteArrayOutputStream() {
+      override def write(b: Int): Unit = {
+        super.write(b)
+        if (p.shouldOutputConsole) {
+          oldOut.write(b)
+          oldOut.flush()
+        }
+      }
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        super.write(b, off, len)
+        if (p.shouldOutputConsole) {
+          oldOut.write(b, off, len)
+          oldOut.flush()
+        }
+      }
+    }
+    val berr = if (p.isErrAsOut) bout else new java.io.ByteArrayOutputStream() {
+      override def write(b: Int): Unit = {
+        super.write(b)
+        if (p.shouldOutputConsole) {
+          oldErr.write(b)
+          oldErr.flush()
+        }
+      }
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        super.write(b, off, len)
+        if (p.shouldOutputConsole) {
+          oldErr.write(b, off, len)
+          oldErr.flush()
+        }
+      }
+    }
     val out = new java.io.PrintStream(bout)
     val err = new java.io.PrintStream(berr)
-    inputOpt match {
-      case Some(input) =>
-        System.setIn(new java.io.ByteArrayInputStream(input.value.getBytes("UTF-8")))
+    p.in match {
+      case Some(input) => System.setIn(new java.io.ByteArrayInputStream(input.value.getBytes("UTF-8")))
       case _ =>
     }
-    System.setErr(err)
     System.setOut(out)
+    System.setErr(err)
+    if (p.shouldPrintCommands) {
+      println(st"${(p.cmds, " ")}".render)
+    }
     try {
       val exitCode = run(args, reporter)
       System.out.flush()
       System.err.flush()
-      (exitCode, bout.toString("UTF-8"), berr.toString("UTF-8"))
+      Os.Proc.Result.Normal(exitCode, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
     } catch {
       case t: Throwable =>
         val sw = new java.io.PrintWriter(new java.io.StringWriter)
@@ -343,12 +395,20 @@ object Sireum {
         reporter.internalError(None(), "Sireum", sw.toString)
         System.out.flush()
         System.err.flush()
-        (42, bout.toString("UTF-8"), berr.toString("UTF-8"))
+        Os.Proc.Result.Normal(42, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
     } finally {
       System.setErr(oldErr)
       System.setOut(oldOut)
-      if (inputOpt.nonEmpty) System.setIn(oldIn)
+      if (p.in.nonEmpty) System.setIn(oldIn)
     }
+  }
+
+  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: Reporter): (Z, String, String) =
+    runWithReporter(args, reporter, Some(input))
+
+  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
+    val r = proc(Os.proc(args)(in = inputOpt), reporter)
+    (r.exitCode, r.out, r.err)
   }
 
   def run(args: ISZ[String], reporter: Reporter = Reporter.create): Z = {

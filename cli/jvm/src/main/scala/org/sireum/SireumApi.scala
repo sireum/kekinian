@@ -27,6 +27,7 @@
 package org.sireum
 
 import org.sireum._
+import org.sireum.message.Reporter
 
 @ext("Sireum") object SireumApi {
   def version: String = $
@@ -102,6 +103,10 @@ import org.sireum._
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $
 
   def run(args: ISZ[String]): Z = $
+
+  def proc(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = $
+
+  def procCheck(p: OsProto.Proc, reporter: message.Reporter): OsProto.Proc.Result = $
 
   def runWithReporter(args: ISZ[String], reporter: message.Reporter): (Z /* exit code */, String /* stdout */, String /* stderr */) = $
 
