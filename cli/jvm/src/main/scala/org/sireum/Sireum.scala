@@ -416,7 +416,7 @@ object Sireum {
     runWithReporter(args, reporter, Some(input))
 
   def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
-    val r = proc(Os.proc(args)(in = inputOpt), reporter)
+    val r = proc(Os.proc("sireum" +: args)(in = inputOpt), reporter)
     (r.exitCode, r.out, r.err)
   }
 
