@@ -595,7 +595,7 @@ object Presentasi {
         ops.StringOps(l).trim match {
           case string"" =>
             storeSound()
-            currSound = currSound(timeline = currSound.timeline + spec.delay)
+            currSound = currSound(timeline = currSound.timeline + spec.textDelay)
           case line =>
             val lineOps = ops.StringOps(line)
             if (lineOps.startsWith("[") && lineOps.endsWith("]")) {
@@ -631,7 +631,7 @@ object Presentasi {
                       case Some(dur) =>
                         if (currSound.text =!= "") {
                           storeSound()
-                          currSound = currSound(timeline = currSound.timeline + spec.delay)
+                          currSound = currSound(timeline = currSound.timeline + spec.textDelay)
                         }
                         currSound = currSound(filepath = target, duration = dur)
                         sounds = sounds :+ currSound
