@@ -34,6 +34,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
+            bin/linux/alt-ergo-open
+            bin/linux/.alt-ergo-open.ver
             bin/linux/cvc
             bin/linux/.cvc.ver
             bin/linux/cvc5
@@ -44,7 +46,7 @@ jobs:
             bin/linux/.menhir.ver
             bin/linux/.alt-ergo.ver
             bin/linux/opam
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/opam.cmd','bin/install/alt-ergo.cmd') }}-smt2
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties','bin/install/opam.cmd','bin/install/alt-ergo.cmd') }}-smt2
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier

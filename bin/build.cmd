@@ -61,8 +61,8 @@ def usage(): Unit = {
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
         |       | regen-cliopt     | regen-cli         | regen-fmide-cli
-        |       | regen-json       | m2[-lib[-js]]
-        |       | cvc              | z3                | ram
+        |       | regen-json       | m2[-lib[-js]]     | ram
+        |       | alt-ergo-open    | cvc               | z3
         |       | mill             | jitpack           | ghpack                       )*
         |""".render)
 }
@@ -123,6 +123,7 @@ def installZ3(kind: Os.Kind.Type): Unit = {
     println(s"Please wait while downloading Z3 $version ...")
     bundle.up.mkdirAll()
     bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
+    println()
   }
 
   println("Extracting Z3 ...")
@@ -189,6 +190,7 @@ def installCVC(kind: Os.Kind.Type): Unit = {
       println(s"Please wait while downloading CVC$gen $version ...")
       drop.up.mkdirAll()
       drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
+      println()
     }
 
     drop.copyOverTo(exe)
@@ -229,6 +231,52 @@ def cvc(): Unit = {
   println("Installing CVC for Windows ...")
   println()
   installCVC(Os.Kind.Win)
+  println()
+}
+
+
+def installAltErgoOpen(kind: Os.Kind.Type): Unit = {
+  val version = versions.get("org.sireum.version.alt-ergo-open").get
+  val dir = homeBin / platformKind(kind)
+  val exe = dir / "alt-ergo-open"
+  val ver = dir / ".alt-ergo-open.ver"
+
+  if (ver.exists && ver.read == version) {
+    return
+  }
+
+  val filename: String = kind match {
+    case Os.Kind.Linux => s"alt-ergo-open-$version-linux"
+    case Os.Kind.Mac => s"alt-ergo-open-$version-mac"
+    case _ => return
+  }
+
+  val drop = cache / filename
+
+  if (!drop.exists) {
+    println(s"Please wait while downloading Alt-Ergo $version (Apache 2.0 Licence) ...")
+    drop.up.mkdirAll()
+    drop.downloadFrom(s"https://github.com/sireum/rolling/releases/download/alt-ergo-open/$filename")
+    println()
+  }
+
+  drop.copyOverTo(exe)
+
+  exe.chmod("+x")
+
+  ver.writeOver(version)
+}
+
+
+def altErgoOpen(): Unit = {
+  println("Installing Alt-Ergo for macOS ...")
+  println()
+  installAltErgoOpen(Os.Kind.Mac)
+  println()
+
+  println("Installing Alt-Ergo for Linux ...")
+  println()
+  installAltErgoOpen(Os.Kind.Linux)
   println()
 }
 
@@ -658,6 +706,7 @@ if (!builtIn.exists) {
 
 installZ3(Os.kind)
 installCVC(Os.kind)
+installAltErgoOpen(Os.kind)
 
 if (Os.cliArgs.isEmpty) {
   val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified
@@ -744,6 +793,7 @@ if (Os.cliArgs.isEmpty) {
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"ram" => ram()
+      case string"alt-ergo-open" => altErgoOpen()
       case string"cvc" => cvc()
       case string"z3" => z3()
       case string"-h" => usage()
