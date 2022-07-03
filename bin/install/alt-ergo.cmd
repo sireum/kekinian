@@ -38,7 +38,7 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 
 
 def altErgo(dir: Os.Path): Unit = {
-  val env = ISZ("PATH" ~> s"${Os.env("PATH").get}${Os.pathSep}${dir.up.canon}")
+  val env = ISZ("PATH" ~> s"${dir.up.canon}${Os.pathSep}${Os.env("PATH").get}")
   println(s"Installing Alt-Ergo $altErgoVersion ...")
   Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "alt-ergo", "-y")).runCheck()
   Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"alt-ergo=$altErgoVersion", "-y", "-j", cores)).env(env).console.runCheck()
