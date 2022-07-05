@@ -447,6 +447,7 @@ In addition, Sireum includes adaptation of the following artifact:
 
 | Application | License |
 | :--- | :---: |
+| [Alt-Ergo (Free)](https://github.com/OCamlPro/alt-ergo/tree/2.3.3-free) | [Apache 2.0](https://github.com/OCamlPro/alt-ergo/blob/2.3.3-free/Apache-License-2.0.txt) |
 | [Azul Zulu JDK FX](https://www.azul.com/downloads/?package=jdk-fx) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
