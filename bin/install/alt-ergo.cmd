@@ -58,7 +58,7 @@ def install(platformDir: Os.Path): Unit = {
 
   println(
     st"""Note that:
-        |  Alt-Ergo is not free software.
+        |  Alt-Ergo $altErgoVersion is not free software.
         |  This public release can only be used for non-commercial purposes.
         |  (see: https://github.com/OCamlPro/alt-ergo/blob/next/LICENSE.md)
         |""".render)
