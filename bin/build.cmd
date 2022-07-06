@@ -57,6 +57,7 @@ def usage(): Unit = {
         |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
         |       | jar              | fresh             | native
         |       | tipe             | compile[-js]      | test
+        |       | verify
         |       | regen-project    | regen-presentasi  | regen-slang
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
@@ -403,7 +404,12 @@ def test(): Unit = {
   Sireum.procCheck(proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
     console.echo, message.Reporter.create)
   println()
-  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 $home".console.echo.runCheck()
+  verifyRuntime()
+}
+
+
+def verifyRuntime(): Unit = {
+  proc"$sireum proyek logika --all --par --slice library-shared --timeout 8 $home".console.echo.runCheck()
 }
 
 
@@ -773,6 +779,7 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
       case string"test" => test()
+      case string"verify" => verifyRuntime()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
