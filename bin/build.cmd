@@ -409,7 +409,7 @@ def test(): Unit = {
 
 
 def verifyRuntime(): Unit = {
-  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 $home".console.echo.runCheck()
+  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
 }
 
 
