@@ -63,6 +63,12 @@ def install(platformDir: Os.Path): Unit = {
         |  (see: https://github.com/OCamlPro/alt-ergo/blob/next/LICENSE.md)
         |""".render)
 
+  val opam = opamDir.up / "opam"
+
+  if (opam.exists) {
+    Os.proc(ISZ(opam.canon.string, "update", s"--root=$opamDir")).console.runCheck()
+  }
+
   (Os.slashDir / "menhir.cmd").slash(ISZ())
 
   altErgo(opamDir)
