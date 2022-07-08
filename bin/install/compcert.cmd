@@ -25,7 +25,7 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val compCertVersion = "3.10"
+val compCertVersion = "3.11"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -40,9 +40,10 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 
 def compCert(dir: Os.Path): Unit = {
   println(s"Installing CompCert $compCertVersion ...")
-  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
-  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
-  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
+  val opam = (dir.up / "opam").canon.string
+  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
+  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
+  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
   println()
 }
 
@@ -63,6 +64,12 @@ def install(platformDir: Os.Path): Unit = {
         |   education purposes, but not for commercial purposes."
         |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
         |""".render)
+
+  val opam = opamDir.up / "opam"
+
+  if (opam.exists) {
+    Os.proc(ISZ(opam.canon.string, "update", s"--root=$opamDir")).console.runCheck()
+  }
 
   (Os.slashDir / "menhir.cmd").slash(ISZ())
   (Os.slashDir / "coq.cmd").slash(ISZ())
