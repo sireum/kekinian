@@ -51,6 +51,15 @@ def altErgo(dir: Os.Path): Unit = {
   Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", altErgoLibOpenUrl, "-y", "-j", cores)).env(env).runCheck()
   Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", altErgoParsersOpenUrl, "-y", "-j", cores)).env(env).runCheck()
   Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", altErgoOpenUrl, "-y", "-j", cores)).env(env).runCheck()
+
+  for (d <- dir.list if (d / ".opam-switch").exists) {
+    for (p <- (d / ".opam-switch" / "overlay").list ++ (d / ".opam-switch" / "sources").list if p.isDir) {
+      val nameOps = ops.StringOps(p.name)
+      if (nameOps.startsWith("alt-ergo") && nameOps.endsWith("-open")) {
+        p.removeAll()
+      }
+    }
+  }
   println()
 }
 
