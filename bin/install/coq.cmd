@@ -25,7 +25,7 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val coqVersion = "8.15.0"
+val coqVersion = "8.15.2"
 
 val (cores, isIde): (String, B) = Os.cliArgs match {
   case ISZ(n) => (Z(n).getOrElse(Os.numOfProcessors).string, F)
@@ -42,15 +42,16 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 
 def coq(dir: Os.Path): Unit = {
   println(s"Installing Coq${if (isIde) " IDE" else ""} $coqVersion ...")
+  val opam = (dir.up / "opam").canon.string
   val variant: String = if (isIde) "ide" else ""
   if (isIde) {
-    Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", s"coqide", "-y")).runCheck()
+    Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", s"coqide", "-y")).runCheck()
   }
-  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", s"coq", "-y")).runCheck()
-  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"coq$variant=$coqVersion", "-y", "-j", cores)).console.runCheck()
-  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", s"coq", s"$coqVersion", "-y")).runCheck()
+  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", s"coq", "-y")).runCheck()
+  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq$variant=$coqVersion", "-y", "-j", cores)).console.runCheck()
+  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", s"coq", s"$coqVersion", "-y")).runCheck()
   if (isIde) {
-    Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", s"coqide", s"$coqVersion", "-y")).runCheck()
+    Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", s"coqide", s"$coqVersion", "-y")).runCheck()
   }
   println()
 }
