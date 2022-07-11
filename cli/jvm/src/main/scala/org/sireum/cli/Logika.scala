@@ -128,9 +128,17 @@ object Logika {
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardNegative => "RTN"
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
         }
-        val config = logika.Config(smt2Configs, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+        val parCores = SireumApi.parCoresOpt(o.par)
+        val branchParCores = SireumApi.parCoresOpt(o.branchPar)
+        val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+          case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
+          case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+          case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+        }
+        val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
           o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
-          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
+          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
+          branchParMode, branchParCores)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -140,7 +148,7 @@ object Logika {
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
               fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
               config.simplifiedQuery, config.smt2Seq, reporter),
-            logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, plugins, o.line, o.skipMethods, o.skipTypes)
+            logika.Smt2.NoCache(), reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -215,9 +223,11 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardNegative => "RTN"
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
-      val config = logika.Config(smt2Configs, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+      val parCores = SireumApi.parCoresOpt(o.par)
+      val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
         o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
-        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
+        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
+        logika.Config.BranchPar.All, parCores)
       val plugins = logika.Logika.defaultPlugins
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
@@ -226,7 +236,7 @@ object Logika {
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
           config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery,
           config.smt2Seq, reporter),
-        logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, T, plugins, o.line, o.skipMethods, o.skipTypes)
+        logika.Smt2.NoCache(), reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }

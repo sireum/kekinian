@@ -495,9 +495,19 @@ object Proyek {
       case Cli.SireumProyekLogikaFPRoundingMode.TowardZero => "RTZ"
     }
 
-    val config = org.sireum.logika.Config(smt2Configs, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+    val parCores = SireumApi.parCoresOpt(o.par)
+    val branchParCores = SireumApi.parCoresOpt(o.branchPar)
+
+    val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+      case Cli.SireumProyekLogikaBranchPar.All => org.sireum.logika.Config.BranchPar.All
+      case Cli.SireumProyekLogikaBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+      case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+    }
+
+    val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential)
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
+      branchParMode, branchParCores)
 
     val lcode = Analysis.run(
       root = path,
@@ -843,8 +853,8 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val config = org.sireum.logika.Config(ISZ(), F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
-      F, F, F, F, F, F, F, "RNE", F, F)
+    val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
+      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",
