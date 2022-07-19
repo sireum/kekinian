@@ -63,7 +63,7 @@ object Anvil {
     /*
      * Creates a new SandboxContext and hides its implementation type
      */
-    def createSandboxContext(sandboxWorkspace: SandboxWorkspace): SandboxContext = {
+    def createSandboxContext(sandboxWorkspace: SandboxWorkspace): SandboxCompilationContext = {
       return SimpleSandboxContext(sandboxWorkspace)
     }
 
@@ -106,7 +106,7 @@ object Anvil {
     // create the project and (optionally) the sandbox to interact with the project in
     val mirror: TranspilersCOptionMirror = prototypeToMirror(transpilerArgs)
     val project: ProjectContext = SimpleProjectContext(ProjectWorkspace(projectRoot), methodName, mirror)
-    val sandbox: Option[SandboxContext] = sandboxRoot
+    val sandbox: Option[SandboxCompilationContext] = sandboxRoot
       .map((localPath: Os.Path) => SandboxWorkspace(localPath))
       .map((sandboxWorkspace: SandboxWorkspace) => createSandboxContext(sandboxWorkspace))
 
