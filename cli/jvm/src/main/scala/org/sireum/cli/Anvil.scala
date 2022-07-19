@@ -39,7 +39,7 @@ object Anvil {
     val xilinxUnifiedPath: Option[Os.Path] = sanitizePathOpt(string"xilinx-unified-path", args.xilinxUnifiedPath)
 
     val workspace = InstallerWorkspace(root)
-    val context = Context.SimpleSandboxInstallationContext_v2020_1(workspace, installSireum, petalinuxInstallerPath, xilinxUnifiedPath)
+    val context = Context.SimpleSandboxInstallationContext_v2020_1(workspace, installSireum, petalinuxInstallerPath, xilinxUnifiedPath) // todo needs context selector
 
     return AnvilSandbox.install(context)
   }
@@ -178,6 +178,7 @@ object Anvil {
         case SireumSlangTranspilersCAnvilExecutionPass.Second => return TranspilersCAnvilExecutionPassMirror.Second
       }
     }
+
     return TranspilersCOptionMirror(
       help = prototype.help,
       args = prototype.args,
