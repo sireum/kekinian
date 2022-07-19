@@ -53,7 +53,7 @@ object Anvil {
     return AnvilCompiler.compile(hc, tc, ec, tm)
   }
 
-  def validate(args: Cli.SireumAnvilCompileOption): Unit = {
+  @pure def validate(args: Cli.SireumAnvilCompileOption): Unit = {
     expect(args.stage.nonEmpty, st"--stage cannot be empty")
     val path = getPath("transpiler-args-file", args.transpilerArgs, T)
     expect(path.isFile, st"Usage: --transpiler-args-file must be a path to an existing file.")
@@ -118,7 +118,7 @@ object Anvil {
     return SimpleExecutionContext(project, sandbox, seqToSet(stages))
   }
 
-  def parseTranspilerArgs(args: Cli.SireumAnvilCompileOption): Cli.SireumSlangTranspilersCOption = {
+  @pure def parseTranspilerArgs(args: Cli.SireumAnvilCompileOption): Cli.SireumSlangTranspilersCOption = {
     val transpilerArgs: String = {
       expect(args.transpilerArgs.nonEmpty, st"Transpiler args cannot be empty.")
       expect(args.transpilerArgs.map((pathString: String) => Os.path(pathString)).exists(path => path.exists && path.isFile), st"The transpiler-args.")
@@ -142,19 +142,19 @@ object Anvil {
     }
   }
 
-  def getPath(name: String, container: Option[String], requirePathExists: B): Os.Path = {
-    expect(container.nonEmpty, st"--$name requires a value but is empty")
+  @pure def getPath(key: String, container: Option[String], requirePathExists: B): Os.Path = {
+    expect(container.nonEmpty, st"--$key requires a value but is empty")
     val path = Os.path(container.get)
     if (requirePathExists) {
-      expect(path.exists, st"--$name requires a path that exists but got $path")
+      expect(path.exists, st"--$key requires a path that exists but got $path")
     }
     return path
   }
 
-  def getPathOpt(name: String, container: Option[String], requirePathExistsIfPresent: B): Option[Os.Path] = {
+  @pure def getPathOpt(key: String, container: Option[String], requirePathExistsIfPresent: B): Option[Os.Path] = {
     val result = container.map((pathString: String) => Os.path(pathString))
     if (result.nonEmpty && requirePathExistsIfPresent) {
-      expect(result.get.exists, st"--$name requires a path that exists but got ${result.get}")
+      expect(result.get.exists, st"--$key requires a path that exists but got ${result.get}")
     }
     return result
   }
