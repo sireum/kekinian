@@ -537,6 +537,13 @@ object CTranspiler {
       }
     }
 
+    val anvilConfig: StaticTranspiler.AnvilConfig = o.anvilTranspilerPass match {
+      case Cli.SireumSlangTranspilersCAnvilExecutionPass.None => StaticTranspiler.AnvilConfig.NOP()
+      case Cli.SireumSlangTranspilersCAnvilExecutionPass.First => StaticTranspiler.AnvilConfig.PL("anvil_cfiles.txt",
+        "anvil_include_dirs.txt", "anvil_top_function.txt", o.anvilTranspilerContext)
+      case Cli.SireumSlangTranspilersCAnvilExecutionPass.Second => StaticTranspiler.AnvilConfig.PS(o.anvilTranspilerContext)
+    }
+
     val config = StaticTranspiler.Config(
       projectName = o.projectName.getOrElse("main"),
       fprintWidth = o.fingerprint,
@@ -554,7 +561,7 @@ object CTranspiler {
       stableTypeId = o.stableTypeId,
       cmakeIncludes = cmakeIncludes,
       cmakePlusIncludes = cmakePlusIncludes,
-      anvilConfig = StaticTranspiler.AnvilConfig.NOP()
+      anvilConfig = anvilConfig
     )
 
     val trans = StaticTranspiler(config, tsr)
