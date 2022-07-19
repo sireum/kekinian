@@ -150,7 +150,7 @@ val delPlugins = ISZ[String]("android", "smali", "Ktor")
 val pluginPrefix: String = "org.sireum.version.plugin."
 val versions = HashMap ++ (home / "versions.properties").properties.entries
 val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string)
-val settingsDir: String = if (isLocal) (home / ".settings").string else "${user.home}"
+val settingsDir: String = if (isLocal) if (Os.isWin) ops.StringOps((home / ".settings").string).replaceAllChars('\\', '/') else (home / ".settings").string else "${user.home}"
 
 @pure def devRelVer(key: String): (String, String) = {
   ops.StringOps(versions.get(key).get).split((c: C) => c === ',') match {

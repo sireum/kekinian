@@ -37,7 +37,7 @@ val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
 val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
 val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
 val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string) && (homeBin / "distro.cmd").exists
-val settingsDir: String = if (isLocal) (home / ".settings").string else "${user.home}"
+val settingsDir: String = if (isLocal) if (Os.isWin) ops.StringOps((home / ".settings").string).replaceAllChars('\\', '/') else (home / ".settings").string else "${user.home}"
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
   case Some(dir) => Os.path(dir)
