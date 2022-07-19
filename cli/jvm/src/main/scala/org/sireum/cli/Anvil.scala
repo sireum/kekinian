@@ -64,7 +64,7 @@ object Anvil {
      * Creates a new SandboxContext and hides its implementation type
      */
     def createSandboxContext(sandboxWorkspace: SandboxWorkspace): SandboxCompilationContext = {
-      return SimpleSandboxContext(sandboxWorkspace)
+      return SimpleSandboxCompilationContext(sandboxWorkspace)
     }
 
     def convertStage(stage: SireumAnvilCompileStage.Type): ISZ[CompileStage.Type] = {
