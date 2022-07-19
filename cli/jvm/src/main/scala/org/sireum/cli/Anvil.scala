@@ -100,12 +100,13 @@ object Anvil {
     val projectRoot: Os.Path = getPath(string"output-dir", transpilerArgs.output, false)
 
     // parse and validate method descriptor
-    val methodDescriptor = parseMethodDescriptors(args.args)
-    val methodName = ISZOps(methodDescriptor).last
+    val methodDescriptor = parseMethodDescriptors(args.args) // e.g. ISZ("org", "sireum", "Math", "add")
+    val methodName = ISZOps(methodDescriptor).last // e.g. "add"
+    val mangledMethodName = org.sireum.lang.ast.Util.mangleName(methodDescriptor).render // e.g. "org_sireum_Math_add"
 
     // create the project and (optionally) the sandbox to interact with the project in
     val mirror: TranspilersCOptionMirror = prototypeToMirror(transpilerArgs)
-    val project: ProjectContext = SimpleProjectContext(ProjectWorkspace(projectRoot), methodName, mirror)
+    val project: ProjectContext = SimpleProjectContext(ProjectWorkspace(projectRoot), methodDescriptor, methodName, mangledMethodName, mirror)
     val sandbox: Option[SandboxCompilationContext] = sandboxRoot
       .map((localPath: Os.Path) => SandboxWorkspace(localPath))
       .map((sandboxWorkspace: SandboxWorkspace) => createSandboxContext(sandboxWorkspace))
