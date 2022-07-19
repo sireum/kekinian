@@ -54,9 +54,9 @@ object Anvil {
   }
 
   def validate(args: Cli.SireumAnvilCompileOption): Unit = {
-    expect(args.stage.nonEmpty, st"At least one stage must be specified.")
-    expect(args.transpilerArgs.nonEmpty, st"Transpiler args cannot be empty.")
-    expect(args.transpilerArgs.map((pathString: String) => Os.path(pathString)).exists(path => path.exists && path.isFile), st"The transpiler-args.")
+    expect(args.stage.nonEmpty, st"--stage cannot be empty")
+    val path = getPath("transpiler-args-file", args.transpilerArgs, T)
+    expect(path.isFile, st"Usage: --transpiler-args-file must be a path to an existing file.")
   }
 
   def createExecutionContext(args: Cli.SireumAnvilCompileOption): ExecutionContext = {
@@ -97,6 +97,10 @@ object Anvil {
 
     // get the workspace's root path
     val transpilerArgs = parseTranspilerArgs(args)
+    expect(transpilerArgs.anvilTranspilerPass == Cli.SireumSlangTranspilersCAnvilExecutionPass.None,
+      st"Expected transpiler pass be none (or direct call to CTranspiler)")
+    expect(transpilerArgs.anvilTranspilerContext.isEmpty,
+      st"Expected empty context (or direct call to CTranspiler)")
     val projectRoot: Os.Path = getPath(string"output-dir", transpilerArgs.output, false)
 
     // parse and validate method descriptor
@@ -139,10 +143,10 @@ object Anvil {
   }
 
   def getPath(name: String, container: Option[String], requirePathExists: B): Os.Path = {
-    expect(container.nonEmpty, st"Missing required argument: $name")
+    expect(container.nonEmpty, st"--$name requires a value but is empty")
     val path = Os.path(container.get)
     if (requirePathExists) {
-      expect(path.exists, st"The given path does not exist: $name")
+      expect(path.exists, st"--$name requires a path that exists but got $path")
     }
     return path
   }
@@ -150,7 +154,7 @@ object Anvil {
   def getPathOpt(name: String, container: Option[String], requirePathExistsIfPresent: B): Option[Os.Path] = {
     val result = container.map((pathString: String) => Os.path(pathString))
     if (result.nonEmpty && requirePathExistsIfPresent) {
-      expect(result.get.exists, st"The given path does not exist: $name")
+      expect(result.get.exists, st"--$name requires a path that exists but got ${result.get}")
     }
     return result
   }
