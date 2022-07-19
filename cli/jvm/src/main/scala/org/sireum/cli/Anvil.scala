@@ -128,7 +128,7 @@ object Anvil {
     val topOption: Cli.SireumTopOption = {
       val cli = Cli(Os.pathSepChar)
       val lines = Os.path(transpilerArgs).readLines
-      val cliOpt = cli.parseSireumSlangTranspilers(lines, z"0")
+      val cliOpt = cli.parseSireumSlangTranspilersC(lines, z"0")
       expect(cliOpt.nonEmpty, st"Unable to parse transpiler args $transpilerArgs")
       cliOpt.get
     }
