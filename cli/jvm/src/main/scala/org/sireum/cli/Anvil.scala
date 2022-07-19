@@ -115,7 +115,7 @@ object Anvil {
       .map((localPath: Os.Path) => SandboxWorkspace(localPath))
       .map((sandboxWorkspace: SandboxWorkspace) => createSandboxContext(sandboxWorkspace))
 
-    return SimpleExecutionContext(project, sandbox, seqToSet(stages))
+    return SimpleExecutionContext(project, sandbox, set(stages))
   }
 
   @pure def parseTranspilerArgs(args: Cli.SireumAnvilCompileOption): Cli.SireumSlangTranspilersCOption = {
@@ -157,17 +157,6 @@ object Anvil {
       expect(result.get.exists, st"--$key requires a path that exists but got ${result.get}")
     }
     return result
-  }
-
-  def seqToSet[T](seq: ISZ[T]): Set[T] = {
-    return Set.empty[T] ++ seq
-  }
-
-  def expect(requirement: B, message: ST): Unit = {
-    if (!requirement) {
-      eprintln(message.render)
-      halt(message.render)
-    }
   }
 
   @pure def prototypeToMirror(prototype: SireumSlangTranspilersCOption): TranspilersCOptionMirror = {
