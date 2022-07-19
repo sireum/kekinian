@@ -630,8 +630,7 @@ def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
     build(F, F)
   }
   println("Generating IVE project ...")
-  Sireum.procCheck(proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console,
-    message.Reporter.create)
+  proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
 }
 
 def ram(): Unit = {

@@ -36,10 +36,32 @@ val jbrVer = versions.get("org.sireum.version.jbr").get
 val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
 val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
 val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
+val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string) && (homeBin / "distro.cmd").exists
+val settingsDir: String = if (isLocal) (home / ".settings").string else "${user.home}"
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
   case Some(dir) => Os.path(dir)
   case _ => Os.home / "Downloads" / "sireum"
+}
+
+def patchIdeaProperties(platform: String, p: Os.Path): Unit = {
+  print(s"Patching $p ... ")
+  val content = p.read
+  val newContent: String = platform match {
+    case "mac" =>
+      val contentOps = ops.StringOps(content)
+      val i = contentOps.stringIndexOf("idea.paths.selector")
+      val j = contentOps.stringIndexOfFrom("<string>", i)
+      val k = contentOps.stringIndexOfFrom("</string>", j)
+      if (isLocal) s"${contentOps.substring(0, j)}<string>.CLion</string>\n        <key>idea.config.path</key>\n        <string>$settingsDir/.CLion/config</string>\n        <key>idea.system.path</key>\n        <string>$settingsDir/.CLion/system</string>\n        <key>idea.log.path</key>\n        <string>$settingsDir/.CLion/log</string>\n        <key>idea.plugins.path</key>\n        <string>$settingsDir/.CLion/plugins${contentOps.substring(k, content.size)}"
+      else s"${contentOps.substring(0, j)}<string>CLion${contentOps.substring(k, content.size)}"
+    case "win" =>
+      s"idea.config.path=$settingsDir/.CLion/config\r\nidea.system.path=$settingsDir/.CLion/system\r\nidea.log.path=$settingsDir/.CLion/log\r\nidea.plugins.path=$settingsDir/.CLion/plugins\r\n$content"
+    case "linux" =>
+      s"idea.config.path=$settingsDir/.CLion/config\nidea.system.path=$settingsDir/.CLion/system\nidea.log.path=$settingsDir/.CLion/log\nidea.plugins.path=$settingsDir/.CLion/plugins\n$content"
+  }
+  p.writeOver(newContent)
+  println("done!")
 }
 
 def deleteSources(dir: Os.Path): Unit = {
@@ -79,6 +101,10 @@ def mac(): Unit = {
   Os.proc(ISZ("hdiutil", "eject", dirPath.string)).runCheck()
 
   deleteSources(clionDir)
+
+  println()
+
+  patchIdeaProperties("mac", clionAppDir / "Contents" / "Info.plist")
 
   proc"codesign --force --deep --sign - $clionAppDir".run()
 
@@ -144,6 +170,10 @@ def linux(isArm: B): Unit = {
 
   deleteSources(clionDir)
 
+  println()
+
+  patchIdeaProperties("linux", clionDir / "bin" / "idea.properties")
+
   ver.writeOver(clionVersion)
 
   println()
@@ -175,6 +205,10 @@ def win(): Unit = {
   cache.unzipTo(clionDir)
 
   deleteSources(clionDir)
+
+  println()
+
+  patchIdeaProperties("win", clionDir / "bin" / "idea.properties")
 
   ver.writeOver(clionVersion)
 

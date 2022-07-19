@@ -374,6 +374,7 @@ object Proyek {
     )
 
     val r = proyek.Ive.run(
+      sireumHome = SireumApi.homeOpt.get,
       path = path,
       project = prj,
       projectName = projectName,
