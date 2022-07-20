@@ -428,22 +428,20 @@ Os.env("JAVA_HOME") match {
 }
 println("Installing FMIDE ...")
 proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".env(env).console.runCheck()
-for (p <- temp.list if ops.StringOps(p.name).startsWith("osate-")) {
-  p.moveTo(fmideDir)
-  Os.kind match {
-    case Os.Kind.Linux =>
-      (fmideDir / "osate").moveTo(fmideDir / "fmide")
-      (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
-    case Os.Kind.Win =>
-      (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
-      (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
-    case Os.Kind.Mac =>
-      proc"xattr -rd com.apple.quarantine $fmideDir".runCheck()
-      // don't need to move osate.ini to fmide.ini for Mac
-    case _ =>
-  }
+temp.moveTo(fmideDir)
+
+Os.kind match {
+  case Os.Kind.Linux =>
+    (fmideDir / "osate").moveTo(fmideDir / "fmide")
+    (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
+  case Os.Kind.Win =>
+    (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
+    (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
+  case Os.Kind.Mac =>
+    proc"xattr -rd com.apple.quarantine $fmideDir".runCheck()
+    // don't need to move osate.ini to fmide.ini for Mac
+  case _ =>
 }
-temp.removeAll()
 
 ver.writeOver(verContent)
 println(s"FMIDE is installed at $fmideDir")

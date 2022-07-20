@@ -149,7 +149,8 @@ val sireumAppDir: Os.Path = ideaDir / s"IVE.app"
 val delPlugins = ISZ[String]("android", "smali", "Ktor")
 val pluginPrefix: String = "org.sireum.version.plugin."
 val versions = HashMap ++ (home / "versions.properties").properties.entries
-
+val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string)
+val settingsDir: String = if (isLocal) if (Os.isWin) ops.StringOps((home / ".settings").string).replaceAllChars('\\', '/') else (home / ".settings").string else "${user.home}"
 
 @pure def devRelVer(key: String): (String, String) = {
   ops.StringOps(versions.get(key).get).split((c: C) => c === ',') match {
@@ -227,6 +228,7 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "win", "java"),
     ISZ("bin", "win", "z3"),
     ISZ("bin", "win", "cvc.exe"),
+    ISZ("bin", "install", "antlrworks.cmd"),
     ISZ("bin", "install", "clion.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
@@ -246,10 +248,19 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "linux", "java"),
     ISZ("bin", "linux", "z3"),
     ISZ("bin", "linux", "cvc"),
+    ISZ("bin", "linux", "alt-ergo-open"),
     ISZ("bin", "install", "acl2.cmd"),
+    ISZ("bin", "install", "alt-ergo.cmd"),
+    ISZ("bin", "install", "antlrworks.cmd"),
     ISZ("bin", "install", "clion.cmd"),
+    ISZ("bin", "install", "compcert.cmd"),
+    ISZ("bin", "install", "coq.cmd"),
+    ISZ("bin", "install", "ffmpeg-libs.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
+    ISZ("bin", "install", "menhir.cmd"),
+    ISZ("bin", "install", "opam.cmd"),
+    ISZ("bin", "install", "projector-server.cmd"),
     ISZ("bin", "sireum"),
     ISZ("bin", "sireum.jar"),
     ISZ("bin", "slang-run.sh"),
@@ -282,9 +293,16 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
     ISZ("bin", "mac", "java"),
     ISZ("bin", "mac", "z3"),
     ISZ("bin", "mac", "cvc"),
+    ISZ("bin", "mac", "alt-ergo-open"),
+    ISZ("bin", "install", "alt-ergo.cmd"),
+    ISZ("bin", "install", "antlrworks.cmd"),
     ISZ("bin", "install", "clion.cmd"),
+    ISZ("bin", "install", "compcert.cmd"),
+    ISZ("bin", "install", "coq.cmd"),
     ISZ("bin", "install", "fmide.cmd"),
     ISZ("bin", "install", "graal.cmd"),
+    ISZ("bin", "install", "menhir.cmd"),
+    ISZ("bin", "install", "opam.cmd"),
     ISZ("bin", "sireum"),
     ISZ("bin", "sireum.jar"),
     ISZ("bin", "slang-run.sh"),
@@ -383,11 +401,12 @@ def patchIdeaProperties(p: Os.Path): Unit = {
       val i = contentOps.stringIndexOf("idea.paths.selector")
       val j = contentOps.stringIndexOfFrom("<string>", i)
       val k = contentOps.stringIndexOfFrom("</string>", j)
-      s"${contentOps.substring(0, j)}<string>SireumIVE$ult$devSuffix${contentOps.substring(k, content.size)}"
+      if (isLocal) s"${contentOps.substring(0, j)}<string>.SireumIVE$ult$devSuffix</string>\n        <key>idea.config.path</key>\n        <string>$settingsDir/.SireumIVE$ult$devSuffix/config</string>\n        <key>idea.system.path</key>\n        <string>$settingsDir/.SireumIVE$ult$devSuffix/system</string>\n        <key>idea.log.path</key>\n        <string>$settingsDir/.SireumIVE$ult$devSuffix/log</string>\n        <key>idea.plugins.path</key>\n        <string>$settingsDir/.SireumIVE$ult$devSuffix/plugins${contentOps.substring(k, content.size)}"
+      else s"${contentOps.substring(0, j)}<string>SireumIVE$ult$devSuffix${contentOps.substring(k, content.size)}"
     case "win" =>
-      s"idea.config.path=$${user.home}/.SireumIVE$ult$devSuffix/config\r\nidea.system.path=$${user.home}/.SireumIVE$ult$devSuffix/system\r\nidea.log.path=$${user.home}/.SireumIVE$ult$devSuffix/log\r\nidea.plugins.path=$${user.home}/.SireumIVE$ult$devSuffix/plugins\r\n$content"
+      s"idea.config.path=$settingsDir/.SireumIVE$ult$devSuffix/config\r\nidea.system.path=$settingsDir/.SireumIVE$ult$devSuffix/system\r\nidea.log.path=$settingsDir/.SireumIVE$ult$devSuffix/log\r\nidea.plugins.path=$settingsDir/.SireumIVE$ult$devSuffix/plugins\r\n$content"
     case _ if platform === "linux" || platform === "linux/arm" =>
-      s"idea.config.path=$${user.home}/.SireumIVE$ult$devSuffix/config\nidea.system.path=$${user.home}/.SireumIVE$ult$devSuffix/system\nidea.log.path=$${user.home}/.SireumIVE$ult$devSuffix/log\nidea.plugins.path=$${user.home}/.SireumIVE$ult$devSuffix/plugins\n$content"
+      s"idea.config.path=$settingsDir/.SireumIVE$ult$devSuffix/config\nidea.system.path=$settingsDir/.SireumIVE$ult$devSuffix/system\nidea.log.path=$settingsDir/.SireumIVE$ult$devSuffix/log\nidea.plugins.path=$settingsDir/.SireumIVE$ult$devSuffix/plugins\n$content"
   }
   p.writeOver(newContent)
   println("done!")

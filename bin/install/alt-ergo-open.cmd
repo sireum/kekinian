@@ -24,8 +24,13 @@ exit /B %errorlevel%
 import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
-val home = homeBin.up.canon
-val compCertVersion = "3.11"
+val altErgoVersion = "2.3.3"
+val altErgoGists = HashMap.empty[String, (String, String, String)] +
+  "2.3.3" ~> ((
+    "https://gist.github.com/34d4cd2e2cce0ded01382b3d0c112935.git",
+    "https://gist.github.com/786e87c1c383a7813c4aa0b33dddf80e.git",
+    "https://gist.github.com/64fe5ddc996a96e502ced3418fe3a633.git"
+  ))
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -38,46 +43,43 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 }
 
 
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  val opam = (dir.up / "opam").canon.string
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
-  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
+def altErgo(dir: Os.Path): Unit = {
+  val (altErgoLibOpenUrl, altErgoParsersOpenUrl, altErgoOpenUrl) = altErgoGists.get(altErgoVersion).get
+  val env = ISZ("PATH" ~> s"${dir.up.canon}${Os.pathSep}${Os.env("PATH").get}")
+  println(s"Installing Alt-Ergo $altErgoVersion (Apache 2.0 License) ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "alt-ergo-lib-open", "alt-ergo-parsers-open", "alt-ergo-open", "-y")).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", altErgoLibOpenUrl, "-y", "-j", cores)).env(env).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", altErgoParsersOpenUrl, "-y", "-j", cores)).env(env).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", altErgoOpenUrl, "-y", "-j", cores)).env(env).runCheck()
+
+  for (d <- dir.list if (d / ".opam-switch").exists) {
+    for (p <- (d / ".opam-switch" / "overlay").list ++ (d / ".opam-switch" / "sources").list if p.isDir) {
+      val nameOps = ops.StringOps(p.name)
+      if (nameOps.startsWith("alt-ergo") && nameOps.endsWith("-open")) {
+        p.removeAll()
+      }
+    }
+  }
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".alt-ergo.ver"
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read === altErgoVersion) {
     return
   }
 
-  println(
-    st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
-        |""".render)
-
-  val opam = opamDir.up / "opam"
-
-  if (opam.exists) {
-    Os.proc(ISZ(opam.canon.string, "update", s"--root=$opamDir")).console.runCheck()
-  }
-
   (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
 
-  ver.writeOver(compCertVersion)
+  altErgo(opamDir)
 
-  println(s"CompCert is installed")
+  ver.writeOver(altErgoVersion)
+
+  println(s"Alt-Ergo is installed")
 }
 
 

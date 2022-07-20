@@ -25,11 +25,14 @@ import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val compCertVersion = "3.11"
+val coqVersion = "8.15.2"
 
-val cores: String = Os.cliArgs match {
-  case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
-  case _ => s"${Os.numOfProcessors}"
+val (cores, isIde): (String, B) = Os.cliArgs match {
+  case ISZ(n) => (Z(n).getOrElse(Os.numOfProcessors).string, F)
+  case ISZ(string"ide") => (Os.numOfProcessors.string, T)
+  case ISZ(n, string"ide") => (Z(n).getOrElse(Os.numOfProcessors).string, T)
+  case ISZ(string"ide", n) => (Z(n).getOrElse(Os.numOfProcessors).string, T)
+  case _ => (Os.numOfProcessors.string, F)
 }
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
@@ -37,47 +40,51 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
   case _ => Os.home / "Downloads" / "sireum"
 }
 
-
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
+def coq(dir: Os.Path): Unit = {
+  println(s"Installing Coq${if (isIde) " IDE" else ""} $coqVersion ...")
   val opam = (dir.up / "opam").canon.string
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
-  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
+  val variant: String = if (isIde) "ide" else ""
+  if (isIde) {
+    Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", s"coqide", "-y")).runCheck()
+  }
+  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", s"coq", "-y")).runCheck()
+  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq$variant=$coqVersion", "-y", "-j", cores)).console.runCheck()
+  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", s"coq", s"$coqVersion", "-y")).runCheck()
+  if (isIde) {
+    Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", s"coqide", s"$coqVersion", "-y")).runCheck()
+  }
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".coq.ver"
+  val ideVer = platformDir / ".coqide.ver"
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (isIde && ideVer.exists && ideVer.read === coqVersion) {
     return
   }
 
-  println(
-    st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
-        |""".render)
-
-  val opam = opamDir.up / "opam"
-
-  if (opam.exists) {
-    Os.proc(ISZ(opam.canon.string, "update", s"--root=$opamDir")).console.runCheck()
+  val coqExists = ver.exists && ver.read === coqVersion
+  if (!isIde && coqExists) {
+    return
   }
 
-  (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
+  coq(opamDir)
 
-  ver.writeOver(compCertVersion)
+  if (isIde) {
+    ideVer.writeOver(coqVersion)
+  }
 
-  println(s"CompCert is installed")
+  if (!coqExists) {
+    (platformDir / ".compcert.ver").removeAll()
+  }
+
+  ver.writeOver(coqVersion)
+
+  println(s"Coq${if (isIde) " IDE" else ""} is installed")
 }
 
 

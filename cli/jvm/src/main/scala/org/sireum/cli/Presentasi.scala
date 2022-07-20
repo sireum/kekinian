@@ -67,7 +67,7 @@ object Presentasi {
     return 0
   }
 
-  def gen(o: Cli.SireumPresentasiGenOption): Z = {
+  def gen(o: Cli.SireumPresentasiGenOption, reporter: Reporter): Z = {
 
     @pure def formatTime(millis: Z): String = {
       def format(n: Z, digits: Z): String = {
@@ -483,7 +483,6 @@ object Presentasi {
     image.mkdirAll()
     video.mkdirAll()
 
-    val reporter = Reporter.create
     val audioDir = (resources / "audio").canon
     var audio = audioDir
     val service: Cli.SireumPresentasiText2speechService.Type = o.service match {
@@ -596,7 +595,7 @@ object Presentasi {
         ops.StringOps(l).trim match {
           case string"" =>
             storeSound()
-            currSound = currSound(timeline = currSound.timeline + spec.delay)
+            currSound = currSound(timeline = currSound.timeline + spec.textDelay)
           case line =>
             val lineOps = ops.StringOps(line)
             if (lineOps.startsWith("[") && lineOps.endsWith("]")) {
@@ -632,7 +631,7 @@ object Presentasi {
                       case Some(dur) =>
                         if (currSound.text =!= "") {
                           storeSound()
-                          currSound = currSound(timeline = currSound.timeline + spec.delay)
+                          currSound = currSound(timeline = currSound.timeline + spec.textDelay)
                         }
                         currSound = currSound(filepath = target, duration = dur)
                         sounds = sounds :+ currSound

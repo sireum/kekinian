@@ -29,7 +29,7 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Os.Path
 import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, TranspilerConfig}
-import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform}
+import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.message._
 
@@ -38,7 +38,7 @@ object HAMR {
   val toolName: String = "HAMR"
 
   // cli interface
-  def codeGen(o: Cli.SireumHamrCodegenOption): Z = {
+  def codeGen(o: Cli.SireumHamrCodegenOption, reporter: Reporter): Z = {
     o.args.size match {
       case z"0 " => println(o.help); return 0
       case _ =>
@@ -49,7 +49,7 @@ object HAMR {
     val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
       inputFile.get.read
     } else {
-      val fname: String = if(inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
+      val fname: String = if (inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
       eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
       return -1
     }
@@ -68,18 +68,21 @@ object HAMR {
           return -1
       }
     }
-      else {
-        irJSON.toAadl(input) match {
-          case Either.Left(m) => m
-          case Either.Right(m) =>
-            eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
-            return -1
-        }
+    else {
+      irJSON.toAadl(input) match {
+        case Either.Left(m) => m
+        case Either.Right(m) =>
+          eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
+          return -1
       }
-    return if(codeGenReporter(model, o).hasError) 1 else 0
+    }
+
+    codeGenReporter(model, o, reporter)
+
+    return if (reporter.hasError) 1 else 0
   }
 
-  // JAVA/OSATE interface returning a reporter
+  // JAVA/OSATE interface
   def codeGenR(model: Aadl,
                //
                verbose: B,
@@ -90,6 +93,7 @@ object HAMR {
                noProyekIve: B,
                noEmbedArt: B,
                devicesAsThreads: B,
+               genSbtMill: B,
                //
                slangAuxCodeDir: ISZ[String],
                slangOutputCDirectory: Option[String],
@@ -103,8 +107,10 @@ object HAMR {
                camkesAuxCodeDirs: ISZ[String],
                aadlRootDir: Option[String],
                //
-               experimentalOptions: ISZ[String]
-              ): Reporter = {
+               experimentalOptions: ISZ[String],
+
+               reporter: Reporter
+              ): Z = {
 
     val o = Cli.SireumHamrCodegenOption(
       help = "",
@@ -119,6 +125,7 @@ object HAMR {
       noProyekIve = noProyekIve,
       noEmbedArt = noEmbedArt,
       devicesAsThreads = devicesAsThreads,
+      genSbtMill = genSbtMill,
       //
       slangAuxCodeDirs = slangAuxCodeDir,
       slangOutputCDir = slangOutputCDirectory,
@@ -135,12 +142,12 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    return codeGenReporter(model, o)
+    codeGenReporter(model, o, reporter)
+
+    return if(reporter.hasError) 1 else 0
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption): Reporter = {
-
-    var reporter = Reporter.create
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
 
     // call back function
     def transpile(ao: TranspilerConfig): Z = {
@@ -173,8 +180,8 @@ object HAMR {
         anvilTranspilerPass = Cli.SireumSlangTranspilersCAnvilExecutionPass.None,
         anvilTranspilerContext = ISZ()
       )
-      
-      return CTranspiler.run(sstco)
+
+      return CTranspiler.run(sstco, reporter)
     }
 
     // call back function
@@ -184,7 +191,7 @@ object HAMR {
         args = po.args,
         force = po.force,
         edition = if (po.ultimate) Cli.SireumProyekIveEdition.Ultimate else Cli.SireumProyekIveEdition.Community,
-        ignoreRuntime= po.ignoreRuntime,
+        ignoreRuntime = po.ignoreRuntime,
         json = po.json,
         name = po.name,
         outputDirName = po.outputDirName,
@@ -203,9 +210,7 @@ object HAMR {
 
     val ops = toCodeGenOptions(o)
 
-    val results = SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _ )
-
-    return reporter
+    return SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _)
   }
 
   def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
@@ -221,6 +226,7 @@ object HAMR {
       noProyekIve = o.noProyekIve,
       noEmbedArt = o.noEmbedArt,
       devicesAsThreads = o.devicesAsThreads,
+      genSbtMill = o.genSbtMill,
       //
       slangAuxCodeDirs = o.slangAuxCodeDirs,
       slangOutputCDir = o.slangOutputCDir,

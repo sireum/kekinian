@@ -24,8 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
-val home = homeBin.up.canon
-val compCertVersion = "3.11"
+val menhirVersion = "20211128"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -38,46 +37,32 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 }
 
 
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  val opam = (dir.up / "opam").canon.string
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
-  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
+def menhir(dir: Os.Path): Unit = {
+  println(s"Installing Menhir $menhirVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "menhir", "-y")).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"menhir=$menhirVersion", "-y", "-j", cores)).console.runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", "menhir", s"$menhirVersion", "-y")).runCheck()
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".menhir.ver"
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read === menhirVersion) {
     return
   }
 
-  println(
-    st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
-        |""".render)
+  menhir(opamDir)
 
-  val opam = opamDir.up / "opam"
+  ver.writeOver(menhirVersion)
 
-  if (opam.exists) {
-    Os.proc(ISZ(opam.canon.string, "update", s"--root=$opamDir")).console.runCheck()
-  }
+  (platformDir / ".alt-ergo.ver").removeAll()
+  (platformDir / ".compcert.ver").removeAll()
 
-  (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
-
-  ver.writeOver(compCertVersion)
-
-  println(s"CompCert is installed")
+  println(s"Menhir is installed")
 }
 
 

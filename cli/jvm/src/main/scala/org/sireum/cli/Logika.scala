@@ -28,6 +28,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.lang.tipe.TypeHierarchy
+import org.sireum.logika.{Smt2, Smt2Invoke}
 
 object Logika {
 
@@ -37,7 +38,7 @@ object Logika {
   val INVALID_VC_DIR: Z = -4
   val INVALID_SOURCE_PATH: Z = -5
 
-  def run(o: Cli.SireumLogikaVerifierOption): Z = {
+  def run(o: Cli.SireumLogikaVerifierOption, reporter: logika.Logika.Reporter): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       println()
@@ -74,63 +75,20 @@ object Logika {
         return Proyek.INVALID_INT_WIDTH
     }
 
-    var smt2Configs = ISZ[logika.Smt2Config]()
-    val rfOpt: Option[Os.Path] = o.ramFolder match {
-      case Some(rf) =>
-        val rfp = Os.path(rf)
-        if (rfp.isDir) {
-          rfp.removeAll()
-          Some(rfp)
-        } else {
-          eprintln(s"$rf is not a directory")
-          return Proyek.INVALID_RAM_DIR
-        }
-      case _ => None()
+    val nameExePathMap: HashMap[String, String] = SireumApi.homeOpt match {
+      case Some(sireumHome) => Smt2Invoke.nameExePathMap(sireumHome)
+      case _ =>
+        val exeOpt: Option[String] = if (Os.isWin) Some(".exe") else None()
+        HashMap.empty[String, String] ++ ISZ[(String, String)](
+          "cvc4" ~> st"cvc4$exeOpt".render,
+          "cvc5" ~> st"cvc5$exeOpt".render,
+          "z3" ~> st"z3$exeOpt".render,
+        )
     }
-    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Cvc) {
-      val exeFilename: String = if (Os.isWin) s"cvc.exe" else "cvc"
-      SireumApi.homeOpt match {
-        case Some(home) =>
-          val p: Os.Path = home / "bin" / SireumApi.platform / exeFilename
-          val exe: String = rfOpt match {
-            case Some(rfp) =>
-              val d = rfp / "sireum"
-              d.mkdirAll()
-              val f = d / p.name
-              if (!(f.isFile && f.length == p.length)) {
-                f.removeAll()
-                p.copyOverTo(f)
-              }
-              f.string
-            case _ => p.string
-          }
-          smt2Configs = smt2Configs :+ logika.CvcConfig(exe, o.cvcVOpts, o.cvcSOpts)
-        case _ =>
-          smt2Configs = smt2Configs :+ logika.CvcConfig(exeFilename, o.cvcVOpts, o.cvcSOpts)
-      }
-    }
-    if (o.solver == Cli.SireumLogikaVerifierLogikaSolver.All || o.solver == Cli.SireumLogikaVerifierLogikaSolver.Z3) {
-      val exeFilename: String = if (Os.isWin) s"z3.exe" else "z3"
-      SireumApi.homeOpt match {
-        case Some(home) =>
-          val p: Os.Path = home / "bin" / SireumApi.platform / "z3" / "bin" / exeFilename
-          val exe: String = rfOpt match {
-            case Some(rfp) =>
-              val d = rfp / "sireum"
-              d.mkdirAll()
-              val f = d / p.name
-              if (!(f.isFile && f.length == p.length)) {
-                f.removeAll()
-                p.copyOverTo(f)
-              }
-              f.string
-            case _ => p.string
-          }
-          smt2Configs = smt2Configs :+ logika.Z3Config(exe, o.z3VOpts, o.z3VOpts)
-        case _ =>
-          smt2Configs = smt2Configs :+ logika.Z3Config(exeFilename, o.z3VOpts, o.z3SOpts)
-      }
-    }
+
+    val smt2Configs =
+      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000, o.rlimit).left ++
+        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs, o.rlimit).left
 
     def verifyScripts(): Z = {
       if (o.noRuntime) {
@@ -170,20 +128,27 @@ object Logika {
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardNegative => "RTN"
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
         }
-        val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-          o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant, o.splitAll,
-          o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
+        val parCores = SireumApi.parCoresOpt(o.par)
+        val branchParCores = SireumApi.parCoresOpt(o.branchPar)
+        val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+          case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
+          case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+          case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+        }
+        val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+          o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
+          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
+          branchParMode, branchParCores)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
-          val reporter = logika.Logika.Reporter.create
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-              config.cvcRLimit, fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
-              config.simplifiedQuery, reporter),
-            logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, plugins, o.line, o.skipMethods, o.skipTypes)
+              fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
+              config.simplifiedQuery, config.smt2Seq, reporter),
+            logika.Smt2.NoCache(), reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -258,18 +223,20 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardNegative => "RTN"
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
-      val config = logika.Config(smt2Configs, o.sat, o.timeout * 1000, 3, HashMap.empty, o.unroll, o.charBitWidth,
-        o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant, o.splitAll,
-        o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, o.cvcRLimit, fpRoundingMode, F)
+      val parCores = SireumApi.parCoresOpt(o.par)
+      val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
+        o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
+        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
+        logika.Config.BranchPar.All, parCores)
       val plugins = logika.Logika.defaultPlugins
-      val reporter = logika.Logika.Reporter.create
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
-        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs, config.cvcRLimit,
-          config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, reporter),
-        logika.Smt2.NoCache(), reporter, SireumApi.parCoresOpt(o.par), T, T, plugins, o.line, o.skipMethods, o.skipTypes)
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
+          config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery,
+          config.smt2Seq, reporter),
+        logika.Smt2.NoCache(), reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }

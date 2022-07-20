@@ -55,14 +55,15 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
-        |       | fresh            | native            | tipe
-        |       | compile[-js]     | test              | m2[-lib[-js]]
+        |       | jar              | fresh             | native
+        |       | tipe             | compile[-js]      | test
+        |       | verify
         |       | regen-project    | regen-presentasi  | regen-slang
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
         |       | regen-cliopt     | regen-cli         | regen-fmide-cli
-        |       | regen-json
-        |       | cvc              | z3                | ram
+        |       | regen-json       | m2[-lib[-js]]     | ram
+        |       | alt-ergo-open    | cvc               | z3
         |       | mill             | jitpack           | ghpack                       )*
         |""".render)
 }
@@ -113,7 +114,9 @@ def installZ3(kind: Os.Kind.Type): Unit = {
   val filename: String = kind match {
     case Os.Kind.Win => s"z3-$version-x64-win.zip"
     case Os.Kind.Linux => s"z3-$version-x64-glibc-2.31.zip"
-    case Os.Kind.Mac => s"z3-$version-x64-osx-10.16.zip"
+    case Os.Kind.Mac =>
+      if (ops.StringOps(proc"uname -m".run().out).trim === "arm64") s"z3-$version-arm64-osx-11.0.zip"
+      else s"z3-$version-x64-osx-10.16.zip"
     case _ => return
   }
 
@@ -123,11 +126,11 @@ def installZ3(kind: Os.Kind.Type): Unit = {
     println(s"Please wait while downloading Z3 $version ...")
     bundle.up.mkdirAll()
     bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
+    println()
   }
 
   println("Extracting Z3 ...")
   bundle.unzipTo(dir.up)
-  println()
 
   for (p <- dir.up.list if ops.StringOps(p.name).startsWith("z3-")) {
     dir.removeAll()
@@ -148,62 +151,75 @@ def z3(): Unit = {
   println("Installing Z3 for macOS ...")
   println()
   installZ3(Os.Kind.Mac)
+  println()
 
   println("Installing Z3 for Linux ...")
   println()
   installZ3(Os.Kind.Linux)
+  println()
 
   println("Installing Z3 for Windows ...")
   println()
   installZ3(Os.Kind.Win)
+  println()
 }
 
 
 def installCVC(kind: Os.Kind.Type): Unit = {
-  val (macLinuxGen, macLinuxVersion, winGen, winVersion): (String, String, String, String) =
+  def installCVCGen(gen: String, version: String): Unit = {
+    val genOpt: Option[String] = if (gen == "4") None() else Some(gen)
+    val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) st"cvc$genOpt.exe" else st"cvc$genOpt").render
+    val ver = homeBin / platformKind(kind) / st".cvc$genOpt.ver".render
+
+    val VER = s"$gen-$version"
+
+    if (ver.exists && ver.read == VER) {
+      return
+    }
+
+    val (sub, filename, dropname): (String, String, String) = (gen, kind) match {
+      case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
+      case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
+      case (string"5", Os.Kind.Mac) =>
+        if (ops.StringOps(proc"uname -m".run().out).trim === "arm64")
+          (s"cvc$gen-$version", s"cvc$gen-macOS-arm64", s"cvc$gen-$version-macOS-arm64")
+        else (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
+      case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
+      case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt", s"cvc$gen-$version-x86_64-linux-opt")
+      case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt", s"cvc$gen-$version-macos-opt")
+      case _ => return
+    }
+
+    val drop = cache / dropname
+
+    if (!drop.exists) {
+      println(s"Please wait while downloading CVC$gen $version ...")
+      drop.up.mkdirAll()
+      drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
+      println()
+    }
+
+    drop.copyOverTo(exe)
+
+    kind match {
+      case Os.Kind.Linux => exe.chmod("+x")
+      case Os.Kind.Mac => exe.chmod("+x")
+      case _ =>
+    }
+
+    ver.writeOver(VER)
+    println()
+  }
+  val (gen1, genVersion1, gen2, genVersion2): (String, String, String, String) =
     ops.StringOps(versions.get("org.sireum.version.cvc").get).split((c: C) => c === '-' || c === ',') match {
-      case ISZ(mlGen, mlVersion, wGen, wVersion) => (mlGen, mlVersion, wGen, wVersion)
+      case ISZ(g1, gv1, g2, gv2) => (g1, gv1, g2, gv2)
       case ISZ(string"1.8") => ("4", "1.8", "4", "1.8")
       case ISZ(version) => ("5", version, "5", version)
     }
-  val (gen, version): (String, String) = if (kind == Os.Kind.Win) (winGen, winVersion) else (macLinuxGen, macLinuxVersion)
-  val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) s"cvc.exe" else s"cvc")
-  val ver = homeBin / platformKind(kind) / s".cvc.ver"
-
-  val VER = s"$gen-$version"
-
-  if (ver.exists && ver.read == VER) {
-    return
+  installCVCGen(gen1, genVersion1)
+  if (gen1 != gen2) {
+    installCVCGen(gen2, genVersion2)
   }
-
-  val (sub, filename): (String, String) = (gen, kind) match {
-    case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Windows.exe")
-    case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux")
-    case (string"5", Os.Kind.Mac) => (s"cvc$gen-$version", s"cvc$gen-macOS")
-    case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe")
-    case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt")
-    case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt")
-    case _ => return
-  }
-
-  val drop = cache / filename
-
-  if (!drop.exists) {
-    println(s"Please wait while downloading CVC$gen $version ...")
-    drop.up.mkdirAll()
-    drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
-  }
-
-  drop.copyOverTo(exe)
-  println()
-
-  kind match {
-    case Os.Kind.Linux => exe.chmod("+x")
-    case Os.Kind.Mac => exe.chmod("+x")
-    case _ =>
-  }
-
-  ver.writeOver(VER)
 }
 
 
@@ -211,14 +227,63 @@ def cvc(): Unit = {
   println("Installing CVC for macOS ...")
   println()
   installCVC(Os.Kind.Mac)
+  println()
 
   println("Installing CVC for Linux ...")
   println()
   installCVC(Os.Kind.Linux)
+  println()
 
   println("Installing CVC for Windows ...")
   println()
   installCVC(Os.Kind.Win)
+  println()
+}
+
+
+def installAltErgoOpen(kind: Os.Kind.Type): Unit = {
+  val version = versions.get("org.sireum.version.alt-ergo-open").get
+  val dir = homeBin / platformKind(kind)
+  val exe = dir / "alt-ergo-open"
+  val ver = dir / ".alt-ergo-open.ver"
+
+  if (ver.exists && ver.read == version) {
+    return
+  }
+
+  val filename: String = kind match {
+    case Os.Kind.Linux => s"alt-ergo-open-$version-linux"
+    case Os.Kind.Mac => s"alt-ergo-open-$version-mac"
+    case _ => return
+  }
+
+  val drop = cache / filename
+
+  if (!drop.exists) {
+    println(s"Please wait while downloading Alt-Ergo $version (Apache 2.0 Licence) ...")
+    drop.up.mkdirAll()
+    drop.downloadFrom(s"https://github.com/sireum/rolling/releases/download/alt-ergo-open/$filename")
+    println()
+  }
+
+  drop.copyOverTo(exe)
+
+  exe.chmod("+x")
+
+  ver.writeOver(version)
+}
+
+
+def altErgoOpen(): Unit = {
+  println("Installing Alt-Ergo for macOS ...")
+  println()
+  installAltErgoOpen(Os.Kind.Mac)
+  println()
+
+  println("Installing Alt-Ergo for Linux ...")
+  println()
+  installAltErgoOpen(Os.Kind.Linux)
+  println()
 }
 
 
@@ -290,7 +355,8 @@ def build(fresh: B, isNative: B): Unit = {
   }
   val nativ: String = if (isNative) " --native" else ""
 
-  val r = proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ .".at(home).console.run()
+  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ $home".console,
+    message.Reporter.create)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
     if (isNative) {
@@ -320,7 +386,8 @@ def tipe(): Unit = {
 def compile(isJs: B): Unit = {
   tipe()
   println("Compiling ...")
-  proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} .".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} $home".console,
+    message.Reporter.create)
   println()
 }
 
@@ -338,49 +405,60 @@ def test(): Unit = {
     "org.sireum.logika",
     "org.sireum.proyek",
     "org.sireum.hamr.codegen.test.expensive"
-  ) ++ (if (Os.isWin) ISZ[String]() else ISZ("org.sireum.server"))
-  proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} . ${st"${(names, " ")}".render}".
-    at(home).console.runCheck()
+  )
+  Sireum.procCheck(proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
+    console.echo, message.Reporter.create)
   println()
+  verifyRuntime()
+}
+
+
+def verifyRuntime(): Unit = {
+  proc"$sireum proyek logika --all --par --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
 }
 
 
 def regenProject(): Unit = {
   val projectPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "project"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.project", "-l",
-    s"${home / "license.txt"}", "-m", "json", s"${projectPackagePath / "Project.scala"}")).at(projectPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.project", "-l", s"${home / "license.txt"}",
+    "-m", "json", "-o", projectPackagePath.string, s"${projectPackagePath / "Project.scala"}")).console,
+    message.Reporter.create)
 }
 
 
 def regenPresentasi(): Unit = {
   val presentasiPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "presentasi"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.presentasi", "-l",
-    s"${home / "license.txt"}", "-m", "json", s"${presentasiPackagePath / "Presentation.scala"}")).at(presentasiPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.presentasi", "-l",
+    s"${home / "license.txt"}", "-m", "json", "-o", presentasiPackagePath.string,
+    s"${presentasiPackagePath / "Presentation.scala"}")).console, message.Reporter.create)
 }
 
 
 def regenCliOpt(): Unit = {
   val cliPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "cli"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.cli", "-l",
-    s"${home / "license.txt"}", "-m", "json", s"${cliPackagePath / "CliOpt.scala"}")).at(cliPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.cli", "-l", s"${home / "license.txt"}",
+    "-m", "json", "-o", cliPackagePath.string, s"${cliPackagePath / "CliOpt.scala"}")).console, message.Reporter.create)
 }
 
 
 def regenSlang(): Unit = {
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangPackagePath = home / "slang" / "tipe" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", s"${astPackagePath / "AST.scala"}", s"${astPackagePath / "Typed.scala"}")).at(astPackagePath).console.run()
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
-    s"${home / "license.txt"}", "-m", "json,msgpack", s"${slangPackagePath / "symbol" / "Info.scala"}",
-    s"${astPackagePath / "AST.scala"}", s"${astPackagePath / "Typed.scala"}")).at(slangPackagePath / "tipe").console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", astPackagePath.string, s"${astPackagePath / "AST.scala"}",
+    s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
+    s"${home / "license.txt"}", "-m", "json,msgpack", "-o", (slangPackagePath / "tipe").string,
+    s"${slangPackagePath / "symbol" / "Info.scala"}", s"${astPackagePath / "AST.scala"}",
+    s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
 }
 
 
 def regenLogika(): Unit = {
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-e", "Composite",
-    "-m", "immutable,mutable", "-n", "State", s"${logikaPackagePath / "State.scala"}")).at(logikaPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-e", "Composite",
+    "-m", "immutable,mutable", "-n", "State", "-o", logikaPackagePath.string,
+    s"${logikaPackagePath / "State.scala"}")).console, message.Reporter.create)
 }
 
 
@@ -392,17 +470,19 @@ def regenAir(): Unit = {
   val slangPath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangAsts = ISZ[String]("AST.scala", "Typed.scala").map((m: String) => (slangPath / m).value)
 
-  Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
-    "-m", "immutable,mutable") ++ airAsts ++ slangAsts).at(airPath).console.run()
-  Os.proc(ISZ[String]("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l", s"${airRootPath / "license.txt"}",
-    "-m", "json,msgpack") ++ airAsts ++ slangAsts).at(airPath).console.run()
+  Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
+    "-m", "immutable,mutable", "-o", airPath.string) ++ airAsts ++ slangAsts).console, message.Reporter.create)
+  Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l",
+    s"${airRootPath / "license.txt"}", "-m", "json,msgpack", "-o", airPath.string) ++ airAsts ++ slangAsts).console,
+    message.Reporter.create)
 }
 
 
 def regenAct(): Unit = {
   val actPackagePath = home / "hamr" / "codegen" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "act" / "ast"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", s"${actPackagePath / "ActAst.scala"}")).at(actPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", actPackagePath.string, s"${actPackagePath / "ActAst.scala"}")).console,
+    message.Reporter.create)
 }
 
 
@@ -410,14 +490,14 @@ def regenServer(): Unit = {
   val protocolPackagePath = home / "server" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "server" / "protocol"
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "sergen", "-p", "org.sireum.server.protocol", "-l",
-    s"${home / "license.txt"}", "-m", "msgpack,json",
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.server.protocol", "-l",
+    s"${home / "license.txt"}", "-m", "msgpack,json", "-o", protocolPackagePath.string,
     s"${protocolPackagePath / "Message.scala"}",
     s"${logikaPackagePath / "State.scala"}",
     s"${logikaPackagePath / "Config.scala"}",
     s"${logikaPackagePath / "Smt2Query.scala"}",
     s"${astPackagePath / "Typed.scala"}"
-  )).at(protocolPackagePath).console.run()
+  )).console, message.Reporter.create)
 }
 
 def regenParser(isSlang: B): Unit = {
@@ -426,19 +506,20 @@ def regenParser(isSlang: B): Unit = {
   val license = home / "license.txt"
   val input = parserResourcesPackagePath / "SireumAntlr3.g"
   val mode: String = if (isSlang) "slang" else "antlr3"
-  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar --no-backtracking $input".at(parserPackagePath).console.run()
+  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m $mode -n SireumGrammar --no-backtracking -o $parserPackagePath $input".console,
+    message.Reporter.create)
 }
 
 def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
-    s"${sireumPackagePath / "cli.sc"}")).at(sireumPackagePath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
+    "-o", sireumPackagePath.string, s"${sireumPackagePath / "cli.sc"}")).console, message.Reporter.create)
 }
 
 def regenFmideCli(): Unit = {
   val installPath = homeBin / "install"
-  Os.proc(ISZ("java", "-jar", sireumJar.string, "tools", "cligen", "-s", "fmide.cmd",
-    s"${installPath / "fmide-cli.sc"}")).at(installPath).console.run()
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-s", "fmide.cmd", "-o", installPath.string,
+    s"${installPath / "fmide-cli.sc"}")).console, message.Reporter.create)
 }
 
 
@@ -447,7 +528,8 @@ def regenJson(): Unit = {
   val parserResourcesPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "resources"
   val license = home / "license.txt"
   val input = parserResourcesPackagePath / "JSON.g"
-  proc"java -jar $sireumJar parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking $input".at(jsonPackagePath).console.run()
+  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking -o $jsonPackagePath $input".console,
+    message.Reporter.create)
 }
 
 
@@ -455,7 +537,8 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} . org.sireum.kekinian".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} $home org.sireum.kekinian".console,
+    message.Reporter.create)
   return kekinianRepo
 }
 
@@ -475,7 +558,8 @@ def m2Lib(isJs: B): Unit = {
   }
 
   val target: String = if (isJs) "--target js" else "--target jvm"
-  proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version . org.sireum.kekinian".at(home).console.runCheck()
+  Sireum.procCheck(proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version $home org.sireum.kekinian".console,
+    message.Reporter.create)
 }
 
 def jitpack(): Unit = {
@@ -490,7 +574,7 @@ def jitpack(): Unit = {
         |}""".render
   )
   sc.removeOnExit()
-  proc"$sireum slang run $sc".console.run()
+  Sireum.procCheck(proc"$sireum slang run $sc".console, message.Reporter.create)
 }
 
 def ghpack(): Unit = {
@@ -517,9 +601,9 @@ def ghpack(): Unit = {
   }
 }
 
-def setup(isUltimate: B, isServer: B): Unit = {
+def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
-  build(F, F)
+  build(fresh, F)
   proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else if (isServer) " --server" else ""}".at(home).console.runCheck()
   val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
   project(T, isUltimate, isServer)
@@ -549,7 +633,7 @@ def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
     build(F, F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} .".at(home).console.runCheck()
+  proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
 }
 
 def ram(): Unit = {
@@ -557,7 +641,7 @@ def ram(): Unit = {
     val ramdisk = Os.path("/Volumes") / "RAM"
     val ramdiskHome = ramdisk / home.name
     if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
-      setup(F, F)
+      setup(F, F, F)
     }
     if (ramdisk.exists) {
       proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
@@ -620,7 +704,11 @@ def ram(): Unit = {
   }
 }
 
-if (!(home / "runtime" / "build.sc").exists) {
+@pure def builtIn: Os.Path = {
+  return home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "BuiltInTypes.slang"
+}
+
+if (!builtIn.exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
   eprintln("git submodule update --init --recursive --remote")
   Os.exit(-1)
@@ -628,17 +716,66 @@ if (!(home / "runtime" / "build.sc").exists) {
 
 installZ3(Os.kind)
 installCVC(Os.kind)
+installAltErgoOpen(Os.kind)
 
 if (Os.cliArgs.isEmpty) {
-  build(F, F)
+  val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified
+  val idea = homeBin / platform / "idea"
+  val ideaUlt = homeBin / platform / "idea-ultimate"
+  val ideaServer = homeBin / platform / "idea-server"
+  val version: B = sireumJar.exists && (home / "versions.properties").lastModified > sireumJar.lastModified
+  val isCommunity: B = (fresh | version) & idea.exists
+  val isUltimate: B = (fresh | version) & ideaUlt.exists
+  val isServer: B = (fresh | version) & ideaServer.exists
+
+  if (fresh) {
+    println(s"Modifications to ${builtIn.name} detected ... ")
+    println()
+  } else if (version & (isCommunity | isUltimate | isServer)) {
+    println(s"Modifications to version.properties detected ... ")
+    println()
+  }
+  if (fresh || version) {
+    (isCommunity, isUltimate, isServer) match {
+      case (T, T, T) => println(s"Rebuilding IVE, IVE Server, and IVE Ultimate  ...")
+      case (T, T, F) => println(s"Rebuilding IVE and IVE Ultimate ...")
+      case (T, F, T) => println(s"Rebuilding IVE and IVE Server ...")
+      case (T, F, F) => println(s"Rebuilding IVE ...")
+      case (F, T, T) => println(s"Rebuilding IVE Server and IVE Ultimate ...")
+      case (F, T, F) => println(s"Rebuilding IVE Ultimate ...")
+      case (F, F, T) => println(s"Rebuilding IVE Server ...")
+      case (F, F, F) => println(s"Forcing fresh compilation ...")
+    }
+    println()
+  }
+  if (isCommunity || isUltimate || isServer) {
+    if (isCommunity) {
+      setup(fresh, F, F)
+    }
+    if (isUltimate) {
+      if (isCommunity) {
+        println()
+      }
+      setup(!isCommunity && fresh, T, F)
+    }
+    if (isServer) {
+      if (isCommunity || isUltimate) {
+        println()
+      }
+      setup(!isCommunity && !isUltimate && fresh, F, T)
+    }
+  } else {
+    build(fresh, F)
+  }
 } else {
   for (i <- 0 until Os.cliArgs.size) {
     Os.cliArgs(i) match {
+      case string"jar" => build(F, F)
       case string"fresh" => build(T, F)
       case string"native" => build(F, T)
-      case string"setup" => setup(F, F)
-      case string"setup-ultimate" => setup(T, F)
-      case string"setup-server" => setup(F, T)
+      case string"setup" => setup(F, F, F)
+      case string"setup-ultimate" => setup(F, T, F)
+      case string"setup-server" => setup(F, F, T)
       case string"project" => project(F, F, F)
       case string"project-ultimate" => project(F, T, F)
       case string"project-server" => project(F, F, T)
@@ -646,6 +783,7 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
       case string"test" => test()
+      case string"verify" => verifyRuntime()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()
@@ -666,6 +804,7 @@ if (Os.cliArgs.isEmpty) {
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"ram" => ram()
+      case string"alt-ergo-open" => altErgoOpen()
       case string"cvc" => cvc()
       case string"z3" => z3()
       case string"-h" => usage()

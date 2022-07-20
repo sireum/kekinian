@@ -24,8 +24,7 @@ exit /B %errorlevel%
 import org.sireum._
 
 val homeBin = Os.slashDir.up.canon
-val home = homeBin.up.canon
-val compCertVersion = "3.11"
+val altErgoVersion = "2.4.1"
 
 val cores: String = Os.cliArgs match {
   case ISZ(n) => Z(n).getOrElse(Os.numOfProcessors).string
@@ -38,31 +37,30 @@ val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
 }
 
 
-def compCert(dir: Os.Path): Unit = {
-  println(s"Installing CompCert $compCertVersion ...")
-  val opam = (dir.up / "opam").canon.string
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "remove", "coq-compcert", "-y")).runCheck()
-  Os.proc(ISZ(opam, "install", s"--root=$dir", "--no-self-upgrade", s"coq-compcert=$compCertVersion", "-y", "-j", cores)).console.runCheck()
-  Os.proc(ISZ(opam, "pin", s"--root=$dir", "add", "coq-compcert", s"$compCertVersion", "-y")).runCheck()
+def altErgo(dir: Os.Path): Unit = {
+  val env = ISZ("PATH" ~> s"${dir.up.canon}${Os.pathSep}${Os.env("PATH").get}")
+  println(s"Installing Alt-Ergo $altErgoVersion ...")
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "remove", "alt-ergo", "-y")).runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "install", s"--root=$dir", "--no-self-upgrade", s"alt-ergo=$altErgoVersion", "-y", "-j", cores)).env(env).console.runCheck()
+  Os.proc(ISZ((dir.up / "opam").canon.string, "pin", s"--root=$dir", "add", "alt-ergo", s"$altErgoVersion", "-y")).runCheck()
   println()
 }
 
 def install(platformDir: Os.Path): Unit = {
   val opamDir = platformDir / ".opam"
-  val ver = platformDir / ".compcert.ver"
+  val ver = platformDir / ".alt-ergo.ver"
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read === altErgoVersion) {
     return
   }
 
   println(
     st"""Note that:
-        |  "The CompCert C compiler is not free software.
-        |   This public release can be used for evaluation, research and
-        |   education purposes, but not for commercial purposes."
-        |   (see: https://github.com/AbsInt/CompCert/blob/master/LICENSE)
+        |  Alt-Ergo $altErgoVersion is not free software.
+        |  This public release can only be used for non-commercial purposes.
+        |  (see: https://github.com/OCamlPro/alt-ergo/blob/next/LICENSE.md)
         |""".render)
 
   val opam = opamDir.up / "opam"
@@ -72,12 +70,12 @@ def install(platformDir: Os.Path): Unit = {
   }
 
   (Os.slashDir / "menhir.cmd").slash(ISZ())
-  (Os.slashDir / "coq.cmd").slash(ISZ())
-  compCert(opamDir)
 
-  ver.writeOver(compCertVersion)
+  altErgo(opamDir)
 
-  println(s"CompCert is installed")
+  ver.writeOver(altErgoVersion)
+
+  println(s"Alt-Ergo is installed")
 }
 
 

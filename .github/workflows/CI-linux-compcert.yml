@@ -29,15 +29,31 @@ jobs:
         with:
           path: cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-coursier
+      - name: Cache SMT2 solvers
+        id: cache-smt2
+        uses: actions/cache@v2
+        with:
+          path: |
+            bin/linux/alt-ergo-open
+            bin/linux/.alt-ergo-open.ver
+            bin/linux/cvc
+            bin/linux/.cvc.ver
+            bin/linux/cvc5
+            bin/linux/.cvc5.ver
+            bin/linux/z3
+          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Cache CompCert
         id: cache-compcert
         uses: actions/cache@v2
         with:
           path: |
+            bin/linux/.compcert.ver
+            bin/linux/.coq.ver
+            bin/linux/.menhir.ver
+            bin/linux/.opam.ver
             bin/linux/.opam
             bin/linux/opam
-            bin/linux/.compcert.ver
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/compcert.cmd') }}-compcert
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/opam.cmd','bin/install/compcert.cmd') }}-compcert
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier

@@ -51,7 +51,7 @@ object CTranspiler {
   val PluginError: Z = -11
   val TranspilingError: Z = -12
 
-  def run(o: Cli.SireumSlangTranspilersCOption): Z = {
+  def run(o: Cli.SireumSlangTranspilersCOption, reporter: Reporter): Z = {
     def readFile(f: Os.Path): (Option[String], String) = {
       return (Some(f.toUri), f.read)
     }
@@ -89,13 +89,13 @@ object CTranspiler {
     var used: Z = 0
 
     def startTime(): Unit = {
-      start = SireumApi.currentTimeMillis
+      start = extension.Time.currentMillis
     }
 
     def stopTime(): Unit = {
       if (o.verbose) {
-        val end = SireumApi.currentTimeMillis
-        val newUsed = SireumApi.totalMemory - SireumApi.freeMemory
+        val end = extension.Time.currentMillis
+        val newUsed = Os.totalMemory - Os.freeMemory
         if (newUsed > used) {
           used = newUsed
         }
@@ -103,7 +103,7 @@ object CTranspiler {
       }
     }
 
-    val begin = SireumApi.currentTimeMillis
+    val begin = extension.Time.currentMillis
 
     if (o.verbose && o.plugins.nonEmpty) {
       println("Loading plugins ...")
@@ -298,14 +298,13 @@ object CTranspiler {
           (p._1.typeHierarchy, p._2)
         }
         if (rep.hasIssue) {
-          rep.printMessages()
+          reporter.reports(rep.messages)
+          reporter.printMessages()
           return InvalidLibrary
         }
         thl
     }
     stopTime()
-
-    val reporter = Reporter.create
 
     if (o.verbose) {
       println()
@@ -316,7 +315,8 @@ object CTranspiler {
     val t = FrontEnd.parseProgramAndGloballyResolve(0, for (p <- sources) yield FrontEnd.Input(p._2, p._1),
       th.nameMap, th.typeMap)
     if (t._1.hasIssue) {
-      t._1.printMessages()
+      reporter.reports(t._1.messages)
+      reporter.printMessages()
       return InvalidSources
     }
     stopTime()
@@ -609,12 +609,12 @@ object CTranspiler {
     stopTime()
 
     if (o.verbose) {
-      val newUsed = SireumApi.totalMemory - SireumApi.freeMemory
+      val newUsed = Os.totalMemory - Os.freeMemory
       if (newUsed > used) {
         used = newUsed
       }
       println()
-      println(s"Ok! Total time: ${SireumApi.formatSecond(SireumApi.currentTimeMillis - begin)} s, Max memory: ${SireumApi.formatMb(used)} MB")
+      println(s"Ok! Total time: ${SireumApi.formatSecond(extension.Time.currentMillis - begin)} s, Max memory: ${SireumApi.formatMb(used)} MB")
     }
 
     return 0

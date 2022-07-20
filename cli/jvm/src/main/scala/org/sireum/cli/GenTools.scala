@@ -38,7 +38,7 @@ import org.sireum.lang.tipe.TypeHierarchy
 object GenTools {
 
 
-  def bcGen(o: Cli.SireumToolsBcgenOption): Z = {
+  def bcGen(o: Cli.SireumToolsBcgenOption, reporter: Reporter): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case z"1" =>
@@ -59,7 +59,6 @@ object GenTools {
       eprintln(outTemp.read)
       return r
     }
-    val reporter = Reporter.create
     val text = src.read
     Parser.parseTopUnit[ast.TopUnit.Program](text, T, F, Some(src.string), reporter) match {
       case Some(p) if !reporter.hasIssue =>
@@ -536,7 +535,7 @@ object GenTools {
     }
   }
 
-  def opGen(o: Cli.SireumToolsOpgenOption): Z = {
+  def opGen(o: Cli.SireumToolsOpgenOption, reporter: Reporter): Z = {
     if (o.args.size === 0) {
       println(o.help)
       return 0
@@ -568,7 +567,6 @@ object GenTools {
       load = o.load,
       gzip = o.gzip
     )
-    val reporter = Reporter.create
     val th: TypeHierarchy = SlangTipe.run(to, reporter) match {
       case Either.Left(v) => v
       case Either.Right(code) => return code
@@ -602,7 +600,7 @@ object GenTools {
     return 0
   }
 
-  def serGen(o: Cli.SireumToolsSergenOption): Z = {
+  def serGen(o: Cli.SireumToolsSergenOption, reporter: Reporter): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       return 0
@@ -634,7 +632,6 @@ object GenTools {
           )
       }
       val dest = destDir / s"$name.scala"
-      val reporter = Reporter.create
       val packageNameOpt: Option[ISZ[String]] = if (o.packageName.isEmpty) None() else Some(o.packageName)
       SerializerGenJvm.run(mode, lOpt, srcs, packageNameOpt, Some(name), reporter) match {
         case Some(out) =>
@@ -647,7 +644,7 @@ object GenTools {
     return 0
   }
 
-  def transGen(o: Cli.SireumToolsTransgenOption): Z = {
+  def transGen(o: Cli.SireumToolsTransgenOption, reporter: Reporter): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case _ =>
@@ -679,7 +676,6 @@ object GenTools {
           )
       }
       val dest = destDir / s"$name.scala"
-      val reporter = Reporter.create
       TransformerGenJvm.run(mode, lOpt, sources, Some(name), o.exclude, reporter) match {
         case Some(out) =>
           dest.writeOver(out)

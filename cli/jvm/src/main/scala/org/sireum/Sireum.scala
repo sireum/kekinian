@@ -126,9 +126,11 @@ object Sireum {
   }
 
   lazy val javaHomeOpt: Option[Os.Path] = {
-    var rOpt = Os.env("JAVA_HOME").map(Os.path(_))
-    if (rOpt.isEmpty) {
-      rOpt = homeOpt.map(_ / "bin" / platform / "java")
+    var rOpt: Option[Os.Path] =
+      if (Os.env("SIREUM_PROVIDED_JAVA") == Some("true")) None()
+      else homeOpt.map(_ / "bin" / platform / "java")
+    if (rOpt.isEmpty || !rOpt.get.exists) {
+      rOpt = Os.env("JAVA_HOME").map(Os.path(_))
       rOpt match {
         case Some(r) if r.exists =>
         case _ if isNative => rOpt = Some(initInfo.javaHome)
@@ -139,9 +141,11 @@ object Sireum {
   }
 
   lazy val scalaHomeOpt: Option[Os.Path] = {
-    var rOpt: Option[Os.Path] = Os.env("SCALA_HOME").map(Os.path(_))
-    if (rOpt.isEmpty) {
-      rOpt = homeOpt.map(_ / "bin" / "scala")
+    var rOpt: Option[Os.Path] =
+      if (Os.env("SIREUM_PROVIDED_SCALA") == Some("true")) None()
+      else homeOpt.map(_ / "bin" / "scala")
+    if (rOpt.isEmpty || !rOpt.get.exists) {
+      rOpt = Os.env("SCALA_HOME").map(Os.path(_))
       rOpt match {
         case Some(r) if r.exists =>
         case _ if isNative => rOpt = Some(initInfo.scalaHome)
@@ -237,8 +241,6 @@ object Sireum {
     } else T
   }
 
-  def currentTimeMillis: Z = System.currentTimeMillis()
-
   def readGzipContent(path: Os.Path): Option[ISZ[U8]] = {
     import _root_.java.io.{File, FileInputStream}
     import _root_.java.util.zip.GZIPInputStream
@@ -277,10 +279,6 @@ object Sireum {
     } finally gos.close()
   }
 
-  def totalMemory: Z = Runtime.getRuntime.totalMemory()
-
-  def freeMemory: Z = Runtime.getRuntime.freeMemory()
-
   def formatMb(bytes: Z): String = f"${bytes.toLong / 1024d / 1024d}%.2f"
 
   def formatSecond(millis: Z): String = f"${millis.toLong / 1000d}%.2f"
@@ -318,7 +316,111 @@ object Sireum {
     }
   }
 
-  def run(args: ISZ[String]): Z = {
+  def procCheck(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = {
+    val r = proc(p, reporter)
+    if (!r.ok) {
+      halt(
+        st"""Error encountered when running: ${(p.cmds, " ")}, exit code: ${r.exitCode}
+            |${if (p.isErrAsOut) r.out else r.err}""".render)
+    }
+    r
+  }
+
+  def proc(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = this.synchronized {
+    def firstErr(): ISZ[String] = {
+      halt(s"The first path command should be 'sireum${if (Os.isWin) ".bat" else ""}'")
+    }
+    p match {
+      case p: Os.Proc if p.envMap.nonEmpty || p.shouldPrintEnv || p.timeoutInMillis > 0 || p.outLineActionOpt.nonEmpty || p.errLineActionOpt.nonEmpty =>
+        println("Some proc options are ignored (e.g., env, timeout, line action, etc.)")
+        println()
+      case _ =>
+    }
+
+    val args: ISZ[String] = p.cmds match {
+      case ISZ(first,  _*) =>
+        val firstName = Os.path(first).name
+        if (firstName === "sireum" || firstName === "sireum.bat") ops.ISZOps(p.cmds).drop(1)
+        else firstErr()
+      case _ => firstErr()
+    }
+
+    val oldOut = System.out
+    val oldErr = System.err
+    val oldIn = System.in
+    val bout = new java.io.ByteArrayOutputStream() {
+      override def write(b: Int): Unit = {
+        super.write(b)
+        if (p.shouldOutputConsole) {
+          oldOut.write(b)
+          oldOut.flush()
+        }
+      }
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        super.write(b, off, len)
+        if (p.shouldOutputConsole) {
+          oldOut.write(b, off, len)
+          oldOut.flush()
+        }
+      }
+    }
+    val berr = if (p.isErrAsOut) bout else new java.io.ByteArrayOutputStream() {
+      override def write(b: Int): Unit = {
+        super.write(b)
+        if (p.shouldOutputConsole) {
+          oldErr.write(b)
+          oldErr.flush()
+        }
+      }
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        super.write(b, off, len)
+        if (p.shouldOutputConsole) {
+          oldErr.write(b, off, len)
+          oldErr.flush()
+        }
+      }
+    }
+    val out = new java.io.PrintStream(bout)
+    val err = new java.io.PrintStream(berr)
+    p.in match {
+      case Some(input) => System.setIn(new java.io.ByteArrayInputStream(input.value.getBytes("UTF-8")))
+      case _ =>
+    }
+    System.setOut(out)
+    System.setErr(err)
+    if (p.shouldPrintCommands) {
+      println(st"${(p.cmds, " ")}".render)
+    }
+    try {
+      val exitCode = run(args, reporter)
+      System.out.flush()
+      System.err.flush()
+      Os.Proc.Result.Normal(exitCode, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
+    } catch {
+      case t: Throwable =>
+        val sw = new java.io.PrintWriter(new java.io.StringWriter)
+        t.printStackTrace(sw)
+        sw.flush()
+        reporter.internalError(None(), "Sireum", sw.toString)
+        System.out.flush()
+        System.err.flush()
+        Os.Proc.Result.Normal(42, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
+    } finally {
+      System.setErr(oldErr)
+      System.setOut(oldOut)
+      if (p.in.nonEmpty) System.setIn(oldIn)
+    }
+  }
+
+  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: Reporter): (Z, String, String) =
+    runWithReporter(args, reporter, Some(input))
+
+  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
+    val r = proc(Os.proc("sireum" +: args)(in = inputOpt), reporter)
+    (r.exitCode, r.out, r.err)
+  }
+
+  def run(args: ISZ[String], reporter: Reporter = Reporter.create): Z = {
     args match {
       case ISZ(string"-v") =>
         println(s"Sireum v$version${if (isNative) " (native)" else ""}")
@@ -337,21 +439,29 @@ object Sireum {
             case _ => return 0
           }
           case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
-          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o)
-          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o)
+          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o, reporter)
+          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o, reporter)
           case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
           case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
           case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
-          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o)
-          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o)
-          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o)
-          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o)
+          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o, reporter)
+          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o, reporter)
+          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o, reporter)
+          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o, reporter)
           case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
-          case Some(o: Cli.SireumLogikaVerifierOption) => return cli.Logika.run(o)
-          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o)
+          case Some(o: Cli.SireumLogikaVerifierOption) =>
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
+              case _ =>
+                val rep = logika.Logika.Reporter.create
+                val exitCode = cli.Logika.run(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
+          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o, reporter)
           case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
-            val r = NativeUtil.nonNative[Z](-1, () => cli.Presentasi.gen(o))
+            val r = NativeUtil.nonNative[Z](-1, () => cli.Presentasi.gen(o, reporter))
             if (r == -1) {
               eprintln("The tool is not available in native mode")
             }
@@ -359,11 +469,28 @@ object Sireum {
           case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
           case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
           case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
-          case Some(o: Cli.SireumProyekLogikaOption) => return cli.Proyek.logika(o)
+          case Some(o: Cli.SireumProyekLogikaOption) =>
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
+              case _ =>
+                val rep = logika.Logika.Reporter.create
+                val exitCode = cli.Proyek.logika(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
           case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
           case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
-          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o)
+          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o, reporter)
           case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
+          case Some(o: Cli.SireumProyekTipeOption) =>
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
+              case _ =>
+                val rep = logika.Logika.Reporter.create
+                val exitCode = cli.Proyek.tipe(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
           case Some(o: Cli.SireumAnvilCompileOption) => return cli.Anvil.compile(o)
           case Some(o: Cli.SireumAnvilSandboxOption) => return cli.Anvil.sandbox(o)
           case Some(_: Cli.HelpOption) => return 0
@@ -386,10 +513,8 @@ object Sireum {
     org.sireum.lang.FrontEnd.checkedLibraryReporter
   }
 
-  def availableCores: Z = Runtime.getRuntime.availableProcessors
-
   def parCores(percentage: Z): Z = {
-    val maxCores = availableCores
+    val maxCores = Os.numOfProcessors
     val r = percentage * maxCores / 100
     return if (r <= 1) 1 else if (r >= maxCores) maxCores else r
   }

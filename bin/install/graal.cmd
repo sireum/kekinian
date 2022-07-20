@@ -50,7 +50,8 @@ def mac(): Unit = {
     return
   }
 
-  val bundle = s"graalvm-ce-java17-darwin-amd64-$graalVersion.tar.gz"
+  val arch: String = if (ops.StringOps(proc"uname -m".runCheck().out).trim === "arm64") "aarch64" else "amd64"
+  val bundle = s"graalvm-ce-java17-darwin-$arch-$graalVersion.tar.gz"
   val cache = cacheDir / bundle
 
   if (!cache.exists) {
@@ -66,7 +67,7 @@ def mac(): Unit = {
   (platformDir / s"graalvm-ce-java17-$graalVersion" / "Contents" / "Home").moveTo(graalDir)
   (platformDir / s"graalvm-ce-java17-$graalVersion").removeAll()
 
-  val nativeBundle = s"native-image-installable-svm-java17-darwin-amd64-$graalVersion.jar"
+  val nativeBundle = s"native-image-installable-svm-java17-darwin-$arch-$graalVersion.jar"
   val nativeCache = cacheDir / nativeBundle
   if (!nativeCache.exists) {
     println(s"Downloading Graal's native-image ...")
@@ -80,8 +81,8 @@ def mac(): Unit = {
   println("... done!")
 }
 
-def linux(): Unit = {
-  val platformDir = homeBin / "linux"
+def linux(isArm: B): Unit = {
+  val platformDir: Os.Path = if (isArm) homeBin / "linux" / "arm" else homeBin / "linux"
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
@@ -89,7 +90,8 @@ def linux(): Unit = {
     return
   }
 
-  val bundle = s"graalvm-ce-java17-linux-amd64-$graalVersion.tar.gz"
+  val arch: String = if (isArm) "aarch64" else "amd64"
+  val bundle = s"graalvm-ce-java17-linux-$arch-$graalVersion.tar.gz"
   val cache = cacheDir / bundle
 
   if (!cache.exists) {
@@ -104,45 +106,7 @@ def linux(): Unit = {
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
   (platformDir / s"graalvm-ce-java17-$graalVersion").moveTo(graalDir)
 
-  val nativeBundle = s"native-image-installable-svm-java17-linux-amd64-$graalVersion.jar"
-  val nativeCache = cacheDir / nativeBundle
-  if (!nativeCache.exists) {
-    println(s"Downloading Graal's native-image ...")
-    nativeCache.downloadFrom(s"$url/$nativeBundle")
-  }
-
-  Os.proc(ISZ((graalDir / "bin" / "gu").string, "install", "--file", nativeCache.string)).console.runCheck()
-
-  ver.writeOver(graalVersion)
-
-  println("... done!")
-}
-
-def linuxArm(): Unit = {
-  val platformDir = homeBin / "linux" / "arm"
-  val graalDir = platformDir / "graal"
-  val ver = graalDir / "VER"
-
-  if (ver.exists && ver.read === graalVersion) {
-    return
-  }
-
-  val bundle = s"graalvm-ce-java17-linux-aarch64-$graalVersion.tar.gz"
-  val cache = cacheDir / bundle
-
-  if (!cache.exists) {
-    cache.up.mkdirAll()
-    println(s"Downloading Graal $graalVersion ...")
-    cache.downloadFrom(s"$url/$bundle")
-  }
-  if (graalDir.exists) {
-    graalDir.removeAll()
-  }
-  println(s"Extracting $cache ...")
-  Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
-  (platformDir / s"graalvm-ce-java17-$graalVersion").moveTo(graalDir)
-
-  val nativeBundle = s"native-image-installable-svm-java17-linux-aarch64-$graalVersion.jar"
+  val nativeBundle = s"native-image-installable-svm-java17-linux-$arch-$graalVersion.jar"
   val nativeCache = cacheDir / nativeBundle
   if (!nativeCache.exists) {
     println(s"Downloading Graal's native-image ...")
@@ -197,8 +161,8 @@ def win(): Unit = {
 def platform(p: String): Unit = {
   p match {
     case string"mac" => mac()
-    case string"linux" => linux()
-    case string"linux/arm" => linuxArm()
+    case string"linux" => linux(F)
+    case string"linux/arm" => linux(T)
     case string"win" => win()
     case string"-h" => usage()
     case _ =>
