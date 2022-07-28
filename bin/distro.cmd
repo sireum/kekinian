@@ -752,7 +752,6 @@ def build(): Unit = {
     case string"win" => setupWin(ideaDrop)
     case _ if platform === "linux" || platform === "linux/arm" => setupLinux(ideaDrop)
   }
-  patchSecurityManager(pluginsDir / "Scala" / "lib" / "jps" / "nailgun.jar")
   val sireumJar = pluginsDir / "sireum-intellij-plugin" / "lib" / "sireum.jar"
   val homeBinSireumJar = homeBin / "sireum.jar"
   sireumJar.removeAll()
