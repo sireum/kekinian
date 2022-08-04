@@ -357,11 +357,15 @@ def downloadPlugins(): Unit = {
     val zip = zipName(p.id, ver)
     if (!(pluginsCacheDir / zip).exists) {
       val pidOps = ops.StringOps(p.id)
-      val prefix: String = "sireum-"
+      val sireumPrefix: String = "sireum-"
+      val cis706Prefix: String = "ksu-cis-706-"
       val url: String =
-        if (pidOps.startsWith(prefix)) {
-          val repo = pidOps.substring(prefix.size, p.id.size)
+        if (pidOps.startsWith(sireumPrefix)) {
+          val repo = pidOps.substring(sireumPrefix.size, p.id.size)
           s"https://github.com/sireum/$repo/releases/download/$ver/$repo.zip"
+        } else if (pidOps.startsWith(cis706Prefix)) {
+          val repo = pidOps.substring(cis706Prefix.size, p.id.size)
+          s"https://github.com/ksu-cis-706/$repo/releases/download/$ver/$repo.zip"
         } else {
           s"https://plugins.jetbrains.com/plugin/download?pr=idea&updateId=$ver"
         }
