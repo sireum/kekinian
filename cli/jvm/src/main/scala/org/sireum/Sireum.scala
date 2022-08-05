@@ -33,7 +33,7 @@ object Sireum {
   def main(args: Array[Predef.String]): Unit = try {
     System.exit(run(ISZ(args.toSeq.map(s => s: String): _*)).toInt)
   } finally {
-    if (jfxInit) javafx.application.Platform.exit()
+    NativeUtil.nonNative[Unit]((), () => if (jfxInit) javafx.application.Platform.exit())
   }
 
   def paths2files(pathFor: String, paths: ISZ[String], checkExist: B): ISZ[Os.Path] = {
@@ -525,14 +525,15 @@ object Sireum {
     return r
   }
 
-  class JFX extends javafx.application.Application {
-    override def start(primaryStage: javafx.stage.Stage): Unit = {
-      jfxInit = true
-      jfxLatch.countDown()
-    }
-  }
 
   def initJavaFXH(): java.util.function.Supplier[Unit] = new java.util.function.Supplier[Unit] {
+    class JFX extends javafx.application.Application {
+      override def start(primaryStage: javafx.stage.Stage): Unit = {
+        jfxInit = true
+        jfxLatch.countDown()
+      }
+    }
+
     override def get(): Unit = {
       if (jfxInit) {
         return
@@ -550,82 +551,84 @@ object Sireum {
 
   def initJavaFX(): Unit = NativeUtil.nonNative((), initJavaFXH())
 
-  def getSoundDurationH(uri: String): java.util.function.Supplier[Option[Z]] = new java.util.function.Supplier[Option[Z]] {
-    override def get(): Option[Z] = try {
-      initJavaFX()
-      val latch = new java.util.concurrent.CountDownLatch(1)
-      var duration: Z = 0
-      var error = false
-      val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
-      mediaPlayer.setOnReady(new Runnable {
-        override def run(): Unit = {
-          duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
-          latch.countDown()
-        }
-      })
-      mediaPlayer.setOnError(new Runnable {
-        override def run(): Unit = {
-          error = true
-          latch.countDown()
-        }
-      })
-      latch.await()
-      if (error) None[Z]() else Some(duration)
-    } catch {
-      case t: Throwable =>
-        t.printStackTrace()
-        None[Z]()
+  def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), {
+    def getSoundDurationH(uri: String): java.util.function.Supplier[Option[Z]] = new java.util.function.Supplier[Option[Z]] {
+      override def get(): Option[Z] = try {
+        initJavaFX()
+        val latch = new java.util.concurrent.CountDownLatch(1)
+        var duration: Z = 0
+        var error = false
+        val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
+        mediaPlayer.setOnReady(new Runnable {
+          override def run(): Unit = {
+            duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
+            latch.countDown()
+          }
+        })
+        mediaPlayer.setOnError(new Runnable {
+          override def run(): Unit = {
+            error = true
+            latch.countDown()
+          }
+        })
+        latch.await()
+        if (error) None[Z]() else Some(duration)
+      } catch {
+        case t: Throwable =>
+          t.printStackTrace()
+          None[Z]()
+      }
     }
-  }
+    getSoundDurationH(uri)
+  })
 
-
-  def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), getSoundDurationH(uri))
-
-  def getVideoDurationH(uri: String): java.util.function.Supplier[Option[Z]] = new java.util.function.Supplier[Option[Z]] {
-    override def get(): Option[Z] = try {
-      initJavaFX()
-      val latch = new java.util.concurrent.CountDownLatch(1)
-      val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
-      var error = false
-      var duration: Z = 0
-      mediaPlayer.setOnReady(new Runnable {
-        override def run(): Unit = {
-          duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
-          latch.countDown()
-        }
-      })
-      mediaPlayer.setOnError(new Runnable {
-        override def run(): Unit = {
-          error = true
-          latch.countDown()
-        }
-      })
-      val mediaView = new javafx.scene.media.MediaView(mediaPlayer)
-      latch.await()
-      if (error) None[Z]() else Some(duration)
-    } catch {
-      case t: Throwable =>
-        t.printStackTrace()
-        None[Z]()
+  def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), {
+    def getVideoDurationH(uri: String): java.util.function.Supplier[Option[Z]] = new java.util.function.Supplier[Option[Z]] {
+      override def get(): Option[Z] = try {
+        initJavaFX()
+        val latch = new java.util.concurrent.CountDownLatch(1)
+        val mediaPlayer = new javafx.scene.media.MediaPlayer(new javafx.scene.media.Media(uri.value))
+        var error = false
+        var duration: Z = 0
+        mediaPlayer.setOnReady(new Runnable {
+          override def run(): Unit = {
+            duration = Math.ceil(mediaPlayer.getTotalDuration.toMillis).toLong
+            latch.countDown()
+          }
+        })
+        mediaPlayer.setOnError(new Runnable {
+          override def run(): Unit = {
+            error = true
+            latch.countDown()
+          }
+        })
+        val mediaView = new javafx.scene.media.MediaView(mediaPlayer)
+        latch.await()
+        if (error) None[Z]() else Some(duration)
+      } catch {
+        case t: Throwable =>
+          t.printStackTrace()
+          None[Z]()
+      }
     }
-  }
+    getVideoDurationH(uri)
+  })
 
-  def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), getVideoDurationH(uri))
-
-  def checkImageH(uri: String): java.util.function.Supplier[B] = new java.util.function.Supplier[B] {
-    override def get(): B = try {
-      initJavaFX()
-      val image = new javafx.scene.image.Image(uri.value)
-      val imageView = new javafx.scene.image.ImageView(image)
-      T
-    } catch {
-      case t: Throwable =>
-        t.printStackTrace()
-        F
+  def checkImage(uri: String): B = NativeUtil.nonNative(F, {
+    def checkImageH(uri: String): java.util.function.Supplier[B] = new java.util.function.Supplier[B] {
+      override def get(): B = try {
+        initJavaFX()
+        val image = new javafx.scene.image.Image(uri.value)
+        val imageView = new javafx.scene.image.ImageView(image)
+        T
+      } catch {
+        case t: Throwable =>
+          t.printStackTrace()
+          F
+      }
     }
-  }
-
-  def checkImage(uri: String): B = NativeUtil.nonNative(F, checkImageH(uri))
+    checkImageH(uri)
+  })
 
   def parseGrammar(uriOpt: Option[String],
                    input: String,
