@@ -1934,7 +1934,8 @@ import Cli._
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
-          |                           utf8, -XDignore.symbol.file, -Xlint:-options")
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -1972,7 +1973,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -2153,7 +2154,8 @@ import Cli._
           |Available Options:
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
-          |                           utf8, -XDignore.symbol.file, -Xlint:-options")
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -2203,7 +2205,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -3103,7 +3105,8 @@ import Cli._
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
-          |                           utf8, -XDignore.symbol.file, -Xlint:-options")
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -3140,7 +3143,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -3344,7 +3347,8 @@ import Cli._
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
-          |                           utf8, -XDignore.symbol.file, -Xlint:-options")
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -3380,7 +3384,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -3729,7 +3733,8 @@ import Cli._
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
-          |                           utf8, -XDignore.symbol.file, -Xlint:-options")
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -3767,7 +3772,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
