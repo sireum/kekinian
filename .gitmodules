@@ -27,7 +27,7 @@
 	# 'transpiler' submodule identical to the desired 'anvil-dev' branch.
 	#
 	# This workaround preserves the submodule branch in tests, and will
-	# be removed once 'anvil' dev is merged into master.
+	# be removed once 'anvil-dev' is merged into master.
 	#
 	# Other workarounds include:
 	#   (1) Change ci files in .github/workflows/
@@ -36,7 +36,7 @@
 	#   (4) Possibly setting the branch explicitly (unsure about this)
 	#   (5) Move changes to transpilers/.gitmodules instead.
 	#   	under relative module alias '[submodule "."]'
-	#   (6) Set 'submodule = anvil-dev' (unsure about this)
+	#   (6) Set 'branch = anvil-dev' (unsure about this)
 	update = rebase
 [submodule "hamr/codegen"]
 	path = hamr/codegen
