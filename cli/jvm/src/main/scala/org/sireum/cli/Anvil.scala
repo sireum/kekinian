@@ -49,7 +49,8 @@ object Anvil {
     val hc: HardwareContext = HardwareContext_Zynq_7000_SoC_ZedBoard() // hardware descriptors
     val tc: ToolchainContext = DefaultToolchainContext() // toolchain support
     val ec: ExecutionContext = createExecutionContext(args) // execution plan
-    val tm = (m: TranspilersCOptionMirror) => CTranspiler.run(mirrorToPrototype(m))
+    val reporter = org.sireum.message.Reporter.create
+    val tm = (m: TranspilersCOptionMirror) => CTranspiler.run(mirrorToPrototype(m), reporter)
     return AnvilCompiler.compile(hc, tc, ec, tm)
   }
 
