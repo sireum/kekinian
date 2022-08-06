@@ -22,6 +22,22 @@
 [submodule "transpilers"]
 	path = transpilers
 	url = https://github.com/sireum/transpilers
+	# Github workflow's 'checkout' action runs 'git submodule update (...)'
+	# without '--rebase' or '--merge', leading to a detached HEAD in the
+	# 'transpiler' submodule identical to the desired 'anvil-dev' branch.
+	#
+	# This workaround preserves the submodule branch in tests, and will
+	# be removed once 'anvil' dev is merged into master.
+	#
+	# Other workarounds include:
+	#   (1) Change ci files in .github/workflows/
+	#   (2) Set in global git config
+	#   (3) Add code after submodule update, e.g. 'git checkout anvil-dev'
+	#   (4) Possibly setting the branch explicitly (unsure about this)
+	#   (5) Move changes to transpilers/.gitmodules instead.
+	#   	under relative module alias '[submodule "."]'
+	#   (6) Set 'submodule = anvil-dev' (unsure about this)
+	update = rebase
 [submodule "hamr/codegen"]
 	path = hamr/codegen
 	url = https://github.com/sireum/hamr-codegen.git
