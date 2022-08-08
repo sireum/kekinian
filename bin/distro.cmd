@@ -146,7 +146,7 @@ val homeBin = Os.slashDir
 val home = homeBin.up.canon
 val ideaDir: Os.Path = home / "bin" / platform / (if (isServer) "idea-server" else if (isUltimate) "idea-ultimate" else "idea")
 val sireumAppDir: Os.Path = ideaDir / s"IVE.app"
-val delPlugins = ISZ[String]("android", "smali", "Ktor")
+val delPlugins = ISZ[String]("android", "smali", "Ktor", "design-tools")
 val pluginPrefix: String = "org.sireum.version.plugin."
 val versions = HashMap ++ (home / "versions.properties").properties.entries
 val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string)
@@ -357,11 +357,15 @@ def downloadPlugins(): Unit = {
     val zip = zipName(p.id, ver)
     if (!(pluginsCacheDir / zip).exists) {
       val pidOps = ops.StringOps(p.id)
-      val prefix: String = "sireum-"
+      val sireumPrefix: String = "sireum-"
+      val cis706Prefix: String = "ksu-cis-706-"
       val url: String =
-        if (pidOps.startsWith(prefix)) {
-          val repo = pidOps.substring(prefix.size, p.id.size)
+        if (pidOps.startsWith(sireumPrefix)) {
+          val repo = pidOps.substring(sireumPrefix.size, p.id.size)
           s"https://github.com/sireum/$repo/releases/download/$ver/$repo.zip"
+        } else if (pidOps.startsWith(cis706Prefix)) {
+          val repo = pidOps.substring(cis706Prefix.size, p.id.size)
+          s"https://github.com/ksu-cis-706/$repo/releases/download/$ver/$repo.zip"
         } else {
           s"https://plugins.jetbrains.com/plugin/download?pr=idea&updateId=$ver"
         }
@@ -752,7 +756,6 @@ def build(): Unit = {
     case string"win" => setupWin(ideaDrop)
     case _ if platform === "linux" || platform === "linux/arm" => setupLinux(ideaDrop)
   }
-  patchSecurityManager(pluginsDir / "Scala" / "lib" / "jps" / "nailgun.jar")
   val sireumJar = pluginsDir / "sireum-intellij-plugin" / "lib" / "sireum.jar"
   val homeBinSireumJar = homeBin / "sireum.jar"
   sireumJar.removeAll()
