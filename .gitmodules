@@ -22,6 +22,9 @@
 [submodule "transpilers"]
 	path = transpilers
 	url = https://github.com/sireum/transpilers
+    # temporary potential git workflow fix. TODO remove before merging into master
+    # if this doesn't work, try explicit anvil-dev, or combining with update strategy to force non-detached
+    branch = .
 [submodule "hamr/codegen"]
 	path = hamr/codegen
 	url = https://github.com/sireum/hamr-codegen.git
