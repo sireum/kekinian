@@ -139,7 +139,9 @@ object Phantom {
           else { return _features }
         }
 
-        features = baseFeatures ++ features
+        for(f <- ops.ISZOps(baseFeatures).reverse) {
+          features = add(f, features)
+        }
 
         if (ret == 0 && (o.update || !phantom.featuresInstalled(features, osateExe))) {
           ret = phantom.update(osateExe, features)
