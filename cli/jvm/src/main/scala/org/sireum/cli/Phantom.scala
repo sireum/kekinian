@@ -32,6 +32,15 @@ import org.sireum.hamr.phantom.Phantom.{Feature => PFeature}
 
 object Phantom {
 
+  val baseFeatures: ISZ[PFeature] = ISZ(
+    PFeature("Sireum", "org.sireum.aadl.osate.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("AWAS", "org.sireum.aadl.osate.awas.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("GUMBO", "org.sireum.aadl.gumbo.feature.feature.group", "https://raw.githubusercontent.com/sireum/aadl-gumbo-update-site/master"),
+    PFeature("GUMBO to AIR", "org.sireum.aadl.osate.gumbo2air.feature.feature.group", "https://raw.githubusercontent.com/sireum/aadl-gumbo-update-site/master"),
+  )
+
   def run(o: SireumHamrPhantomOption): Z = {
 
     o.args.size match {
@@ -125,17 +134,12 @@ object Phantom {
           }
         }
 
-        val baseFeature: PFeature = PFeature("Sireum", "org.sireum.aadl.osate.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-        val cliFeature: PFeature = PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-        val hamrFeature: PFeature = PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-        val awasFeature: PFeature = PFeature("AWAS", "org.sireum.aadl.osate.awas.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-
         def add(f: PFeature, _features: ISZ[PFeature]): ISZ[PFeature] = {
           if(!ops.ISZOps(_features).exists(p => p.id == f.id)) { return _features :+ f }
           else { return _features }
         }
 
-        features = add(baseFeature, add(awasFeature, add(hamrFeature, add(cliFeature, features))))
+        features = baseFeatures ++ features
 
         if (ret == 0 && (o.update || !phantom.featuresInstalled(features, osateExe))) {
           ret = phantom.update(osateExe, features)
