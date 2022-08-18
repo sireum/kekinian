@@ -167,7 +167,7 @@ object SlangRunner {
         case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
         case _ => return 0
       }
-      command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time", "--allow-incomplete-classpath",
+      command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time",
         "--report-unsupported-elements-at-runtime", "--no-fallback", "-H:+ReportExceptionStackTraces",
         "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
         "--trace-object-instantiation=java.util.concurrent.ForkJoinWorkerThread", "--diagnostics-mode",
