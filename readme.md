@@ -262,12 +262,12 @@ Sireum IVE can be set up on top of it:
    
 3. Open the `kekinian` path above with JetBrains Gateway/Client.
 
-#### Using Vagrant and VirtualBox
+#### Using VirtualBox or VMWare
 
-By using [Vagrant](https://www.vagrantup.com/), you can automatically provision a 
-[VirtualBox](https://www.virtualbox.org) Linux virtual machine (VM) with Sireum set up.
+We provide a release build Linux VM `.ova` image with Sireum already set up, 
+including OSATE, seL4, etc.:
 
-Please see the instructions at: https://github.com/sireum/case-env
+https://bit.ly/case-env
 
 ## Using Sireum 
 
