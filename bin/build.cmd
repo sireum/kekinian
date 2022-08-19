@@ -406,8 +406,9 @@ def test(): Unit = {
     "org.sireum.proyek",
     "org.sireum.hamr.codegen.test.expensive"
   )
-  Sireum.procCheck(proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
-    console.echo, message.Reporter.create)
+  val javaExe = homeBin / platform / "java" / "bin" / (if (Os.isWin) "java.exe" else "java")
+  proc"$javaExe -jar $sireumJar proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
+    console.echo.runCheck()
   println()
   verifyRuntime()
 }
