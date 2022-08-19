@@ -42,12 +42,6 @@ jobs:
             bin/linux/.cvc5.ver
             bin/linux/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
-      - name: Test
-        run: |
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
-          cd $GITHUB_WORKSPACE
-          .ci/build.sh jar test
-          bin/install/ffmpeg-libs.cmd
       - name: Cache Graal
         id: cache-graal
         uses: actions/cache@v2
@@ -58,4 +52,7 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
+          .ci/build.sh jar test
+          bin/install/ffmpeg-libs.cmd
           .ci/linux-native.sh
+          rm bin/linux/sireum
