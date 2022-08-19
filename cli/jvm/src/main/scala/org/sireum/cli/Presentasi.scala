@@ -555,7 +555,7 @@ object Presentasi {
         ))
         temp.removeAll()
         println(s"Loading $p ...")
-        val dur = SireumApi.getSoundDuration(p.toUri)
+        val dur = Ext.getSoundDuration(p.toUri)
         println()
         dur match {
           case Some(dur) if code == 0 => return sound(filepath = p, duration = dur)
@@ -627,7 +627,7 @@ object Presentasi {
                       println(s"Wrote $target")
                       println()
                     }
-                    SireumApi.getSoundDuration(apath.toUri) match {
+                    Ext.getSoundDuration(apath.toUri) match {
                       case Some(dur) =>
                         if (currSound.text =!= "") {
                           storeSound()
@@ -672,7 +672,7 @@ object Presentasi {
             println()
           }
           println(s"Loading $p ...")
-          val ok = SireumApi.checkImage(p.toUri)
+          val ok = Ext.checkImage(p.toUri)
           println()
           if (ok) {
             val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
@@ -692,7 +692,7 @@ object Presentasi {
             println()
           }
           println(s"Loading $p ...")
-          val dur = SireumApi.getVideoDuration(p.toUri)
+          val dur = Ext.getVideoDuration(p.toUri)
           println()
           dur match {
             case Some(dur) =>
@@ -874,7 +874,7 @@ object Presentasi {
             tmp.chmod("+x")
             proc"$tmp".console.runCheck()
             if (ext === "wav") {
-              SireumApi.pcm2wav(out, 48000)
+              Ext.pcm2wav(out, 48000)
             }
             println()
           } else {
@@ -912,7 +912,7 @@ object Presentasi {
             tmp.chmod("+x")
             proc"$tmp".console.runCheck()
             if (ext === "wav") {
-              SireumApi.pcm2wav(out, 16000)
+              Ext.pcm2wav(out, 16000)
             }
             println()
           } else {
@@ -955,5 +955,18 @@ object Presentasi {
         }
     }
     return 0
+  }
+
+  @ext("Presentasi_Ext") object Ext {
+
+    def checkImage(uri: String): B = $
+
+    def getSoundDuration(uri: String): Option[Z] = $
+
+    def getVideoDuration(uri: String): Option[Z] = $
+
+    def pcm2wav(path: Os.Path, srate: Z): Unit = $
+
+    def shutdown(): Unit = $
   }
 }

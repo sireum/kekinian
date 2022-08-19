@@ -118,15 +118,7 @@ import org.sireum.message.Reporter
 
   @pure def parCoresOpt(percentageOpt: Option[Z]): Z = $
 
-  def checkImage(uri: String): B = $
-
-  def getSoundDuration(uri: String): Option[Z] = $
-
-  def getVideoDuration(uri: String): Option[Z] = $
-
   def parseGrammar(uriOpt: Option[String],
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] = $
-
-  def pcm2wav(path: Os.Path, srate: Z): Unit = $
 }
