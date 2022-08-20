@@ -58,7 +58,8 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set errorlevel=
-          call .ci\build.bat jar test || goto :error
+          call .ci\build.bat || goto :error
+          call .ci\build.bat test || goto :error
           call .ci\win-native.bat || goto :error
           del bin\win\sireum.exe || goto :error
           goto :EOF
