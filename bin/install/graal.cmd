@@ -30,10 +30,7 @@ def usage(): Unit = {
 
 
 val homeBin: Os.Path = Os.slashDir.up.canon
-val home = homeBin.up.canon
-val graalVersion = (home / "versions.properties").properties.get("org.sireum.version.graal").get
-val sireumJar = homeBin / "sireum.jar"
-val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
+val graalVersion: String = if (Os.isWin) "22.1.0" else "22.2.0"
 val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
