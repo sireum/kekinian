@@ -75,8 +75,6 @@ val homeBin: Os.Path = Os.slashDir
 val home = homeBin.up
 val sireumJar = homeBin / s"$jarName.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
-val mill = homeBin / (if (Os.isWin) "mill.bat" else "mill")
-val mainFile = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala"
 val versions = (home / "versions.properties").properties
 val cache: Os.Path = Os.env("SIREUM_CACHE") match {
   case Some(p) =>
@@ -386,8 +384,7 @@ def tipe(): Unit = {
 def compile(isJs: B): Unit = {
   tipe()
   println("Compiling ...")
-  Sireum.procCheck(proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} $home".console,
-    message.Reporter.create)
+  proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} $home".console.runCheck()
   println()
 }
 
@@ -406,8 +403,7 @@ def test(): Unit = {
     "org.sireum.proyek",
     "org.sireum.hamr.codegen.test.expensive"
   )
-  val javaExe = homeBin / platform / "java" / "bin" / (if (Os.isWin) "java.exe" else "java")
-  proc"$javaExe -jar $sireumJar proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
+  proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
     console.echo.runCheck()
   println()
   verifyRuntime()
