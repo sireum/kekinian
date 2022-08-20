@@ -29,12 +29,6 @@ jobs:
         with:
           path: cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
-      - name: Cache Graal
-        id: cache-graal
-        uses: actions/cache@v2
-        with:
-          path: bin\win\graal
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
       - name: Cache SMT2 solvers
         id: cache-smt2
         uses: actions/cache@v2
@@ -56,10 +50,25 @@ jobs:
         run: |
           set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
           cd /d %GITHUB_WORKSPACE%
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set errorlevel=
           call .ci\build.bat || goto :error
           call .ci\build.bat test || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v2
+        with:
+          path: bin\win\graal
+          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
+      - name: Test Native
+        shell: cmd
+        run: |
+          set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
+          cd /d %GITHUB_WORKSPACE%
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          set errorlevel=
           call .ci\win-native.bat || goto :error
           del bin\win\sireum.exe || goto :error
           goto :EOF
