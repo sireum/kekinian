@@ -762,9 +762,11 @@ def build(): Unit = {
   val sireumJar = pluginsDir / "sireum-intellij-plugin" / "lib" / "sireum.jar"
   val homeBinSireumJar = homeBin / "sireum.jar"
   sireumJar.removeAll()
-  sireumJar.mklink(homeBinSireumJar)
   if (buildSfx) {
+    homeBinSireumJar.copyTo(sireumJar)
     pack()
+  } else {
+    sireumJar.mklink(homeBinSireumJar)
   }
   println("Done!")
 }
