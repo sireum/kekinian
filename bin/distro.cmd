@@ -682,6 +682,9 @@ def setupWin(ideaDrop: Os.Path): Unit = {
   (ideaDir / "bin" / "idea.exe.vmoptions").removeAll()
   (ideaDir / "bin" / "idea64.exe").moveOverTo(ideaDir / "bin" / "IVE.exe")
   (ideaDir / "bin" / "idea64.exe.vmoptions").moveOverTo(ideaDir / "bin" / "IVE.exe.vmoptions")
+  if (buildSfx) {
+    (homeBin / "sireum.jar").copyOverTo(ideaDir / "plugins" / "sireum-intellij-plugin" / "lib" / "sireum.jar")
+  }
 }
 
 def pack(): Unit = {
