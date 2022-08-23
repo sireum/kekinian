@@ -134,6 +134,12 @@ Sireum binary distribution files are [7z](https://www.7-zip.org/7z.html)
 with command-line installers to (optionally) configure where Sireum should be 
 installed (the files can also be extracted using a program capable of uncompressing `7z` archive).
 
+On macOS, you might need to "un-quarantine" the self-extracting executable:
+
+```bash
+xattr -rd com.apple.quarantine <PATH-TO>/sireum-dev-mac.sfx
+```
+
 If you want to ensure that the downloaded files are genuine, download 
 the appropriate [Minisign](https://jedisct1.github.io/minisign/) signature file 
 for the specific platform, then run:
