@@ -14,7 +14,6 @@ copy ..\..\..\..\..\sireum.jar sireum.jar >nul
 echo Sireum IVE can now be launched by running %INSTALL_PATH%\Sireum\bin\win\idea\bin\IVE.exe
 echo Java Development Kit (JDK) is available at %INSTALL_PATH%\Sireum\bin\win\java
 echo Scala is available at %INSTALL_PATH%\Sireum\bin\scala
-echo Mill can be found at %INSTALL_PATH%\Sireum\bin\mill.bat
 goto end
 :failed
 echo Installation failed
