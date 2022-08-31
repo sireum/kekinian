@@ -135,7 +135,11 @@ object Phantom {
         }
 
         def add(f: PFeature, _features: ISZ[PFeature]): ISZ[PFeature] = {
-          if(!ops.ISZOps(_features).exists(p => p.id == f.id)) { return _features :+ f }
+          if(!ops.ISZOps(_features).exists(featureOption => {
+            val ops = org.sireum.ops.StringOps(featureOption.id)
+            val featureId: String = if(ops.contains("/")) ops.substring(0, ops.indexOf('/')) else ops.s
+            featureId == f.id
+          })) { return _features :+ f }
           else { return _features }
         }
 

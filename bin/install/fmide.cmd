@@ -28,9 +28,11 @@ object Cli {
     val agree: Option[String],
     val briefcase: Option[String],
     val eclipse: Option[String],
+    val gumbo: Option[String],
     val hamr: Option[String],
     val osate: Option[String],
-    val resolute: Option[String]
+    val resolute: Option[String],
+    val verbose: B
   ) extends FmideTopOption
 }
 
@@ -46,28 +48,32 @@ import Cli._
           |
           |Available Options:
           |    --awas               AWAS version (expects a string; default is
-          |                           "1.2022.01051723.29d9922")
-          |    --agree              AGREE version (expects a string; default is
-          |                           "agree_2.8.0")
+          |                           "1.2022.08221314.0e4052e")
+          |    --agree              AGREE version (expects a string; default is "2.9.1")
           |    --briefcase          BriefCASE version (expects a string; default is
-          |                           "briefcase_0.7.0")
+          |                           "0.8.0")
           |    --eclipse            Eclipse release version (expects a string; default is
           |                           "2021-03")
+          |    --gumbo              Sireum GUMBO version (expects a string; default is
+          |                           "1.2022.08231211.b12db9b")
           |    --hamr               Sireum HAMR version (expects a string; default is
-          |                           "1.2022.01051723.29d9922")
+          |                           "1.2022.08221314.0e4052e")
           |    --osate              OSATE version (expects a string; default is
           |                           "2.10.2-vfinal")
           |    --resolute           Resolute version (expects a string; default is
-          |                           "resolute_3.0.0")
+          |                           "3.0.0")
+          |-v, --verbose            Verbose output
           |-h, --help               Display this information""".render
 
-    var awas: Option[String] = Some("1.2022.01051723.29d9922")
-    var agree: Option[String] = Some("agree_2.8.0")
-    var briefcase: Option[String] = Some("briefcase_0.7.0")
+    var awas: Option[String] = Some("1.2022.08221314.0e4052e")
+    var agree: Option[String] = Some("2.9.1")
+    var briefcase: Option[String] = Some("0.8.0")
     var eclipse: Option[String] = Some("2021-03")
-    var hamr: Option[String] = Some("1.2022.01051723.29d9922")
+    var gumbo: Option[String] = Some("1.2022.08231211.b12db9b")
+    var hamr: Option[String] = Some("1.2022.08221314.0e4052e")
     var osate: Option[String] = Some("2.10.2-vfinal")
-    var resolute: Option[String] = Some("resolute_3.0.0")
+    var resolute: Option[String] = Some("3.0.0")
+    var verbose: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -100,6 +106,12 @@ import Cli._
              case Some(v) => eclipse = v
              case _ => return None()
            }
+         } else if (arg == "--gumbo") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => gumbo = v
+             case _ => return None()
+           }
          } else if (arg == "--hamr") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
@@ -118,6 +130,12 @@ import Cli._
              case Some(v) => resolute = v
              case _ => return None()
            }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -127,7 +145,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(FmideOption(help, parseArguments(args, j), awas, agree, briefcase, eclipse, hamr, osate, resolute))
+    return Some(FmideOption(help, parseArguments(args, j), awas, agree, briefcase, eclipse, gumbo, hamr, osate, resolute, verbose))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
@@ -404,15 +422,38 @@ val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase
 val awasId = "org.sireum.aadl.osate.awas.feature.feature.group"
 val hamrCliId = "org.sireum.aadl.osate.cli.feature.feature.group"
 val hamrId = "org.sireum.aadl.osate.hamr.feature.feature.group"
-val hamrUrl = "https://raw.githubusercontent.com/sireum/osate-update-site/master"
-val hamrVersion: String = lookupVersion("HAMR", hamrUrl, option.hamr.get)
-val awasVersion: String = lookupVersion("AWAS", hamrUrl, option.awas.get)
+val sireumId = "org.sireum.aadl.osate.feature.feature.group"
+val sireumUrl = "https://raw.githubusercontent.com/sireum/osate-update-site/master"
+val hamrVersion: String = lookupVersion("HAMR", sireumUrl, option.hamr.get)
+val awasVersion: String = lookupVersion("AWAS", sireumUrl, option.awas.get)
 
-val features = s"$hamrCliId=$hamrUrl/$hamrVersion;$hamrId=$hamrUrl/$hamrVersion;$awasId=$hamrUrl/$awasVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
+val gumboId = "org.sireum.aadl.gumbo.feature.feature.group"
+val gumbo2AirId = "org.sireum.aadl.osate.gumbo2air.feature.feature.group"
+val gumboUrl = "https://raw.githubusercontent.com/sireum/aadl-gumbo-update-site/master"
+val gumboVersion: String = lookupVersion("GUMBO", gumboUrl, option.gumbo.get)
+
+val featuresT: ISZ[String] = ISZ[(String,String,String)](
+  (gumbo2AirId, gumboVersion, gumboUrl),
+  (hamrCliId, hamrVersion, sireumUrl),
+  (hamrId, hamrVersion, sireumUrl),
+  (awasId, awasVersion, sireumUrl),
+  (gumboId, gumboVersion, gumboUrl),
+  (sireumId, hamrVersion, sireumUrl),
+  (briefCaseId, briefCaseVersion, briefCaseUrl),
+  (resoluteId, resoluteVersion, resoluteUrl),
+  (agreeId, agreeVersion, agreeUrl)).map((m: (String, String, String)) => {
+  val xops = ops.StringOps(m._2)
+  val version: String = if(xops.contains("_")) xops.substring(xops.indexOf('_') + 1, xops.size) else xops.s
+  s"${m._1}/${version}=${m._3}"
+})
+
+val features = st"${(featuresT, ";")}".render
+
 val verContent = s"eclipse=$eclipseVersion;osate=$osateVersion;$features"
 val ver: Os.Path = if (Os.isMac) fmideDir / "Contents" / "Eclipse" / "VER"  else fmideDir / "VER"
 
 if (ver.exists && ver.read == verContent) {
+  println("FMIDE plugins up to date")
   Os.exit(0)
 }
 
@@ -427,7 +468,8 @@ Os.env("JAVA_HOME") match {
   case _ =>
 }
 println("Installing FMIDE ...")
-proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".env(env).console.runCheck()
+val quiet: String = if(option.verbose) "" else "--quiet"
+proc"$sireum hamr phantom ${quiet} --update --osate $temp --version $osateVersion --features $features".env(env).console.runCheck()
 temp.moveTo(fmideDir)
 
 Os.kind match {
