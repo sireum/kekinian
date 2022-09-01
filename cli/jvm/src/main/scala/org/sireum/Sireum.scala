@@ -292,7 +292,7 @@ object Sireum {
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
                   reporter: message.Reporter,
-                  transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z,
+                  transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults =
     hamr.codegen.CodeGen.codeGen(model, options, reporter, transpilerCallback, proyekIveCallback)
 

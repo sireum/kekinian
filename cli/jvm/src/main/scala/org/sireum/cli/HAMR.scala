@@ -149,8 +149,10 @@ object HAMR {
 
   def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
 
-    // call back function
-    def transpile(ao: TranspilerConfig): Z = {
+    // call back function. CTranspiler prints all the messages in the
+    // passed in reporter so don't use codegen's primary reporter as
+    // that leads to codegen's messages being emitted multiple times
+    def transpile(ao: TranspilerConfig, transpileReporter: Reporter): Z = {
       val sstco = Cli.SireumSlangTranspilersCOption(
         help = "",
         args = ISZ(),
@@ -179,7 +181,7 @@ object HAMR {
         strictAliasing = F
       )
 
-      return CTranspiler.run(sstco, reporter)
+      return CTranspiler.run(sstco, transpileReporter)
     }
 
     // call back function
