@@ -490,7 +490,6 @@ def regenServer(): Unit = {
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.server.protocol", "-l",
     s"${home / "license.txt"}", "-m", "msgpack,json", "-o", protocolPackagePath.string,
     s"${protocolPackagePath / "Message.scala"}",
-    s"${logikaPackagePath / "State.scala"}",
     s"${logikaPackagePath / "Config.scala"}",
     s"${logikaPackagePath / "Smt2Query.scala"}",
     s"${astPackagePath / "Typed.scala"}"
