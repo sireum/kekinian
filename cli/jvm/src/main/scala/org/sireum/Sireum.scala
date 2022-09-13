@@ -189,7 +189,7 @@ object Sireum {
     for (key <- p.keys().asScala) {
       r = r + key.toString.replace('%', ':') ~> p.get(key).toString
     }
-    val hash = commitHash.value.substring(0, 10)
+    val hash = if (commitHash.size >= 10) commitHash.value.substring(0, 10) else "-SNAPSHOT"
     r = r + DependencyManager.macrosKey ~> hash
     r = r + DependencyManager.testKey ~> hash
     r = r + DependencyManager.librarySharedKey ~> hash
