@@ -29,21 +29,25 @@ import org.sireum._
 
 object Presentasi_Ext {
 
-  lazy val jfxLatch = new java.util.concurrent.CountDownLatch(1)
-  var jfxInit: Boolean = false
+  object Init {
+    lazy val jfxLatch = new java.util.concurrent.CountDownLatch(1)
+    var jfxInit: Boolean = false
+  }
 
-  ###(scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess) {
+  ###("true" == System.getenv("PROYEK_JFX") || scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess) {
+
+    class JFX extends javafx.application.Application {
+      override def start(primaryStage: javafx.stage.Stage): Unit = {
+        Init.jfxInit = true
+        Init.jfxLatch.countDown()
+      }
+    }
+
     def initJavaFX(): Unit = NativeUtil.nonNative((), {
       def initJavaFXH(): java.util.function.Supplier[Unit] = new java.util.function.Supplier[Unit] {
-        class JFX extends javafx.application.Application {
-          override def start(primaryStage: javafx.stage.Stage): Unit = {
-            jfxInit = true
-            jfxLatch.countDown()
-          }
-        }
 
         override def get(): Unit = {
-          if (jfxInit) {
+          if (Init.jfxInit) {
             return
           }
           val t = new Thread() {
@@ -53,7 +57,7 @@ object Presentasi_Ext {
           }
           t.setDaemon(true)
           t.start()
-          while (jfxLatch.getCount > 0) scala.util.Try(jfxLatch.await())
+          while (Init.jfxLatch.getCount > 0) scala.util.Try(Init.jfxLatch.await())
         }
       }
 
@@ -142,20 +146,25 @@ object Presentasi_Ext {
       checkImageH(uri)
     })
 
-    def shutdown(): Unit = NativeUtil.nonNative[Unit]((), () => if (jfxInit) javafx.application.Platform.exit())
+    def shutdown(): Unit = NativeUtil.nonNative[Unit]((), () => if (Init.jfxInit) javafx.application.Platform.exit())
   }
 
-  ###(scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isFailure) {
+  ###(!("true" == System.getenv("PROYEK_JFX") || scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess)) {
     def err(): Nothing = {
       System.err.println("JavaFX is not available under this setup")
       System.err.flush()
       System.exit(-1)
       halt("")
     }
+
     def initJavaFX(): Unit = err()
+
     def getSoundDuration(uri: String): Option[Z] = err()
+
     def getVideoDuration(uri: String): Option[Z] = err()
+
     def checkImage(uri: String): B = err()
+
     def shutdown(): Unit = err()
   }
 
