@@ -660,8 +660,10 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
     }
   }
   if (!isServer) {
-    ideash.moveOverTo(ideaDir / "bin" / "IVE.sh")
-    ideash.mklink(ideaDir / "bin" / "IVE.sh")
+    val ivesh = ideaDir / "bin" / "IVE.sh"
+    ideash.moveOverTo(ivesh)
+    ivesh.chmod("+x")
+    ideash.mklink(ivesh)
   }
 }
 
