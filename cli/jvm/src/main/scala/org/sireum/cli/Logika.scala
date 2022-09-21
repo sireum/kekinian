@@ -138,7 +138,7 @@ object Logika {
         val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
           o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
           o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-          branchParMode, branchParCores)
+          branchParMode, branchParCores, o.logPcLines)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins
@@ -227,7 +227,7 @@ object Logika {
       val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
         o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-        logika.Config.BranchPar.All, parCores)
+        logika.Config.BranchPar.All, parCores, o.logPcLines)
       val plugins = logika.Logika.defaultPlugins
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty

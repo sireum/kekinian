@@ -147,6 +147,7 @@ object Cli {
     val skipTypes: ISZ[String],
     val unroll: B,
     val logPc: B,
+    val logPcLines: B,
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
@@ -304,6 +305,7 @@ object Cli {
     val skipTypes: ISZ[String],
     val unroll: B,
     val logPc: B,
+    val logPcLines: B,
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
@@ -1460,6 +1462,8 @@ import Cli._
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
+          |    --log-pc-lines       Display At(...) path condition line numbers and unique
+          |                           symbolic value numbering
           |    --log-raw-pc         Display raw path conditions before each statement
           |    --log-vc             Display all verification conditions
           |    --log-vc-dir         Write all verification conditions in a directory
@@ -1509,6 +1513,7 @@ import Cli._
     var skipTypes: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var logPc: B = false
+    var logPcLines: B = false
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
@@ -1604,6 +1609,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!logPc) }
            o match {
              case Some(v) => logPc = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-pc-lines") {
+           val o: Option[B] = { j = j - 1; Some(!logPcLines) }
+           o match {
+             case Some(v) => logPcLines = v
              case _ => return None()
            }
          } else if (arg == "--log-raw-pc") {
@@ -1723,7 +1734,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2671,6 +2682,8 @@ import Cli._
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
+          |    --log-pc-lines       Display At(...) path condition line numbers and unique
+          |                           symbolic value numbering
           |    --log-raw-pc         Display raw path conditions before each statement
           |    --log-vc             Display all verification conditions
           |    --log-vc-dir         Write all verification conditions in a directory
@@ -2733,6 +2746,7 @@ import Cli._
     var skipTypes: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var logPc: B = false
+    var logPcLines: B = false
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
@@ -2908,6 +2922,12 @@ import Cli._
              case Some(v) => logPc = v
              case _ => return None()
            }
+         } else if (arg == "--log-pc-lines") {
+           val o: Option[B] = { j = j - 1; Some(!logPcLines) }
+           o match {
+             case Some(v) => logPcLines = v
+             case _ => return None()
+           }
          } else if (arg == "--log-raw-pc") {
            val o: Option[B] = { j = j - 1; Some(!logRawPc) }
            o match {
@@ -3025,7 +3045,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
