@@ -161,7 +161,10 @@ Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [
 
 * **Windows**, either: 
   
-  * Using a NTFS partition with [developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)); or
+  * Using a NTFS partition with [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development),
+    [long-path enabled](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry#enable-long-paths-in-windows-10-version-1607-and-later),
+    and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com))
+    with its `core.longpaths` config set to `true`; or
   
   * [WSL2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) (Linux requirements apply)
 
@@ -200,33 +203,35 @@ Note that after a `setup` update, it is best to invalidate IntelliJ's cache file
 and restart by using IntelliJ's `File -> Invalidate Caches...` 
 menu item and select `Clear all file system cache and Local History`.
 
-Occasionally, there might be new API used in `build.cmd` that is available 
-in the pre-built binary online but not in your local copy.
-This issue happens because `build.cmd` uses Sireum itself, hence it is a
-bootstraping issue.
-This issue typically manifests by `build.cmd` failing to compile/execute 
-due to missing methods/classes.
-In that case, first delete your local `sireum.jar` in the `bin` directory and 
-then re-run `build.cmd setup`.
+##### Notes
 
-If rebuilding Sireum somehow failed still, try cleaning the repo:
+* Occasionally, there might be new API used in `build.cmd` that is available 
+  in the pre-built binary online but not in your local copy.
+  This issue happens because `build.cmd` uses Sireum itself, hence it is a
+  bootstrapping issue.
+  This issue typically manifests by `build.cmd` failing to compile/execute 
+  due to missing methods/classes.
+  In that case, first delete your local `sireum.jar` in the `bin` directory and 
+  then re-run `build.cmd setup`.
 
-* **macOS/Linux**:
+* If building Sireum somehow failed still, try cleaning the repo:
 
-  ```bash
-  ${SIREUM_HOME}/bin/clean.sh
-  ```
+  * **macOS/Linux**:
 
-* **Windows**:
+    ```bash
+    ${SIREUM_HOME}/bin/clean.sh
+    ```
 
-  ```cmd
-  %SIREUM_HOME%\bin\clean.bat
-  ```
+  * **Windows**:
+
+    ```cmd
+    %SIREUM_HOME%\bin\clean.bat
+    ```
   
-The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
-the local git repository.
+  The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
+  the local git repository.
 
-After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good fix-point) and `build.cmd setup`.
+  After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good fix-point) and `build.cmd setup`.
 
 #### Remote Development Setup (Experimental)
 
