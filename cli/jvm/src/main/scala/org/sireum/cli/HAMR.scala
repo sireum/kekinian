@@ -28,7 +28,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Os.Path
-import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, TranspilerConfig}
+import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, ProyekIveEdition, TranspilerConfig}
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.message._
@@ -186,11 +186,19 @@ object HAMR {
 
     // call back function
     def proyekIve(po: ProyekIveConfig): Z = {
+      val edition: Cli.SireumProyekIveEdition.Type = po.edition match {
+        case ProyekIveEdition.Community => Cli.SireumProyekIveEdition.Community
+        case ProyekIveEdition.Ultimate => Cli.SireumProyekIveEdition.Ultimate
+        case ProyekIveEdition.Server => Cli.SireumProyekIveEdition.Server
+      }
+
       val spivo = Cli.SireumProyekIveOption(
         help = po.help,
         args = po.args,
         force = po.force,
-        edition = if (po.ultimate) Cli.SireumProyekIveEdition.Ultimate else Cli.SireumProyekIveEdition.Community,
+        edition = edition,
+        javac = po.javac,
+        scalac = po.scalac,
         ignoreRuntime = po.ignoreRuntime,
         json = po.json,
         name = po.name,
@@ -203,9 +211,7 @@ object HAMR {
         docs = po.docs,
         sources = po.sources,
         repositories = po.repositories,
-        empty = F,
-        javac = ISZ(),
-        scalac = ISZ()
+        empty = F
       )
       return Proyek.ive(spivo)
     }
