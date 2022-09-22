@@ -203,7 +203,9 @@ object HAMR {
         docs = po.docs,
         sources = po.sources,
         repositories = po.repositories,
-        empty = F
+        empty = F,
+        javac = ISZ(),
+        scalac = ISZ()
       )
       return Proyek.ive(spivo)
     }

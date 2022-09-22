@@ -249,6 +249,8 @@ object Cli {
     val empty: B,
     val force: B,
     val edition: SireumProyekIveEdition.Type,
+    val javac: ISZ[String],
+    val scalac: ISZ[String],
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -2405,6 +2407,14 @@ import Cli._
           |-e, --edition            IntelliJ edition (auto-detected if there is only one
           |                           installed) (expects one of { community, ultimate,
           |                           server }; default: community)
+          |    --javac              Javac options (expects a string separated by ",";
+          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
+          |    --scalac             Scalac options (expects a string separated by ",";
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |-h, --help               Display this information
           |
           |Project Options:
@@ -2444,6 +2454,8 @@ import Cli._
     var empty: B = false
     var force: B = false
     var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -2480,6 +2492,18 @@ import Cli._
            val o: Option[SireumProyekIveEdition.Type] = parseSireumProyekIveEdition(args, j + 1)
            o match {
              case Some(v) => edition = v
+             case _ => return None()
+           }
+         } else if (arg == "--javac") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => javac = v
+             case _ => return None()
+           }
+         } else if (arg == "--scalac") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => scalac = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -2563,7 +2587,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, force, edition, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, force, edition, javac, scalac, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {

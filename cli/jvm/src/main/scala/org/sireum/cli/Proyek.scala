@@ -385,7 +385,9 @@ object Proyek {
       isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
       isServer = o.edition == Cli.SireumProyekIveEdition.Server,
       isDev = SireumApi.isDev,
-      force = o.force
+      force = o.force,
+      javacOptions = o.javac,
+      scalacOptions = o.scalac
     )
 
     return r
