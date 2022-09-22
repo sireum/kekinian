@@ -1954,9 +1954,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -1988,7 +1988,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -2174,9 +2174,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --js                 Compile using Scala.js
@@ -2220,7 +2220,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var js: B = false
     var ignoreRuntime: B = false
@@ -3134,9 +3134,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3167,7 +3167,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -3376,9 +3376,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3408,7 +3408,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -3762,9 +3762,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3796,7 +3796,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
