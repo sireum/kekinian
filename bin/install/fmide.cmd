@@ -526,14 +526,17 @@ p.runCheck()
 
 if(option.existingInstall.isEmpty) {
   Os.kind match {
-    case Os.Kind.Linux =>
+    case Os.Kind.Linux if (fmideDir / "osate").exists =>
+      // brand as fmide, only needs to be done for fresh installs
       (fmideDir / "osate").moveTo(fmideDir / "fmide")
       (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
-    case Os.Kind.Win =>
+    case Os.Kind.Win if (fmideDir / "osate.exe").exists =>
+      // brand as fmide, only needs to be done for fresh installs
       (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
       (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
     case Os.Kind.Mac =>
-    // don't need to move osate.ini to fmide.ini for Mac
+    // the directory is already called fmide.app, and eclipse/mac doesn't
+    // allow osate.ini to be moved to fmide.ini
     case _ =>
   }
 }
