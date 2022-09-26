@@ -111,7 +111,8 @@ object Cli {
     val mode: SireumHamrPhantomPhantomMode.Type,
     val output: Option[String],
     val projects: ISZ[String],
-    val quiet: B,
+    val verbose: B,
+    val verbosePlus: B,
     val osate: Option[String],
     val update: B,
     val features: ISZ[String],
@@ -1259,7 +1260,8 @@ import Cli._
           |-f, --output-file        AIR output file path (expects a path)
           |-p, --projects           OSATE project directories, each must contain an OSATE
           |                           '.project' file (expects path strings)
-          |-q, --quiet              Do not print informational messages
+          |-v, --verbose            Verbose output
+          |    --verbose+           Increased verbose output
           |-h, --help               Display this information
           |
           |OSATE Options:
@@ -1279,7 +1281,8 @@ import Cli._
     var mode: SireumHamrPhantomPhantomMode.Type = SireumHamrPhantomPhantomMode.Json
     var output: Option[String] = None[String]()
     var projects: ISZ[String] = ISZ[String]()
-    var quiet: B = false
+    var verbose: B = false
+    var verbosePlus: B = false
     var osate: Option[String] = None[String]()
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
@@ -1322,10 +1325,16 @@ import Cli._
              case Some(v) => projects = v
              case _ => return None()
            }
-         } else if (arg == "-q" || arg == "--quiet") {
-           val o: Option[B] = { j = j - 1; Some(!quiet) }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
            o match {
-             case Some(v) => quiet = v
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose+") {
+           val o: Option[B] = { j = j - 1; Some(!verbosePlus) }
+           o match {
+             case Some(v) => verbosePlus = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--osate") {
@@ -1361,7 +1370,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, quiet, osate, update, features, version))
+    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, verbose, verbosePlus, osate, update, features, version))
   }
 
   def parseSireumLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {

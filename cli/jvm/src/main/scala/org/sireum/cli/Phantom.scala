@@ -29,6 +29,7 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Cli.SireumHamrPhantomOption
 import org.sireum.hamr.phantom.Phantom.{Feature => PFeature}
+import org.sireum.hamr.phantom.Verbosity
 
 object Phantom {
 
@@ -118,7 +119,8 @@ object Phantom {
       return -1
     }
 
-    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, o.quiet, SireumApi.homeOpt.get)
+    val verbosity: Verbosity.Type = if(o.verbosePlus) Verbosity.High else if (o.verbose) Verbosity.Low else Verbosity.Off
+    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, verbosity, SireumApi.homeOpt.get)
 
     val ret: Z = phantom.getOsateExe() match {
       case Some(osateExe) =>
