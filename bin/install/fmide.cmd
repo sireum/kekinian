@@ -47,12 +47,12 @@ import Cli._
       st"""FMIDE Installer
           |
           |Usage: ${st"""
-                  |<option>* [ fixed | latest ]
+                  |<option>* [ release | latest ]
                   |
-                  |'latest' attempts to install the most recent versions of the
-                  |FMIDE plugins. This is the default behavior. If the installation
-                  |fails due to missing requirements then use the 'fixed' argument
-                  |which installs the default versions of the plugins""".render}
+                  |'release' installs the versions of OSATE and FMIDE plugins specified
+                  |by their respective options.  'latest' installs the most recent
+                  |releases of the plugins into the OSATE version specified via
+                  |the 'osate' option or 'existing-install' option.""".render}
           |
           |Available Options:
           |    --awas               AWAS version (expects a string; default is
@@ -358,10 +358,14 @@ val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 
 def parseCliArgs(): (B, Cli.FmideOption) = {
   Cli(Os.pathSepChar).parseFmide(Os.cliArgs, 0) match {
-    case Some(o: Cli.FmideOption) if o.args.size === 1 && (o.args(0) === "fixed" || o.args(0) == "latest") =>
-      return (o.args(0) === "fixed", o)
+    case Some(o: Cli.FmideOption) if o.args.size === 1 && (o.args(0) === "release" || o.args(0) == "latest" || o.args(0) === "fixed") =>
+      if (o.args(0) === "fixed") {
+        eprintln("The 'fixed' argument has been deprecated.  Please use 'release' instead")
+        Os.exit(1)
+      }
+      return (o.args(0) === "release", o)
     case Some(o: Cli.FmideOption) if o.args.isEmpty =>
-      return (F, o)
+      return (T, o)
     case Some(_: Cli.HelpOption) =>
       Os.exit(0)
     case _ =>
@@ -371,12 +375,12 @@ def parseCliArgs(): (B, Cli.FmideOption) = {
   halt("Infeasible")
 }
 
-val (isFixed, option) = parseCliArgs()
+val (isRelease, option) = parseCliArgs()
 
 def lookupVersion(name: String, url: String, default: String): String = {
   val compositeArtifacts = "compositeArtifacts.xml"
   def lookupVersionH(): String = {
-    if (isFixed) {
+    if (isRelease) {
       return default
     }
     val urls = ops.StringOps(url).split((c: C) => c === ',')

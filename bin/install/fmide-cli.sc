@@ -7,12 +7,12 @@ import org.sireum.cli.CliOpt._
 val tqs: String = "\"\"\""
 val usage: String =
   st"""$${st$tqs
-      ||<option>* [ fixed | latest ]
+      ||<option>* [ release | latest ]
       ||
-      ||'latest' attempts to install the most recent versions of the
-      ||FMIDE plugins. This is the default behavior. If the installation
-      ||fails due to missing requirements then use the 'fixed' argument
-      ||which installs the default versions of the plugins$tqs.render}""".render
+      ||'release' installs the versions of OSATE and FMIDE plugins specified
+      ||by their respective options.  'latest' installs the most recent
+      ||releases of the plugins into the OSATE version specified via
+      ||the 'osate' option or 'existing-install' option.$tqs.render}""".render
 
 val fmideTool: Tool = Tool(
   name = "fmide",
