@@ -231,7 +231,10 @@ menu item and select `Clear all file system cache and Local History`.
   The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
   the local git repository.
 
-  After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good fix-point) and `build.cmd setup`.
+  After cleaning, re-run `git pull --recurse-submodules` (possibly multiple times until it reaches a good fix-point 
+  where `git status` indicates that its working tree is clean) and `build.cmd setup`.
+
+  If all else fails, try recursively re-clone Sireum. 
 
 #### Remote Development Setup (Experimental)
 
