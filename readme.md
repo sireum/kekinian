@@ -366,7 +366,7 @@ To build Sireum assembly/CLI tool:
 It is recommended to compile Sireum (and Slash build scripts) to native as it removes JVM boot up time.
 
 First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/reference-manual/native-image/#prerequisites)
-(note: `native-image` for Windows requires Visual Studio Community 2017 or 2019); 
+(note: `native-image` for Windows requires Visual Studio Community/Enterprise); 
 then, to build Sireum native executable:
 
 * **macOS/Linux**:
