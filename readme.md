@@ -440,7 +440,7 @@ Sireum depends on open source software libraries and applications
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
 | [JavaFX for Presentasi](https://github.com/sireum/presentasi-jfx) | [(link)](https://jitpack.io/#org.sireum/presentasi-jfx) | [BSD2](https://github.com/sireum/presentasi-jfx/blob/master/license.md) |
 | [Scala](https://github.com/scala/scala) | [(link)](https://search.maven.org/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
-| [Scalafmt](https://github.com/scalameta/scalafmt) | [(link)](https://search.maven.org/artifact/org.scalameta/scalafmt-cli_2.13) | [BSD3](https://github.com/scalameta/scalafmt/blob/master/LICENCE.md) |
+| [Scalafmt](https://github.com/scalameta/scalafmt) | [(link)](https://search.maven.org/artifact/org.scalameta/scalafmt-cli_2.13) | [Apache 2.0](https://github.com/scalameta/scalafmt/blob/master/LICENCE.md) |
 | [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://search.maven.org/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
 | [ScalaTest](https://github.com/scalatest/scalatest) | [(link)](https://search.maven.org/artifact/org.scalatest/scalatest_2.13) | [Apache 2.0](https://github.com/scalatest/scalatest/blob/3.2.x-new/LICENSE) |
 | [Scala Java 8 Compatibility Kit](https://github.com/scala/scala-java8-compat) | [(link)](https://search.maven.org/artifact/org.scala-lang.modules/scala-java8-compat_2.13) | [Apache 2.0](https://github.com/scala/scala-java8-compat/blob/main/LICENSE) |
