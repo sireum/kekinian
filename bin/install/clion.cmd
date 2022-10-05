@@ -76,11 +76,11 @@ def mac(): Unit = {
   val clionAppDir = clionDir / "CLion.app"
   val ver = clionDir / "VER"
 
-  if (ver.exists && ver.read === clionVersion) {
+  if (ver.exists && ver.read == clionVersion) {
     return
   }
 
-  val bundle = s"CLion-$clionVersion${if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") "-aarch64" else ""}.dmg"
+  val bundle = s"CLion-$clionVersion${if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim == "arm64") "-aarch64" else ""}.dmg"
   val cache = cacheDir / bundle
 
   if (!cache.exists) {
@@ -119,7 +119,7 @@ def linux(isArm: B): Unit = {
   val clionDir = platformDir / "clion"
   val ver = clionDir / "VER"
 
-  if (ver.exists && ver.read === clionVersion) {
+  if (ver.exists && ver.read == clionVersion) {
     return
   }
 
@@ -185,7 +185,7 @@ def win(): Unit = {
   val clionDir = platformDir / "clion"
   val ver = clionDir / "VER"
 
-  if (ver.exists && ver.read === clionVersion) {
+  if (ver.exists && ver.read == clionVersion) {
     return
   }
 

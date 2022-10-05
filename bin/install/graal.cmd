@@ -43,11 +43,11 @@ def mac(): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read === graalVersion) {
+  if (ver.exists && ver.read == graalVersion) {
     return
   }
 
-  val arch: String = if (ops.StringOps(proc"uname -m".runCheck().out).trim === "arm64") "aarch64" else "amd64"
+  val arch: String = if (ops.StringOps(proc"uname -m".runCheck().out).trim == "arm64") "aarch64" else "amd64"
   val bundle = s"graalvm-ce-java17-darwin-$arch-$graalVersion.tar.gz"
   val cache = cacheDir / bundle
 
@@ -83,7 +83,7 @@ def linux(isArm: B): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read === graalVersion) {
+  if (ver.exists && ver.read == graalVersion) {
     return
   }
 
@@ -122,7 +122,7 @@ def win(): Unit = {
   val graalDir = platformDir / "graal"
   val ver = graalDir / "VER"
 
-  if (ver.exists && ver.read === graalVersion) {
+  if (ver.exists && ver.read == graalVersion) {
     return
   }
 

@@ -569,7 +569,7 @@ object Proyek {
       case _ => ops.StringOps(proc"git log -1 --date=format:%Y%m%d.%H%M --pretty=format:%cd.%h".runCheck().out).trim
     }
 
-    val orgName = ops.StringOps(o.args(1)).split((c: C) => c === '.')
+    val orgName = ops.StringOps(o.args(1)).split((c: C) => c == '.')
 
     val publishModuleIds: ISZ[String] = for (m <- prj.modules.values if m.publishInfoOpt.nonEmpty) yield m.id
     for (m <- prj.modules.values) {

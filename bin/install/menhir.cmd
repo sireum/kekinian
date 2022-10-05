@@ -51,7 +51,7 @@ def install(platformDir: Os.Path): Unit = {
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === menhirVersion) {
+  if (ver.exists && ver.read == menhirVersion) {
     return
   }
 

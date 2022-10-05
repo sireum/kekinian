@@ -127,7 +127,7 @@ object Phantom {
         var ret: Z = 0
         var features = ISZ[PFeature]()
         for (feature <- o.features) {
-          ops.StringOps(feature).split((c: C) => c === '=') match {
+          ops.StringOps(feature).split((c: C) => c == '=') match {
             case ISZ(featureId, url) =>
               features = features :+ org.sireum.hamr.phantom.Phantom.Feature(featureId, featureId, url)
             case _ =>

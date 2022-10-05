@@ -53,7 +53,7 @@ def install(platformDir: Os.Path): Unit = {
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === compCertVersion) {
+  if (ver.exists && ver.read == compCertVersion) {
     return
   }
 

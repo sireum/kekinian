@@ -503,7 +503,7 @@ object Presentasi {
     audio.mkdirAll()
 
     if (o.force) {
-      for (p <- audio.list if p.ext === "wav" || p.ext === "mp3") {
+      for (p <- audio.list if p.ext == "wav" || p.ext == "mp3") {
         val cis = conversions.String.toCis(p.name)
         if (cis.size > 7 && cis(6) == '-' && ops.ISZOps(ops.ISZOps(cis).take(6)).
           forall((c: C) => 'A' <= c && c <= 'Z' || '0' <= c && c <= '9')) {
@@ -583,7 +583,7 @@ object Presentasi {
 
       var currSound = newSound(start)
       def storeSound(): Unit = {
-        if (currSound.text =!= "") {
+        if (currSound.text != "") {
           val sound = process(currSound)
           sounds = sounds :+ sound
           currSound = newSound(sound.timeline + sound.duration)
@@ -591,7 +591,7 @@ object Presentasi {
           currSound = newSound(currSound.timeline)
         }
       }
-      for (l <- ops.StringOps(text).split((c: C) => c === '\n')) {
+      for (l <- ops.StringOps(text).split((c: C) => c == '\n')) {
         ops.StringOps(l).trim match {
           case string"" =>
             storeSound()
@@ -607,7 +607,7 @@ object Presentasi {
                 case _ =>
                   var volume: F64 = 0.0
                   val apath: Os.Path = if (ops.StringOps(dir).indexOf(';') >= 0) {
-                    ops.StringOps(dir).split((c: C) => c === ';') match {
+                    ops.StringOps(dir).split((c: C) => c == ';') match {
                       case ISZ(vol, p) =>
                         volume = parseVolume(ops.StringOps(vol).trim, p)
                         Os.path(ops.StringOps(p).trim)
@@ -618,7 +618,7 @@ object Presentasi {
                   } else {
                     Os.path(dir)
                   }
-                  if (apath.string === "") {
+                  if (apath.string == "") {
                     // skip
                   } else if (apath.exists) {
                     val target = audio / apath.name
@@ -629,7 +629,7 @@ object Presentasi {
                     }
                     Ext.getSoundDuration(apath.toUri) match {
                       case Some(dur) =>
-                        if (currSound.text =!= "") {
+                        if (currSound.text != "") {
                           storeSound()
                           currSound = currSound(timeline = currSound.timeline + spec.textDelay)
                         }
@@ -643,7 +643,7 @@ object Presentasi {
                   }
               }
             } else {
-              currSound = currSound(text = if (currSound.text === "") line else s"${currSound.text} $line")
+              currSound = currSound(text = if (currSound.text == "") line else s"${currSound.text} $line")
             }
         }
       }
@@ -802,7 +802,7 @@ object Presentasi {
       if (output == Os.cwd) {
         var cis = ISZ[C]()
         for (c <- conversions.String.toCStream(line).take(16)) {
-          cis = cis :+ (if (c === '.' || c === ',' || c === '!' || c === ' ' || c === '*' || c === '+') '_' else c)
+          cis = cis :+ (if (c == '.' || c == ',' || c == '!' || c == ' ' || c == '*' || c == '+') '_' else c)
         }
         return output.canon / s"$num${conversions.String.fromCis(cis)}.$ext"
       } else if (isSoundFile(output)) {
@@ -873,7 +873,7 @@ object Presentasi {
                   |curl --location --request POST 'https://${o.region.get}.tts.speech.microsoft.com/cognitiveservices/v1' --header 'Ocp-Apim-Subscription-Key: $key' --header 'Content-Type: application/ssml+xml' --header 'X-Microsoft-OutputFormat: $format' --header 'User-Agent: curl' --data-raw '<speak version="1.0" xml:lang="${o.lang.get}"><voice xml:lang="${o.voiceLang.get}" xml:gender="${o.gender.get}" name="$voice">${ops.StringOps(line).replaceAllLiterally("'", "'\\''")}</voice></speak>' -o $out""".render)
             tmp.chmod("+x")
             proc"$tmp".console.runCheck()
-            if (ext === "wav") {
+            if (ext == "wav") {
               Ext.pcm2wav(out, 48000)
             }
             println()
@@ -911,7 +911,7 @@ object Presentasi {
                   |$aws polly synthesize-speech --engine $engine --language-code ${o.lang} --output-format $outputFormat --sample-rate $rate --text "<speak>$line</speak>" --text-type "ssml" --voice-id "$voice" $out""".render)
             tmp.chmod("+x")
             proc"$tmp".console.runCheck()
-            if (ext === "wav") {
+            if (ext == "wav") {
               Ext.pcm2wav(out, 16000)
             }
             println()

@@ -59,7 +59,7 @@ val ccompOpt: Option[CC] = if (Os.isWin) {
   (sireumHome / "bin" / "install" / "compcert.cmd").slash(ISZ())
   var rOpt: Option[Os.Path] = None()
   for (d <- (binPlatform / ".opam").list if d.isDir && rOpt.isEmpty && (d / "bin").exists) {
-    for (p <- (d / "bin").list if rOpt.isEmpty && p.name === "ccomp") {
+    for (p <- (d / "bin").list if rOpt.isEmpty && p.name == "ccomp") {
       rOpt = Some(p)
     }
   }
@@ -107,7 +107,7 @@ val clangOpt: Option[CC] = if (Os.isMac && gccOpt.isEmpty) {
   None()
 }
 
-@strictpure def split(command: String): ISZ[String] = ops.StringOps(command).split((c: C) => c === ' ')
+@strictpure def split(command: String): ISZ[String] = ops.StringOps(command).split((c: C) => c == ' ')
 
 def proc(desc: String, command: String, inputOpt: Option[String]): Os.Proc = {
   println(command)

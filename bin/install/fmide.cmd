@@ -358,12 +358,12 @@ val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 
 def parseCliArgs(): (B, Cli.FmideOption) = {
   Cli(Os.pathSepChar).parseFmide(Os.cliArgs, 0) match {
-    case Some(o: Cli.FmideOption) if o.args.size === 1 && (o.args(0) === "release" || o.args(0) == "latest" || o.args(0) === "fixed") =>
-      if (o.args(0) === "fixed") {
+    case Some(o: Cli.FmideOption) if o.args.size == 1 && (o.args(0) == "release" || o.args(0) == "latest" || o.args(0) == "fixed") =>
+      if (o.args(0) == "fixed") {
         eprintln("The 'fixed' argument has been deprecated.  Please use 'release' instead")
         Os.exit(1)
       }
-      return (o.args(0) === "release", o)
+      return (o.args(0) == "release", o)
     case Some(o: Cli.FmideOption) if o.args.isEmpty =>
       return (T, o)
     case Some(_: Cli.HelpOption) =>
@@ -383,7 +383,7 @@ def lookupVersion(name: String, url: String, default: String): String = {
     if (isRelease) {
       return default
     }
-    val urls = ops.StringOps(url).split((c: C) => c === ',')
+    val urls = ops.StringOps(url).split((c: C) => c == ',')
     val f = Os.temp()
     f.removeAll()
     val durl = urls(urls.size - 1)

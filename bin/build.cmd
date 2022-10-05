@@ -113,7 +113,7 @@ def installZ3(kind: Os.Kind.Type): Unit = {
     case Os.Kind.Win => s"z3-$version-x64-win.zip"
     case Os.Kind.Linux => s"z3-$version-x64-glibc-2.31.zip"
     case Os.Kind.Mac =>
-      if (ops.StringOps(proc"uname -m".run().out).trim === "arm64") s"z3-$version-arm64-osx-11.0.zip"
+      if (ops.StringOps(proc"uname -m".run().out).trim == "arm64") s"z3-$version-arm64-osx-11.0.zip"
       else s"z3-$version-x64-osx-10.16.zip"
     case _ => return
   }
@@ -179,7 +179,7 @@ def installCVC(kind: Os.Kind.Type): Unit = {
       case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
       case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
       case (string"5", Os.Kind.Mac) =>
-        if (ops.StringOps(proc"uname -m".run().out).trim === "arm64")
+        if (ops.StringOps(proc"uname -m".run().out).trim == "arm64")
           (s"cvc$gen-$version", s"cvc$gen-macOS-arm64", s"cvc$gen-$version-macOS-arm64")
         else (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
       case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
@@ -209,7 +209,7 @@ def installCVC(kind: Os.Kind.Type): Unit = {
     println()
   }
   val (gen1, genVersion1, gen2, genVersion2): (String, String, String, String) =
-    ops.StringOps(versions.get("org.sireum.version.cvc").get).split((c: C) => c === '-' || c === ',') match {
+    ops.StringOps(versions.get("org.sireum.version.cvc").get).split((c: C) => c == '-' || c == ',') match {
       case ISZ(g1, gv1, g2, gv2) => (g1, gv1, g2, gv2)
       case ISZ(string"1.8") => ("4", "1.8", "4", "1.8")
       case ISZ(version) => ("5", version, "5", version)
@@ -342,7 +342,7 @@ def build(fresh: B, isNative: B): Unit = {
   } else {
     var r: String = ""
     val pr = proc"git status --porcelain".at(home).run()
-    if (ops.StringOps(s"${pr.out}${pr.err}").trim === "") {
+    if (ops.StringOps(s"${pr.out}${pr.err}").trim == "") {
       val vOutOps = ops.StringOps(proc"$sireum -v".run().out)
       if (vOutOps.contains("*") ||
         !vOutOps.contains(ops.StringOps(proc"git log -n 1 --date=format:%Y%m%d --pretty=format:4.%cd.%h".run().out).trim)) {
@@ -542,7 +542,7 @@ def m2Lib(isJs: B): Unit = {
   val repository = Os.home / ".m2" / "repository"
 
   def version: String = {
-    for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c === '\n')) {
+    for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c == '\n')) {
       val lineOps = ops.StringOps(line)
       if (lineOps.contains(DependencyManager.libraryKey)) {
         val i = lineOps.stringIndexOf("->")

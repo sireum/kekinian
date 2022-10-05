@@ -70,7 +70,7 @@ def install(platformDir: Os.Path, opamSuffix: String): Unit = {
   val ver = platformDir / ".opam.ver"
   val oVer = s"$opamVersion-20220523.0"
 
-  if (ver.exists && ver.read === oVer) {
+  if (ver.exists && ver.read == oVer) {
     return
   }
 
@@ -92,7 +92,7 @@ def install(platformDir: Os.Path, opamSuffix: String): Unit = {
 Os.kind match {
   case Os.Kind.Mac =>
     install(homeBin / "mac",
-      if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") "arm64-macos"
+      if (ops.StringOps(proc"uname -m".redirectErr.run().out).trim == "arm64") "arm64-macos"
       else "x86_64-macos")
   case Os.Kind.Linux => install(homeBin / "linux", "x86_64-linux")
   case Os.Kind.LinuxArm => install(homeBin / "linux" / "arm", "arm64-linux")

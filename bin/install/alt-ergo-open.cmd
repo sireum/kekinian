@@ -69,7 +69,7 @@ def install(platformDir: Os.Path): Unit = {
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (ver.exists && ver.read === altErgoVersion) {
+  if (ver.exists && ver.read == altErgoVersion) {
     return
   }
 

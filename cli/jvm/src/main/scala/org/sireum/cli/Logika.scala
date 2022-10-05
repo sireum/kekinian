@@ -187,8 +187,8 @@ object Logika {
           return INVALID_SOURCE_PATH
         } else {
           for (p <- Os.Path.walk(f, F, T, { path: Os.Path =>
-            var isSlang = path.ext === "slang"
-            if (path.ext === "scala" || isSlang) {
+            var isSlang = path.ext == "slang"
+            if (path.ext == "scala" || isSlang) {
               if (!isSlang) {
                 val line = conversions.String.fromCis(path.readCStream.takeWhile((c : C) => c != '\n').
                   filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)

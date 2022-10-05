@@ -153,7 +153,7 @@ val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string)
 val settingsDir: String = if (isLocal) if (Os.isWin) ops.StringOps((home / ".settings").string).replaceAllChars('\\', '/') else (home / ".settings").string else "${user.home}"
 
 @pure def devRelVer(key: String): (String, String) = {
-  ops.StringOps(versions.get(key).get).split((c: C) => c === ',') match {
+  ops.StringOps(versions.get(key).get).split((c: C) => c == ',') match {
     case ISZ(devVer, ver) =>
       return (ops.StringOps(devVer).trim, ops.StringOps(ver).trim)
     case ISZ(ver) =>
@@ -211,11 +211,11 @@ val plugins: HashMap[String, Plugin] = {
   var r = HashMap.empty[String, Plugin]
   for (key <- versions.keys if ops.StringOps(key).startsWith(pluginPrefix)) {
     val id = ops.StringOps(key).substring(pluginPrefix.size, key.size)
-    ops.StringOps(versions.get(key).get).split((c: C) => c === ',') match {
+    ops.StringOps(versions.get(key).get).split((c: C) => c == ',') match {
       case ISZ(isDev, isJar, devVer) =>
-        r = r + id ~> Plugin(id, isDev === "true", isJar === "true", devVer, devVer)
+        r = r + id ~> Plugin(id, isDev == "true", isJar == "true", devVer, devVer)
       case ISZ(isDev, isJar, devVer, ver) =>
-        r = r + id ~> Plugin(id, isDev === "true", isJar === "true", devVer, ver)
+        r = r + id ~> Plugin(id, isDev == "true", isJar == "true", devVer, ver)
     }
   }
   r
@@ -315,11 +315,11 @@ val distroMap = HashMap.empty[String, ISZ[ISZ[String]]] +
   )
 
 val pluginsDir: Os.Path =
-  if (platform === "mac") sireumAppDir / "Contents" / "plugins"
+  if (platform == "mac") sireumAppDir / "Contents" / "plugins"
   else ideaDir / "plugins"
 
 val libDir: Os.Path =
-  if (platform === "mac") sireumAppDir / "Contents" / "lib"
+  if (platform == "mac") sireumAppDir / "Contents" / "lib"
   else ideaDir / "lib"
 
 val version: String = {
@@ -409,7 +409,7 @@ def patchIdeaProperties(p: Os.Path): Unit = {
       else s"${contentOps.substring(0, j)}<string>SireumIVE$ult$devSuffix${contentOps.substring(k, content.size)}"
     case "win" =>
       s"idea.config.path=$settingsDir/.SireumIVE$ult$devSuffix/config\r\nidea.system.path=$settingsDir/.SireumIVE$ult$devSuffix/system\r\nidea.log.path=$settingsDir/.SireumIVE$ult$devSuffix/log\r\nidea.plugins.path=$settingsDir/.SireumIVE$ult$devSuffix/plugins\r\n$content"
-    case _ if platform === "linux" || platform === "linux/arm" =>
+    case _ if platform == "linux" || platform == "linux/arm" =>
       s"idea.config.path=$settingsDir/.SireumIVE$ult$devSuffix/config\nidea.system.path=$settingsDir/.SireumIVE$ult$devSuffix/system\nidea.log.path=$settingsDir/.SireumIVE$ult$devSuffix/log\nidea.plugins.path=$settingsDir/.SireumIVE$ult$devSuffix/plugins\n$content"
   }
   p.writeOver(newContent)
@@ -472,7 +472,7 @@ def patchIcon(isWin: B): Unit = {
         (iconsPath / "idea.svg").copyOverTo(ideaDir / "bin" / "idea.svg")
         (ideaDir / "bin", "idea_CE.ico", "idea.ico")
       }
-    case _ if platform === "linux" || platform === "linux/arm" =>
+    case _ if platform == "linux" || platform == "linux/arm" =>
       if (isDev) {
         (iconsPath / "idea-dev.svg").copyOverTo(ideaDir / "bin" / "idea.svg")
         (ideaDir / "bin", "idea-dev.png", "idea.png")
@@ -550,7 +550,7 @@ def patchApp(): Unit = {
 }
 
 def deleteSources(): Unit = {
-  for (p <- Os.Path.walk(ideaDir, F, T, (p: Os.Path) => p.ext === "java" || p.ext === "scala")) {
+  for (p <- Os.Path.walk(ideaDir, F, T, (p: Os.Path) => p.ext == "java" || p.ext == "scala")) {
     p.removeAll()
   }
 }
@@ -593,18 +593,18 @@ def setupMac(ideaDrop: Os.Path): Unit = {
 def setupLinux(ideaDrop: Os.Path): Unit = {
   if (isServer) {
     val ideaVerOps = ops.StringOps(ideaVer)
-    val rel: String = ideaVerOps.split((c: C) => c === '.') match {
+    val rel: String = ideaVerOps.split((c: C) => c == '.') match {
       case ISZ(_, r, _) => r
       case ISZ(_, r) => r
     }
     val namePart = s"_ideaIU-${ideaVerOps.substring(2, 4)}$rel"
     var dist = Os.home / ".cache" / "JetBrains" / "RemoteDev" / "dist"
     for (p <- dist.list if p.isDir && ops.StringOps(p.name).contains(namePart)) {
-      if (dist.name === "dist" || p.lastModified >= dist.lastModified) {
+      if (dist.name == "dist" || p.lastModified >= dist.lastModified) {
         dist = p
       }
     }
-    if (dist.name === "dist") {
+    if (dist.name == "dist") {
       eprintln(s"Could not find IntelliJ Ultimate for remote development in $dist")
       Os.exit(-1)
     }
@@ -691,7 +691,7 @@ def setupWin(ideaDrop: Os.Path): Unit = {
 
 def pack(): Unit = {
   val plat = ops.StringOps(platform).replaceAllChars('/', '-')
-  val sfxSuffix: String = if (platform === "win") ".exe" else ".sfx"
+  val sfxSuffix: String = if (platform == "win") ".exe" else ".sfx"
   val r = home / "distro" / s"$plat$devSuffix$sfxSuffix"
   r.removeAll()
   print(s"Packaging $r ... ")
@@ -700,7 +700,7 @@ def pack(): Unit = {
   val oldPwd = home
   val (repoDir, distroDir): (Os.Path, Os.Path) = {
     val dir = setupDir / s"Sireum$devSuffix"
-    for (rp <- distroMap.get(platform).get if rp(0) =!= "..") {
+    for (rp <- distroMap.get(platform).get if rp(0) != "..") {
       (dir /+ rp).up.mkdirAll()
       val orp = oldPwd /+ rp
       if (orp.exists) {
@@ -738,7 +738,7 @@ def patchSecurityManager(p: Os.Path): Unit = {
 def build(): Unit = {
   println(s"Setting up Sireum$devSuffix IVE $platform in $ideaDir ...")
   val suffix: String =
-    if (platform == "mac" && ops.StringOps(proc"uname -m".redirectErr.run().out).trim === "arm64") ideaExtMap.get("mac/arm").get
+    if (platform == "mac" && ops.StringOps(proc"uname -m".redirectErr.run().out).trim == "arm64") ideaExtMap.get("mac/arm").get
     else ideaExtMap.get(platform).get
   val url: String = s"https://download.jetbrains.com/idea/idea${if (isUltimate) "IU" else "IC"}-$ideaVer$suffix"
   val urlOps = ops.StringOps(url)
@@ -759,7 +759,7 @@ def build(): Unit = {
   platform match {
     case string"mac" => setupMac(ideaDrop)
     case string"win" => setupWin(ideaDrop)
-    case _ if platform === "linux" || platform === "linux/arm" => setupLinux(ideaDrop)
+    case _ if platform == "linux" || platform == "linux/arm" => setupLinux(ideaDrop)
   }
   val sireumJar = pluginsDir / "sireum-intellij-plugin" / "lib" / "sireum.jar"
   val homeBinSireumJar = homeBin / "sireum.jar"

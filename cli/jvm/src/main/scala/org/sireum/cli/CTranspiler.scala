@@ -147,7 +147,7 @@ object CTranspiler {
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return InvalidFile
-      } else if (!(f.ext === "sc" || f.ext === "slang")) {
+      } else if (!(f.ext == "sc" || f.ext == "slang")) {
         eprintln(s"Can only accept .sc/.slang files as arguments")
         return InvalidFile
       }
@@ -176,7 +176,7 @@ object CTranspiler {
         for (f <- p.list) {
           extRec(rel :+ p.name, f, F)
         }
-      } else if ((force || p.ext === "c" || p.ext === "h") && p.isFile) {
+      } else if ((force || p.ext == "c" || p.ext == "h") && p.isFile) {
         val (uriOpt, content) = readFile(p)
         exts = exts :+ StaticTranspiler.ExtFile(rel, uriOpt.get, content)
       }
@@ -243,8 +243,8 @@ object CTranspiler {
         return InvalidPath
       } else {
         for (p <- Os.Path.walk(f, F, T, { path: Os.Path =>
-          var isSlang = path.ext === "slang"
-          if (path.ext === "scala" || isSlang) {
+          var isSlang = path.ext == "slang"
+          if (path.ext == "scala" || isSlang) {
             if (!isSlang) {
               val line = conversions.String.fromCis(path.readCStream.takeWhile((c : C) => c != '\n').
                 filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)
@@ -484,21 +484,21 @@ object CTranspiler {
               }
 
               t.name.ids.map((id: AST.Id) => id.value) match {
-                case ISZ("MS") if t.typeArgs.size === 2 =>
+                case ISZ("MS") if t.typeArgs.size == 2 =>
                   val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
                   val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
                   addS(AST.Typed.msName, AST.Typed.isName, it, et)
-                case ISZ("IS") if t.typeArgs.size === 2 =>
+                case ISZ("IS") if t.typeArgs.size == 2 =>
                   val it = toTyped(tsr.typeHierarchy, t.typeArgs(0))
                   val et = toTyped(tsr.typeHierarchy, t.typeArgs(1))
                   addS(AST.Typed.isName, AST.Typed.msName, it, et)
-                case ISZ("ISZ") if t.typeArgs.size === 1 =>
+                case ISZ("ISZ") if t.typeArgs.size == 1 =>
                   val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
                   addS(AST.Typed.isName, AST.Typed.msName, AST.Typed.z, et)
-                case ISZ("MSZ") if t.typeArgs.size === 1 =>
+                case ISZ("MSZ") if t.typeArgs.size == 1 =>
                   val et = toTyped(tsr.typeHierarchy, t.typeArgs(0))
                   addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, et)
-                case ISZ("ZS") if t.typeArgs.size === 0 =>
+                case ISZ("ZS") if t.typeArgs.size == 0 =>
                   addS(AST.Typed.msName, AST.Typed.isName, AST.Typed.z, AST.Typed.z)
                 case _ =>
                   eprintln(s"Could not recognize custom sequence size configuration: $p")
