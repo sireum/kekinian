@@ -52,6 +52,6 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
-          .ci/build.sh jar test
+          .ci/build.sh && .ci/build.sh test
           .ci/mac-native.sh
           rm bin/mac/sireum
