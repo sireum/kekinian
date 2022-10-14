@@ -99,7 +99,7 @@ import org.sireum.message.Reporter
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
                   reporter: message.Reporter,
-                  transpilerCallback: hamr.codegen.common.containers.TranspilerConfig => Z,
+                  transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $
 
   def run(args: ISZ[String]): Z = $
@@ -118,15 +118,7 @@ import org.sireum.message.Reporter
 
   @pure def parCoresOpt(percentageOpt: Option[Z]): Z = $
 
-  def checkImage(uri: String): B = $
-
-  def getSoundDuration(uri: String): Option[Z] = $
-
-  def getVideoDuration(uri: String): Option[Z] = $
-
   def parseGrammar(uriOpt: Option[String],
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] = $
-
-  def pcm2wav(path: Os.Path, srate: Z): Unit = $
 }

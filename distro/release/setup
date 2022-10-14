@@ -20,7 +20,6 @@ if [[ -d ${INSTALL_PATH}/Sireum ]]; then
     echo "Java Development Kit (JDK) is available at ${INSTALL_PATH}/Sireum/bin/linux/java"
   fi
   echo "Scala is available at ${INSTALL_PATH}/Sireum/bin/scala"
-  echo "Mill can be found at ${INSTALL_PATH}/Sireum/bin/mill"
 else
   echo "Installation failed"
 fi

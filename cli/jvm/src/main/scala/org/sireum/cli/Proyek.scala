@@ -385,7 +385,9 @@ object Proyek {
       isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
       isServer = o.edition == Cli.SireumProyekIveEdition.Server,
       isDev = SireumApi.isDev,
-      force = o.force
+      force = o.force,
+      javacOptions = o.javac,
+      scalacOptions = o.scalac
     )
 
     return r
@@ -509,7 +511,7 @@ object Proyek {
     val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
       o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-      branchParMode, branchParCores)
+      branchParMode, branchParCores, o.logPcLines)
 
     val lcode = Analysis.run(
       root = path,
@@ -567,7 +569,7 @@ object Proyek {
       case _ => ops.StringOps(proc"git log -1 --date=format:%Y%m%d.%H%M --pretty=format:%cd.%h".runCheck().out).trim
     }
 
-    val orgName = ops.StringOps(o.args(1)).split((c: C) => c === '.')
+    val orgName = ops.StringOps(o.args(1)).split((c: C) => c == '.')
 
     val publishModuleIds: ISZ[String] = for (m <- prj.modules.values if m.publishInfoOpt.nonEmpty) yield m.id
     for (m <- prj.modules.values) {
@@ -856,7 +858,7 @@ object Proyek {
     )
 
     val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
-      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0)
+      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",

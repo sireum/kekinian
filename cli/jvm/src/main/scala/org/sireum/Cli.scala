@@ -111,7 +111,8 @@ object Cli {
     val mode: SireumHamrPhantomPhantomMode.Type,
     val output: Option[String],
     val projects: ISZ[String],
-    val quiet: B,
+    val verbose: B,
+    val verbosePlus: B,
     val osate: Option[String],
     val update: B,
     val features: ISZ[String],
@@ -147,6 +148,7 @@ object Cli {
     val skipTypes: ISZ[String],
     val unroll: B,
     val logPc: B,
+    val logPcLines: B,
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
@@ -248,6 +250,8 @@ object Cli {
     val empty: B,
     val force: B,
     val edition: SireumProyekIveEdition.Type,
+    val javac: ISZ[String],
+    val scalac: ISZ[String],
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -304,6 +308,7 @@ object Cli {
     val skipTypes: ISZ[String],
     val unroll: B,
     val logPc: B,
+    val logPcLines: B,
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
@@ -1263,7 +1268,8 @@ import Cli._
           |-f, --output-file        AIR output file path (expects a path)
           |-p, --projects           OSATE project directories, each must contain an OSATE
           |                           '.project' file (expects path strings)
-          |-q, --quiet              Do not print informational messages
+          |-v, --verbose            Verbose output
+          |    --verbose+           Increased verbose output
           |-h, --help               Display this information
           |
           |OSATE Options:
@@ -1283,7 +1289,8 @@ import Cli._
     var mode: SireumHamrPhantomPhantomMode.Type = SireumHamrPhantomPhantomMode.Json
     var output: Option[String] = None[String]()
     var projects: ISZ[String] = ISZ[String]()
-    var quiet: B = false
+    var verbose: B = false
+    var verbosePlus: B = false
     var osate: Option[String] = None[String]()
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
@@ -1326,10 +1333,16 @@ import Cli._
              case Some(v) => projects = v
              case _ => return None()
            }
-         } else if (arg == "-q" || arg == "--quiet") {
-           val o: Option[B] = { j = j - 1; Some(!quiet) }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
            o match {
-             case Some(v) => quiet = v
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose+") {
+           val o: Option[B] = { j = j - 1; Some(!verbosePlus) }
+           o match {
+             case Some(v) => verbosePlus = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--osate") {
@@ -1365,7 +1378,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, quiet, osate, update, features, version))
+    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, verbose, verbosePlus, osate, update, features, version))
   }
 
   def parseSireumLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1468,6 +1481,8 @@ import Cli._
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
+          |    --log-pc-lines       Display At(...) path condition line numbers and unique
+          |                           symbolic value numbering
           |    --log-raw-pc         Display raw path conditions before each statement
           |    --log-vc             Display all verification conditions
           |    --log-vc-dir         Write all verification conditions in a directory
@@ -1517,6 +1532,7 @@ import Cli._
     var skipTypes: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var logPc: B = false
+    var logPcLines: B = false
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
@@ -1612,6 +1628,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!logPc) }
            o match {
              case Some(v) => logPc = v
+             case _ => return None()
+           }
+         } else if (arg == "--log-pc-lines") {
+           val o: Option[B] = { j = j - 1; Some(!logPcLines) }
+           o match {
+             case Some(v) => logPcLines = v
              case _ => return None()
            }
          } else if (arg == "--log-raw-pc") {
@@ -1731,7 +1753,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1951,9 +1973,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -1985,7 +2007,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -2171,9 +2193,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --js                 Compile using Scala.js
@@ -2217,7 +2239,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var js: B = false
     var ignoreRuntime: B = false
@@ -2402,6 +2424,14 @@ import Cli._
           |-e, --edition            IntelliJ edition (auto-detected if there is only one
           |                           installed) (expects one of { community, ultimate,
           |                           server }; default: community)
+          |    --javac              Javac options (expects a string separated by ",";
+          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation")
+          |    --scalac             Scalac options (expects a string separated by ",";
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |-h, --help               Display this information
           |
           |Project Options:
@@ -2441,6 +2471,8 @@ import Cli._
     var empty: B = false
     var force: B = false
     var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -2477,6 +2509,18 @@ import Cli._
            val o: Option[SireumProyekIveEdition.Type] = parseSireumProyekIveEdition(args, j + 1)
            o match {
              case Some(v) => edition = v
+             case _ => return None()
+           }
+         } else if (arg == "--javac") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => javac = v
+             case _ => return None()
+           }
+         } else if (arg == "--scalac") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => scalac = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -2560,7 +2604,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, force, edition, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, force, edition, javac, scalac, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {
@@ -2679,6 +2723,8 @@ import Cli._
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
+          |    --log-pc-lines       Display At(...) path condition line numbers and unique
+          |                           symbolic value numbering
           |    --log-raw-pc         Display raw path conditions before each statement
           |    --log-vc             Display all verification conditions
           |    --log-vc-dir         Write all verification conditions in a directory
@@ -2741,6 +2787,7 @@ import Cli._
     var skipTypes: ISZ[String] = ISZ[String]()
     var unroll: B = false
     var logPc: B = false
+    var logPcLines: B = false
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
@@ -2916,6 +2963,12 @@ import Cli._
              case Some(v) => logPc = v
              case _ => return None()
            }
+         } else if (arg == "--log-pc-lines") {
+           val o: Option[B] = { j = j - 1; Some(!logPcLines) }
+           o match {
+             case Some(v) => logPcLines = v
+             case _ => return None()
+           }
          } else if (arg == "--log-raw-pc") {
            val o: Option[B] = { j = j - 1; Some(!logRawPc) }
            o match {
@@ -3033,7 +3086,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -3122,9 +3175,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3155,7 +3208,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -3364,9 +3417,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3396,7 +3449,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -3750,9 +3803,9 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-target:jvm-1.8, -deprecation,
-          |                           -Yrangepos, -Ydelambdafy:method, -feature,
-          |                           -unchecked, -Xfatal-warnings, -language:postfixOps")
+          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3784,7 +3837,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-target:jvm-1.8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()

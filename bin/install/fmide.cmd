@@ -28,9 +28,13 @@ object Cli {
     val agree: Option[String],
     val briefcase: Option[String],
     val eclipse: Option[String],
+    val gumbo: Option[String],
     val hamr: Option[String],
     val osate: Option[String],
-    val resolute: Option[String]
+    val resolute: Option[String],
+    val existingInstall: Option[String],
+    val verbose: B,
+    val verbosePlus: B
   ) extends FmideTopOption
 }
 
@@ -42,32 +46,51 @@ import Cli._
     val help =
       st"""FMIDE Installer
           |
-          |Usage: <option>* [ fixed | latest ]
+          |Usage: ${st"""
+                  |<option>* [ release | latest ]
+                  |
+                  |'release' installs the versions of OSATE and FMIDE plugins specified
+                  |by their respective options.  'latest' installs the most recent
+                  |releases of the plugins into the OSATE version specified via
+                  |the 'osate' option or 'existing-install' option.""".render}
           |
           |Available Options:
           |    --awas               AWAS version (expects a string; default is
-          |                           "1.2022.01051723.29d9922")
+          |                           "1.2022.08221314.0e4052e")
           |    --agree              AGREE version (expects a string; default is
-          |                           "agree_2.8.0")
+          |                           "agree_2.9.1")
           |    --briefcase          BriefCASE version (expects a string; default is
-          |                           "briefcase_0.7.0")
+          |                           "briefcase_0.8.0")
           |    --eclipse            Eclipse release version (expects a string; default is
           |                           "2021-03")
+          |    --gumbo              Sireum GUMBO version (expects a string; default is
+          |                           "1.2022.10111602.ca0ff6f")
           |    --hamr               Sireum HAMR version (expects a string; default is
-          |                           "1.2022.01051723.29d9922")
+          |                           "1.2022.08221314.0e4052e")
           |    --osate              OSATE version (expects a string; default is
           |                           "2.10.2-vfinal")
           |    --resolute           Resolute version (expects a string; default is
           |                           "resolute_3.0.0")
-          |-h, --help               Display this information""".render
+          |-h, --help               Display this information
+          |
+          |Installation Options:
+          |    --existing-install   Path to an existing OSATE installation where the FMIDE
+          |                           plugins will be installed/updated. The '--osate'
+          |                           option will be ignored if provided (expects a path)
+          |-v, --verbose            Verbose output
+          |    --verbose+           Increased verbose output""".render
 
-    var awas: Option[String] = Some("1.2022.01051723.29d9922")
-    var agree: Option[String] = Some("agree_2.8.0")
-    var briefcase: Option[String] = Some("briefcase_0.7.0")
+    var awas: Option[String] = Some("1.2022.08221314.0e4052e")
+    var agree: Option[String] = Some("agree_2.9.1")
+    var briefcase: Option[String] = Some("briefcase_0.8.0")
     var eclipse: Option[String] = Some("2021-03")
-    var hamr: Option[String] = Some("1.2022.01051723.29d9922")
+    var gumbo: Option[String] = Some("1.2022.10111602.ca0ff6f")
+    var hamr: Option[String] = Some("1.2022.08221314.0e4052e")
     var osate: Option[String] = Some("2.10.2-vfinal")
     var resolute: Option[String] = Some("resolute_3.0.0")
+    var existingInstall: Option[String] = None[String]()
+    var verbose: B = false
+    var verbosePlus: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -100,6 +123,12 @@ import Cli._
              case Some(v) => eclipse = v
              case _ => return None()
            }
+         } else if (arg == "--gumbo") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => gumbo = v
+             case _ => return None()
+           }
          } else if (arg == "--hamr") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
@@ -118,6 +147,24 @@ import Cli._
              case Some(v) => resolute = v
              case _ => return None()
            }
+         } else if (arg == "--existing-install") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => existingInstall = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose+") {
+           val o: Option[B] = { j = j - 1; Some(!verbosePlus) }
+           o match {
+             case Some(v) => verbosePlus = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -127,7 +174,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(FmideOption(help, parseArguments(args, j), awas, agree, briefcase, eclipse, hamr, osate, resolute))
+    return Some(FmideOption(help, parseArguments(args, j), awas, agree, briefcase, eclipse, gumbo, hamr, osate, resolute, existingInstall, verbose, verbosePlus))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
@@ -309,22 +356,16 @@ import Cli._
 val homeBin = Os.slashDir.up.canon
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
 
-val fmideDir: Os.Path = Os.kind match {
-  case Os.Kind.Mac => homeBin / "mac" / "fmide.app"
-  case Os.Kind.Linux => homeBin / "linux" / "fmide"
-  case Os.Kind.Win => homeBin / "win" / "fmide"
-  case _ =>
-    eprintln("Unsupported operating system")
-    Os.exit(-1)
-    halt("Infeasible")
-}
-
 def parseCliArgs(): (B, Cli.FmideOption) = {
   Cli(Os.pathSepChar).parseFmide(Os.cliArgs, 0) match {
-    case Some(o: Cli.FmideOption) if o.args.size === 1 && (o.args(0) === "fixed" || o.args(0) == "latest") =>
-      return (o.args(0) === "fixed", o)
+    case Some(o: Cli.FmideOption) if o.args.size == 1 && (o.args(0) == "release" || o.args(0) == "latest" || o.args(0) == "fixed") =>
+      if (o.args(0) == "fixed") {
+        eprintln("The 'fixed' argument has been deprecated.  Please use 'release' instead")
+        Os.exit(1)
+      }
+      return (o.args(0) == "release", o)
     case Some(o: Cli.FmideOption) if o.args.isEmpty =>
-      return (F, o)
+      return (T, o)
     case Some(_: Cli.HelpOption) =>
       Os.exit(0)
     case _ =>
@@ -334,15 +375,15 @@ def parseCliArgs(): (B, Cli.FmideOption) = {
   halt("Infeasible")
 }
 
-val (isFixed, option) = parseCliArgs()
+val (isRelease, option) = parseCliArgs()
 
 def lookupVersion(name: String, url: String, default: String): String = {
   val compositeArtifacts = "compositeArtifacts.xml"
   def lookupVersionH(): String = {
-    if (isFixed) {
+    if (isRelease) {
       return default
     }
-    val urls = ops.StringOps(url).split((c: C) => c === ',')
+    val urls = ops.StringOps(url).split((c: C) => c == ',')
     val f = Os.temp()
     f.removeAll()
     val durl = urls(urls.size - 1)
@@ -404,45 +445,110 @@ val briefCaseVersion = lookupVersion("BriefCASE", briefCaseUrl, option.briefcase
 val awasId = "org.sireum.aadl.osate.awas.feature.feature.group"
 val hamrCliId = "org.sireum.aadl.osate.cli.feature.feature.group"
 val hamrId = "org.sireum.aadl.osate.hamr.feature.feature.group"
-val hamrUrl = "https://raw.githubusercontent.com/sireum/osate-update-site/master"
-val hamrVersion: String = lookupVersion("HAMR", hamrUrl, option.hamr.get)
-val awasVersion: String = lookupVersion("AWAS", hamrUrl, option.awas.get)
+val sireumId = "org.sireum.aadl.osate.feature.feature.group"
+val sireumUrl = "https://raw.githubusercontent.com/sireum/osate-update-site/master"
+val hamrVersion: String = lookupVersion("HAMR", sireumUrl, option.hamr.get)
+val awasVersion: String = lookupVersion("AWAS", sireumUrl, option.awas.get)
 
-val features = s"$hamrCliId=$hamrUrl/$hamrVersion;$hamrId=$hamrUrl/$hamrVersion;$awasId=$hamrUrl/$awasVersion;$briefCaseId=$briefCaseUrl/$briefCaseVersion;$resoluteId=$resoluteUrl/$resoluteVersion;$agreeId=$agreeUrl/$agreeVersion"
-val verContent = s"eclipse=$eclipseVersion;osate=$osateVersion;$features"
-val ver: Os.Path = if (Os.isMac) fmideDir / "Contents" / "Eclipse" / "VER"  else fmideDir / "VER"
+val gumboId = "org.sireum.aadl.gumbo.feature.feature.group"
+val gumbo2AirId = "org.sireum.aadl.osate.gumbo2air.feature.feature.group"
+val gumboUrl = "https://raw.githubusercontent.com/sireum/aadl-gumbo-update-site/master"
+val gumboVersion: String = lookupVersion("GUMBO", gumboUrl, option.gumbo.get)
 
-if (ver.exists && ver.read == verContent) {
-  Os.exit(0)
+val featuresT: ISZ[String] = ISZ[(String,String,String)](
+  (gumbo2AirId, gumboVersion, gumboUrl),
+  (hamrCliId, hamrVersion, sireumUrl),
+  (hamrId, hamrVersion, sireumUrl),
+  (awasId, awasVersion, sireumUrl),
+  (gumboId, gumboVersion, gumboUrl),
+  (sireumId, hamrVersion, sireumUrl),
+  (briefCaseId, briefCaseVersion, briefCaseUrl),
+  (resoluteId, resoluteVersion, resoluteUrl),
+  (agreeId, agreeVersion, agreeUrl)).map((m: (String, String, String)) => {
+  val xops = ops.StringOps(m._2)
+  val version: String = if(xops.contains("_")) xops.substring(xops.indexOf('_') + 1, xops.size) else xops.s
+  s"${m._1}/${version}=${m._3}"
+})
+
+val features = st"${(featuresT, ";")}".render
+
+
+val fmideDir: Os.Path =
+  if(option.existingInstall.nonEmpty) {
+    val path = Os.path(option.existingInstall.get)
+    val osateIni: Os.Path = if(Os.isMac) path / "Contents"/ "Eclipse" / "osate.ini" else path / "osate.ini"
+    if(!path.exists || !path.isDir || !osateIni.exists) {
+      eprintln("The provided existing installation directory does not appear to be an valid OSATE installation")
+      eprintln(s"  ${osateIni.value} not found")
+      Os.exit(-1)
+      halt("Infeasible")
+    }
+    path
+  } else {
+    Os.kind match {
+      case Os.Kind.Mac => homeBin / "mac" / "fmide.app"
+      case Os.Kind.Linux => homeBin / "linux" / "fmide"
+      case Os.Kind.Win => homeBin / "win" / "fmide"
+      case _ =>
+        eprintln("Unsupported operating system")
+        Os.exit(-1)
+        halt("Infeasible")
+    }
+  }
+
+var verContent = s"eclipse=$eclipseVersion;$features"
+if(option.existingInstall.isEmpty) {
+  verContent = s"osate = $osateVersion;$verContent"
 }
 
-ver.removeAll()
+val ver: Os.Path = if (Os.isMac) fmideDir / "Contents" / "Eclipse" / "VER"  else fmideDir / "VER"
 
-fmideDir.removeAll()
-val temp = fmideDir.up.canon / s".${fmideDir.name}"
-temp.removeAll()
+val installKind: String = if(option.existingInstall.nonEmpty) "FMIDE plugins" else "FMIDE"
+if (ver.exists) {
+  if (ver.read == verContent) {
+    println(s"${installKind} up to date")
+    Os.exit(0)
+  } else {
+    println(s"Version differences detected, updating ${installKind} (this will take a while) ...")
+  }
+} else {
+  println(s"Installing ${installKind} (this will take a while) ...")
+}
+
 var env = ISZ[(String, String)]()
 Os.env("JAVA_HOME") match {
   case Some(v) => env = env :+ (("PATH", s"${Os.path(v) / "bin"}${Os.pathSep}${Os.env("PATH").get}"))
   case _ =>
 }
-println("Installing FMIDE ...")
-proc"$sireum hamr phantom --quiet --update --osate $temp --version $osateVersion --features $features".env(env).console.runCheck()
-temp.moveTo(fmideDir)
 
-Os.kind match {
-  case Os.Kind.Linux =>
-    (fmideDir / "osate").moveTo(fmideDir / "fmide")
-    (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
-  case Os.Kind.Win =>
-    (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
-    (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
-  case Os.Kind.Mac =>
-    proc"xattr -rd com.apple.quarantine $fmideDir".runCheck()
-    // don't need to move osate.ini to fmide.ini for Mac
-  case _ =>
+val verbosity: String = if(option.verbosePlus) "--verbose+" else if (option.verbose) "--verbose" else ""
+var p = proc"$sireum hamr phantom ${verbosity} --update --osate $fmideDir --version $osateVersion --features $features".env(env).console
+if(option.verbosePlus) {
+  p = p.echo
+}
+p.runCheck()
+
+if(option.existingInstall.isEmpty) {
+  Os.kind match {
+    case Os.Kind.Linux if (fmideDir / "osate").exists =>
+      // brand as fmide, only needs to be done for fresh installs
+      (fmideDir / "osate").moveTo(fmideDir / "fmide")
+      (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
+    case Os.Kind.Win if (fmideDir / "osate.exe").exists =>
+      // brand as fmide, only needs to be done for fresh installs
+      (fmideDir / "osate.exe").moveTo(fmideDir / "fmide.exe")
+      (fmideDir / "osate.ini").moveTo(fmideDir / "fmide.ini")
+    case Os.Kind.Mac =>
+    // the directory is already called fmide.app, and eclipse/mac doesn't
+    // allow osate.ini to be moved to fmide.ini
+    case _ =>
+  }
 }
 
 ver.writeOver(verContent)
-println(s"FMIDE is installed at $fmideDir")
+if(option.verbose || option.verbosePlus) {
+  println(s"Wrote versions file: ${ver.value}")
+}
+
+println(s"${installKind} installed at $fmideDir")
 // END USER CODE

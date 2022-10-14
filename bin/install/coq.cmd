@@ -63,11 +63,11 @@ def install(platformDir: Os.Path): Unit = {
 
   (Os.slashDir / "opam.cmd").slash(ISZ())
 
-  if (isIde && ideVer.exists && ideVer.read === coqVersion) {
+  if (isIde && ideVer.exists && ideVer.read == coqVersion) {
     return
   }
 
-  val coqExists = ver.exists && ver.read === coqVersion
+  val coqExists = ver.exists && ver.read == coqVersion
   if (!isIde && coqExists) {
     return
   }

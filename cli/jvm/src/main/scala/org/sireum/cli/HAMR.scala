@@ -28,7 +28,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Os.Path
-import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, TranspilerConfig}
+import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, ProyekIveEdition, TranspilerConfig}
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.message._
@@ -149,8 +149,10 @@ object HAMR {
 
   def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
 
-    // call back function
-    def transpile(ao: TranspilerConfig): Z = {
+    // call back function. CTranspiler prints all the messages in the
+    // passed in reporter so don't use codegen's primary reporter as
+    // that leads to codegen's messages being emitted multiple times
+    def transpile(ao: TranspilerConfig, transpileReporter: Reporter): Z = {
       val sstco = Cli.SireumSlangTranspilersCOption(
         help = "",
         args = ISZ(),
@@ -181,16 +183,24 @@ object HAMR {
         anvilTranspilerContext = ISZ()
       )
 
-      return CTranspiler.run(sstco, reporter)
+      return CTranspiler.run(sstco, transpileReporter)
     }
 
     // call back function
     def proyekIve(po: ProyekIveConfig): Z = {
+      val edition: Cli.SireumProyekIveEdition.Type = po.edition match {
+        case ProyekIveEdition.Community => Cli.SireumProyekIveEdition.Community
+        case ProyekIveEdition.Ultimate => Cli.SireumProyekIveEdition.Ultimate
+        case ProyekIveEdition.Server => Cli.SireumProyekIveEdition.Server
+      }
+
       val spivo = Cli.SireumProyekIveOption(
         help = po.help,
         args = po.args,
         force = po.force,
-        edition = if (po.ultimate) Cli.SireumProyekIveEdition.Ultimate else Cli.SireumProyekIveEdition.Community,
+        edition = edition,
+        javac = po.javac,
+        scalac = po.scalac,
         ignoreRuntime = po.ignoreRuntime,
         json = po.json,
         name = po.name,

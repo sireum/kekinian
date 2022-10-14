@@ -131,8 +131,8 @@ object SlangTipe {
       } else if (!f.isFile) {
         eprintln(s"Path $arg is not a file.")
         return Either.right(InvalidFile)
-      } else if (f.ext =!= "sc" && f.ext =!= "cmd" &&
-        f.ext =!= "slang" && f.ext =!= "logika") {
+      } else if (f.ext != "sc" && f.ext != "cmd" &&
+        f.ext != "slang" && f.ext != "logika") {
         eprintln(s"Can only accept .sc, .cmd, .slang, or .logika files as arguments")
         return Either.right(InvalidFile)
       }
@@ -158,8 +158,8 @@ object SlangTipe {
         for (p <- Os.Path.walk(f, F, T, { path: Os.Path =>
           val excluded = ops.ISZOps(o.exclude).
             exists((segment: String) => ops.StringOps(path.toUri).contains(segment))
-          var isSlang = !excluded && path.ext === "slang"
-          if (!excluded && (path.ext === "scala" || isSlang)) {
+          var isSlang = !excluded && path.ext == "slang"
+          if (!excluded && (path.ext == "scala" || isSlang)) {
             if (!isSlang) {
               val line = conversions.String.fromCis(path.readCStream.takeWhile((c: C) => c != '\n').
                 filter((c: C) => c != ' ' && c != '\t' && c != '\r').toISZ)

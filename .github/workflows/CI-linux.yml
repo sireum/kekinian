@@ -46,7 +46,7 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
-          .ci/build.sh jar test
+          .ci/build.sh && .ci/build.sh test
           bin/install/ffmpeg-libs.cmd
       - name: Cache Graal
         id: cache-graal
@@ -54,8 +54,9 @@ jobs:
         with:
           path: bin/linux/graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
-      - name: Test
+      - name: Test Native
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           .ci/linux-native.sh
+          rm bin/linux/sireum

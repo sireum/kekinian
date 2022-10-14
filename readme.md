@@ -31,7 +31,7 @@ parser that uses [scalameta](http://scalameta.org),
 the runtime library and the Slang [codebase](https://github.com/sireum/slang) 
 itself (and analyses on top of it) are written using Slang.
 
-Slang programs run on the JVM (Java 11+), in the browser or Node.js 
+Slang programs run on the JVM (Java 8+), in the browser or Node.js 
 (via [Scala.js](http://scala-js.org) Javascript translation), and natively
 via [Graal](http://graalvm.org) targeting macOS, Linux, and Windows on amd64, and
 macOS and Linux on aarch64.
@@ -134,6 +134,12 @@ Sireum binary distribution files are [7z](https://www.7-zip.org/7z.html)
 with command-line installers to (optionally) configure where Sireum should be 
 installed (the files can also be extracted using a program capable of uncompressing `7z` archive).
 
+On macOS, you might need to "un-quarantine" the self-extracting executable:
+
+```bash
+xattr -rd com.apple.quarantine <PATH-TO>/sireum-dev-mac.sfx
+```
+
 If you want to ensure that the downloaded files are genuine, download 
 the appropriate [Minisign](https://jedisct1.github.io/minisign/) signature file 
 for the specific platform, then run:
@@ -155,7 +161,10 @@ Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [
 
 * **Windows**, either: 
   
-  * Using a NTFS partition with [developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com)); or
+  * Using a NTFS partition with [Developer Mode enabled](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development),
+    [long-path enabled](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry#enable-long-paths-in-windows-10-version-1607-and-later),
+    and `git` ([Git For Windows](https://git-scm.com/download/win), [MSYS2](https://www.msys2.org/), or [Cygwin](https://www.cygwin.com))
+    with its `core.longpaths` config set to `true`; or
   
   * [WSL2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) (Linux requirements apply)
 
@@ -194,33 +203,38 @@ Note that after a `setup` update, it is best to invalidate IntelliJ's cache file
 and restart by using IntelliJ's `File -> Invalidate Caches...` 
 menu item and select `Clear all file system cache and Local History`.
 
-Occasionally, there might be new API used in `build.cmd` that is available 
-in the pre-built binary online but not in your local copy.
-This issue happens because `build.cmd` uses Sireum itself, hence it is a
-bootstraping issue.
-This issue typically manifests by `build.cmd` failing to compile/execute 
-due to missing methods/classes.
-In that case, first delete your local `sireum.jar` in the `bin` directory and 
-then re-run `build.cmd setup`.
+##### Notes
 
-If rebuilding Sireum somehow failed still, try cleaning the repo:
+* Occasionally, there might be new API used in `build.cmd` that is available 
+  in the pre-built binary online but not in your local copy.
+  This issue happens because `build.cmd` uses Sireum itself, hence it is a
+  bootstrapping issue.
+  This issue typically manifests by `build.cmd` failing to compile/execute 
+  due to missing methods/classes.
+  In that case, first delete your local `sireum.jar` (and `build.cmd.com`, if any) 
+  in the `bin` directory and then re-run `build.cmd setup`.
 
-* **macOS/Linux**:
+* If building Sireum somehow failed still, try cleaning the repo:
 
-  ```bash
-  ${SIREUM_HOME}/bin/clean.sh
-  ```
+  * **macOS/Linux**:
 
-* **Windows**:
+    ```bash
+    ${SIREUM_HOME}/bin/clean.sh
+    ```
 
-  ```cmd
-  %SIREUM_HOME%\bin\clean.bat
-  ```
+  * **Windows**:
+
+    ```cmd
+    %SIREUM_HOME%\bin\clean.bat
+    ```
   
-The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
-the local git repository.
+  The clean scripts remove all Sireum-related cache directories and revert any changes and delete new files in 
+  the local git repository.
 
-After cleaning, re-run `git pull --recurse-submodules` (until it reaches a good fix-point) and `build.cmd setup`.
+  After cleaning, re-run `git pull --recurse-submodules` (possibly multiple times until it reaches a good fix-point 
+  where `git status` indicates that its working tree is clean) and `build.cmd setup`.
+
+  If all else fails, try recursively re-clone Sireum. 
 
 #### Remote Development Setup (Experimental)
 
@@ -262,12 +276,12 @@ Sireum IVE can be set up on top of it:
    
 3. Open the `kekinian` path above with JetBrains Gateway/Client.
 
-#### Using Vagrant and VirtualBox
+#### Using VirtualBox or VMWare
 
-By using [Vagrant](https://www.vagrantup.com/), you can automatically provision a 
-[VirtualBox](https://www.virtualbox.org) Linux virtual machine (VM) with Sireum set up.
+We provide a release build Linux VM `.ova` image with Sireum already set up, 
+including OSATE, seL4, etc.:
 
-Please see the instructions at: https://github.com/sireum/case-env
+https://bit.ly/case-env
 
 ## Using Sireum 
 
@@ -352,7 +366,7 @@ To build Sireum assembly/CLI tool:
 It is recommended to compile Sireum (and Slash build scripts) to native as it removes JVM boot up time.
 
 First, install [GraalVM](http://graalvm.org) [`native-image`'s prerequisites](https://www.graalvm.org/reference-manual/native-image/#prerequisites)
-(note: `native-image` for Windows requires Visual Studio Community 2017 or 2019); 
+(note: `native-image` for Windows requires Visual Studio Community/Enterprise); 
 then, to build Sireum native executable:
 
 * **macOS/Linux**:
@@ -424,7 +438,9 @@ Sireum depends on open source software libraries and applications
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
+| [JavaFX for Presentasi](https://github.com/sireum/presentasi-jfx) | [(link)](https://jitpack.io/#org.sireum/presentasi-jfx) | [BSD2](https://github.com/sireum/presentasi-jfx/blob/master/license.md) |
 | [Scala](https://github.com/scala/scala) | [(link)](https://search.maven.org/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
+| [Scalafmt](https://github.com/scalameta/scalafmt) | [(link)](https://search.maven.org/artifact/org.scalameta/scalafmt-cli_2.13) | [Apache 2.0](https://github.com/scalameta/scalafmt/blob/master/LICENCE.md) |
 | [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://search.maven.org/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
 | [ScalaTest](https://github.com/scalatest/scalatest) | [(link)](https://search.maven.org/artifact/org.scalatest/scalatest_2.13) | [Apache 2.0](https://github.com/scalatest/scalatest/blob/3.2.x-new/LICENSE) |
 | [Scala Java 8 Compatibility Kit](https://github.com/scala/scala-java8-compat) | [(link)](https://search.maven.org/artifact/org.scala-lang.modules/scala-java8-compat_2.13) | [Apache 2.0](https://github.com/scala/scala-java8-compat/blob/main/LICENSE) |

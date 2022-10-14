@@ -29,8 +29,18 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Cli.SireumHamrPhantomOption
 import org.sireum.hamr.phantom.Phantom.{Feature => PFeature}
+import org.sireum.hamr.phantom.Verbosity
 
 object Phantom {
+
+  val baseFeatures: ISZ[PFeature] = ISZ(
+    PFeature("Sireum", "org.sireum.aadl.osate.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("AWAS", "org.sireum.aadl.osate.awas.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master"),
+    PFeature("GUMBO", "org.sireum.aadl.gumbo.feature.feature.group", "https://raw.githubusercontent.com/sireum/aadl-gumbo-update-site/master"),
+    PFeature("GUMBO to AIR", "org.sireum.aadl.osate.gumbo2air.feature.feature.group", "https://raw.githubusercontent.com/sireum/aadl-gumbo-update-site/master"),
+  )
 
   def run(o: SireumHamrPhantomOption): Z = {
 
@@ -109,14 +119,15 @@ object Phantom {
       return -1
     }
 
-    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, o.quiet, SireumApi.homeOpt.get)
+    val verbosity: Verbosity.Type = if(o.verbosePlus) Verbosity.High else if (o.verbose) Verbosity.Low else Verbosity.Off
+    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, verbosity, SireumApi.homeOpt.get)
 
     val ret: Z = phantom.getOsateExe() match {
       case Some(osateExe) =>
         var ret: Z = 0
         var features = ISZ[PFeature]()
         for (feature <- o.features) {
-          ops.StringOps(feature).split((c: C) => c === '=') match {
+          ops.StringOps(feature).split((c: C) => c == '=') match {
             case ISZ(featureId, url) =>
               features = features :+ org.sireum.hamr.phantom.Phantom.Feature(featureId, featureId, url)
             case _ =>
@@ -125,17 +136,18 @@ object Phantom {
           }
         }
 
-        val baseFeature: PFeature = PFeature("Sireum", "org.sireum.aadl.osate.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-        val cliFeature: PFeature = PFeature("Phantom CLI", "org.sireum.aadl.osate.cli.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-        val hamrFeature: PFeature = PFeature("HAMR", "org.sireum.aadl.osate.hamr.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-        val awasFeature: PFeature = PFeature("AWAS", "org.sireum.aadl.osate.awas.feature.feature.group", "https://raw.githubusercontent.com/sireum/osate-update-site/master")
-
         def add(f: PFeature, _features: ISZ[PFeature]): ISZ[PFeature] = {
-          if(!ops.ISZOps(_features).exists(p => p.id == f.id)) { return _features :+ f }
+          if(!ops.ISZOps(_features).exists(featureOption => {
+            val ops = org.sireum.ops.StringOps(featureOption.id)
+            val featureId: String = if(ops.contains("/")) ops.substring(0, ops.indexOf('/')) else ops.s
+            featureId == f.id
+          })) { return _features :+ f }
           else { return _features }
         }
 
-        features = add(baseFeature, add(awasFeature, add(hamrFeature, add(cliFeature, features))))
+        for(f <- ops.ISZOps(baseFeatures).reverse) {
+          features = add(f, features)
+        }
 
         if (ret == 0 && (o.update || !phantom.featuresInstalled(features, osateExe))) {
           ret = phantom.update(osateExe, features)

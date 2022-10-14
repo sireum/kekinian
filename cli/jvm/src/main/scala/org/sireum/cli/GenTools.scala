@@ -150,7 +150,7 @@ object GenTools {
       case Either.Left(config) =>
         val out = CliGenJvm.run(lOpt, config, src, dest, o.packageName, o.name, first, second)
         dest.writeOver(out)
-        if (dest.ext === "cmd") {
+        if (dest.ext == "cmd") {
           dest.chmod("+x")
         }
         println(s"Wrote $dest")
@@ -460,7 +460,7 @@ object GenTools {
 
       val files: Map[ISZ[String], ST] =
         if (o.mode == Cli.SireumToolsIvegenIveMode.Idea) {
-          for (p <- project.list if p.ext === ".iml") {
+          for (p <- project.list if p.ext == ".iml") {
             p.removeAll()
           }
           IveGen.idea(projectExists, isWin, uriPathSep(home.string), projectName,
@@ -536,11 +536,11 @@ object GenTools {
   }
 
   def opGen(o: Cli.SireumToolsOpgenOption, reporter: Reporter): Z = {
-    if (o.args.size === 0) {
+    if (o.args.size == 0) {
       println(o.help)
       return 0
     }
-    if (o.args.size =!= 1) {
+    if (o.args.size != 1) {
       eprintln("Expecting a single fully-qualified type name argument")
       return -1
     }
@@ -586,7 +586,7 @@ object GenTools {
       case _ => None()
     }
     val pOpt: Option[ISZ[String]] = if (o.packageName.nonEmpty) Some(o.packageName) else None()
-    val topClassName: ISZ[String] = for (e <- ops.StringOps(o.args(0)).split((c: C) => c === '.')) yield ops.StringOps(e).trim
+    val topClassName: ISZ[String] = for (e <- ops.StringOps(o.args(0)).split((c: C) => c == '.')) yield ops.StringOps(e).trim
     val ocgen = ObjectPrinterGen(lOpt, pOpt, o.name.get, topClassName, th)
     val r = ocgen.gen(reporter)
     if (reporter.hasIssue) {
