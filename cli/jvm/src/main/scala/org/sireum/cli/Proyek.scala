@@ -885,15 +885,16 @@ object Proyek {
       skipTypes = ISZ(),
       reporter = reporter
     )
-    if (lcode == 0) {
-      println()
-      println("Programs are well-typed!")
-      return 0
-    } else {
+
+    if (reporter.hasIssue) {
       println()
       reporter.printMessages()
-      return ILL_FORMED_PROGRAMS
+    } else if (lcode == 0) {
+      println()
+      println("Programs are well-typed!")
     }
+
+    return if (lcode === 0) 0 else ILL_FORMED_PROGRAMS
   }
 
   def getPath(args: ISZ[String]): Option[Os.Path] = {

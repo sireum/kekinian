@@ -61,9 +61,9 @@ object GenTools {
     }
     val text = src.read
     Parser.parseTopUnit[ast.TopUnit.Program](text, T, F, Some(src.string), reporter) match {
-      case Some(p) if !reporter.hasIssue =>
+      case Some(p) if !reporter.hasError =>
         val (_, program) = FrontEnd.checkWorksheet(0, None(), p, reporter)
-        if (reporter.hasIssue) {
+        if (reporter.hasError) {
           reporter.printMessages()
           return -1
         }
@@ -88,12 +88,16 @@ object GenTools {
               }
               val out = BitCodecGen.gen(output, !o.isLittleEndian, o.isMutable, lOpt.map((l: Os.Path) => l.read), src.name,
                 o.packageName, o.name.get, text, o.traits, spec, bitcodecPrint(spec), program, prev, reporter)
-              if (reporter.hasIssue) {
+              if (reporter.hasError) {
                 reporter.printMessages()
                 return -1
               }
               dest.writeOver(out.render)
               println(s"Wrote $dest")
+            }
+            if (reporter.hasIssue) {
+              println()
+              reporter.printMessages()
             }
             return 0
           case _ =>
@@ -102,9 +106,7 @@ object GenTools {
             return -1
         }
       case _ =>
-        if (reporter.hasIssue) {
-          reporter.printMessages()
-        }
+        reporter.printMessages()
         return -1
     }
   }
@@ -589,7 +591,7 @@ object GenTools {
     val topClassName: ISZ[String] = for (e <- ops.StringOps(o.args(0)).split((c: C) => c == '.')) yield ops.StringOps(e).trim
     val ocgen = ObjectPrinterGen(lOpt, pOpt, o.name.get, topClassName, th)
     val r = ocgen.gen(reporter)
-    if (reporter.hasIssue) {
+    if (reporter.hasError) {
       reporter.printMessages()
       return -1
     }
@@ -597,6 +599,12 @@ object GenTools {
     val f = dir / s"${ocgen.name}.scala"
     f.writeOver(r.render)
     println(s"Wrote $f")
+
+    if (reporter.hasIssue) {
+      println()
+      reporter.printMessages()
+    }
+
     return 0
   }
 

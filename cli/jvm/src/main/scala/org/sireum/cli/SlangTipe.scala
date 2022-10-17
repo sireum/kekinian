@@ -224,7 +224,7 @@ object SlangTipe {
             val p = FrontEnd.checkedLibraryReporter
             (p._1.typeHierarchy, p._2)
           }
-          if (rep.hasIssue) {
+          if (rep.hasError) {
             rep.printMessages()
             return Either.right(InvalidLibrary)
           }
@@ -241,7 +241,7 @@ object SlangTipe {
 
     val t = FrontEnd.parseProgramAndGloballyResolve(0, for (p <- sources) yield FrontEnd.Input(p._2, p._1),
       th.nameMap, th.typeMap)
-    if (t._1.hasIssue) {
+    if (t._1.hasError) {
       t._1.printMessages()
       return Either.right(InvalidSources)
     }
@@ -254,7 +254,7 @@ object SlangTipe {
     }
 
     th = TypeHierarchy.build(F, th(nameMap = t._3, typeMap = t._4), reporter)
-    if (reporter.hasIssue) {
+    if (reporter.hasError) {
       reporter.printMessages()
       return Either.right(InvalidSources)
     }
@@ -267,7 +267,7 @@ object SlangTipe {
     }
 
     th = TypeOutliner.checkOutline(0, o.strictAliasing, th, reporter)
-    if (reporter.hasIssue) {
+    if (reporter.hasError) {
       reporter.printMessages()
       return Either.right(InvalidSources)
     }
@@ -316,7 +316,7 @@ object SlangTipe {
 
       th = TypeChecker.checkComponents(0, o.strictAliasing, th, nameMap, typeMap, reporter)
 
-      if (reporter.hasIssue) {
+      if (reporter.hasError) {
         reporter.printMessages()
         return Either.right(InvalidSources)
       }
@@ -334,7 +334,7 @@ object SlangTipe {
 
       th = TypeChecker.checkComponents(0, o.strictAliasing, th, th.nameMap, th.typeMap, reporter)
 
-      if (reporter.hasIssue) {
+      if (reporter.hasError) {
         reporter.printMessages()
         return Either.right(InvalidSources)
       }
@@ -350,7 +350,7 @@ object SlangTipe {
 
       PostTipeAttrChecker.checkNameTypeMaps(th.nameMap, th.typeMap, reporter)
 
-      if (reporter.hasIssue) {
+      if (reporter.hasError) {
         reporter.printMessages()
         return Either.right(InternalError)
       }
@@ -389,7 +389,7 @@ object SlangTipe {
       Parser.parseTopUnit[TopUnit](slangFile._2._2, T, F, slangFile._2._1, reporter) match {
         case Some(p: TopUnit.Program) =>
           val p2 = FrontEnd.checkWorksheet(0, thOpt, p, reporter)
-          if (reporter.hasIssue) {
+          if (reporter.hasError) {
             reporter.printMessages()
             return Either.right(InvalidSlangFiles)
           }
@@ -403,7 +403,7 @@ object SlangTipe {
 
           PostTipeAttrChecker.checkProgram(p2._2, reporter)
 
-          if (reporter.hasIssue) {
+          if (reporter.hasError) {
             reporter.printMessages()
             return Either.right(InternalError)
           }
@@ -412,6 +412,11 @@ object SlangTipe {
         case Some(_) => eprintln(s"File '${slangFile._1}' does not contain a Slang program")
         case _ =>
       }
+    }
+
+    if (reporter.hasIssue) {
+      println()
+      reporter.printMessages()
     }
 
     if (o.verbose) {
