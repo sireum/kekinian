@@ -209,7 +209,7 @@ object SlangTipe {
         }
       case _ =>
         if (o.noRuntime) {
-          TypeHierarchy(HashMap.empty, HashMap.empty, Poset.empty, HashMap.empty)
+          TypeHierarchy.empty
         } else {
           if (o.verbose) {
             println()
@@ -277,8 +277,8 @@ object SlangTipe {
       for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
 
     if (o.outline) {
-      var nameMap: Resolver.NameMap = HashMap.empty
-      var typeMap: Resolver.TypeMap = HashMap.empty
+      var nameMap: Resolver.NameMap = HashSMap.empty
+      var typeMap: Resolver.TypeMap = HashSMap.empty
 
       if (o.verbose && o.force.nonEmpty) {
         println()
