@@ -30,7 +30,7 @@ def usage(): Unit = {
 
 
 val homeBin: Os.Path = Os.slashDir.up.canon
-val graalVersion: String = if (Os.isWin) "22.1.0" else "22.2.0"
+val graalVersion: String = if (Os.isWin) "22.1.0" else "22.3.0"
 val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
@@ -48,7 +48,7 @@ def mac(): Unit = {
   }
 
   val arch: String = if (ops.StringOps(proc"uname -m".runCheck().out).trim == "arm64") "aarch64" else "amd64"
-  val bundle = s"graalvm-ce-java17-darwin-$arch-$graalVersion.tar.gz"
+  val bundle = s"graalvm-ce-java19-darwin-$arch-$graalVersion.tar.gz"
   val cache = cacheDir / bundle
 
   if (!cache.exists) {
@@ -101,7 +101,7 @@ def linux(isArm: B): Unit = {
   }
   println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
-  (platformDir / s"graalvm-ce-java17-$graalVersion").moveTo(graalDir)
+  (platformDir / s"graalvm-ce-java19-$graalVersion").moveTo(graalDir)
 
   val nativeBundle = s"native-image-installable-svm-java17-linux-$arch-$graalVersion.jar"
   val nativeCache = cacheDir / nativeBundle
