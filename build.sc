@@ -30,6 +30,7 @@ import $file.tools.Tools
 import $file.alir.Alir
 import $file.transpilers.Transpilers
 import $file.logika.Logika
+import $file.infoflow.InfoFlow
 import $file.parser.Parser
 import $file.hamr.air.Air
 import $file.hamr.codegen.art.Art
@@ -104,6 +105,10 @@ object logika extends Logika.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
 }
 
+object infoflow extends InfoFlow.Module with runtime.testProvider {
+  final override def logikaObject = logika
+}
+
 object tools extends Tools.Module with runtime.testProvider {
   final override def frontEndObject = slang.frontend
 }
@@ -156,7 +161,7 @@ object hamr extends mill.Module {
 }
 
 object proyek extends Proyek.Module {
-  final override def logikaObject = logika
+  final override def infoflowObject = infoflow
 }
 
 object anvil extends Anvil.Module {
@@ -168,7 +173,7 @@ object server extends Server.Module {
   final override def alirObject = alir
   final override def anvilObject = anvil
   final override def toolsObject = tools
-  final override def logikaObject = logika
+  final override def infoflowObject = infoflow
   final override def phantomObject = hamr.phantom
   final override def hamrCodegenObject = hamr.codegen
   final override def proyekObject = proyek

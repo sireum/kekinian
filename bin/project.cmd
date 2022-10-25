@@ -46,6 +46,7 @@ val projects = ISZ(
   homeDir / "alir",
   homeDir / "transpilers",
   homeDir / "logika",
+  homeDir / "infoflow",
   homeDir / "parser",
   homeDir / "proyek",
   homeDir / "hamr" / "air",
