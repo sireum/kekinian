@@ -98,6 +98,7 @@ import org.sireum.message.Reporter
 
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
+                  plugins: ISZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
                   transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $

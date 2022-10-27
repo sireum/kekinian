@@ -291,10 +291,11 @@ object Sireum {
 
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
+                  plugins: ISZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
                   transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults =
-    hamr.codegen.CodeGen.codeGen(model, options, reporter, transpilerCallback, proyekIveCallback)
+    hamr.codegen.CodeGen.codeGen(model, options, plugins, reporter, transpilerCallback, proyekIveCallback)
 
   implicit class GZIS(val gzis: _root_.java.util.zip.GZIPInputStream) extends AnyVal {
 

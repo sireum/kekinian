@@ -28,7 +28,9 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.Os.Path
+import org.sireum.hamr.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, ProyekIveEdition, TranspilerConfig}
+import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.message._
@@ -77,7 +79,7 @@ object HAMR {
       }
     }
 
-    codeGenReporter(model, o, reporter)
+    codeGenReporter(model, o, ISZ(), reporter)
 
     return if (reporter.hasError) 1 else 0
   }
@@ -108,7 +110,63 @@ object HAMR {
                aadlRootDir: Option[String],
                //
                experimentalOptions: ISZ[String],
+               //
+               reporter: Reporter
+              ): Z = {
 
+    return codeGenP(
+      model = model,
+      verbose = verbose,
+      platform = platform,
+      slangOutputDir = slangOutputDir,
+      slangPackageName = slangPackageName,
+      noProyekIve = noProyekIve,
+      noEmbedArt = noEmbedArt,
+      devicesAsThreads = devicesAsThreads,
+      genSbtMill = genSbtMill,
+      slangAuxCodeDir = slangAuxCodeDir,
+      slangOutputCDirectory = slangOutputCDirectory,
+      excludeComponentImpl = excludeComponentImpl,
+      bitWidth = bitWidth,
+      maxStringSize = maxStringSize,
+      maxArraySize = maxArraySize,
+      runTranspiler = runTranspiler,
+      camkesOutputDirectory = camkesOutputDirectory,
+      camkesAuxCodeDirs = camkesAuxCodeDirs,
+      aadlRootDir = aadlRootDir,
+      experimentalOptions = experimentalOptions,
+      plugins = ISZ(),
+      reporter = reporter)
+  }
+
+  def codeGenP(model: Aadl,
+               //
+               verbose: B,
+               platform: Cli.SireumHamrCodegenHamrPlatform.Type,
+               slangOutputDir: Option[String],
+               slangPackageName: Option[String],
+               //
+               noProyekIve: B,
+               noEmbedArt: B,
+               devicesAsThreads: B,
+               genSbtMill: B,
+               //
+               slangAuxCodeDir: ISZ[String],
+               slangOutputCDirectory: Option[String],
+               excludeComponentImpl: B,
+               bitWidth: Z,
+               maxStringSize: Z,
+               maxArraySize: Z,
+               runTranspiler: B,
+               //
+               camkesOutputDirectory: Option[String],
+               camkesAuxCodeDirs: ISZ[String],
+               aadlRootDir: Option[String],
+               //
+               experimentalOptions: ISZ[String],
+               //
+               plugins: ISZ[Plugin],
+               //
                reporter: Reporter
               ): Z = {
 
@@ -142,12 +200,12 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    codeGenReporter(model, o, reporter)
+    codeGenReporter(model, o, plugins, reporter)
 
-    return if(reporter.hasError) 1 else 0
+    return if (reporter.hasError) 1 else 0
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: ISZ[Plugin], reporter: Reporter): CodeGenResults = {
 
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as
@@ -218,7 +276,7 @@ object HAMR {
 
     val ops = toCodeGenOptions(o)
 
-    return SireumApi.hamrCodeGen(model, ops, reporter, transpile _, proyekIve _)
+    return SireumApi.hamrCodeGen(model, ops, plugins ++ ArsitPlugin.defaultPlugins(), reporter, transpile _, proyekIve _)
   }
 
   def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
