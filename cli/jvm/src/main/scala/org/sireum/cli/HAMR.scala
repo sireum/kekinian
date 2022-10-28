@@ -79,7 +79,7 @@ object HAMR {
       }
     }
 
-    codeGenReporter(model, o, ISZ(), reporter)
+    codeGenReporter(model, o, reporter)
 
     return if (reporter.hasError) 1 else 0
   }
@@ -200,12 +200,16 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    codeGenReporter(model, o, plugins, reporter)
+    codeGenReporterP(model, o, plugins, reporter)
 
     return if (reporter.hasError) 1 else 0
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: ISZ[Plugin], reporter: Reporter): CodeGenResults = {
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
+    return codeGenReporterP(model, o, ISZ(), reporter)
+  }
+
+  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: ISZ[Plugin], reporter: Reporter): CodeGenResults = {
 
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as
