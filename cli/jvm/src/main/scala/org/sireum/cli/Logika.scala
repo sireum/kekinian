@@ -145,9 +145,9 @@ object Logika {
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
-            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-              fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
-              config.simplifiedQuery, config.smt2Seq, reporter),
+            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
+              logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, fpRoundingMode, config.charBitWidth,
+              config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, reporter),
             logika.Smt2.NoCache(), reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -233,9 +233,9 @@ object Logika {
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
-        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-          config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery,
-          config.smt2Seq, reporter),
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
+          logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, config.fpRoundingMode,
+          config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, reporter),
         logika.Smt2.NoCache(), reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
