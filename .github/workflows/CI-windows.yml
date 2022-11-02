@@ -54,7 +54,7 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           set errorlevel=
           call .ci\build.bat || goto :error
-          call .ci\build.bat test || goto :error
+          call .ci\build.bat test-verify || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%

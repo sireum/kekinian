@@ -46,7 +46,7 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
-          .ci/build.sh && .ci/build.sh test
+          .ci/build.sh && .ci/build.sh test-verify
           bin/install/ffmpeg-libs.cmd
       - name: Cache Graal
         id: cache-graal
