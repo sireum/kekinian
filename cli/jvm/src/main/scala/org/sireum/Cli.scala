@@ -138,6 +138,7 @@ object Cli {
     val args: ISZ[String],
     val noRuntime: B,
     val sourcepath: ISZ[String],
+    val infoFlow: B,
     val charBitWidth: Z,
     val fpRounding: SireumLogikaVerifierFPRoundingMode.Type,
     val useReal: B,
@@ -298,6 +299,7 @@ object Cli {
     val docs: B,
     val sources: B,
     val repositories: ISZ[String],
+    val infoFlow: B,
     val charBitWidth: Z,
     val fpRounding: SireumProyekLogikaFPRoundingMode.Type,
     val useReal: B,
@@ -838,15 +840,15 @@ import Cli._
           |                           transpiler.Anvil will intercept the transpiler's
           |                           "--output" flag and use it to create a
           |                           workspace.Each flag/value should be on its own line.
-          |                           For
-          |                           example:
-          --sourcepath
-          path/to/src
-          --name
-          my_project
-          --stable-type-id
-          --unroll
-          ...etc]
+          |                           For example:
+           --sourcepath
+           path/to/src
+           --name
+
+          |                           my_project
+           --stable-type-id
+           --unroll
+           ...etc]
           |                           (expects a path)
           |    --sandbox-path       [Optional path to a sandbox that execution will be
           |                           delegated to.Type "anvil sandbox help" for more
@@ -1445,6 +1447,9 @@ import Cli._
           |                           strings)
           |-h, --help               Display this information
           |
+          |Additional Verifications Options:
+          |    --info-flow          Enable information flow verification
+          |
           |Approximation Options:
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
@@ -1514,6 +1519,7 @@ import Cli._
 
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
+    var infoFlow: B = false
     var charBitWidth: Z = 32
     var fpRounding: SireumLogikaVerifierFPRoundingMode.Type = SireumLogikaVerifierFPRoundingMode.NearestTiesToEven
     var useReal: B = false
@@ -1560,6 +1566,12 @@ import Cli._
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--info-flow") {
+           val o: Option[B] = { j = j - 1; Some(!infoFlow) }
+           o match {
+             case Some(v) => infoFlow = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -1745,7 +1757,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2687,6 +2699,9 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")
           |
+          |Additional Verifications Options:
+          |    --info-flow          Enable information flow verification
+          |
           |Approximation Options:
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
@@ -2769,6 +2784,7 @@ import Cli._
     var docs: B = true
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
+    var infoFlow: B = false
     var charBitWidth: Z = 32
     var fpRounding: SireumProyekLogikaFPRoundingMode.Type = SireumProyekLogikaFPRoundingMode.NearestTiesToEven
     var useReal: B = false
@@ -2893,6 +2909,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => repositories = v
+             case _ => return None()
+           }
+         } else if (arg == "--info-flow") {
+           val o: Option[B] = { j = j - 1; Some(!infoFlow) }
+           o match {
+             case Some(v) => infoFlow = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -3078,7 +3100,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

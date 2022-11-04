@@ -55,6 +55,25 @@ object Logika {
       return INVALID_MODE
     }
 
+    if (o.infoFlow && (o.splitAll || o.splitContract || o.splitIf || o.splitMatch)) {
+      if (o.splitAll) {
+        eprintln("Cannot split all paths when info flow verification is enabled")
+        return INVALID_MODE
+      }
+      if (o.splitMatch) {
+        eprintln("Cannot split match-statement when info flow verification is enabled")
+        return INVALID_MODE
+      }
+      if (o.splitIf) {
+        eprintln("Cannot split if-statement when info flow verification is enabled")
+        return INVALID_MODE
+      }
+      if (o.splitContract) {
+        eprintln("Cannot split compositional contract cases when info flow verification is enabled")
+        return INVALID_MODE
+      }
+    }
+
     o.charBitWidth match {
       case z"8" =>
       case z"16" =>
@@ -141,7 +160,8 @@ object Logika {
           branchParMode, branchParCores, o.logPcLines)
         val f = Os.path(arg)
         val ext = f.ext
-        val plugins = logika.Logika.defaultPlugins
+        val plugins = logika.Logika.defaultPlugins ++
+          (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
