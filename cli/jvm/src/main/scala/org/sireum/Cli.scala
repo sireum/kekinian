@@ -143,6 +143,7 @@ object Cli {
     val fpRounding: SireumLogikaVerifierFPRoundingMode.Type,
     val useReal: B,
     val intBitWidth: Z,
+    val interprocedural: B,
     val line: Z,
     val sat: B,
     val skipMethods: ISZ[String],
@@ -304,6 +305,7 @@ object Cli {
     val fpRounding: SireumProyekLogikaFPRoundingMode.Type,
     val useReal: B,
     val intBitWidth: Z,
+    val interprocedural: B,
     val line: Z,
     val sat: B,
     val skipMethods: ISZ[String],
@@ -1464,6 +1466,8 @@ import Cli._
           |                           default is 0)
           |
           |Control Options:
+          |    --interprocedural    Enable inter-procedural verification for invoked
+          |                           methods without contracts
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --sat                Enable assumption satisfiability checking
@@ -1524,6 +1528,7 @@ import Cli._
     var fpRounding: SireumLogikaVerifierFPRoundingMode.Type = SireumLogikaVerifierFPRoundingMode.NearestTiesToEven
     var useReal: B = false
     var intBitWidth: Z = 0
+    var interprocedural: B = false
     var line: Z = 0
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
@@ -1596,6 +1601,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => intBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--interprocedural") {
+           val o: Option[B] = { j = j - 1; Some(!interprocedural) }
+           o match {
+             case Some(v) => interprocedural = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -1757,7 +1768,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2716,6 +2727,8 @@ import Cli._
           |                           default is 0)
           |
           |Control Options:
+          |    --interprocedural    Enable inter-procedural verification for invoked
+          |                           methods without contracts
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --sat                Enable assumption satisfiability checking
@@ -2789,6 +2802,7 @@ import Cli._
     var fpRounding: SireumProyekLogikaFPRoundingMode.Type = SireumProyekLogikaFPRoundingMode.NearestTiesToEven
     var useReal: B = false
     var intBitWidth: Z = 0
+    var interprocedural: B = false
     var line: Z = 0
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
@@ -2939,6 +2953,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => intBitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "--interprocedural") {
+           val o: Option[B] = { j = j - 1; Some(!interprocedural) }
+           o match {
+             case Some(v) => interprocedural = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -3100,7 +3120,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
