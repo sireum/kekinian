@@ -28,9 +28,7 @@ val url = s"https://download.jetbrains.com/cpp"
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val clionVersion = "2022.2.3"
-val sireumJar = homeBin / "sireum.jar"
-val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
+val clionVersion = "2022.2.4"
 val versions = (home / "versions.properties").properties
 val jbrVer = versions.get("org.sireum.version.jbr").get
 val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
