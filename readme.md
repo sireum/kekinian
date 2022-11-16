@@ -434,7 +434,6 @@ Sireum depends on open source software libraries and applications
 | [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://search.maven.org/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
-| [Coursier](https://github.com/coursier/coursier) | [(link)](https://search.maven.org/artifact/io.get-coursier/coursier_2.13) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
@@ -466,6 +465,7 @@ In addition, Sireum includes adaptation of the following artifact:
 | [Alt-Ergo (Free)](https://github.com/OCamlPro/alt-ergo/tree/2.3.3-free) | [Apache 2.0](https://github.com/OCamlPro/alt-ergo/blob/2.3.3-free/Apache-License-2.0.txt) |
 | [Azul Zulu JDK FX](https://www.azul.com/downloads/?package=jdk-fx) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
+| [Coursier](https://github.com/coursier/coursier) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
 Sireum stores small, pre-built binary executables in its submodule repositories for

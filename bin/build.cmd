@@ -704,6 +704,27 @@ def ram(): Unit = {
   return home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "BuiltInTypes.slang"
 }
 
+def installCoursier(): Unit = {
+  val version = versions.get("org.sireum.version.coursier").get
+  val ver = home / "lib" / "coursier.jar.ver"
+  if (ver.exists && ver.read == version) {
+    return
+  }
+
+  val drop = cache / s"coursier-$version.jar"
+  if (!drop.exists) {
+    println(s"Downloading Coursier $version ...")
+    val url = s"https://github.com/coursier/coursier/releases/download/v$version/coursier.jar"
+    drop.downloadFrom(url)
+    println()
+  }
+
+  val coursierJar = home / "lib" / "coursier.jar"
+  drop.copyOverTo(coursierJar)
+
+  ver.writeOver(version)
+}
+
 if (!builtIn.exists) {
   eprintln("Some sub-modules are not present; please clone recursively or run:")
   eprintln("git submodule update --init --recursive --remote")
@@ -713,6 +734,7 @@ if (!builtIn.exists) {
 installZ3(Os.kind)
 installCVC(Os.kind)
 installAltErgoOpen(Os.kind)
+installCoursier()
 
 if (Os.cliArgs.isEmpty) {
   val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified

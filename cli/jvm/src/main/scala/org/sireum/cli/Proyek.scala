@@ -136,7 +136,7 @@ object Proyek {
     assert(SireumApi.versions.get(DependencyManager.libraryKey).nonEmpty)
     if ((sireumHome / "bin" / "distro.cmd").exists && runtimeVerOpt.nonEmpty &&
       runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
-      if (!Coursier.isRuntimePublishedLocally(runtimeVerOpt.get)) {
+      if (!Coursier.isRuntimePublishedLocally(SireumApi.scalaVer, runtimeVerOpt.get)) {
         println()
         println("Publishing Slang runtime library locally ...")
         proc"$buildCmd m2-lib".console.runCheck()
