@@ -30,7 +30,7 @@ def usage(): Unit = {
 
 
 val homeBin: Os.Path = Os.slashDir.up.canon
-val graalVersion: String = if (Os.isWin) "22.1.0" else "22.3.0"
+val graalVersion = "22.3.0"
 val url = s"https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$graalVersion"
 
 val cacheDir: Os.Path = Os.env("SIREUM_CACHE") match {
