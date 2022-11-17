@@ -45,8 +45,7 @@ object Proyek {
   val INVALID_SOURCE_FILE: Z = -11
   val INVALID_CHAR_WIDTH: Z = -12
   val INVALID_INT_WIDTH: Z = -13
-  val INVALID_RAM_DIR: Z = -14
-  val ILL_FORMED_PROGRAMS: Z = -15
+  val ILL_FORMED_PROGRAMS: Z = -14
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -270,6 +269,39 @@ object Proyek {
     )
 
     return r
+  }
+
+  def dep(o: Cli.SireumProyekDepOption): Z = {
+    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    println()
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = o.js,
+      withSource = F,
+      withDoc = F,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    var deps = ISZ[String]()
+    for (m <- prj.modules.values if prj.poset.childrenOf(m.id).isEmpty) {
+      deps = deps ++ dm.computeTransitiveIvyDeps(m)
+    }
+
+    Coursier.resolve(dm.scalaVersion, dm.cacheOpt, o.repositories, deps, T)
+
+    return 0
   }
 
   def ive(o: Cli.SireumProyekIveOption): Z = {
