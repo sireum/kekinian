@@ -540,10 +540,10 @@ object Proyek {
       case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
     }
 
-    val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
-      o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-      branchParMode, branchParCores, o.logPcLines, o.interprocedural)
+    val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
+      o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
+      o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
 
     val lcode = Analysis.run(
       root = path,
@@ -890,8 +890,8 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
-      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F, F)
+    val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 8, 32, F, F, F, F, None(),
+      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F, F, 3, 3)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",

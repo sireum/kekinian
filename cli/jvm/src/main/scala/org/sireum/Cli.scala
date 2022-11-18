@@ -145,10 +145,11 @@ object Cli {
     val intBitWidth: Z,
     val interprocedural: B,
     val line: Z,
+    val loopBound: Z,
+    val callBound: Z,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
-    val unroll: B,
     val logPc: B,
     val logPcLines: B,
     val logRawPc: B,
@@ -325,10 +326,11 @@ object Cli {
     val intBitWidth: Z,
     val interprocedural: B,
     val line: Z,
+    val loopBound: Z,
+    val callBound: Z,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
-    val unroll: B,
     val logPc: B,
     val logPcLines: B,
     val logRawPc: B,
@@ -1484,10 +1486,15 @@ import Cli._
           |                           default is 0)
           |
           |Control Options:
-          |    --interprocedural    Enable inter-procedural verification for invoked
-          |                           methods without contracts
+          |    --interprocedural    Enable focused inter-procedural verification for all
+          |                           invoked methods
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
+          |    --loop-bound         Loop bound for inter-procedural verification (expects
+          |                           an integer; min is 1; default is 3)
+          |    --recursive-bound    Recursive call-chain bound for inter-procedural
+          |                           verification (expects an integer; min is 1; default
+          |                           is 3)
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -1495,8 +1502,6 @@ import Cli._
           |    --skip-types         Skip checking traits, classes, and objects with the
           |                           specified fully-qualified names or identifiers
           |                           (expects a string separated by ",")
-          |    --unroll             Enable loop unrolling when loop modifies clause is
-          |                           unspecified
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
@@ -1548,10 +1553,11 @@ import Cli._
     var intBitWidth: Z = 0
     var interprocedural: B = false
     var line: Z = 0
+    var loopBound: Z = 3
+    var callBound: Z = 3
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
-    var unroll: B = false
     var logPc: B = false
     var logPcLines: B = false
     var logRawPc: B = false
@@ -1633,6 +1639,18 @@ import Cli._
              case Some(v) => line = v
              case _ => return None()
            }
+         } else if (arg == "--loop-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => loopBound = v
+             case _ => return None()
+           }
+         } else if (arg == "--recursive-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => callBound = v
+             case _ => return None()
+           }
          } else if (arg == "--sat") {
            val o: Option[B] = { j = j - 1; Some(!sat) }
            o match {
@@ -1649,12 +1667,6 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => skipTypes = v
-             case _ => return None()
-           }
-         } else if (arg == "--unroll") {
-           val o: Option[B] = { j = j - 1; Some(!unroll) }
-           o match {
-             case Some(v) => unroll = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -1786,7 +1798,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2902,10 +2914,15 @@ import Cli._
           |                           default is 0)
           |
           |Control Options:
-          |    --interprocedural    Enable inter-procedural verification for invoked
-          |                           methods without contracts
+          |    --interprocedural    Enable focused inter-procedural verification for all
+          |                           invoked methods
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
+          |    --loop-bound         Loop bound for inter-procedural verification (expects
+          |                           an integer; min is 1; default is 3)
+          |    --recursive-bound    Recursive call-chain bound for inter-procedural
+          |                           verification (expects an integer; min is 1; default
+          |                           is 3)
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -2913,8 +2930,6 @@ import Cli._
           |    --skip-types         Skip checking traits, classes, and objects with the
           |                           specified fully-qualified names or identifiers
           |                           (expects a string separated by ",")
-          |    --unroll             Enable loop unrolling when loop modifies clause is
-          |                           unspecified
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
@@ -2979,10 +2994,11 @@ import Cli._
     var intBitWidth: Z = 0
     var interprocedural: B = false
     var line: Z = 0
+    var loopBound: Z = 3
+    var callBound: Z = 3
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
-    var unroll: B = false
     var logPc: B = false
     var logPcLines: B = false
     var logRawPc: B = false
@@ -3142,6 +3158,18 @@ import Cli._
              case Some(v) => line = v
              case _ => return None()
            }
+         } else if (arg == "--loop-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => loopBound = v
+             case _ => return None()
+           }
+         } else if (arg == "--recursive-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => callBound = v
+             case _ => return None()
+           }
          } else if (arg == "--sat") {
            val o: Option[B] = { j = j - 1; Some(!sat) }
            o match {
@@ -3158,12 +3186,6 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => skipTypes = v
-             case _ => return None()
-           }
-         } else if (arg == "--unroll") {
-           val o: Option[B] = { j = j - 1; Some(!unroll) }
-           o match {
-             case Some(v) => unroll = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -3295,7 +3317,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
