@@ -127,6 +127,24 @@ fi
 
 
 #
+# Coursier
+#
+COURSIER_VER=$(getVersion "org.sireum.version.coursier")
+COURSIER_DROP=coursier-${COURSIER_VER}.jar
+COURSIER_DROP_URL=https://github.com/coursier/coursier/releases/download/v${COURSIER_VER}/coursier.jar
+grep -q ${COURSIER_VER} coursier.jar.ver &> /dev/null && COURSIER_UPDATE=false || COURSIER_UPDATE=true
+if [[ ! -f ${COURSIER_DROP} ]] || [[ "${COURSIER_UPDATE}" = "true" ]]; then
+  if [[ ! -f ${SIREUM_CACHE}/${COURSIER_DROP} ]]; then
+    echo "Please wait while downloading Coursier ${COURSIER_VER} ..."
+    download ${SIREUM_CACHE}/${COURSIER_DROP} ${COURSIER_DROP_URL}
+    echo
+  fi
+  cp ${SIREUM_CACHE}/${COURSIER_DROP} coursier.jar
+  echo "${COURSIER_VER}" > coursier.jar.ver
+fi
+
+
+#
 # Scala
 #
 if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then

@@ -81,6 +81,30 @@ if (!(Test-Path "$scalac_plugin_lib")) {
 }
 
 
+$coursier_version = $properties["org.sireum.version.coursier"]
+$coursier_jar = "coursier-$coursier_version.jar"
+$coursier_drop = "$cache_dir\$coursier_jar"
+$coursier_lib = "$sireum_home\lib\coursier.jar"
+$coursier_ver_path = "$sireum_home\lib\coursier.jar.ver"
+$coursier_update = $TRUE
+if (Test-Path "$coursier_ver_path") {
+  $coursier_ver = Get-Content "$coursier_ver_path"
+  if ($coursier_ver -Eq $coursier_version) {
+    $coursier_update = $FALSE
+  }
+}
+if (!(Test-Path "$coursier_lib") -or $coursier_update) {
+  if (!(Test-Path "$coursier_drop")) {
+    "Please wait while downloading Coursier $coursier_version ..."
+    $coursier_url = "https://github.com/coursier/coursier/releases/download/v$coursier_version/coursier.jar"
+    Invoke-WebRequest -Uri "$coursier_url" -OutFile "$coursier_drop"
+    ""
+  }
+  Copy-Item -Path "$coursier_drop" -Destination "$coursier_lib" -Force
+  "$coursier_version" | Set-Content "$coursier_ver_path"
+}
+
+
 if ($Env:SIREUM_PROVIDED_SCALA) {
   $Global:ProgressPreference = $OriginalProgressPreference
   Exit
