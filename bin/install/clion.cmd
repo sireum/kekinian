@@ -28,12 +28,7 @@ val url = s"https://download.jetbrains.com/cpp"
 
 val homeBin = Os.slashDir.up.canon
 val home = homeBin.up.canon
-val clionVersion = "2022.2.4"
-val versions = (home / "versions.properties").properties
-val jbrVer = versions.get("org.sireum.version.jbr").get
-val jbrBuildVer = versions.get("org.sireum.version.jbr.build").get
-val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
-val jbrUrl = s"https://bintray.com/jetbrains/intellij-jbr/download_file?file_path=$jbrFilename"
+val clionVersion = "2022.3"
 val isLocal: B = ops.StringOps(home.string).startsWith(Os.home.canon.string) && (homeBin / "distro.cmd").exists
 val settingsDir: String = if (isLocal) if (Os.isWin) ops.StringOps((home / ".settings").string).replaceAllChars('\\', '/') else (home / ".settings").string else "${user.home}"
 
@@ -135,36 +130,6 @@ def linux(isArm: B): Unit = {
   println(s"Extracting $cache ...")
   Os.proc(ISZ("tar", "xfz", cache.string)).at(platformDir).console.runCheck()
   (platformDir / s"clion-$clionVersion").moveTo(clionDir)
-
-  if (isArm) {
-    val clionsh = clionDir / "bin" / "clion.sh"
-    println(s"Patching $clionsh ... ")
-    clionsh.writeOver(ops.StringOps(clionsh.read).replaceAllLiterally("\"x86_64\"", "\"aarch64\""))
-    clionsh.chmod("+x")
-
-    val jbrCache = Os.home / "Downloads" / "sireum" / "idea" / jbrFilename
-    if (!jbrCache.exists) {
-      jbrCache.up.mkdirAll()
-      println(s"Downloading from $jbrUrl ...")
-      jbrCache.downloadFrom(jbrUrl)
-    }
-    println(s"Replacing ${clionDir / "jbr"} ...")
-    (clionDir / "jbr").removeAll()
-    Os.proc(ISZ("tar", "xfz", jbrCache.string)).at(clionDir).console.runCheck()
-
-    val clionVersionOps = ops.StringOps(clionVersion)
-    val clionMajorVersion = clionVersionOps.substring(0, clionVersionOps.lastIndexOf('.'))
-    val config = Os.home / ".config" / "JetBrains" / s"CLion$clionMajorVersion" / "idea.properties"
-    val configContent = s"idea.filewatcher.executable.path=${platformDir / "fsnotifier"}"
-    if (config.exists) {
-      println(s"Please ensure the following line is in the existing $config")
-      println(configContent)
-    } else {
-      config.up.mkdirAll()
-      config.writeOver(configContent)
-      println(s"Wrote $config")
-    }
-  }
 
   deleteSources(clionDir)
 
