@@ -1,4 +1,4 @@
-::#! 2> /dev/null                                   #
+::/*#! 2> /dev/null                                 #
 @ 2>/dev/null # 2>nul & echo off & goto BOF         #
 if [ -z ${SIREUM_HOME} ]; then                      #
   echo "Please set SIREUM_HOME env var"             #
@@ -13,7 +13,7 @@ if not defined SIREUM_HOME (
 )
 %SIREUM_HOME%\bin\sireum.bat slang run "%0" %*
 exit /B %errorlevel%
-::!#
+::!#*/
 // #Sireum
 /*
  Copyright (c) 2017-2022, Robby, Kansas State University
@@ -191,7 +191,7 @@ val ideaExtMap =
     "mac/arm" ~> "-aarch64.dmg" +
     "win" ~> ".win.zip" +
     "linux" ~> ".tar.gz" +
-    "linux/arm" ~> ".tar.gz"
+    "linux/arm" ~> "-aarch64.tar.gz"
 
 val cacheDir: Os.Path = {
   Os.env("SIREUM_CACHE") match {
@@ -334,16 +334,6 @@ val version: String = {
 
 val ideaVer: String = {
   val (devVer, ver) = devRelVer("org.sireum.version.idea")
-  if (isDev) devVer else ver
-}
-
-val jbrVer: String = {
-  val (devVer, ver) = devRelVer("org.sireum.version.jbr")
-  if (isDev) devVer else ver
-}
-
-val jbrBuildVer: String = {
-  val (devVer, ver) = devRelVer("org.sireum.version.jbr.build")
   if (isDev) devVer else ver
 }
 
@@ -632,38 +622,8 @@ def setupLinux(ideaDrop: Os.Path): Unit = {
   patchIdeaProperties(ideaDir / "bin" / "idea.properties")
   patchVMOptions(ideaDir / "bin" / "idea64.vmoptions")
   (ideaDir / "bin" / "idea.vmoptions").removeAll()
-  val ideash = ideaDir / "bin" / "idea.sh"
-  if (platform == "linux/arm") {
-    println(s"Patching $ideash ...")
-    ideash.writeOver(ops.StringOps(ideash.read).replaceAllLiterally(""""x86_64"""", """"aarch64""""))
-    val jbrFilename = s"jbr-$jbrVer-linux-aarch64-b$jbrBuildVer.tar.gz"
-    val jbrUrl = s"https://cache-redirector.jetbrains.com/intellij-jbr/$jbrFilename"
-    val jbrDrop = ideaCacheDir / jbrFilename
-    if (!jbrDrop.exists) {
-      print(s"Downloading from $jbrUrl ... ")
-      (ideaCacheDir / jbrFilename).downloadFrom(jbrUrl)
-      println("done!")
-    }
-    println(s"Replacing ${ideaDir / "jbr"} ...")
-    (ideaDir / "jbr").removeAll()
-    proc"tar xfz $jbrDrop".at(ideaDir).runCheck()
-
-    if (!buildSfx) {
-      val ideaVerOps = ops.StringOps(ideaVer)
-      val ideaMajorVer = ideaVerOps.substring(0, ideaVerOps.lastIndexOf('.'))
-      val config = Os.home / ".config" / "JetBrains" / s"IdeaIC$ideaMajorVer" / "idea.properties"
-      val configContent = s"idea.filewatcher.executable.path=${home / "bin" / platform / "fsnotifier"}"
-      if (config.exists) {
-        println(s"Please ensure the following line is in the existing $config")
-        println(configContent)
-      } else {
-        config.up.mkdirAll()
-        config.writeOver(configContent)
-        println(s"Wrote $config")
-      }
-    }
-  }
   if (!isServer) {
+    val ideash = ideaDir / "bin" / "idea.sh"
     val ivesh = ideaDir / "bin" / "IVE.sh"
     ideash.moveOverTo(ivesh)
     ivesh.chmod("+x")

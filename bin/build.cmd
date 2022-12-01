@@ -1,4 +1,4 @@
-::#! 2> /dev/null                                                                                           #
+::/*#! 2> /dev/null                                                                                         #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
 export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                                    #
 if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                                                #
@@ -45,7 +45,7 @@ exit /B %errorlevel%
 :native
 %~dpnx0.com %*
 exit /B %errorlevel%
-::!#
+::!#*/
 // #Sireum
 
 import org.sireum._
