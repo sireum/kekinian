@@ -412,7 +412,6 @@ object Proyek {
       projectName = projectName,
       dm = dm,
       outDirName = o.outputDirName.get,
-      jbrVersion = SireumApi.jbrVer,
       ideaDir = ideaDir.canon,
       isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
       isServer = o.edition == Cli.SireumProyekIveEdition.Server,

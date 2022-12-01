@@ -312,7 +312,6 @@ object GenTools {
           st"""    <jdk version="2">
               |      <name value="Sireum$devSuffix" />
               |      <type value="IDEA JDK" />
-              |      <version value="$jbrVer" />
               |      <homePath value="$ideaDir" />
               |      <roots>
               |        <annotationsPath>
@@ -328,7 +327,7 @@ object GenTools {
               |        </classPath>
               |        <javadocPath>
               |          <root type="composite">
-              |            <root url="https://docs.oracle.com/en/java/javase/11/docs/api/" type="simple" />
+              |            <root url="https://docs.oracle.com/en/java/javase/17/docs/api/" type="simple" />
               |          </root>
               |        </javadocPath>
               |      </roots>
@@ -342,7 +341,6 @@ object GenTools {
           st"""    <jdk version="2">
               |      <name value="Sireum$devSuffix (with Scala Plugin)" />
               |      <type value="IDEA JDK" />
-              |      <version value="$jbrVer" />
               |      <homePath value="$ideaDir" />
               |      <roots>
               |        <annotationsPath>
@@ -358,7 +356,7 @@ object GenTools {
               |        </classPath>
               |        <javadocPath>
               |          <root type="composite">
-              |            <root url="https://docs.oracle.com/en/java/javase/11/docs/api/" type="simple" />
+              |            <root url="https://docs.oracle.com/en/java/javase/17/docs/api/" type="simple" />
               |          </root>
               |        </javadocPath>
               |      </roots>
@@ -402,7 +400,6 @@ object GenTools {
               |    <jdk version="2">
               |      <name value="Jbr" />
               |      <type value="JavaSDK" />
-              |      <version value="$jbrVer" />
               |      <homePath value="$jbrHome" />
               |      <roots>
               |        <annotationsPath>

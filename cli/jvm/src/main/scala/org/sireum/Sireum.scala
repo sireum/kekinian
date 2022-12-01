@@ -197,11 +197,10 @@ object Sireum {
     r
   }
 
-  lazy val (isDev, javaVer, jbrVer, scalaVer, scalacPluginVer): (B, String, String, String, String) = {
+  lazy val (isDev, javaVer, scalaVer, scalacPluginVer): (B, String, String, String) = {
     import project.DependencyManager._
     (!(Some("false") == versions.get("org.sireum.version.dev")),
       versions.get(javaKey).get,
-      versions.get(jbrKey).get,
       versions.get(scalaKey).get,
       versions.get(scalacPluginKey).get)
   }

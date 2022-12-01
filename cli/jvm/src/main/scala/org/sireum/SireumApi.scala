@@ -66,8 +66,6 @@ import org.sireum.message.Reporter
 
   def javaVer: String = $
 
-  def jbrVer: String = $
-
   def scalaVer: String = $
 
   def scalacPluginVer: String = $
