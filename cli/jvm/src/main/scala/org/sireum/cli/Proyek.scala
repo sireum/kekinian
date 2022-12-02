@@ -133,7 +133,7 @@ object Proyek {
     val buildCmd = sireumHome / "bin" / "build.cmd"
     val runtimeVerOpt = versions.get(DependencyManager.libraryKey)
     assert(SireumApi.versions.get(DependencyManager.libraryKey).nonEmpty)
-    if ((sireumHome / "bin" / "distro.cmd").exists && runtimeVerOpt.nonEmpty &&
+    if ((sireumHome / "bin" / "slang-run.sh").exists && runtimeVerOpt.nonEmpty &&
       runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
       if (!Coursier.isRuntimePublishedLocally(SireumApi.scalaVer, runtimeVerOpt.get)) {
         println()
