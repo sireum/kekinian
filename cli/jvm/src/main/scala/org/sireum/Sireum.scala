@@ -381,6 +381,18 @@ object Sireum {
         println()
         println(versions)
         return 0
+      case ISZ(string"--setup") =>
+        init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
+        run(ISZ("proyek", "ive", init.home.string), reporter)
+        return 0
+      case ISZ(string"--setup-server") =>
+        init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
+        run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
+        return 0
+      case ISZ(string"--setup-ultimate") =>
+        init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
+        run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
+        return 0
       case ISZ(string"--test-cli", _*) =>
         return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
       case _ =>
@@ -490,6 +502,14 @@ object Sireum {
                 return exitCode
             }
           case Some(_: Cli.HelpOption) =>
+            println(
+              s"""
+                 |Available Standalone Options:
+                 |    --setup              Setup IVE and dependencies
+                 |    --setup-server       Setup IVE (Server) and dependencies
+                 |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
+                 |    --test-cli           Test CLI arguments (expects strings)
+                 |-v, --version            Print version information""".stripMargin)
             return 0
           case Some(o: Cli.SireumServerOption) =>
             init.deps()
