@@ -476,7 +476,6 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | Pre-built Executable | License |
 | :--- | :---: |
 | [7-zip](https://sourceforge.net/projects/sevenzip) | [LGPL v2](https://www.7-zip.org/license.txt) |
-| [fsnotifier](https://github.com/JetBrains/intellij-community/tree/master/native/fsNotifier) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
 | [upx](https://github.com/upx/upx) | [GPL v2](https://github.com/upx/upx/blob/devel/LICENSE) |
 
