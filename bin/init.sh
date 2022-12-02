@@ -86,6 +86,7 @@ download() {
 : ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
 mkdir -p ${SIREUM_CACHE}
 : ${SIREUM_INIT_V:=latest}
+: ${SIREUM_V:=master}
 
 #
 # Sireum
@@ -97,11 +98,11 @@ if [[ ! -f bin/sireum.jar ]]; then
   download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar
   chmod +x bin/sireum.jar
   if [[ ! -f bin/sireum ]]; then
-    download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
+    download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/bin/sireum
     chmod +x bin/sireum
   fi
   if [[ ! -f versions.properties ]]; then
-    download versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
+    download versions.properties https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/versions.properties
   fi
   echo
 fi
