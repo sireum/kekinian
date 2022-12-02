@@ -108,79 +108,12 @@ fi
 
 
 #
-# scalac plugin
-#
-SCALAC_PLUGIN_VER=$(getVersion "org.sireum%%scalac-plugin%")
-cd ${SIREUM_HOME}/bin
-SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-SCALAC_PLUGIN_DROP_URL=https://github.com/sireum/scalac-plugin/releases/download/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-mkdir -p ${SIREUM_HOME}/lib
-cd ${SIREUM_HOME}/lib
-if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
-    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-    download ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
-    echo
-  fi
-  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
-fi
-
-
-#
-# Coursier
-#
-COURSIER_VER=$(getVersion "org.sireum.version.coursier")
-COURSIER_DROP=coursier-${COURSIER_VER}.jar
-COURSIER_DROP_URL=https://github.com/coursier/coursier/releases/download/v${COURSIER_VER}/coursier.jar
-grep -q ${COURSIER_VER} coursier.jar.ver &> /dev/null && COURSIER_UPDATE=false || COURSIER_UPDATE=true
-if [[ ! -f ${COURSIER_DROP} ]] || [[ "${COURSIER_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${COURSIER_DROP} ]]; then
-    echo "Please wait while downloading Coursier ${COURSIER_VER} ..."
-    download ${SIREUM_CACHE}/${COURSIER_DROP} ${COURSIER_DROP_URL}
-    echo
-  fi
-  cp ${SIREUM_CACHE}/${COURSIER_DROP} coursier.jar
-  echo "${COURSIER_VER}" > coursier.jar.ver
-fi
-
-
-#
-# Scala
-#
-if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
-  exit
-fi
-: ${SCALA_VERSION=$(getVersion "org.scala-lang%scala-library%")}
-cd ${SIREUM_HOME}/bin
-SCALA_DROP_URL=https://github.com/sireum/rolling/releases/download/scala/scala-${SCALA_VERSION}.zip
-SCALA_DROP="${SCALA_DROP_URL##*/}"
-grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
-if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
-    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
-    download ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
-  fi
-  echo "Extracting Scala ${SCALA_VERSION} ..."
-  uncompress ${SIREUM_CACHE}/${SCALA_DROP}
-  echo
-  rm -fR scala
-  mv scala-${SCALA_VERSION} scala
-  if [[ -d "scala/bin" ]]; then
-    echo "${SCALA_VERSION}" > scala/VER
-    chmod +x scala/bin/*
-  else
-    >&2 echo "Could not install Scala ${SCALA_VERSION}."
-    exit 1
-  fi
-fi
-
-
-#
 # Java
 #
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
   exit
 fi
+cd ${SIREUM_HOME}/bin
 JAVA_NAME="Zulu JDK"
 if [[ -z ${JAVA_VERSION} ]]; then
   JAVA_VERSION=$(getVersion "org.sireum.version.zulu")

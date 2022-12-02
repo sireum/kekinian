@@ -101,47 +101,7 @@ def platform: String = {
 }
 
 def installZ3(kind: Os.Kind.Type): Unit = {
-  val version = versions.get("org.sireum.version.z3").get
-  val dir = homeBin / platformKind(kind) / "z3"
-  val ver = dir / "VER"
-
-  if (ver.exists && ver.read == version) {
-    return
-  }
-
-  val filename: String = kind match {
-    case Os.Kind.Win => s"z3-$version-x64-win.zip"
-    case Os.Kind.Linux => s"z3-$version-x64-glibc-2.31.zip"
-    case Os.Kind.Mac =>
-      if (ops.StringOps(proc"uname -m".run().out).trim == "arm64") s"z3-$version-arm64-osx-11.0.zip"
-      else s"z3-$version-x64-osx-10.16.zip"
-    case _ => return
-  }
-
-  val bundle = cache / filename
-
-  if (!bundle.exists) {
-    println(s"Please wait while downloading Z3 $version ...")
-    bundle.up.mkdirAll()
-    bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
-    println()
-  }
-
-  println("Extracting Z3 ...")
-  bundle.unzipTo(dir.up)
-
-  for (p <- dir.up.list if ops.StringOps(p.name).startsWith("z3-")) {
-    dir.removeAll()
-    p.moveTo(dir)
-  }
-
-  kind match {
-    case Os.Kind.Linux => (dir / "bin" / "z3").chmod("+x")
-    case Os.Kind.Mac => (dir / "bin" / "z3").chmod("+x")
-    case _ =>
-  }
-
-  ver.writeOver(version)
+  Init(home, kind, versions).installZ3()
 }
 
 
@@ -164,60 +124,7 @@ def z3(): Unit = {
 
 
 def installCVC(kind: Os.Kind.Type): Unit = {
-  def installCVCGen(gen: String, version: String): Unit = {
-    val genOpt: Option[String] = if (gen == "4") None() else Some(gen)
-    val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) st"cvc$genOpt.exe" else st"cvc$genOpt").render
-    val ver = homeBin / platformKind(kind) / st".cvc$genOpt.ver".render
-
-    val VER = s"$gen-$version"
-
-    if (ver.exists && ver.read == VER) {
-      return
-    }
-
-    val (sub, filename, dropname): (String, String, String) = (gen, kind) match {
-      case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
-      case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
-      case (string"5", Os.Kind.Mac) =>
-        if (ops.StringOps(proc"uname -m".run().out).trim == "arm64")
-          (s"cvc$gen-$version", s"cvc$gen-macOS-arm64", s"cvc$gen-$version-macOS-arm64")
-        else (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
-      case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
-      case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt", s"cvc$gen-$version-x86_64-linux-opt")
-      case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt", s"cvc$gen-$version-macos-opt")
-      case _ => return
-    }
-
-    val drop = cache / dropname
-
-    if (!drop.exists) {
-      println(s"Please wait while downloading CVC$gen $version ...")
-      drop.up.mkdirAll()
-      drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
-      println()
-    }
-
-    drop.copyOverTo(exe)
-
-    kind match {
-      case Os.Kind.Linux => exe.chmod("+x")
-      case Os.Kind.Mac => exe.chmod("+x")
-      case _ =>
-    }
-
-    ver.writeOver(VER)
-    println()
-  }
-  val (gen1, genVersion1, gen2, genVersion2): (String, String, String, String) =
-    ops.StringOps(versions.get("org.sireum.version.cvc").get).split((c: C) => c == '-' || c == ',') match {
-      case ISZ(g1, gv1, g2, gv2) => (g1, gv1, g2, gv2)
-      case ISZ(string"1.8") => ("4", "1.8", "4", "1.8")
-      case ISZ(version) => ("5", version, "5", version)
-    }
-  installCVCGen(gen1, genVersion1)
-  if (gen1 != gen2) {
-    installCVCGen(gen2, genVersion2)
-  }
+  Init(home, kind, versions).installCVC()
 }
 
 
@@ -240,35 +147,7 @@ def cvc(): Unit = {
 
 
 def installAltErgoOpen(kind: Os.Kind.Type): Unit = {
-  val version = versions.get("org.sireum.version.alt-ergo-open").get
-  val dir = homeBin / platformKind(kind)
-  val exe = dir / "alt-ergo-open"
-  val ver = dir / ".alt-ergo-open.ver"
-
-  if (ver.exists && ver.read == version) {
-    return
-  }
-
-  val filename: String = kind match {
-    case Os.Kind.Linux => s"alt-ergo-open-$version-linux"
-    case Os.Kind.Mac => s"alt-ergo-open-$version-mac"
-    case _ => return
-  }
-
-  val drop = cache / filename
-
-  if (!drop.exists) {
-    println(s"Please wait while downloading Alt-Ergo $version (Apache 2.0 Licence) ...")
-    drop.up.mkdirAll()
-    drop.downloadFrom(s"https://github.com/sireum/rolling/releases/download/alt-ergo-open/$filename")
-    println()
-  }
-
-  drop.copyOverTo(exe)
-
-  exe.chmod("+x")
-
-  ver.writeOver(version)
+  Init(home, kind, versions).installAltErgoOpen()
 }
 
 

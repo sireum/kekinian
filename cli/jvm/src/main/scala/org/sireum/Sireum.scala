@@ -30,7 +30,32 @@ import org.sireum.project.DependencyManager
 
 object Sireum {
 
+  private lazy val init: Init = {
+    var r = Os.sireumHomeOpt match {
+      case Some(d) => Init(d, Os.kind, Map.empty)
+      case _ =>
+        val home: Os.Path = Os.kind match {
+          case Os.Kind.Win => Os.home / "AppData" / "Local" / "Sireum"
+          case Os.Kind.Mac => Os.home / "Library" / "Application Support" / "org.sireum"
+          case _ => Os.home / ".sireum"
+        }
+        System.setProperty("org.sireum.home", home.string.value)
+        Init(Os.home / "Applications" / "Sireum", Os.kind, Map.empty)
+    }
+    val vs: Map[String, String] = {
+      val f = r.home / "versions.properties"
+      if (f.exists) {
+        f.properties
+      } else {
+        SireumApi.versions
+      }
+    }
+    r = r(versions = vs)
+    r
+  }
+
   def main(args: Array[Predef.String]): Unit = {
+    init.deps()
     System.exit(run(ISZ(args.toSeq.map(s => s: String): _*)).toInt)
   }
 
@@ -80,48 +105,7 @@ object Sireum {
 
   lazy val commitHash: String = $internal.Macro.commitHash
 
-  lazy val initInfo: Init.Info = Init.info(version, versions)
-
-  lazy val homeOpt: Option[Os.Path] = {
-    val rOpt: Option[Os.Path] = {
-      var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
-      if (r.isEmpty) {
-        r = scala.Option(System.getProperty("org.sireum.home")).map(p => Os.path(p).canon)
-      }
-      if (r.nonEmpty) Some(r.get)
-      else try {
-        val cs = getClass.getProtectionDomain.getCodeSource
-        var path =
-          if (cs != null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
-          else Os.slashDir.up
-        if (path.name.value == "bin") path = path.up
-        if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path) else None()
-      } catch {
-        case _: Throwable => None()
-      }
-    }
-    val scalacPluginJarOpt = rOpt match {
-      case Some(home) => Some(home / "lib" / s"scalac-plugin-$scalacPluginVer.jar")
-      case _ if isNative => Some(initInfo.scalacPlugin)
-      case _ => None()
-    }
-    scalacPluginJarOpt match {
-      case Some(scalacPluginJar) =>
-        if (!scalacPluginJar.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
-          val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
-          if (!scalacPluginCache.exists) {
-            scalacPluginCache.up.mkdirAll()
-            println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
-            scalacPluginCache.downloadFrom(s"https://github.com/sireum/scalac-plugin/releases/download/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
-            println()
-          }
-          scalacPluginJar.up.mkdirAll()
-          scalacPluginCache.copyOverTo(scalacPluginJar)
-        }
-      case _ =>
-    }
-    rOpt
-  }
+  lazy val homeOpt: Option[Os.Path] = Some(init.home)
 
   lazy val javaHomeOpt: Option[Os.Path] = {
     var rOpt: Option[Os.Path] =
@@ -131,38 +115,17 @@ object Sireum {
       rOpt = Os.env("JAVA_HOME").map(Os.path(_))
       rOpt match {
         case Some(r) if r.exists =>
-        case _ if isNative => rOpt = Some(initInfo.javaHome)
         case _ => rOpt = None()
       }
     }
     rOpt
   }
 
-  lazy val scalaHomeOpt: Option[Os.Path] = {
-    var rOpt: Option[Os.Path] =
-      if (Os.env("SIREUM_PROVIDED_SCALA") == Some("true")) None()
-      else homeOpt.map(_ / "bin" / "scala")
-    if (rOpt.isEmpty || !rOpt.get.exists) {
-      rOpt = Os.env("SCALA_HOME").map(Os.path(_))
-      rOpt match {
-        case Some(r) if r.exists =>
-        case _ if isNative => rOpt = Some(initInfo.scalaHome)
-        case _ => rOpt = None()
-      }
-    }
-    rOpt
-  }
+  lazy val scalaHomeOpt: Option[Os.Path] = Some(init.scalaHome)
 
-  lazy val scalacPluginJar: Os.Path = homeOpt match {
-    case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
-    case _ => homeNotFound()
-  }
+  lazy val scalacPluginJar: Os.Path = init.scalacPlugin
 
-  lazy val sireumJar: Os.Path = homeOpt match {
-    case Some(home) => home / "bin" / "sireum.jar"
-    case _ if isNative => initInfo.sireumJar
-    case _ => homeNotFound()
-  }
+  lazy val sireumJar: Os.Path = init.sireumJar
 
   lazy val ideaDir: Os.Path =
     if (platform == "mac") homeOpt.get / "bin" / platform / "idea" / "IVE.app" / "Contents"
@@ -211,12 +174,6 @@ object Sireum {
       eprintln("Please either specify SIREUM_HOME env var or org.sireum.home property in JAVA_OPTS env var.")
       F
     } else T
-  }
-
-  def homeNotFound(): Nothing = {
-    homeFound
-    Os.exit(-1)
-    halt("")
   }
 
   def javaFound: B = {

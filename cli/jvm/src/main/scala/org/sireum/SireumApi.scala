@@ -26,7 +26,6 @@
 
 package org.sireum
 
-import org.sireum._
 import org.sireum.message.Reporter
 
 @ext("Sireum") object SireumApi {
@@ -37,8 +36,6 @@ import org.sireum.message.Reporter
   def platform: String = $
 
   def isNative: B = $
-
-  def initInfo: Init.Info = $
 
   def homeOpt: Option[Os.Path] = $
 
