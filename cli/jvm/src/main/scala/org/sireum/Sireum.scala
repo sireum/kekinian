@@ -478,8 +478,7 @@ object Sireum {
           case Some(o: Cli.SireumProyekStatsOption) =>
             return cli.Proyek.stats(o, reporter)
           case Some(o: Cli.SireumProyekTestOption) =>
-            init.basicDeps()
-            init.proyekCompileDeps()
+            init.deps()
             return cli.Proyek.test(o)
           case Some(o: Cli.SireumProyekTipeOption) =>
             reporter match {
