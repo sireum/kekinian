@@ -71,20 +71,20 @@ def usage(): Unit = {
 val proyekName: String = "sireum-proyek"
 val jarName: String = "sireum"
 
-val homeBin: Os.Path = Os.slashDir
-val home = homeBin.up
+object Versions {
+
+  val homeBin: Os.Path = Os.slashDir
+  val home: Os.Path = homeBin.up.canon
+
+  @memoize def versions: Map[String, String] = {
+    return (home / "versions.properties").properties
+  }
+}
+
+import Versions._
+
 val sireumJar = homeBin / s"$jarName.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
-val versions = (home / "versions.properties").properties
-val cache: Os.Path = Os.env("SIREUM_CACHE") match {
-  case Some(p) =>
-    val d = Os.path(p)
-    if (!d.exists) {
-      d.mkdirAll()
-    }
-    d
-  case _ => Os.home / "Downloads" / "sireum"
-}
 
 def platformKind(kind: Os.Kind.Type): String = {
   kind match {
@@ -479,7 +479,9 @@ def ghpack(): Unit = {
 def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
   build(fresh, F)
-  proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else if (isServer) " --server" else ""}".at(home).console.runCheck()
+  val init = Init(home, Os.kind, versions)
+  init.deps()
+  init.distro(isDev = T, buildSfx = F, isUltimate = isUltimate, isServer = isServer)
   val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
   project(T, isUltimate, isServer)
   Os.kind match {
@@ -588,10 +590,6 @@ if (!builtIn.exists) {
   eprintln("git submodule update --init --recursive --remote")
   Os.exit(-1)
 }
-
-installZ3(Os.kind)
-installCVC(Os.kind)
-installAltErgoOpen(Os.kind)
 
 if (Os.cliArgs.isEmpty) {
   val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified

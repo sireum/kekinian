@@ -55,7 +55,6 @@ object Sireum {
   }
 
   def main(args: Array[Predef.String]): Unit = {
-    init.deps()
     System.exit(run(ISZ(args.toSeq.map(s => s: String): _*)).toInt)
   }
 
@@ -386,22 +385,38 @@ object Sireum {
         return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
-          case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {
-            case Either.Right(code) => return code
-            case _ => return 0
-          }
-          case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
-          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o, reporter)
-          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o, reporter)
-          case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
-          case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
-          case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
-          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o, reporter)
-          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o, reporter)
-          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o, reporter)
-          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o, reporter)
-          case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
+          case Some(o: Cli.SireumSlangTipeOption) =>
+            cli.SlangTipe.run(o, Reporter.create) match {
+              case Either.Right(code) => return code
+              case _ => return 0
+            }
+          case Some(o: Cli.SireumSlangRunOption) =>
+            init.basicDeps()
+            return cli.SlangRunner.run(o)
+          case Some(o: Cli.SireumSlangTranspilersCOption) =>
+            return cli.CTranspiler.run(o, reporter)
+          case Some(o: Cli.SireumToolsBcgenOption) =>
+            init.basicDeps()
+            return cli.GenTools.bcGen(o, reporter)
+          case Some(o: Cli.SireumToolsCheckstackOption) =>
+            return cli.CheckStack.run(o)
+          case Some(o: Cli.SireumToolsCligenOption) =>
+            return cli.GenTools.cliGen(o)
+          case Some(o: Cli.SireumToolsOpgenOption) =>
+            return cli.GenTools.opGen(o, reporter)
+          case Some(o: Cli.SireumToolsSergenOption) =>
+            return cli.GenTools.serGen(o, reporter)
+          case Some(o: Cli.SireumToolsTransgenOption) =>
+            return cli.GenTools.transGen(o, reporter)
+          case Some(o: Cli.SireumHamrCodegenOption) =>
+            init.deps()
+            return cli.HAMR.codeGen(o, reporter)
+          case Some(o: Cli.SireumHamrPhantomOption) =>
+            init.basicDeps()
+            return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
+            init.basicDeps()
+            init.logikaDeps()
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
@@ -410,19 +425,40 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o, reporter)
-          case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
+          case Some(o: Cli.SireumParserGenOption) =>
+            return cli.Parser.gen(o, reporter)
+          case Some(o: Cli.SireumPresentasiText2speechOption) =>
+            return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
+            init.basicDeps()
             val r = NativeUtil.nonNative[Z](-1, () => try cli.Presentasi.gen(o, reporter) finally cli.Presentasi.Ext.shutdown())
             if (r == -1) {
               eprintln("The tool is not available in native mode")
             }
             return r
-          case Some(o: Cli.SireumProyekDepOption) => return cli.Proyek.dep(o)
-          case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
-          case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
-          case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
+          case Some(o: Cli.SireumProyekDepOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.dep(o)
+          case Some(o: Cli.SireumProyekIveOption) =>
+            val isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate
+            val isServer = o.edition == Cli.SireumProyekIveEdition.Server
+            if (o.rebuildIve || !init.ideaDirPath(isUltimate, isServer).exists) {
+              init.distro(isDev = T, buildSfx = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
+                isServer = o.edition == Cli.SireumProyekIveEdition.Server)
+            }
+            return cli.Proyek.ive(o)
+          case Some(o: Cli.SireumProyekAssembleOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.assemble(o)
+          case Some(o: Cli.SireumProyekCompileOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.compile(o)
           case Some(o: Cli.SireumProyekLogikaOption) =>
+            init.basicDeps()
+            init.logikaDeps()
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
               case _ =>
@@ -431,10 +467,20 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
-          case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
-          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o, reporter)
-          case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
+          case Some(o: Cli.SireumProyekPublishOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.publish(o)
+          case Some(o: Cli.SireumProyekRunOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.run(o)
+          case Some(o: Cli.SireumProyekStatsOption) =>
+            return cli.Proyek.stats(o, reporter)
+          case Some(o: Cli.SireumProyekTestOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.test(o)
           case Some(o: Cli.SireumProyekTipeOption) =>
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
@@ -444,8 +490,10 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(_: Cli.HelpOption) => return 0
+          case Some(_: Cli.HelpOption) =>
+            return 0
           case Some(o: Cli.SireumServerOption) =>
+            init.deps()
             homeOpt match {
               case Some(home) =>
                 return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.workers,

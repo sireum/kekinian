@@ -273,7 +273,8 @@ object HAMR {
         docs = po.docs,
         sources = po.sources,
         repositories = po.repositories,
-        empty = F
+        empty = F,
+        rebuildIve = F
       )
       return Proyek.ive(spivo)
     }
