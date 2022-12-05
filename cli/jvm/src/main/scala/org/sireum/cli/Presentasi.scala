@@ -922,20 +922,6 @@ object Presentasi {
           i = i + 1
         }
       case Cli.SireumPresentasiText2speechService.Mary =>
-        if (!maryTtsJar.exists) {
-          val cacheJar: Os.Path = Os.env("SIREUM_CACHE") match {
-            case Some(c) => Os.path(c) / "sireum" / maryTtsJar.name
-            case _ => Os.home / "Downloads" / "sireum" / maryTtsJar.name
-          }
-          maryTtsJar.up.mkdirAll()
-          if (!cacheJar.exists) {
-            cacheJar.up.mkdirAll()
-            println("Please wait while downloading MaryTTS text2wav ...")
-            cacheJar.downloadFrom("https://github.com/sireum/rolling/releases/download/marytts-text2wav/txt2wav.jar")
-            cacheJar.copyOverTo(maryTtsJar)
-          }
-          println()
-        }
         var i = 1
         val tmp = Os.temp()
         tmp.removeOnExit()

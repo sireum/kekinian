@@ -382,14 +382,23 @@ object Sireum {
         println(versions)
         return 0
       case ISZ(string"--setup") =>
+        init.deps()
+        init.installMaryTTS()
+        init.installCheckStack()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
         run(ISZ("proyek", "ive", init.home.string), reporter)
         return 0
       case ISZ(string"--setup-server") =>
+        init.deps()
+        init.installMaryTTS()
+        init.installCheckStack()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
         run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
         return 0
       case ISZ(string"--setup-ultimate") =>
+        init.deps()
+        init.installMaryTTS()
+        init.installCheckStack()
         init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
         run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
         return 0
@@ -411,7 +420,8 @@ object Sireum {
             init.basicDeps()
             return cli.GenTools.bcGen(o, reporter)
           case Some(o: Cli.SireumToolsCheckstackOption) =>
-            return cli.CheckStack.run(o)
+            init.installCheckStack()
+            return cli.CheckStack.run(o, init.checkstack)
           case Some(o: Cli.SireumToolsCligenOption) =>
             return cli.GenTools.cliGen(o)
           case Some(o: Cli.SireumToolsOpgenOption) =>
@@ -440,9 +450,11 @@ object Sireum {
           case Some(o: Cli.SireumParserGenOption) =>
             return cli.Parser.gen(o, reporter)
           case Some(o: Cli.SireumPresentasiText2speechOption) =>
+            init.installJava()
             return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
             init.basicDeps()
+            init.installMaryTTS()
             val r = NativeUtil.nonNative[Z](-1, () => try cli.Presentasi.gen(o, reporter) finally cli.Presentasi.Ext.shutdown())
             if (r == -1) {
               eprintln("The tool is not available in native mode")
