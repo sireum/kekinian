@@ -29,12 +29,6 @@
 $OriginalProgressPreference = $Global:ProgressPreference
 $Global:ProgressPreference = 'SilentlyContinue'
 
-if ($Env:SIREUM_CACHE) {
-  $cache_dir = "$Env:SIREUM_CACHE"
-} else {
-  $cache_dir = "~\Downloads\sireum"
-}
-New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
 if ($Env:SIREUM_INIT_V) {
   $init_v = "$Env:SIREUM_INIT_V"
 } else {
@@ -45,6 +39,13 @@ if ($Env:SIREUM_V) {
 } else {
   $sireum_v = "master"
 }
+if ($Env:SIREUM_CACHE) {
+  $cache_dir = "$Env:SIREUM_CACHE"
+} else {
+  $cache_dir = "~\Downloads\sireum"
+}
+New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
+
 
 $sireum_bin = $args[0]
 $sireum_home = "$sireum_bin\.."
@@ -58,10 +59,10 @@ if (!(Test-Path $sireum_jar)) {
   if (!(Test-Path $sireum_bat)) {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/$sireum_v/bin/sireum.bat" -OutFile "$sireum_bat"
   }
-  if (!(Test-Path $versions_properties)) {
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/$sireum_v/versions.properties" -OutFile "$versions_properties"
-  }
   ""
+}
+if (!(Test-Path $versions_properties)) {
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/$sireum_v/versions.properties" -OutFile "$versions_properties"
 }
 
 
