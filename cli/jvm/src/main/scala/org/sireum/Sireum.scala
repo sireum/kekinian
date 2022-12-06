@@ -47,7 +47,7 @@ object Sireum {
       if (f.exists) {
         f.properties
       } else {
-        SireumApi.versions
+        Map.empty ++ (for (p <- SireumApi.versions.entries) yield (ops.StringOps(p._1).replaceAllChars(':', '%'), p._2))
       }
     }
     r = r(versions = vs)
