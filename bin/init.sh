@@ -106,11 +106,11 @@ if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
   download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar
   chmod +x bin/sireum.jar
-  if [[ ! -f bin/sireum ]]; then
-    download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/bin/sireum
-    chmod +x bin/sireum
-  fi
   echo
+fi
+if [[ ! -f bin/sireum ]]; then
+  download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/bin/sireum
+  chmod +x bin/sireum
 fi
 if [[ ! -f versions.properties ]]; then
   download versions.properties https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/versions.properties

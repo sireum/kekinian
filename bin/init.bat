@@ -56,10 +56,10 @@ $versions_properties = "$sireum_home\versions.properties"
 if (!(Test-Path $sireum_jar)) {
   "Please wait while downloading Sireum ..."
   Invoke-WebRequest -Uri "https://github.com/sireum/init/releases/download/$init_v/sireum.jar" -OutFile "$sireum_jar"
-  if (!(Test-Path $sireum_bat)) {
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/$sireum_v/bin/sireum.bat" -OutFile "$sireum_bat"
-  }
   ""
+}
+if (!(Test-Path $sireum_bat)) {
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/$sireum_v/bin/sireum.bat" -OutFile "$sireum_bat"
 }
 if (!(Test-Path $versions_properties)) {
   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sireum/kekinian/$sireum_v/versions.properties" -OutFile "$versions_properties"
