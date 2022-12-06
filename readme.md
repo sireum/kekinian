@@ -432,6 +432,7 @@ Sireum depends on open source software libraries and applications
 | Library | Maven | License |
 | :--- | :---: | :---: | 
 | [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://search.maven.org/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
+| [Apache Common Compress](https://commons.apache.org/proper/commons-compress) | [(link)](https://search.maven.org/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
@@ -462,8 +463,8 @@ In addition, Sireum includes adaptation of the following artifact:
 
 | Application | License |
 | :--- | :---: |
-| [Alt-Ergo (Free)](https://github.com/OCamlPro/alt-ergo/tree/2.3.3-free) | [Apache 2.0](https://github.com/OCamlPro/alt-ergo/blob/2.3.3-free/Apache-License-2.0.txt) |
 | [Azul Zulu JDK FX](https://www.azul.com/downloads/?package=jdk-fx) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
+| [Alt-Ergo (Free)](https://github.com/OCamlPro/alt-ergo/tree/2.3.3-free) | [Apache 2.0](https://github.com/OCamlPro/alt-ergo/blob/2.3.3-free/Apache-License-2.0.txt) |
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Coursier](https://github.com/coursier/coursier) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
