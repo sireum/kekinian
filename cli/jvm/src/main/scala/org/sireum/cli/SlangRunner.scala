@@ -162,8 +162,8 @@ object SlangRunner {
       Asm.eraseNonNative(jarFile)
       val flags: ISZ[String] = Os.kind match {
         case Os.Kind.Mac => ISZ()
-        case Os.Kind.Linux => ISZ("--static")
-        case Os.Kind.LinuxArm => ISZ("--static")
+        case Os.Kind.Linux => ISZ()
+        case Os.Kind.LinuxArm => ISZ()
         case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
         case _ => return 0
       }
