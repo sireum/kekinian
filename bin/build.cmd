@@ -55,9 +55,9 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
-        |       | jar              | fresh             | native
-        |       | tipe             | compile[-js]      | test
-        |       | verify           | test-verify
+        |       | jar              | fresh             | uber
+        |       | tipe             | compile[-js]      | native
+        |       | test             | verify            | test-verify
         |       | regen-project    | regen-presentasi  | regen-slang
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
@@ -213,7 +213,7 @@ def buildMill(): Unit = {
 }
 
 
-def build(fresh: B, isNative: B): Unit = {
+def build(fresh: B, isNative: B, isUber: B): Unit = {
   println("Building ...")
 
   val recompile: String = if (fresh) {
@@ -231,11 +231,16 @@ def build(fresh: B, isNative: B): Unit = {
     r
   }
   val nativ: String = if (isNative) " --native" else ""
+  val uber: String = if (isUber) " --uber" else ""
 
-  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ $home".console,
+  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ$uber $home".console,
     message.Reporter.create)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
+    if (isUber) {
+      val uberJar = homeBin / s"${sireumJar.name}.bat"
+      (home / "out" / proyekName / "assemble" / uberJar.name).copyOverTo(uberJar)
+    }
     if (isNative) {
       val exePath: Os.Path = Os.kind match {
         case Os.Kind.Win => homeBin / "win" / s"$jarName.exe"
@@ -478,7 +483,7 @@ def ghpack(): Unit = {
 
 def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
-  build(fresh, F)
+  build(fresh, F, F)
   val init = Init(home, Os.kind, versions)
   init.deps()
   init.distro(isDev = T, buildSfx = F, isUltimate = isUltimate, isServer = isServer)
@@ -507,7 +512,7 @@ def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
 
 def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
   if (!skipBuild) {
-    build(F, F)
+    build(F, F, F)
   }
   println("Generating IVE project ...")
   proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
@@ -638,14 +643,15 @@ if (Os.cliArgs.isEmpty) {
       setup(!isCommunity && !isUltimate && fresh, F, T)
     }
   } else {
-    build(fresh, F)
+    build(fresh, F, F)
   }
 } else {
   for (i <- 0 until Os.cliArgs.size) {
     Os.cliArgs(i) match {
-      case string"jar" => build(F, F)
-      case string"fresh" => build(T, F)
-      case string"native" => build(F, T)
+      case string"jar" => build(F, F, F)
+      case string"fresh" => build(T, F, F)
+      case string"uber" => build(F, F, T)
+      case string"native" => build(F, T, F)
       case string"setup" => setup(F, F, F)
       case string"setup-ultimate" => setup(F, T, F)
       case string"setup-server" => setup(F, F, T)
