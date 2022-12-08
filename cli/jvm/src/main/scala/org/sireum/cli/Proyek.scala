@@ -133,8 +133,8 @@ object Proyek {
     val buildCmd = sireumHome / "bin" / "build.cmd"
     val runtimeVerOpt = versions.get(DependencyManager.libraryKey)
     assert(SireumApi.versions.get(DependencyManager.libraryKey).nonEmpty)
-    if ((sireumHome / "bin" / "slang-run.sh").exists && runtimeVerOpt.nonEmpty &&
-      runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
+    if ((sireumHome / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala").exists &&
+      runtimeVerOpt.nonEmpty && runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
       if (!Coursier.isRuntimePublishedLocally(SireumApi.scalaVer, runtimeVerOpt.get)) {
         println()
         println("Publishing Slang runtime library locally ...")
@@ -315,6 +315,7 @@ object Proyek {
         eprintln(s"$p already exists")
         return INVALID_PROJECT
       }
+      val bs = "\\"
       p.writeOver(
         st"""::#! 2> /dev/null                                   #
             |@ 2>/dev/null # 2>nul & echo off & goto BOF         #
@@ -329,7 +330,7 @@ object Proyek {
             |  echo Please set SIREUM_HOME env var
             |  exit /B -1
             |)
-            |%SIREUM_HOME%\bin\sireum.bat slang run "%0" %*
+            |%SIREUM_HOME%${bs}bin${bs}sireum.bat slang run "%0" %*
             |exit /B %errorlevel%
             |::!#
             |// #Sireum
