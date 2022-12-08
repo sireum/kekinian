@@ -127,6 +127,8 @@ respective tool license terms apply).
 
 ### Binary Distributions
 
+#### GitHub Releases
+
 The binary distribution files are available at: https://github.com/sireum/kekinian/releases
 
 Sireum binary distribution files are [7z](https://www.7-zip.org/7z.html) 
@@ -150,6 +152,26 @@ minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -VHm <insta
 
 Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [Using Sireum](#using-sireum).
 
+#### Using Installer Scripts
+
+You can also set up the bleeding edge version of Sireum by downloading and running Sireum's initialization script
+(`curl` is required):
+
+* **macOS/Linux**:
+
+  ```bash
+  (DIR=sireum/bin && mkdir -p $DIR && curl -JLso $DIR/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh && bash $DIR/init.sh)
+  ```
+
+* **Windows**:
+
+  ```cmd
+  cmd /V /C "set DIR=sireum\bin && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.bat && init.bat"
+  ```
+
+To install a specific Sireum version, you can replace `master` with Sireum kekinian commit tip in the URL above,
+and define the `SIREUM_V` environment variable to that same commit tip, as well as setting the `SIREUM_INIT_V`
+environment variable with the corresponding date/release version of https://github.com/sireum/init/releases. 
 
 ### Git Source Distribution
 
