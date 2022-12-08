@@ -55,6 +55,25 @@ object Logika {
       return INVALID_MODE
     }
 
+    if (o.infoFlow && (o.splitAll || o.splitContract || o.splitIf || o.splitMatch)) {
+      if (o.splitAll) {
+        eprintln("Cannot split all paths when info flow verification is enabled")
+        return INVALID_MODE
+      }
+      if (o.splitMatch) {
+        eprintln("Cannot split match-statement when info flow verification is enabled")
+        return INVALID_MODE
+      }
+      if (o.splitIf) {
+        eprintln("Cannot split if-statement when info flow verification is enabled")
+        return INVALID_MODE
+      }
+      if (o.splitContract) {
+        eprintln("Cannot split compositional contract cases when info flow verification is enabled")
+        return INVALID_MODE
+      }
+    }
+
     o.charBitWidth match {
       case z"8" =>
       case z"16" =>
@@ -135,19 +154,20 @@ object Logika {
           case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
           case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
         }
-        val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
-          o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
-          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-          branchParMode, branchParCores, o.logPcLines)
+        val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
+          o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
+          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
+          o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
         val f = Os.path(arg)
         val ext = f.ext
-        val plugins = logika.Logika.defaultPlugins
+        val plugins = logika.Logika.defaultPlugins ++
+          (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config,
-            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-              fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal,
-              config.simplifiedQuery, config.smt2Seq, reporter),
+            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
+              logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, fpRoundingMode, config.charBitWidth,
+              config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, reporter),
             logika.Smt2.NoCache(), reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -224,18 +244,18 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
       val parCores = SireumApi.parCoresOpt(o.par)
-      val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
-        o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
-        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-        logika.Config.BranchPar.All, parCores, o.logPcLines)
+      val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
+        o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
+        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
+        o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
       val plugins = logika.Logika.defaultPlugins
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
       logika.Logika.checkPrograms(sources, files, config, th,
-        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs, th, config.timeoutInMs,
-          config.fpRoundingMode, config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery,
-          config.smt2Seq, reporter),
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
+          logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, config.fpRoundingMode,
+          config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, reporter),
         logika.Smt2.NoCache(), reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0

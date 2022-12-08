@@ -13,6 +13,7 @@
 /bin/mill-standalone
 /bin/scala
 /bin/sireum.jar
+/bin/sireum.jar.bat
 /bin/VER
 /bin/*.sc
 /bsp.log

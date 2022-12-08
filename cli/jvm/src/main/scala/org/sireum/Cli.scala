@@ -138,15 +138,18 @@ object Cli {
     val args: ISZ[String],
     val noRuntime: B,
     val sourcepath: ISZ[String],
+    val infoFlow: B,
     val charBitWidth: Z,
     val fpRounding: SireumLogikaVerifierFPRoundingMode.Type,
     val useReal: B,
     val intBitWidth: Z,
+    val interprocedural: B,
     val line: Z,
+    val loopBound: Z,
+    val callBound: Z,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
-    val unroll: B,
     val logPc: B,
     val logPcLines: B,
     val logRawPc: B,
@@ -238,6 +241,24 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
+  @datatype class SireumProyekDepOption(
+    val help: String,
+    val args: ISZ[String],
+    val js: B,
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String],
+    val cache: Option[String],
+    val docs: B,
+    val sources: B,
+    val repositories: ISZ[String]
+  ) extends SireumTopOption
+
   @enum object SireumProyekIveEdition {
     'Community
     'Ultimate
@@ -248,8 +269,9 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val empty: B,
-    val force: B,
     val edition: SireumProyekIveEdition.Type,
+    val force: B,
+    val rebuildIve: B,
     val javac: ISZ[String],
     val scalac: ISZ[String],
     val ignoreRuntime: B,
@@ -298,15 +320,18 @@ object Cli {
     val docs: B,
     val sources: B,
     val repositories: ISZ[String],
+    val infoFlow: B,
     val charBitWidth: Z,
     val fpRounding: SireumProyekLogikaFPRoundingMode.Type,
     val useReal: B,
     val intBitWidth: Z,
+    val interprocedural: B,
     val line: Z,
+    val loopBound: Z,
+    val callBound: Z,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
-    val unroll: B,
     val logPc: B,
     val logPcLines: B,
     val logRawPc: B,
@@ -666,25 +691,6 @@ object Cli {
     val width: ISZ[Z]
   ) extends SireumTopOption
 
-  @enum object SireumToolsIvegenIveMode {
-    'Idea
-    'Mill
-  }
-
-  @datatype class SireumToolsIvegenOption(
-    val help: String,
-    val args: ISZ[String],
-    val jdk: Option[String],
-    val mode: SireumToolsIvegenIveMode.Type,
-    val projectName: Option[String],
-    val moduleName: Option[String],
-    val packageName: ISZ[String],
-    val appName: Option[String],
-    val millPath: B,
-    val force: B,
-    val compile: B
-  ) extends SireumTopOption
-
   @datatype class SireumToolsOpgenOption(
     val help: String,
     val args: ISZ[String],
@@ -846,15 +852,15 @@ import Cli._
           |                           transpiler.Anvil will intercept the transpiler's
           |                           "--output" flag and use it to create a
           |                           workspace.Each flag/value should be on its own line.
-          |                           For
-          |                           example:
-          --sourcepath
-          path/to/src
-          --name
-          my_project
-          --stable-type-id
-          --unroll
-          ...etc]
+          |                           For example:
+           --sourcepath
+           path/to/src
+           --name
+
+          |                           my_project
+           --stable-type-id
+           --unroll
+           ...etc]
           |                           (expects a path)
           |    --sandbox-path       [Optional path to a sandbox that execution will be
           |                           delegated to.Type "anvil sandbox help" for more
@@ -1453,6 +1459,9 @@ import Cli._
           |                           strings)
           |-h, --help               Display this information
           |
+          |Additional Verifications Options:
+          |    --info-flow          Enable information flow verification
+          |
           |Approximation Options:
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
@@ -1467,8 +1476,15 @@ import Cli._
           |                           default is 0)
           |
           |Control Options:
+          |    --interprocedural    Enable inter-procedural verification for all invoked
+          |                           methods
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
+          |    --loop-bound         Loop bound for inter-procedural verification (expects
+          |                           an integer; min is 1; default is 3)
+          |    --recursive-bound    Recursive call-chain bound for inter-procedural
+          |                           verification (expects an integer; min is 1; default
+          |                           is 3)
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -1476,8 +1492,6 @@ import Cli._
           |    --skip-types         Skip checking traits, classes, and objects with the
           |                           specified fully-qualified names or identifiers
           |                           (expects a string separated by ",")
-          |    --unroll             Enable loop unrolling when loop modifies clause is
-          |                           unspecified
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
@@ -1522,15 +1536,18 @@ import Cli._
 
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
+    var infoFlow: B = false
     var charBitWidth: Z = 32
     var fpRounding: SireumLogikaVerifierFPRoundingMode.Type = SireumLogikaVerifierFPRoundingMode.NearestTiesToEven
     var useReal: B = false
     var intBitWidth: Z = 0
+    var interprocedural: B = false
     var line: Z = 0
+    var loopBound: Z = 3
+    var callBound: Z = 3
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
-    var unroll: B = false
     var logPc: B = false
     var logPcLines: B = false
     var logRawPc: B = false
@@ -1570,6 +1587,12 @@ import Cli._
              case Some(v) => sourcepath = v
              case _ => return None()
            }
+         } else if (arg == "--info-flow") {
+           val o: Option[B] = { j = j - 1; Some(!infoFlow) }
+           o match {
+             case Some(v) => infoFlow = v
+             case _ => return None()
+           }
          } else if (arg == "--c-bitwidth") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
@@ -1594,10 +1617,28 @@ import Cli._
              case Some(v) => intBitWidth = v
              case _ => return None()
            }
+         } else if (arg == "--interprocedural") {
+           val o: Option[B] = { j = j - 1; Some(!interprocedural) }
+           o match {
+             case Some(v) => interprocedural = v
+             case _ => return None()
+           }
          } else if (arg == "--line") {
            val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
            o match {
              case Some(v) => line = v
+             case _ => return None()
+           }
+         } else if (arg == "--loop-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => loopBound = v
+             case _ => return None()
+           }
+         } else if (arg == "--recursive-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => callBound = v
              case _ => return None()
            }
          } else if (arg == "--sat") {
@@ -1616,12 +1657,6 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => skipTypes = v
-             case _ => return None()
-           }
-         } else if (arg == "--unroll") {
-           val o: Option[B] = { j = j - 1; Some(!unroll) }
-           o match {
-             case Some(v) => unroll = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -1753,7 +1788,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1899,6 +1934,7 @@ import Cli._
             |Available modes:
             |assemble                 Proyek jar assembler
             |compile                  Proyek compiler
+            |dep                      Sireum proyek Ivy dependency visualizer
             |ive                      Sireum IVE proyek generator
             |logika                   Sireum Logika for Proyek
             |publish                  Proyek publisher
@@ -1909,10 +1945,11 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("proyek", args, i, ISZ("assemble", "compile", "ive", "logika", "publish", "run", "stats", "test", "tipe"))
+    val opt = select("proyek", args, i, ISZ("assemble", "compile", "dep", "ive", "logika", "publish", "run", "stats", "test", "tipe"))
     opt match {
       case Some(string"assemble") => parseSireumProyekAssemble(args, i + 1)
       case Some(string"compile") => parseSireumProyekCompile(args, i + 1)
+      case Some(string"dep") => parseSireumProyekDep(args, i + 1)
       case Some(string"ive") => parseSireumProyekIve(args, i + 1)
       case Some(string"logika") => parseSireumProyekLogika(args, i + 1)
       case Some(string"publish") => parseSireumProyekPublish(args, i + 1)
@@ -2391,6 +2428,161 @@ import Cli._
     return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
+  def parseSireumProyekDep(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Proyek Ivy Dependency Visualizer
+          |
+          |Usage: <options>* <dir>
+          |
+          |Available Options:
+          |    --js                 Scala.js dependency
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
+          |    --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |    --project            The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
+          |                           a path)
+          |    --slice              Slice the project starting from the given module IDs
+          |                           and their dependencies (expects a string separated
+          |                           by ",")
+          |    --symlink            Follow symbolic link when searching for files
+          |-v, --versions           The properties file(s) containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects path strings)
+          |
+          |Ivy Dependencies Options:
+          |-c, --cache              Ivy cache directory (defaults to Coursier's default
+          |                           cache directory) (expects a path)
+          |    --no-docs            Disable retrieval of javadoc files from Ivy
+          |                           dependencies
+          |    --no-sources         Disable retrieval of source files from Ivy
+          |                           dependencies
+          |-r, --repositories       Additional repository URLs to retrieve Ivy
+          |                           dependencies from (expects a string separated by
+          |                           ",")""".render
+
+    var js: B = false
+    var ignoreRuntime: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var slice: ISZ[String] = ISZ[String]()
+    var symlink: B = false
+    var versions: ISZ[String] = ISZ[String]()
+    var cache: Option[String] = None[String]()
+    var docs: B = true
+    var sources: B = true
+    var repositories: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--js") {
+           val o: Option[B] = { j = j - 1; Some(!js) }
+           o match {
+             case Some(v) => js = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--slice") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--cache") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => cache = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-docs") {
+           val o: Option[B] = { j = j - 1; Some(!docs) }
+           o match {
+             case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-sources") {
+           val o: Option[B] = { j = j - 1; Some(!sources) }
+           o match {
+             case Some(v) => sources = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--repositories") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => repositories = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumProyekDepOption(help, parseArguments(args, j), js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+  }
+
   def parseSireumProyekIveEditionH(arg: String): Option[SireumProyekIveEdition.Type] = {
     arg.native match {
       case "community" => return Some(SireumProyekIveEdition.Community)
@@ -2419,11 +2611,12 @@ import Cli._
           |
           |Available Options:
           |    --empty              Create an empty project definition
-          |-f, --force              Force generation of application-wide configurations
-          |                           (e.g., JDK info, etc.)
           |-e, --edition            IntelliJ edition (auto-detected if there is only one
           |                           installed) (expects one of { community, ultimate,
           |                           server }; default: community)
+          |-f, --force              Force generation of application-wide configurations
+          |                           (e.g., JDK info, etc.)
+          |    --rebuild-ive        Rebuild IVE
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
@@ -2469,8 +2662,9 @@ import Cli._
           |                           ",")""".render
 
     var empty: B = false
-    var force: B = false
     var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
+    var force: B = false
+    var rebuildIve: B = false
     var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
     var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var ignoreRuntime: B = false
@@ -2499,16 +2693,22 @@ import Cli._
              case Some(v) => empty = v
              case _ => return None()
            }
+         } else if (arg == "-e" || arg == "--edition") {
+           val o: Option[SireumProyekIveEdition.Type] = parseSireumProyekIveEdition(args, j + 1)
+           o match {
+             case Some(v) => edition = v
+             case _ => return None()
+           }
          } else if (arg == "-f" || arg == "--force") {
            val o: Option[B] = { j = j - 1; Some(!force) }
            o match {
              case Some(v) => force = v
              case _ => return None()
            }
-         } else if (arg == "-e" || arg == "--edition") {
-           val o: Option[SireumProyekIveEdition.Type] = parseSireumProyekIveEdition(args, j + 1)
+         } else if (arg == "--rebuild-ive") {
+           val o: Option[B] = { j = j - 1; Some(!rebuildIve) }
            o match {
-             case Some(v) => edition = v
+             case Some(v) => rebuildIve = v
              case _ => return None()
            }
          } else if (arg == "--javac") {
@@ -2604,7 +2804,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, force, edition, javac, scalac, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, edition, force, rebuildIve, javac, scalac, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {
@@ -2695,6 +2895,9 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")
           |
+          |Additional Verifications Options:
+          |    --info-flow          Enable information flow verification
+          |
           |Approximation Options:
           |    --c-bitwidth         Bit-width representation for C (character) values
           |                           (expected 8, 16, or 32) (expects an integer; default
@@ -2709,8 +2912,15 @@ import Cli._
           |                           default is 0)
           |
           |Control Options:
+          |    --interprocedural    Enable inter-procedural verification for all invoked
+          |                           methods
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
+          |    --loop-bound         Loop bound for inter-procedural verification (expects
+          |                           an integer; min is 1; default is 3)
+          |    --recursive-bound    Recursive call-chain bound for inter-procedural
+          |                           verification (expects an integer; min is 1; default
+          |                           is 3)
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -2718,8 +2928,6 @@ import Cli._
           |    --skip-types         Skip checking traits, classes, and objects with the
           |                           specified fully-qualified names or identifiers
           |                           (expects a string separated by ",")
-          |    --unroll             Enable loop unrolling when loop modifies clause is
-          |                           unspecified
           |
           |Logging Options:
           |    --log-pc             Display path conditions before each statement
@@ -2777,15 +2985,18 @@ import Cli._
     var docs: B = true
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
+    var infoFlow: B = false
     var charBitWidth: Z = 32
     var fpRounding: SireumProyekLogikaFPRoundingMode.Type = SireumProyekLogikaFPRoundingMode.NearestTiesToEven
     var useReal: B = false
     var intBitWidth: Z = 0
+    var interprocedural: B = false
     var line: Z = 0
+    var loopBound: Z = 3
+    var callBound: Z = 3
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
-    var unroll: B = false
     var logPc: B = false
     var logPcLines: B = false
     var logRawPc: B = false
@@ -2903,6 +3114,12 @@ import Cli._
              case Some(v) => repositories = v
              case _ => return None()
            }
+         } else if (arg == "--info-flow") {
+           val o: Option[B] = { j = j - 1; Some(!infoFlow) }
+           o match {
+             case Some(v) => infoFlow = v
+             case _ => return None()
+           }
          } else if (arg == "--c-bitwidth") {
            val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
@@ -2927,10 +3144,28 @@ import Cli._
              case Some(v) => intBitWidth = v
              case _ => return None()
            }
+         } else if (arg == "--interprocedural") {
+           val o: Option[B] = { j = j - 1; Some(!interprocedural) }
+           o match {
+             case Some(v) => interprocedural = v
+             case _ => return None()
+           }
          } else if (arg == "--line") {
            val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
            o match {
              case Some(v) => line = v
+             case _ => return None()
+           }
+         } else if (arg == "--loop-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => loopBound = v
+             case _ => return None()
+           }
+         } else if (arg == "--recursive-bound") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => callBound = v
              case _ => return None()
            }
          } else if (arg == "--sat") {
@@ -2949,12 +3184,6 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => skipTypes = v
-             case _ => return None()
-           }
-         } else if (arg == "--unroll") {
-           val o: Option[B] = { j = j - 1; Some(!unroll) }
-           o match {
-             case Some(v) => unroll = v
              case _ => return None()
            }
          } else if (arg == "--log-pc") {
@@ -3086,7 +3315,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, charBitWidth, fpRounding, useReal, intBitWidth, line, sat, skipMethods, skipTypes, unroll, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -5207,19 +5436,17 @@ import Cli._
             |bcgen                    Bit encoder/decoder generator
             |checkstack               Native function stack size check tool
             |cligen                   Command-line interface (CLI) generator
-            |ivegen                   Sireum IVE project generator
             |opgen                    Object printer meta-generator
             |sergen                   De/Serializer generator
             |transgen                 Transformer (visitor/rewriter) generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "ivegen", "opgen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "transgen"))
     opt match {
       case Some(string"bcgen") => parseSireumToolsBcgen(args, i + 1)
       case Some(string"checkstack") => parseSireumToolsCheckstack(args, i + 1)
       case Some(string"cligen") => parseSireumToolsCligen(args, i + 1)
-      case Some(string"ivegen") => parseSireumToolsIvegen(args, i + 1)
       case Some(string"opgen") => parseSireumToolsOpgen(args, i + 1)
       case Some(string"sergen") => parseSireumToolsSergen(args, i + 1)
       case Some(string"transgen") => parseSireumToolsTransgen(args, i + 1)
@@ -5590,131 +5817,6 @@ import Cli._
       }
     }
     return Some(SireumToolsCligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, script, width))
-  }
-
-  def parseSireumToolsIvegenIveModeH(arg: String): Option[SireumToolsIvegenIveMode.Type] = {
-    arg.native match {
-      case "idea" => return Some(SireumToolsIvegenIveMode.Idea)
-      case "mill" => return Some(SireumToolsIvegenIveMode.Mill)
-      case s =>
-        eprintln(s"Expecting one of the following: { idea, mill }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumToolsIvegenIveMode(args: ISZ[String], i: Z): Option[SireumToolsIvegenIveMode.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { idea, mill }, but none found.")
-      return None()
-    }
-    val r = parseSireumToolsIvegenIveModeH(args(i))
-    return r
-  }
-
-  def parseSireumToolsIvegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Sireum IVE Project Generator
-          |
-          |Usage: <option>* <project-parent-directory>
-          |
-          |Available Options:
-          |-j, --jdk                JDK name (expects a string; default is "Java")
-          |-m, --mode               Project format (use idea for Slang script project and
-          |                           mill for full Slang development) (expects one of {
-          |                           idea, mill }; default: idea)
-          |-n, --name               Project name (expects a string; default is "hello")
-          |    --module             Module name (default: project name) (expects a string)
-          |-p, --package            Fully qualified app package name (expects a string
-          |                           separated by ".")
-          |    --app                App/script name (default: "app" in mill mode;
-          |                           otherwise, "script") (expects a string)
-          |    --mill-path          Use mill available in the PATH environment variable
-          |                           (only in mill mode)
-          |-f, --force              Force regeneration of JDK and library tables
-          |-c, --no-compile         Only generate mill project without code compilation
-          |-h, --help               Display this information""".render
-
-    var jdk: Option[String] = Some("Java")
-    var mode: SireumToolsIvegenIveMode.Type = SireumToolsIvegenIveMode.Idea
-    var projectName: Option[String] = Some("hello")
-    var moduleName: Option[String] = None[String]()
-    var packageName: ISZ[String] = ISZ[String]()
-    var appName: Option[String] = None[String]()
-    var millPath: B = false
-    var force: B = false
-    var compile: B = true
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "-j" || arg == "--jdk") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => jdk = v
-             case _ => return None()
-           }
-         } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[SireumToolsIvegenIveMode.Type] = parseSireumToolsIvegenIveMode(args, j + 1)
-           o match {
-             case Some(v) => mode = v
-             case _ => return None()
-           }
-         } else if (arg == "-n" || arg == "--name") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => projectName = v
-             case _ => return None()
-           }
-         } else if (arg == "--module") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => moduleName = v
-             case _ => return None()
-           }
-         } else if (arg == "-p" || arg == "--package") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
-           o match {
-             case Some(v) => packageName = v
-             case _ => return None()
-           }
-         } else if (arg == "--app") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => appName = v
-             case _ => return None()
-           }
-         } else if (arg == "--mill-path") {
-           val o: Option[B] = { j = j - 1; Some(!millPath) }
-           o match {
-             case Some(v) => millPath = v
-             case _ => return None()
-           }
-         } else if (arg == "-f" || arg == "--force") {
-           val o: Option[B] = { j = j - 1; Some(!force) }
-           o match {
-             case Some(v) => force = v
-             case _ => return None()
-           }
-         } else if (arg == "-c" || arg == "--no-compile") {
-           val o: Option[B] = { j = j - 1; Some(!compile) }
-           o match {
-             case Some(v) => compile = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(SireumToolsIvegenOption(help, parseArguments(args, j), jdk, mode, projectName, moduleName, packageName, appName, millPath, force, compile))
   }
 
   def parseSireumToolsOpgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {

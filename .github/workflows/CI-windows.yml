@@ -10,30 +10,30 @@ jobs:
       - name: Support longpaths
         run: git config --system core.longpaths true
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: bin\win\java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: bin\scala
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Cache SMT2 solvers
         id: cache-smt2
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             bin\win\cvc.exe
@@ -43,7 +43,7 @@ jobs:
             bin\win\z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
       - name: Configure Pagefile
-        uses: al-cheb/configure-pagefile-action@v1.2
+        uses: al-cheb/configure-pagefile-action@v1.3
         with:
           minimum-size: 8GB
           maximum-size: 16GB
@@ -54,13 +54,13 @@ jobs:
           cd /d %GITHUB_WORKSPACE%
           set errorlevel=
           call .ci\build.bat || goto :error
-          call .ci\build.bat test || goto :error
+          call .ci\build.bat test-verify || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: bin\win\graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal

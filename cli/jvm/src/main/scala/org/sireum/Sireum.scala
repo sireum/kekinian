@@ -30,6 +30,30 @@ import org.sireum.project.DependencyManager
 
 object Sireum {
 
+  private lazy val init: Init = {
+    var r = Os.sireumHomeOpt match {
+      case Some(d) => Init(d, Os.kind, Map.empty)
+      case _ =>
+        val home: Os.Path = Os.kind match {
+          case Os.Kind.Win => Os.home / "AppData" / "Local" / "Sireum"
+          case Os.Kind.Mac => Os.home / "Library" / "Application Support" / "org.sireum"
+          case _ => Os.home / ".sireum"
+        }
+        System.setProperty("org.sireum.home", home.string.value)
+        Init(Os.home / "Applications" / "Sireum", Os.kind, Map.empty)
+    }
+    val vs: Map[String, String] = {
+      val f = r.home / "versions.properties"
+      if (f.exists) {
+        f.properties
+      } else {
+        Map.empty ++ (for (p <- SireumApi.versions.entries) yield (ops.StringOps(p._1).replaceAllChars(':', '%'), p._2))
+      }
+    }
+    r = r(versions = vs)
+    r
+  }
+
   def main(args: Array[Predef.String]): Unit = {
     System.exit(run(ISZ(args.toSeq.map(s => s: String): _*)).toInt)
   }
@@ -80,48 +104,7 @@ object Sireum {
 
   lazy val commitHash: String = $internal.Macro.commitHash
 
-  lazy val initInfo: Init.Info = Init.info(version, versions)
-
-  lazy val homeOpt: Option[Os.Path] = {
-    val rOpt: Option[Os.Path] = {
-      var r = scala.Option(System.getenv("SIREUM_HOME")).map(envVar => Os.path(envVar).canon)
-      if (r.isEmpty) {
-        r = scala.Option(System.getProperty("org.sireum.home")).map(p => Os.path(p).canon)
-      }
-      if (r.nonEmpty) Some(r.get)
-      else try {
-        val cs = getClass.getProtectionDomain.getCodeSource
-        var path =
-          if (cs != null) Os.uriToPath(cs.getLocation.toURI.toASCIIString).up
-          else Os.slashDir.up
-        if (path.name.value == "bin") path = path.up
-        if ((path / "bin" / "sireum.jar").exists && (path / "lib").exists) Some(path) else None()
-      } catch {
-        case _: Throwable => None()
-      }
-    }
-    val scalacPluginJarOpt = rOpt match {
-      case Some(home) => Some(home / "lib" / s"scalac-plugin-$scalacPluginVer.jar")
-      case _ if isNative => Some(initInfo.scalacPlugin)
-      case _ => None()
-    }
-    scalacPluginJarOpt match {
-      case Some(scalacPluginJar) =>
-        if (!scalacPluginJar.exists && !scalacPluginVer.value.contains("SNAPSHOT")) {
-          val scalacPluginCache = Os.home / "Downloads" / "sireum" / s"scalac-plugin-$scalacPluginVer.jar"
-          if (!scalacPluginCache.exists) {
-            scalacPluginCache.up.mkdirAll()
-            println(s"Please wait while downloading Slang scalac-plugin $scalacPluginVer ...")
-            scalacPluginCache.downloadFrom(s"https://github.com/sireum/scalac-plugin/releases/download/$scalacPluginVer/scalac-plugin-$scalacPluginVer.jar")
-            println()
-          }
-          scalacPluginJar.up.mkdirAll()
-          scalacPluginCache.copyOverTo(scalacPluginJar)
-        }
-      case _ =>
-    }
-    rOpt
-  }
+  lazy val homeOpt: Option[Os.Path] = Some(init.home)
 
   lazy val javaHomeOpt: Option[Os.Path] = {
     var rOpt: Option[Os.Path] =
@@ -131,38 +114,17 @@ object Sireum {
       rOpt = Os.env("JAVA_HOME").map(Os.path(_))
       rOpt match {
         case Some(r) if r.exists =>
-        case _ if isNative => rOpt = Some(initInfo.javaHome)
         case _ => rOpt = None()
       }
     }
     rOpt
   }
 
-  lazy val scalaHomeOpt: Option[Os.Path] = {
-    var rOpt: Option[Os.Path] =
-      if (Os.env("SIREUM_PROVIDED_SCALA") == Some("true")) None()
-      else homeOpt.map(_ / "bin" / "scala")
-    if (rOpt.isEmpty || !rOpt.get.exists) {
-      rOpt = Os.env("SCALA_HOME").map(Os.path(_))
-      rOpt match {
-        case Some(r) if r.exists =>
-        case _ if isNative => rOpt = Some(initInfo.scalaHome)
-        case _ => rOpt = None()
-      }
-    }
-    rOpt
-  }
+  lazy val scalaHomeOpt: Option[Os.Path] = Some(init.scalaHome)
 
-  lazy val scalacPluginJar: Os.Path = homeOpt match {
-    case Some(home) => home / "lib" / s"scalac-plugin-$scalacPluginVer.jar"
-    case _ => homeNotFound()
-  }
+  lazy val scalacPluginJar: Os.Path = init.scalacPlugin
 
-  lazy val sireumJar: Os.Path = homeOpt match {
-    case Some(home) => home / "bin" / "sireum.jar"
-    case _ if isNative => initInfo.sireumJar
-    case _ => homeNotFound()
-  }
+  lazy val sireumJar: Os.Path = init.sireumJar
 
   lazy val ideaDir: Os.Path =
     if (platform == "mac") homeOpt.get / "bin" / platform / "idea" / "IVE.app" / "Contents"
@@ -197,11 +159,10 @@ object Sireum {
     r
   }
 
-  lazy val (isDev, javaVer, jbrVer, scalaVer, scalacPluginVer): (B, String, String, String, String) = {
+  lazy val (isDev, javaVer, scalaVer, scalacPluginVer): (B, String, String, String) = {
     import project.DependencyManager._
     (!(Some("false") == versions.get("org.sireum.version.dev")),
       versions.get(javaKey).get,
-      versions.get(jbrKey).get,
       versions.get(scalaKey).get,
       versions.get(scalacPluginKey).get)
   }
@@ -212,12 +173,6 @@ object Sireum {
       eprintln("Please either specify SIREUM_HOME env var or org.sireum.home property in JAVA_OPTS env var.")
       F
     } else T
-  }
-
-  def homeNotFound(): Nothing = {
-    homeFound
-    Os.exit(-1)
-    halt("")
   }
 
   def javaFound: B = {
@@ -291,10 +246,11 @@ object Sireum {
 
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
+                  plugins: ISZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
                   transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults =
-    hamr.codegen.CodeGen.codeGen(model, options, reporter, transpilerCallback, proyekIveCallback)
+    hamr.codegen.CodeGen.codeGen(model, options, plugins, reporter, transpilerCallback, proyekIveCallback)
 
   implicit class GZIS(val gzis: _root_.java.util.zip.GZIPInputStream) extends AnyVal {
 
@@ -425,26 +381,73 @@ object Sireum {
         println()
         println(versions)
         return 0
+      case ISZ(string"--setup") =>
+        init.deps()
+        init.installMaryTTS()
+        init.installCheckStack()
+        init.installScripts()
+        init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
+        if ((init.home / "bin" / "project.cmd").exists) {
+          run(ISZ("proyek", "ive", init.home.string), reporter)
+        }
+        return 0
+      case ISZ(string"--setup-server") =>
+        init.deps()
+        init.installMaryTTS()
+        init.installCheckStack()
+        init.installScripts()
+        init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
+        if ((init.home / "bin" / "project.cmd").exists) {
+          run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
+        }
+        return 0
+      case ISZ(string"--setup-ultimate") =>
+        init.deps()
+        init.installMaryTTS()
+        init.installCheckStack()
+        init.installScripts()
+        init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
+        if ((init.home / "bin" / "project.cmd").exists) {
+          run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
+        }
+        return 0
       case ISZ(string"--test-cli", _*) =>
         return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
-          case Some(o: Cli.SireumSlangTipeOption) => cli.SlangTipe.run(o, Reporter.create) match {
-            case Either.Right(code) => return code
-            case _ => return 0
-          }
-          case Some(o: Cli.SireumSlangRunOption) => return cli.SlangRunner.run(o)
-          case Some(o: Cli.SireumSlangTranspilersCOption) => return cli.CTranspiler.run(o, reporter)
-          case Some(o: Cli.SireumToolsBcgenOption) => return cli.GenTools.bcGen(o, reporter)
-          case Some(o: Cli.SireumToolsCheckstackOption) => return cli.CheckStack.run(o)
-          case Some(o: Cli.SireumToolsCligenOption) => return cli.GenTools.cliGen(o)
-          case Some(o: Cli.SireumToolsIvegenOption) => return cli.GenTools.iveGen(o)
-          case Some(o: Cli.SireumToolsOpgenOption) => return cli.GenTools.opGen(o, reporter)
-          case Some(o: Cli.SireumToolsSergenOption) => return cli.GenTools.serGen(o, reporter)
-          case Some(o: Cli.SireumToolsTransgenOption) => return cli.GenTools.transGen(o, reporter)
-          case Some(o: Cli.SireumHamrCodegenOption) => return cli.HAMR.codeGen(o, reporter)
-          case Some(o: Cli.SireumHamrPhantomOption) => return cli.Phantom.run(o)
+          case Some(o: Cli.SireumSlangTipeOption) =>
+            cli.SlangTipe.run(o, Reporter.create) match {
+              case Either.Right(code) => return code
+              case _ => return 0
+            }
+          case Some(o: Cli.SireumSlangRunOption) =>
+            init.basicDeps()
+            return cli.SlangRunner.run(o)
+          case Some(o: Cli.SireumSlangTranspilersCOption) =>
+            return cli.CTranspiler.run(o, reporter)
+          case Some(o: Cli.SireumToolsBcgenOption) =>
+            init.basicDeps()
+            return cli.GenTools.bcGen(o, reporter)
+          case Some(o: Cli.SireumToolsCheckstackOption) =>
+            init.installCheckStack()
+            return cli.CheckStack.run(o, init.checkstack)
+          case Some(o: Cli.SireumToolsCligenOption) =>
+            return cli.GenTools.cliGen(o)
+          case Some(o: Cli.SireumToolsOpgenOption) =>
+            return cli.GenTools.opGen(o, reporter)
+          case Some(o: Cli.SireumToolsSergenOption) =>
+            return cli.GenTools.serGen(o, reporter)
+          case Some(o: Cli.SireumToolsTransgenOption) =>
+            return cli.GenTools.transGen(o, reporter)
+          case Some(o: Cli.SireumHamrCodegenOption) =>
+            init.deps()
+            return cli.HAMR.codeGen(o, reporter)
+          case Some(o: Cli.SireumHamrPhantomOption) =>
+            init.basicDeps()
+            return cli.Phantom.run(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
+            init.basicDeps()
+            init.logikaDeps()
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
@@ -453,18 +456,42 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(o: Cli.SireumParserGenOption) => return cli.Parser.gen(o, reporter)
-          case Some(o: Cli.SireumPresentasiText2speechOption) => return cli.Presentasi.text2speech(o)
+          case Some(o: Cli.SireumParserGenOption) =>
+            return cli.Parser.gen(o, reporter)
+          case Some(o: Cli.SireumPresentasiText2speechOption) =>
+            init.installJava()
+            return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
+            init.basicDeps()
+            init.installMaryTTS()
             val r = NativeUtil.nonNative[Z](-1, () => try cli.Presentasi.gen(o, reporter) finally cli.Presentasi.Ext.shutdown())
             if (r == -1) {
               eprintln("The tool is not available in native mode")
             }
             return r
-          case Some(o: Cli.SireumProyekIveOption) => return cli.Proyek.ive(o)
-          case Some(o: Cli.SireumProyekAssembleOption) => return cli.Proyek.assemble(o)
-          case Some(o: Cli.SireumProyekCompileOption) => return cli.Proyek.compile(o)
+          case Some(o: Cli.SireumProyekDepOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.dep(o)
+          case Some(o: Cli.SireumProyekIveOption) =>
+            val isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate
+            val isServer = o.edition == Cli.SireumProyekIveEdition.Server
+            if (o.rebuildIve || !init.ideaDirPath(isUltimate, isServer).exists) {
+              init.distro(isDev = T, buildSfx = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
+                isServer = o.edition == Cli.SireumProyekIveEdition.Server)
+            }
+            return cli.Proyek.ive(o)
+          case Some(o: Cli.SireumProyekAssembleOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.assemble(o)
+          case Some(o: Cli.SireumProyekCompileOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.compile(o)
           case Some(o: Cli.SireumProyekLogikaOption) =>
+            init.basicDeps()
+            init.logikaDeps()
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
               case _ =>
@@ -473,10 +500,19 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(o: Cli.SireumProyekPublishOption) => return cli.Proyek.publish(o)
-          case Some(o: Cli.SireumProyekRunOption) => return cli.Proyek.run(o)
-          case Some(o: Cli.SireumProyekStatsOption) => return cli.Proyek.stats(o, reporter)
-          case Some(o: Cli.SireumProyekTestOption) => return cli.Proyek.test(o)
+          case Some(o: Cli.SireumProyekPublishOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.publish(o)
+          case Some(o: Cli.SireumProyekRunOption) =>
+            init.basicDeps()
+            init.proyekCompileDeps()
+            return cli.Proyek.run(o)
+          case Some(o: Cli.SireumProyekStatsOption) =>
+            return cli.Proyek.stats(o, reporter)
+          case Some(o: Cli.SireumProyekTestOption) =>
+            init.deps()
+            return cli.Proyek.test(o)
           case Some(o: Cli.SireumProyekTipeOption) =>
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
@@ -486,10 +522,18 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(o: Cli.SireumAnvilCompileOption) => return cli.Anvil.compile(o)
-          case Some(o: Cli.SireumAnvilSandboxOption) => return cli.Anvil.sandbox(o)
-          case Some(_: Cli.HelpOption) => return 0
+          case Some(_: Cli.HelpOption) =>
+            println(
+              s"""
+                 |Available Standalone Options:
+                 |    --setup              Setup IVE and dependencies
+                 |    --setup-server       Setup IVE (Server) and dependencies
+                 |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
+                 |    --test-cli           Test CLI arguments (expects strings)
+                 |-v, --version            Print version information""".stripMargin)
+            return 0
           case Some(o: Cli.SireumServerOption) =>
+            init.deps()
             homeOpt match {
               case Some(home) =>
                 return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.workers,

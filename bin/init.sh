@@ -24,28 +24,38 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+: ${SIREUM_INIT_V:=latest}
+: ${SIREUM_V:=master}
+: ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
+mkdir -p ${SIREUM_CACHE}
+
+
 function versionNorm {
   printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' ')
 }
 
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
   Z7="${SIREUM_HOME}/bin/win/7za.exe"
+  Z7_URL="https://github.com/sireum/bin-windows/raw/master/7za.exe"
   if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=win
   fi
 elif [[ "$(uname)" == "Darwin" ]]; then
   Z7="${SIREUM_HOME}/bin/mac/7za"
+  Z7_URL="https://github.com/sireum/bin-mac/raw/master/7za"
   if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=mac
   fi
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
   if [[ "$(uname -m)" == "aarch64" ]]; then
     Z7="${SIREUM_HOME}/bin/linux/arm/7za"
+    Z7_URL="https://github.com/sireum/bin-linux/raw/master/arm/7za"
     if [[ -z "${PLATFORM}" ]]; then
       PLATFORM=linux/arm
     fi
   else
     Z7="${SIREUM_HOME}/bin/linux/7za"
+    Z7_URL="https://github.com/sireum/bin-linux/raw/master/7za"
     if [[ -z "${PLATFORM}" ]]; then
       PLATFORM=linux
     fi
@@ -59,19 +69,6 @@ getVersion() {
   grep "^$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
 }
 
-uncompress() {
-  if [ -x "$Z7" ]; then
-    $Z7 x -y $1 > /dev/null
-  elif hash unzip 2>/dev/null; then
-    unzip -qo $1
-  elif hash 7z 2>/dev/null; then
-    7z x -y $1 > /dev/null
-  else
-    >&2 echo "Either unzip or 7z is required, but none found."
-    exit 1
-  fi
-}
-
 download() {
   if hash curl 2>/dev/null; then
     curl -c /dev/null -JLso $1 $2
@@ -83,9 +80,22 @@ download() {
   fi
 }
 
-: ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
-mkdir -p ${SIREUM_CACHE}
-: ${SIREUM_INIT_V:=latest}
+uncompress() {
+  if [ -x "$Z7" ]; then
+    $Z7 x -y $1 > /dev/null
+  elif hash unzip 2>/dev/null; then
+    unzip -qo $1
+  elif hash 7z 2>/dev/null; then
+    7z x -y $1 > /dev/null
+  else
+    echo "Please wait while downloading 7za ..."
+    rm -fR $Z7
+    download $Z7 $Z7_URL
+    chmod +x $Z7
+    echo
+    $Z7 x -y $1 > /dev/null
+  fi
+}
 
 #
 # Sireum
@@ -96,64 +106,14 @@ if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
   download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar
   chmod +x bin/sireum.jar
-  if [[ ! -f bin/sireum ]]; then
-    download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
-    chmod +x bin/sireum
-  fi
-  if [[ ! -f versions.properties ]]; then
-    download versions.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
-  fi
   echo
 fi
-
-
-#
-# scalac plugin
-#
-SCALAC_PLUGIN_VER=$(getVersion "org.sireum%%scalac-plugin%")
-cd ${SIREUM_HOME}/bin
-SCALAC_PLUGIN_DROP=scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-SCALAC_PLUGIN_DROP_URL=https://github.com/sireum/scalac-plugin/releases/download/${SCALAC_PLUGIN_VER}/scalac-plugin-${SCALAC_PLUGIN_VER}.jar
-mkdir -p ${SIREUM_HOME}/lib
-cd ${SIREUM_HOME}/lib
-if [[ ! -f ${SCALAC_PLUGIN_DROP} ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ]]; then
-    echo "Please wait while downloading Slang scalac plugin ${SCALAC_PLUGIN_VER} ..."
-    download ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} ${SCALAC_PLUGIN_DROP_URL}
-    echo
-  fi
-  cp ${SIREUM_CACHE}/${SCALAC_PLUGIN_DROP} .
+if [[ ! -f bin/sireum ]]; then
+  download bin/sireum https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/bin/sireum
+  chmod +x bin/sireum
 fi
-
-
-#
-# Scala
-#
-if [[ -n ${SIREUM_PROVIDED_SCALA} ]]; then
-  exit
-fi
-: ${SCALA_VERSION=$(getVersion "org.scala-lang%scala-library%")}
-cd ${SIREUM_HOME}/bin
-SCALA_DROP_URL=https://github.com/sireum/rolling/releases/download/scala/scala-${SCALA_VERSION}.zip
-SCALA_DROP="${SCALA_DROP_URL##*/}"
-grep -q ${SCALA_VERSION} scala/VER &> /dev/null && SCALA_UPDATE=false || SCALA_UPDATE=true
-if [[ ! -d "scala" ]] || [[ "${SCALA_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${SCALA_DROP} ]]; then
-    echo "Please wait while downloading Scala ${SCALA_VERSION} ..."
-    download ${SIREUM_CACHE}/${SCALA_DROP} ${SCALA_DROP_URL}
-  fi
-  echo "Extracting Scala ${SCALA_VERSION} ..."
-  uncompress ${SIREUM_CACHE}/${SCALA_DROP}
-  echo
-  rm -fR scala
-  mv scala-${SCALA_VERSION} scala
-  if [[ -d "scala/bin" ]]; then
-    echo "${SCALA_VERSION}" > scala/VER
-    chmod +x scala/bin/*
-  else
-    >&2 echo "Could not install Scala ${SCALA_VERSION}."
-    exit 1
-  fi
+if [[ ! -f versions.properties ]]; then
+  download versions.properties https://raw.githubusercontent.com/sireum/kekinian/${SIREUM_V}/versions.properties
 fi
 
 
@@ -189,8 +149,8 @@ elif [[ "${PLATFORM}" == "linux" ]]; then
 elif [[ "${PLATFORM}" == "win" ]]; then
   JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
 fi
-mkdir -p ${PLATFORM}
-cd ${PLATFORM}
+mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
+cd ${SIREUM_HOME}/bin/${PLATFORM}
 JAVA_DROP="${JAVA_DROP_URL##*/}"
 JAVA_DIR="${JAVA_DROP%.*}"
 if [[ ${JAVA_DIR} == *.tar ]]; then
@@ -205,13 +165,11 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
   echo "Extracting ${JAVA_NAME} ${JAVA_VERSION} ..."
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
     tar xf ${SIREUM_CACHE}/${JAVA_DROP}
-    rm -fR java
-    mv ${JAVA_DIR} java
   else
     uncompress ${SIREUM_CACHE}/${JAVA_DROP}
-    rm -fR java
-    mv ${JAVA_DIR} java
   fi
+  rm -fR java
+  mv ${JAVA_DIR} java
   echo
   if [[ -d "java/bin" ]]; then
     chmod +x java/bin/*
@@ -221,4 +179,13 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
     >&2 echo "Could not install ${JAVA_NAME} ${JAVA_VERSION}."
     exit 1
   fi
+fi
+
+
+#
+# Setup
+#
+if [[ ! -f ${SIREUM_HOME}/bin/build.cmd ]] && [[ ! "${SIREUM_NO_SETUP}" = "true" ]]; then
+  export PATH=${SIREUM_HOME}/bin/${PLATFORM}/java/bin:$PATH
+  java -jar ${SIREUM_HOME}/bin/sireum.jar --setup
 fi

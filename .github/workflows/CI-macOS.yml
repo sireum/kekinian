@@ -5,39 +5,39 @@ on: [push]
 jobs:
 
   ci:
-    runs-on: macOS-latest
+    runs-on: macOS-12
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: bin/mac/java
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: bin/scala
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: bin/mac/graal
           key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
       - name: Cache SMT2 solvers
         id: cache-smt2
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             bin/mac/alt-ergo-open
@@ -52,6 +52,6 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
-          .ci/build.sh && .ci/build.sh test
+          .ci/build.sh && .ci/build.sh test-verify
           .ci/mac-native.sh
           rm bin/mac/sireum

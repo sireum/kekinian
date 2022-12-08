@@ -127,6 +127,8 @@ respective tool license terms apply).
 
 ### Binary Distributions
 
+#### GitHub Releases
+
 The binary distribution files are available at: https://github.com/sireum/kekinian/releases
 
 Sireum binary distribution files are [7z](https://www.7-zip.org/7z.html) 
@@ -150,6 +152,32 @@ minisign -P RWShRZe/1tMRHAcQ2162Wq5FhU2ptktJdQxzUxvK0MwVjDYRC4JY87Fb -VHm <insta
 
 Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [Using Sireum](#using-sireum).
 
+#### Using Installer Scripts
+
+You can also set up the bleeding edge version of Sireum by downloading and running Sireum's initialization script
+(`curl` is required; `DIR` can be set to another path for Sireum home bin directory):
+
+* **macOS/Linux**:
+
+  ```bash
+  (DIR=sireum/bin && rm -fR $DIR && mkdir -p $DIR && curl -JLso $DIR/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh && bash $DIR/init.sh)
+  ```
+
+* **Windows**:
+
+  ```cmd
+  cmd /V /C "set DIR=sireum\bin && (if exist !DIR! rd /S /Q !DIR!) && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.bat && init.bat"
+  ```
+
+Note that, the latest pre-built `sireum.jar` might be behind the latest commit, so there might be app/dependency 
+versioning mismatch compared to the source distribution, but it does not require source compilation (faster).
+The pre-built `sireum.jar` is more frequently updated than the GitHub release binary distribution described above,
+and it is what is used to build Sireum itself at every commit.
+
+To ensure there is no versioning mismatch, you can use a specific version of Sireum, by replacing `master` with 
+a kekinian commit tip in the embedded URL in the command line above, and define the `SIREUM_V` environment variable to
+that same commit tip, as well as setting the `SIREUM_INIT_V` environment variable with the corresponding release/date
+version of https://github.com/sireum/init/releases.
 
 ### Git Source Distribution
 
@@ -432,9 +460,9 @@ Sireum depends on open source software libraries and applications
 | Library | Maven | License |
 | :--- | :---: | :---: | 
 | [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://search.maven.org/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
+| [Apache Common Compress](https://commons.apache.org/proper/commons-compress) | [(link)](https://search.maven.org/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
-| [Coursier](https://github.com/coursier/coursier) | [(link)](https://search.maven.org/artifact/io.get-coursier/coursier_2.13) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
@@ -463,9 +491,10 @@ In addition, Sireum includes adaptation of the following artifact:
 
 | Application | License |
 | :--- | :---: |
-| [Alt-Ergo (Free)](https://github.com/OCamlPro/alt-ergo/tree/2.3.3-free) | [Apache 2.0](https://github.com/OCamlPro/alt-ergo/blob/2.3.3-free/Apache-License-2.0.txt) |
 | [Azul Zulu JDK FX](https://www.azul.com/downloads/?package=jdk-fx) | [GPL v2 with "Classpath" exception](https://docs.azul.com/core/tpl) |
+| [Alt-Ergo (Free)](https://github.com/OCamlPro/alt-ergo/tree/2.3.3-free) | [Apache 2.0](https://github.com/OCamlPro/alt-ergo/blob/2.3.3-free/Apache-License-2.0.txt) |
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
+| [Coursier](https://github.com/coursier/coursier) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
 Sireum stores small, pre-built binary executables in its submodule repositories for
@@ -476,7 +505,6 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | Pre-built Executable | License |
 | :--- | :---: |
 | [7-zip](https://sourceforge.net/projects/sevenzip) | [LGPL v2](https://www.7-zip.org/license.txt) |
-| [fsnotifier](https://github.com/JetBrains/intellij-community/tree/master/native/fsNotifier) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
 | [upx](https://github.com/upx/upx) | [GPL v2](https://github.com/upx/upx/blob/devel/LICENSE) |
 

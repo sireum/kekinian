@@ -45,8 +45,7 @@ object Proyek {
   val INVALID_SOURCE_FILE: Z = -11
   val INVALID_CHAR_WIDTH: Z = -12
   val INVALID_INT_WIDTH: Z = -13
-  val INVALID_RAM_DIR: Z = -14
-  val ILL_FORMED_PROGRAMS: Z = -15
+  val ILL_FORMED_PROGRAMS: Z = -14
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -134,9 +133,9 @@ object Proyek {
     val buildCmd = sireumHome / "bin" / "build.cmd"
     val runtimeVerOpt = versions.get(DependencyManager.libraryKey)
     assert(SireumApi.versions.get(DependencyManager.libraryKey).nonEmpty)
-    if ((sireumHome / "bin" / "distro.cmd").exists && runtimeVerOpt.nonEmpty &&
-      runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
-      if (!Coursier.isRuntimePublishedLocally(runtimeVerOpt.get)) {
+    if ((sireumHome / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala").exists &&
+      runtimeVerOpt.nonEmpty && runtimeVerOpt == SireumApi.versions.get(DependencyManager.libraryKey)) {
+      if (!Coursier.isRuntimePublishedLocally(SireumApi.scalaVer, runtimeVerOpt.get)) {
         println()
         println("Publishing Slang runtime library locally ...")
         proc"$buildCmd m2-lib".console.runCheck()
@@ -272,6 +271,39 @@ object Proyek {
     return r
   }
 
+  def dep(o: Cli.SireumProyekDepOption): Z = {
+    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    println()
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = o.js,
+      withSource = F,
+      withDoc = F,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    var deps = ISZ[String]()
+    for (m <- prj.modules.values if prj.poset.childrenOf(m.id).isEmpty) {
+      deps = deps ++ dm.computeTransitiveIvyDeps(m)
+    }
+
+    Coursier.resolve(dm.scalaVersion, dm.cacheOpt, o.repositories, deps, T)
+
+    return 0
+  }
+
   def ive(o: Cli.SireumProyekIveOption): Z = {
     if (o.empty) {
       val p: Os.Path = o.project match {
@@ -283,6 +315,7 @@ object Proyek {
         eprintln(s"$p already exists")
         return INVALID_PROJECT
       }
+      val bs = "\\"
       p.writeOver(
         st"""::#! 2> /dev/null                                   #
             |@ 2>/dev/null # 2>nul & echo off & goto BOF         #
@@ -297,7 +330,7 @@ object Proyek {
             |  echo Please set SIREUM_HOME env var
             |  exit /B -1
             |)
-            |%SIREUM_HOME%\bin\sireum.bat slang run "%0" %*
+            |%SIREUM_HOME%${bs}bin${bs}sireum.bat slang run "%0" %*
             |exit /B %errorlevel%
             |::!#
             |// #Sireum
@@ -380,7 +413,6 @@ object Proyek {
       projectName = projectName,
       dm = dm,
       outDirName = o.outputDirName.get,
-      jbrVersion = SireumApi.jbrVer,
       ideaDir = ideaDir.canon,
       isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
       isServer = o.edition == Cli.SireumProyekIveEdition.Server,
@@ -508,10 +540,10 @@ object Proyek {
       case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
     }
 
-    val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, 3, HashMap.empty, o.unroll,
-      o.charBitWidth, o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F, o.sequential,
-      branchParMode, branchParCores, o.logPcLines)
+    val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
+      o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
+      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
+      o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
 
     val lcode = Analysis.run(
       root = path,
@@ -524,6 +556,7 @@ object Proyek {
       config = config,
       cache = Smt2.NoCache(),
       files = files,
+      filesWatched = F,
       vfiles = files.keys,
       line = o.line,
       par = SireumApi.parCoresOpt(o.par),
@@ -857,8 +890,8 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 3, HashMap.empty, F, 8, 32, F, F, F, F, None(),
-      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F)
+    val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 8, 32, F, F, F, F, None(),
+      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F, F, 3, 3)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",
@@ -870,6 +903,7 @@ object Proyek {
       config = config,
       cache = Smt2.NoCache(),
       files = HashSMap.empty,
+      filesWatched = F,
       vfiles = ISZ(),
       line = 0,
       par = SireumApi.parCoresOpt(o.par),
@@ -885,15 +919,16 @@ object Proyek {
       skipTypes = ISZ(),
       reporter = reporter
     )
-    if (lcode == 0) {
-      println()
-      println("Programs are well-typed!")
-      return 0
-    } else {
+
+    if (reporter.hasIssue) {
       println()
       reporter.printMessages()
-      return ILL_FORMED_PROGRAMS
+    } else if (lcode == 0) {
+      println()
+      println("Programs are well-typed!")
     }
+
+    return if (lcode === 0) 0 else ILL_FORMED_PROGRAMS
   }
 
   def getPath(args: ISZ[String]): Option[Os.Path] = {

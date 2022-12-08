@@ -5,3 +5,4 @@ before_install:
 install:
   - unset JAVA_TOOL_OPTIONS
   - bin/build.cmd m2
+  - rm -fR lib/cache

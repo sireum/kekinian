@@ -49,3 +49,12 @@
 [submodule "parser"]
 	path = parser
 	url = https://github.com/sireum/parser
+[submodule "infoflow"]
+	path = infoflow
+	url = https://github.com/sireum/infoflow
+[submodule "resources"]
+	path = resources
+	url = https://github.com/sireum/resources
+[submodule "bin/install"]
+	path = bin/install
+	url = https://github.com/sireum/bin-install

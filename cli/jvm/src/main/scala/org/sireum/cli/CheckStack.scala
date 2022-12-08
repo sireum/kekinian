@@ -29,7 +29,7 @@ package org.sireum.cli
 import org.sireum._
 
 object CheckStack {
-  def run(o: Cli.SireumToolsCheckstackOption): Z = {
+  def run(o: Cli.SireumToolsCheckstackOption, checkstack: Os.Path): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       return 0
@@ -52,8 +52,7 @@ object CheckStack {
       case Cli.SireumToolsCheckstackCheckStackFormat.Csv => tools.CheckStack.Format.Csv
     }
 
-    return tools.CheckStack.run(SireumApi.homeOpt.get,
-      SireumApi.versions.getOrElse("org.sireum.version.checkstack", "v5.6"),
-      o.args.map((s: String) => Os.path(s)), o.mode == Cli.SireumToolsCheckstackCheckStackMode.Bin, o.objdump.get, arch, format)
+    return tools.CheckStack.run(SireumApi.homeOpt.get, checkstack, o.args.map((s: String) => Os.path(s)),
+      o.mode == Cli.SireumToolsCheckstackCheckStackMode.Bin, o.objdump.get, arch, format)
   }
 }

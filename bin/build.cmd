@@ -1,4 +1,4 @@
-::#! 2> /dev/null                                                                                           #
+::/*#! 2> /dev/null                                                                                         #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
 export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                                    #
 if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                                                #
@@ -45,7 +45,7 @@ exit /B %errorlevel%
 :native
 %~dpnx0.com %*
 exit /B %errorlevel%
-::!#
+::!#*/
 // #Sireum
 
 import org.sireum._
@@ -55,9 +55,9 @@ def usage(): Unit = {
   println(
     st"""Sireum /build
         |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
-        |       | jar              | fresh             | native
-        |       | tipe             | compile[-js]      | test
-        |       | verify
+        |       | jar              | fresh             | uber
+        |       | tipe             | compile[-js]      | native
+        |       | test             | verify            | test-verify
         |       | regen-project    | regen-presentasi  | regen-slang
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-server     | regen-parser      | regen-parser-antlr3
@@ -71,20 +71,20 @@ def usage(): Unit = {
 val proyekName: String = "sireum-proyek"
 val jarName: String = "sireum"
 
-val homeBin: Os.Path = Os.slashDir
-val home = homeBin.up
+object Versions {
+
+  val homeBin: Os.Path = Os.slashDir
+  val home: Os.Path = homeBin.up.canon
+
+  @memoize def versions: Map[String, String] = {
+    return (home / "versions.properties").properties
+  }
+}
+
+import Versions._
+
 val sireumJar = homeBin / s"$jarName.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
-val versions = (home / "versions.properties").properties
-val cache: Os.Path = Os.env("SIREUM_CACHE") match {
-  case Some(p) =>
-    val d = Os.path(p)
-    if (!d.exists) {
-      d.mkdirAll()
-    }
-    d
-  case _ => Os.home / "Downloads" / "sireum"
-}
 
 def platformKind(kind: Os.Kind.Type): String = {
   kind match {
@@ -101,47 +101,7 @@ def platform: String = {
 }
 
 def installZ3(kind: Os.Kind.Type): Unit = {
-  val version = versions.get("org.sireum.version.z3").get
-  val dir = homeBin / platformKind(kind) / "z3"
-  val ver = dir / "VER"
-
-  if (ver.exists && ver.read == version) {
-    return
-  }
-
-  val filename: String = kind match {
-    case Os.Kind.Win => s"z3-$version-x64-win.zip"
-    case Os.Kind.Linux => s"z3-$version-x64-glibc-2.31.zip"
-    case Os.Kind.Mac =>
-      if (ops.StringOps(proc"uname -m".run().out).trim == "arm64") s"z3-$version-arm64-osx-11.0.zip"
-      else s"z3-$version-x64-osx-10.16.zip"
-    case _ => return
-  }
-
-  val bundle = cache / filename
-
-  if (!bundle.exists) {
-    println(s"Please wait while downloading Z3 $version ...")
-    bundle.up.mkdirAll()
-    bundle.downloadFrom(s"https://github.com/Z3Prover/z3/releases/download/z3-$version/$filename")
-    println()
-  }
-
-  println("Extracting Z3 ...")
-  bundle.unzipTo(dir.up)
-
-  for (p <- dir.up.list if ops.StringOps(p.name).startsWith("z3-")) {
-    dir.removeAll()
-    p.moveTo(dir)
-  }
-
-  kind match {
-    case Os.Kind.Linux => (dir / "bin" / "z3").chmod("+x")
-    case Os.Kind.Mac => (dir / "bin" / "z3").chmod("+x")
-    case _ =>
-  }
-
-  ver.writeOver(version)
+  Init(home, kind, versions).installZ3()
 }
 
 
@@ -164,60 +124,7 @@ def z3(): Unit = {
 
 
 def installCVC(kind: Os.Kind.Type): Unit = {
-  def installCVCGen(gen: String, version: String): Unit = {
-    val genOpt: Option[String] = if (gen == "4") None() else Some(gen)
-    val exe = homeBin / platformKind(kind) / (if (kind == Os.Kind.Win) st"cvc$genOpt.exe" else st"cvc$genOpt").render
-    val ver = homeBin / platformKind(kind) / st".cvc$genOpt.ver".render
-
-    val VER = s"$gen-$version"
-
-    if (ver.exists && ver.read == VER) {
-      return
-    }
-
-    val (sub, filename, dropname): (String, String, String) = (gen, kind) match {
-      case (string"5", Os.Kind.Win) => (s"cvc$gen-$version", s"cvc$gen-Win64.exe", s"cvc$gen-$version-Win64.exe")
-      case (string"5", Os.Kind.Linux) => (s"cvc$gen-$version", s"cvc$gen-Linux", s"cvc$gen-$version-Linux")
-      case (string"5", Os.Kind.Mac) =>
-        if (ops.StringOps(proc"uname -m".run().out).trim == "arm64")
-          (s"cvc$gen-$version", s"cvc$gen-macOS-arm64", s"cvc$gen-$version-macOS-arm64")
-        else (s"cvc$gen-$version", s"cvc$gen-macOS", s"cvc$gen-$version-macOS")
-      case (string"4", Os.Kind.Win) => (version, s"cvc$gen-$version-win64-opt.exe", s"cvc$gen-$version-win64-opt.exe")
-      case (string"4", Os.Kind.Linux) => (version, s"cvc$gen-$version-x86_64-linux-opt", s"cvc$gen-$version-x86_64-linux-opt")
-      case (string"4", Os.Kind.Mac) => (version, s"cvc$gen-$version-macos-opt", s"cvc$gen-$version-macos-opt")
-      case _ => return
-    }
-
-    val drop = cache / dropname
-
-    if (!drop.exists) {
-      println(s"Please wait while downloading CVC$gen $version ...")
-      drop.up.mkdirAll()
-      drop.downloadFrom(s"https://github.com/cvc5/cvc5/releases/download/$sub/$filename")
-      println()
-    }
-
-    drop.copyOverTo(exe)
-
-    kind match {
-      case Os.Kind.Linux => exe.chmod("+x")
-      case Os.Kind.Mac => exe.chmod("+x")
-      case _ =>
-    }
-
-    ver.writeOver(VER)
-    println()
-  }
-  val (gen1, genVersion1, gen2, genVersion2): (String, String, String, String) =
-    ops.StringOps(versions.get("org.sireum.version.cvc").get).split((c: C) => c == '-' || c == ',') match {
-      case ISZ(g1, gv1, g2, gv2) => (g1, gv1, g2, gv2)
-      case ISZ(string"1.8") => ("4", "1.8", "4", "1.8")
-      case ISZ(version) => ("5", version, "5", version)
-    }
-  installCVCGen(gen1, genVersion1)
-  if (gen1 != gen2) {
-    installCVCGen(gen2, genVersion2)
-  }
+  Init(home, kind, versions).installCVC()
 }
 
 
@@ -240,35 +147,7 @@ def cvc(): Unit = {
 
 
 def installAltErgoOpen(kind: Os.Kind.Type): Unit = {
-  val version = versions.get("org.sireum.version.alt-ergo-open").get
-  val dir = homeBin / platformKind(kind)
-  val exe = dir / "alt-ergo-open"
-  val ver = dir / ".alt-ergo-open.ver"
-
-  if (ver.exists && ver.read == version) {
-    return
-  }
-
-  val filename: String = kind match {
-    case Os.Kind.Linux => s"alt-ergo-open-$version-linux"
-    case Os.Kind.Mac => s"alt-ergo-open-$version-mac"
-    case _ => return
-  }
-
-  val drop = cache / filename
-
-  if (!drop.exists) {
-    println(s"Please wait while downloading Alt-Ergo $version (Apache 2.0 Licence) ...")
-    drop.up.mkdirAll()
-    drop.downloadFrom(s"https://github.com/sireum/rolling/releases/download/alt-ergo-open/$filename")
-    println()
-  }
-
-  drop.copyOverTo(exe)
-
-  exe.chmod("+x")
-
-  ver.writeOver(version)
+  Init(home, kind, versions).installAltErgoOpen()
 }
 
 
@@ -334,7 +213,7 @@ def buildMill(): Unit = {
 }
 
 
-def build(fresh: B, isNative: B): Unit = {
+def build(fresh: B, isNative: B, isUber: B): Unit = {
   println("Building ...")
 
   val recompile: String = if (fresh) {
@@ -352,11 +231,16 @@ def build(fresh: B, isNative: B): Unit = {
     r
   }
   val nativ: String = if (isNative) " --native" else ""
+  val uber: String = if (isUber) " --uber" else ""
 
-  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ $home".console,
+  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ$uber $home".console,
     message.Reporter.create)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
+    if (isUber) {
+      val uberJar = homeBin / s"${sireumJar.name}.bat"
+      (home / "out" / proyekName / "assemble" / uberJar.name).copyOverTo(uberJar)
+    }
     if (isNative) {
       val exePath: Os.Path = Os.kind match {
         case Os.Kind.Win => homeBin / "win" / s"$jarName.exe"
@@ -406,12 +290,12 @@ def test(): Unit = {
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
     console.echo.runCheck()
   println()
-  verifyRuntime()
 }
 
 
 def verifyRuntime(): Unit = {
   proc"$sireum proyek logika --all --par --par-branch --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
+  println()
 }
 
 
@@ -599,8 +483,10 @@ def ghpack(): Unit = {
 
 def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
-  build(fresh, F)
-  proc"${homeBin / "distro.cmd"}${if (isUltimate) " --ultimate" else if (isServer) " --server" else ""}".at(home).console.runCheck()
+  build(fresh, F, F)
+  val init = Init(home, Os.kind, versions)
+  init.deps()
+  init.distro(isDev = T, buildSfx = F, isUltimate = isUltimate, isServer = isServer)
   val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
   project(T, isUltimate, isServer)
   Os.kind match {
@@ -626,7 +512,7 @@ def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
 
 def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
   if (!skipBuild) {
-    build(F, F)
+    build(F, F, F)
   }
   println("Generating IVE project ...")
   proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
@@ -710,10 +596,6 @@ if (!builtIn.exists) {
   Os.exit(-1)
 }
 
-installZ3(Os.kind)
-installCVC(Os.kind)
-installAltErgoOpen(Os.kind)
-
 if (Os.cliArgs.isEmpty) {
   val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified
   val idea = homeBin / platform / "idea"
@@ -761,14 +643,15 @@ if (Os.cliArgs.isEmpty) {
       setup(!isCommunity && !isUltimate && fresh, F, T)
     }
   } else {
-    build(fresh, F)
+    build(fresh, F, F)
   }
 } else {
   for (i <- 0 until Os.cliArgs.size) {
     Os.cliArgs(i) match {
-      case string"jar" => build(F, F)
-      case string"fresh" => build(T, F)
-      case string"native" => build(F, T)
+      case string"jar" => build(F, F, F)
+      case string"fresh" => build(T, F, F)
+      case string"uber" => build(F, F, T)
+      case string"native" => build(F, T, F)
       case string"setup" => setup(F, F, F)
       case string"setup-ultimate" => setup(F, T, F)
       case string"setup-server" => setup(F, F, T)
@@ -780,6 +663,7 @@ if (Os.cliArgs.isEmpty) {
       case string"compile-js" => compile(T)
       case string"test" => test()
       case string"verify" => verifyRuntime()
+      case string"test-verify" => test(); verifyRuntime()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-logika" => regenLogika()

@@ -26,7 +26,6 @@
 
 package org.sireum
 
-import org.sireum._
 import org.sireum.message.Reporter
 
 @ext("Sireum") object SireumApi {
@@ -37,8 +36,6 @@ import org.sireum.message.Reporter
   def platform: String = $
 
   def isNative: B = $
-
-  def initInfo: Init.Info = $
 
   def homeOpt: Option[Os.Path] = $
 
@@ -65,8 +62,6 @@ import org.sireum.message.Reporter
   def isDev: B = $
 
   def javaVer: String = $
-
-  def jbrVer: String = $
 
   def scalaVer: String = $
 
@@ -98,6 +93,7 @@ import org.sireum.message.Reporter
 
   def hamrCodeGen(model: hamr.ir.Aadl,
                   options: hamr.codegen.common.util.CodeGenConfig,
+                  plugins: ISZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
                   transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $
