@@ -52,3 +52,6 @@
 [submodule "resources"]
 	path = resources
 	url = https://github.com/sireum/resources
+[submodule "bin/install"]
+	path = bin/install
+	url = https://github.com/sireum/bin-install
