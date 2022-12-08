@@ -385,6 +385,7 @@ object Sireum {
         init.deps()
         init.installMaryTTS()
         init.installCheckStack()
+        init.installScripts()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", init.home.string), reporter)
@@ -394,6 +395,7 @@ object Sireum {
         init.deps()
         init.installMaryTTS()
         init.installCheckStack()
+        init.installScripts()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
@@ -403,6 +405,7 @@ object Sireum {
         init.deps()
         init.installMaryTTS()
         init.installCheckStack()
+        init.installScripts()
         init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
