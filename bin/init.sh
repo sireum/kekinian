@@ -180,3 +180,12 @@ if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
     exit 1
   fi
 fi
+
+
+#
+# Setup
+#
+if [[ ! -f ${SIREUM_HOME}/bin/build.cmd ]] && [[ ! "${SIREUM_NO_SETUP}" = "true" ]]; then
+  export PATH=${SIREUM_HOME}/bin/${PLATFORM}/java/bin:$PATH
+  java -jar ${SIREUM_HOME}/bin/sireum.jar --setup
+fi

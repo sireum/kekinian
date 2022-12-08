@@ -106,4 +106,20 @@ if ($java_update) {
   "$java_version" | Set-Content "$java_ver_path"
 }
 
+if ($Env:SIREUM_NO_SETUP) {
+  $sireum_setup = $FALSE
+} else {
+  $sireum_setup = $TRUE
+}
+$build_path = "$sireum_bin\build.cmd"
+if (!(Test-Path "$build_path") -And $sireum_setup) {
+  if (Test-Path "$java_ver_path") {
+    $java = "$sireum_bin\win\java\bin\java.exe"
+  } else {
+    $java = "java"
+  }
+  Start-Process -NoNewWindow -Wait -FilePath "$java" -ArgumentList "-jar $sireum_bin\sireum.jar --setup"
+}
+
+
 $Global:ProgressPreference = $OriginalProgressPreference
