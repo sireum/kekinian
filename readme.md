@@ -155,18 +155,18 @@ Set the `SIREUM_HOME` env var to the Sireum installation path, then proceed to [
 #### Using Installer Scripts
 
 You can also set up the bleeding edge version of Sireum by downloading and running Sireum's initialization script
-(`curl` is required):
+(`curl` is required; `DIR` can be set to another path for Sireum home bin directory):
 
 * **macOS/Linux**:
 
   ```bash
-  (DIR=sireum/bin && mkdir -p $DIR && curl -JLso $DIR/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh && bash $DIR/init.sh)
+  (DIR=sireum/bin && rm -fR $DIR && mkdir -p $DIR && curl -JLso $DIR/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh && bash $DIR/init.sh)
   ```
 
 * **Windows**:
 
   ```cmd
-  cmd /V /C "set DIR=sireum\bin && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.bat && init.bat"
+  cmd /V /C "set DIR=sireum\bin && (if exist !DIR! rd /S /Q !DIR!) && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.bat && init.bat"
   ```
 
 To install a specific Sireum version, you can replace `master` with Sireum kekinian commit tip in the URL above,
