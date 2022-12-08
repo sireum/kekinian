@@ -522,6 +522,8 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
+          case Some(o: Cli.SireumAnvilCompileOption) => return cli.Anvil.compile(o)
+          case Some(o: Cli.SireumAnvilSandboxOption) => return cli.Anvil.sandbox(o)
           case Some(_: Cli.HelpOption) =>
             println(
               s"""
