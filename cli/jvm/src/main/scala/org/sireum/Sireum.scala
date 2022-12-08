@@ -386,21 +386,27 @@ object Sireum {
         init.installMaryTTS()
         init.installCheckStack()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
-        run(ISZ("proyek", "ive", init.home.string), reporter)
+        if ((init.home / "bin" / "project.cmd").exists) {
+          run(ISZ("proyek", "ive", init.home.string), reporter)
+        }
         return 0
       case ISZ(string"--setup-server") =>
         init.deps()
         init.installMaryTTS()
         init.installCheckStack()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
-        run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
+        if ((init.home / "bin" / "project.cmd").exists) {
+          run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
+        }
         return 0
       case ISZ(string"--setup-ultimate") =>
         init.deps()
         init.installMaryTTS()
         init.installCheckStack()
         init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
-        run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
+        if ((init.home / "bin" / "project.cmd").exists) {
+          run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
+        }
         return 0
       case ISZ(string"--test-cli", _*) =>
         return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
