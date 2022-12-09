@@ -29,15 +29,20 @@
 $OriginalProgressPreference = $Global:ProgressPreference
 $Global:ProgressPreference = 'SilentlyContinue'
 
-if ($Env:SIREUM_INIT_V) {
-  $init_v = "$Env:SIREUM_INIT_V"
-} else {
-  $init_v = "latest"
-}
 if ($Env:SIREUM_V) {
   $sireum_v = "$Env:SIREUM_V"
+  if ($Env:SIREUM_INIT_V) {
+    $init_v = "$Env:SIREUM_INIT_V"
+  } else {
+    $init_v = "$sireum_v"
+  }
 } else {
   $sireum_v = "master"
+  if ($Env:SIREUM_INIT_V) {
+    $init_v = "$Env:SIREUM_INIT_V"
+  } else {
+    $init_v = "latest"
+  }
 }
 if ($Env:SIREUM_CACHE) {
   $cache_dir = "$Env:SIREUM_CACHE"

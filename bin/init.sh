@@ -24,8 +24,13 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-: ${SIREUM_INIT_V:=latest}
 : ${SIREUM_V:=master}
+if [[ "${SIREUM_V}" == "master" ]]; then
+  : ${SIREUM_INIT_V:=latest}
+else
+  : ${SIREUM_INIT_V:=${SIREUM_V}}
+fi
+
 : ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
 mkdir -p ${SIREUM_CACHE}
 
