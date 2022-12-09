@@ -31,28 +31,30 @@ $Global:ProgressPreference = 'SilentlyContinue'
 
 if ($Env:SIREUM_V) {
   $sireum_v = "$Env:SIREUM_V"
-  if ($Env:SIREUM_INIT_V) {
-    $init_v = "$Env:SIREUM_INIT_V"
+} else {
+  $sireum_v = "master"
+}
+if ($Env:SIREUM_INIT_V) {
+  $init_v = "$Env:SIREUM_INIT_V"
+} else {
+  if ($sireum_v -eq "master") {
+    $init_v = "latest"
   } else {
-    if($sireum_v.StartsWith('4.')) {
+    if ($sireum_v.StartsWith('4.')) {
       $init_v = "$sireum_v"
     } else {
       $init_v = "4.$sireum_v"
     }
   }
-} else {
-  $sireum_v = "master"
-  if ($Env:SIREUM_INIT_V) {
-    $init_v = "$Env:SIREUM_INIT_V"
-  } else {
-    $init_v = "latest"
-  }
 }
+
 if ($Env:SIREUM_CACHE) {
   $cache_dir = "$Env:SIREUM_CACHE"
 } else {
   $cache_dir = "~\Downloads\sireum"
 }
+"$sireum_v"
+"$init_v"
 New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
 
 
