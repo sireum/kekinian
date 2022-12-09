@@ -175,9 +175,8 @@ The pre-built `sireum.jar` is more frequently updated than the GitHub release bi
 and it is what is used to build Sireum itself at every commit.
 
 To ensure there is no versioning mismatch, you can use a specific version of Sireum, by replacing `master` with 
-a kekinian commit tip in the embedded URL in the command line above, and define the `SIREUM_V` environment variable to
-that same commit tip, as well as setting the `SIREUM_INIT_V` environment variable with the corresponding release/date
-version of https://github.com/sireum/init/releases.
+a kekinian release version or commit tip SHA (without the `4.` prefix) listed at https://github.com/sireum/init/releases
+in the command line embedded URL above, and define the `SIREUM_V` environment variable to that same release/SHA.
 
 ### Git Source Distribution
 
