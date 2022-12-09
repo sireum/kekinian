@@ -53,8 +53,6 @@ if ($Env:SIREUM_CACHE) {
 } else {
   $cache_dir = "~\Downloads\sireum"
 }
-"$sireum_v"
-"$init_v"
 New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
 
 
