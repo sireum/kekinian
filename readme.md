@@ -160,13 +160,13 @@ You can also set up the bleeding edge version of Sireum by downloading and runni
 * **macOS/Linux**:
 
   ```bash
-  (DIR=sireum/bin && rm -fR $DIR && mkdir -p $DIR && curl -JLso $DIR/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh && bash $DIR/init.sh)
+  (DIR=sireum/bin && SIREUM_V=master && rm -fR $DIR && mkdir -p $DIR && cd $DIR && curl -JLso init.sh https://raw.githubusercontent.com/sireum/kekinian/$SIREUM_V/bin/init.sh && bash init.sh)
   ```
 
 * **Windows**:
 
   ```cmd
-  cmd /V /C "set DIR=sireum\bin && (if exist !DIR! rd /S /Q !DIR!) && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.bat && init.bat"
+  cmd /V /C "set DIR=sireum\bin && set SIREUM_V=master&& (if exist !DIR! rd /S /Q !DIR!) && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/!SIREUM_V!/bin/init.bat && init.bat"
   ```
 
 Note that, the latest pre-built `sireum.jar` might be behind the latest commit, so there might be app/dependency 
@@ -175,8 +175,8 @@ The pre-built `sireum.jar` is more frequently updated than the GitHub release bi
 and it is what is used to build Sireum itself at every commit.
 
 To ensure there is no versioning mismatch, you can use a specific version of Sireum, by replacing `master` with 
-a kekinian release version or commit tip SHA (without the `4.` prefix) listed at https://github.com/sireum/init/releases
-in the command line embedded URL above, and define the `SIREUM_V` environment variable to that same release/SHA.
+a release version (> 4.202211*) or commit tip SHA (without the `4.` prefix) listed at
+https://github.com/sireum/init/releases in the command line above.
 
 ### Git Source Distribution
 
