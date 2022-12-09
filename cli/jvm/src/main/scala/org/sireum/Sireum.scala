@@ -30,6 +30,11 @@ import org.sireum.project.DependencyManager
 
 object Sireum {
 
+  private lazy val commitSha: String = {
+    val commitHashOps = ops.StringOps(commitHash)
+    if (commitHashOps.endsWith("*")) commitHashOps.substring(0, commitHashOps.size - 1) else commitHashOps.s
+  }
+
   private lazy val init: Init = {
     var r = Os.sireumHomeOpt match {
       case Some(d) => Init(d, Os.kind, Map.empty)
@@ -373,14 +378,6 @@ object Sireum {
 
   def run(args: ISZ[String], reporter: Reporter = Reporter.create): Z = {
     args match {
-      case ISZ(string"-v") =>
-        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
-        return 0
-      case ISZ(string"--version") =>
-        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
-        println()
-        println(versions)
-        return 0
       case ISZ(string"--setup") =>
         init.deps()
         init.installMaryTTS()
@@ -411,8 +408,19 @@ object Sireum {
           run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
         }
         return 0
+      case ISZ(string"--sha") =>
+        println(commitSha)
+        return 0
       case ISZ(string"--test-cli", _*) =>
         return if (Cli(Os.pathSepChar).parseSireum(ops.ISZOps(args).drop(1), 0).nonEmpty) 0 else -1
+      case ISZ(string"-v") =>
+        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
+        return 0
+      case ISZ(string"--version") =>
+        println(s"Sireum v$version${if (isNative) " (native)" else ""}")
+        println()
+        println(versions)
+        return 0
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
           case Some(o: Cli.SireumSlangTipeOption) =>
@@ -529,6 +537,7 @@ object Sireum {
                  |    --setup              Setup IVE and dependencies
                  |    --setup-server       Setup IVE (Server) and dependencies
                  |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
+                 |    --sha                Print Sireum build SHA commit tip
                  |    --test-cli           Test CLI arguments (expects strings)
                  |-v, --version            Print version information""".stripMargin)
             return 0
