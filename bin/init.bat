@@ -34,7 +34,11 @@ if ($Env:SIREUM_V) {
   if ($Env:SIREUM_INIT_V) {
     $init_v = "$Env:SIREUM_INIT_V"
   } else {
-    $init_v = "$sireum_v"
+    if($sireum_v.StartsWith('4.')) {
+      $init_v = "$sireum_v"
+    } else {
+      $init_v = "4.$sireum_v"
+    }
   }
 } else {
   $sireum_v = "master"

@@ -28,7 +28,13 @@
 if [[ "${SIREUM_V}" == "master" ]]; then
   : ${SIREUM_INIT_V:=latest}
 else
-  : ${SIREUM_INIT_V:=${SIREUM_V}}
+  if [[ -z "${SIREUM_INIT_V}" ]]; then
+    if [[ ${SIREUM_V} == 4.* ]]; then
+      SIREUM_INIT_V=${SIREUM_V}
+    else
+      SIREUM_INIT_V=4.${SIREUM_V}
+    fi
+  fi
 fi
 
 : ${SIREUM_CACHE:="$( cd ~ &> /dev/null && pwd )/Downloads/sireum"}
