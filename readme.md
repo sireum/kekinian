@@ -514,7 +514,6 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
 | [GraalVM](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
 | [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
-| [JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime) | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/JetBrainsRuntime/blob/master/LICENSE) |
 | [Mill](https://github.com/com-lihaoyi/mill) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
 
