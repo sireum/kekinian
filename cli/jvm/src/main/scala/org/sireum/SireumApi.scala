@@ -117,4 +117,6 @@ import org.sireum.message.Reporter
   def parseGrammar(uriOpt: Option[String],
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] = $
+
+  def init: Init = $
 }

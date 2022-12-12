@@ -414,12 +414,13 @@ object Proyek {
       dm = dm,
       outDirName = o.outputDirName.get,
       ideaDir = ideaDir.canon,
-      isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
-      isServer = o.edition == Cli.SireumProyekIveEdition.Server,
       isDev = SireumApi.isDev,
       force = o.force,
       javacOptions = o.javac,
-      scalacOptions = o.scalac
+      scalacOptions = o.scalac,
+      configPath = SireumApi.init.ideaConfig(SireumApi.isDev, o.edition == Cli.SireumProyekIveEdition.Ultimate,
+        if (o.edition == Cli.SireumProyekIveEdition.Server) Some(path) else None()),
+      sandboxPath = SireumApi.init.ideaSandbox(SireumApi.isDev)
     )
 
     return r

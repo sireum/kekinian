@@ -35,7 +35,7 @@ object Sireum {
     if (commitHashOps.endsWith("*")) commitHashOps.substring(0, commitHashOps.size - 1) else commitHashOps.s
   }
 
-  private lazy val init: Init = {
+  lazy val init: Init = {
     var r = Os.sireumHomeOpt match {
       case Some(d) => Init(d, Os.kind, Map.empty)
       case _ =>
