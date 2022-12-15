@@ -64,7 +64,9 @@ def usage(): Unit = {
         |       | regen-cliopt     | regen-cli         | regen-fmide-cli
         |       | regen-json       | m2[-lib[-js]]     | ram
         |       | alt-ergo-open    | cvc               | z3
-        |       | mill             | jitpack           | ghpack                       )*
+        |       | mill             | jitpack           | ghpack
+        |       | distro ( --linux | --linux-arm       | --mac             | --win
+        |                | --sfx   | --ultimate        | --server                  )*  )*
         |""".render)
 }
 
@@ -646,8 +648,11 @@ if (Os.cliArgs.isEmpty) {
     build(fresh, F, F)
   }
 } else {
-  for (i <- 0 until Os.cliArgs.size) {
-    Os.cliArgs(i) match {
+  val cliArgs = Os.cliArgs
+  val size = cliArgs.size
+  var i = 0
+  while (i < size) {
+    cliArgs(i) match {
       case string"jar" => build(F, F, F)
       case string"fresh" => build(T, F, F)
       case string"uber" => build(F, F, T)
@@ -689,10 +694,39 @@ if (Os.cliArgs.isEmpty) {
       case string"z3" => z3()
       case string"-h" => usage()
       case string"--help" => usage()
+      case string"distro" =>
+        var isSfx: B = F
+        var isUltimate: B = F
+        var isServer: B = F
+        var kinds = ISZ[Os.Kind.Type]()
+        i = i + 1
+        while (i < size && ops.StringOps(cliArgs(i)).startsWith("--")) {
+          cliArgs(i) match {
+            case string"--linux" => kinds = kinds :+ Os.Kind.Linux
+            case string"--linux-arm" => kinds = kinds :+ Os.Kind.LinuxArm
+            case string"--mac" => kinds = kinds :+ Os.Kind.Mac
+            case string"--win" => kinds = kinds :+ Os.Kind.Win
+            case string"--sfx" => isSfx = T
+            case opt =>
+              usage()
+              eprintln(s"Unrecognized distro command option: $opt")
+              Os.exit(-1)
+          }
+          i = i + 1
+        }
+        i = i - 1
+        if (kinds.isEmpty) {
+          kinds = kinds :+ Os.kind
+        }
+        for (kind <- kinds) {
+          Init(home, kind, versions).distro(T, isSfx, isUltimate, isServer)
+          println()
+        }
       case cmd =>
         usage()
         eprintln(s"Unrecognized command: $cmd")
         Os.exit(-1)
     }
+    i = i + 1
   }
 }
