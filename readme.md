@@ -160,13 +160,13 @@ You can also set up the bleeding edge version of Sireum by downloading and runni
 * **macOS/Linux**:
 
   ```bash
-  (DIR=sireum/bin && SIREUM_V=master && rm -fR $DIR && mkdir -p $DIR && cd $DIR && curl -JLso init.sh https://raw.githubusercontent.com/sireum/kekinian/$SIREUM_V/bin/init.sh && bash init.sh)
+  (DIR=sireum && SIREUM_V=master && rm -fR $DIR && mkdir -p $DIR/bin && cd $DIR/bin && curl -JLso init.sh https://raw.githubusercontent.com/sireum/kekinian/$SIREUM_V/bin/init.sh && bash init.sh)
   ```
 
 * **Windows**:
 
   ```cmd
-  cmd /V /C "set DIR=sireum\bin && set SIREUM_V=master&& (if exist !DIR! rd /S /Q !DIR!) && md !DIR! && cd !DIR! && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/!SIREUM_V!/bin/init.bat && init.bat"
+  cmd /V /C "set DIR=sireum && set SIREUM_V=master&& (if exist !DIR! rd /S /Q !DIR!) && md !DIR!\bin && cd !DIR!\bin && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/!SIREUM_V!/bin/init.bat && init.bat"
   ```
 
 Note that, the latest pre-built `sireum.jar` might be behind the latest commit, so there might be app/dependency 
