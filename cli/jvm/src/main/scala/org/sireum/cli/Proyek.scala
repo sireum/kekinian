@@ -544,7 +544,8 @@ object Proyek {
     val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
       o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
-      o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
+      o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
+      o.interproceduralContracts)
 
     val lcode = Analysis.run(
       root = path,
@@ -892,7 +893,7 @@ object Proyek {
     )
 
     val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 8, 32, F, F, F, F, None(),
-      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F, F, 3, 3)
+      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F, F, 3, 3, F)
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",

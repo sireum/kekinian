@@ -157,7 +157,8 @@ object Logika {
         val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
           o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
-          o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
+          o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
+          o.interproceduralContracts)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -247,7 +248,8 @@ object Logika {
       val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
-        o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound)
+        o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
+        o.interproceduralContracts)
       val plugins = logika.Logika.defaultPlugins
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty

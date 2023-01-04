@@ -144,6 +144,7 @@ object Cli {
     val useReal: B,
     val intBitWidth: Z,
     val interprocedural: B,
+    val interproceduralContracts: B,
     val line: Z,
     val loopBound: Z,
     val callBound: Z,
@@ -326,6 +327,7 @@ object Cli {
     val useReal: B,
     val intBitWidth: Z,
     val interprocedural: B,
+    val interproceduralContracts: B,
     val line: Z,
     val loopBound: Z,
     val callBound: Z,
@@ -1470,6 +1472,8 @@ import Cli._
           |Control Options:
           |    --interprocedural    Enable inter-procedural verification for all invoked
           |                           methods
+          |    --interprocedural-contracts
+          |                          Use contracts in inter-procedural verification
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --loop-bound         Loop bound for inter-procedural verification (expects
@@ -1534,6 +1538,7 @@ import Cli._
     var useReal: B = false
     var intBitWidth: Z = 0
     var interprocedural: B = false
+    var interproceduralContracts: B = false
     var line: Z = 0
     var loopBound: Z = 3
     var callBound: Z = 3
@@ -1613,6 +1618,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!interprocedural) }
            o match {
              case Some(v) => interprocedural = v
+             case _ => return None()
+           }
+         } else if (arg == "--interprocedural-contracts") {
+           val o: Option[B] = { j = j - 1; Some(!interproceduralContracts) }
+           o match {
+             case Some(v) => interproceduralContracts = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -1780,7 +1791,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2906,6 +2917,8 @@ import Cli._
           |Control Options:
           |    --interprocedural    Enable inter-procedural verification for all invoked
           |                           methods
+          |    --interprocedural-contracts
+          |                          Use contracts in inter-procedural verification
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --loop-bound         Loop bound for inter-procedural verification (expects
@@ -2983,6 +2996,7 @@ import Cli._
     var useReal: B = false
     var intBitWidth: Z = 0
     var interprocedural: B = false
+    var interproceduralContracts: B = false
     var line: Z = 0
     var loopBound: Z = 3
     var callBound: Z = 3
@@ -3140,6 +3154,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!interprocedural) }
            o match {
              case Some(v) => interprocedural = v
+             case _ => return None()
+           }
+         } else if (arg == "--interprocedural-contracts") {
+           val o: Option[B] = { j = j - 1; Some(!interproceduralContracts) }
+           o match {
+             case Some(v) => interproceduralContracts = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -3307,7 +3327,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
