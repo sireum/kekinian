@@ -3,7 +3,7 @@
 @@if defined POWERSHELL_BAT_ARGS set POWERSHELL_BAT_ARGS=%POWERSHELL_BAT_ARGS:"=\"%
 @@PowerShell -noprofile -executionpolicy bypass -Command Invoke-Expression $('$args=@(^&{$args} %POWERSHELL_BAT_ARGS%);'+[String]::Join([char]10,$((Get-Content '%~f0') -notmatch '^^@@'))) & goto :EOF
 
-# Copyright (c) 2017-2022, Robby, Kansas State University
+# Copyright (c) 2017-2023, Robby, Kansas State University
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
