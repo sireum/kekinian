@@ -169,7 +169,10 @@ You can also set up the bleeding edge version of Sireum by downloading and runni
   cmd /V /C "set DIR=sireum && set SIREUM_V=master&& (if exist !DIR! rd /S /Q !DIR!) && md !DIR!\bin && cd !DIR!\bin && curl -JLso init.bat https://raw.githubusercontent.com/sireum/kekinian/!SIREUM_V!/bin/init.bat && init.bat"
   ```
 
-Note that, the latest pre-built `sireum.jar` might be behind the latest commit, so there might be app/dependency 
+Note that this installation approach is using GitHub anonymous connection, thus subject to rate limiting.
+To remove the limit, set the `GITHUB_TOKEN` environment variable to one of your GitHub tokens. 
+
+Also note that, the latest pre-built `sireum.jar` might be behind the latest commit, so there might be app/dependency 
 versioning mismatch compared to the source distribution, but it does not require source compilation (faster).
 The pre-built `sireum.jar` is more frequently updated than the GitHub release binary distribution described above,
 and it is what is used to build Sireum itself at every commit.
