@@ -164,6 +164,8 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
+    val elideEncoding: B,
+    val rawInscription: B,
     val rlimit: Z,
     val sequential: B,
     val simplify: B,
@@ -347,6 +349,8 @@ object Cli {
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
+    val elideEncoding: B,
+    val rawInscription: B,
     val rlimit: Z,
     val sequential: B,
     val simplify: B,
@@ -1517,6 +1521,8 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
+          |    --elide-encoding     Strip out SMT2 encoding in feedback
+          |    --raw-inscription    Use raw sequent/sat preamble inscription
           |    --rlimit             SMT2 solver resource limit (expects an integer; min is
           |                           0; default is 2000000)
           |    --smt2-seq           Disable SMT2 solvers parallelization
@@ -1558,6 +1564,8 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
+    var elideEncoding: B = false
+    var rawInscription: B = false
     var rlimit: Z = 2000000
     var sequential: B = false
     var simplify: B = false
@@ -1746,6 +1754,18 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
+         } else if (arg == "--elide-encoding") {
+           val o: Option[B] = { j = j - 1; Some(!elideEncoding) }
+           o match {
+             case Some(v) => elideEncoding = v
+             case _ => return None()
+           }
+         } else if (arg == "--raw-inscription") {
+           val o: Option[B] = { j = j - 1; Some(!rawInscription) }
+           o match {
+             case Some(v) => rawInscription = v
+             case _ => return None()
+           }
          } else if (arg == "--rlimit") {
            val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
            o match {
@@ -1791,7 +1811,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2962,6 +2982,8 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |SMT2 Options:
+          |    --elide-encoding     Strip out SMT2 encoding in feedback
+          |    --raw-inscription    Use raw sequent/sat preamble inscription
           |    --rlimit             SMT2 solver resource limit (expects an integer; min is
           |                           0; default is 2000000)
           |    --smt2-seq           Disable SMT2 solvers parallelization
@@ -3016,6 +3038,8 @@ import Cli._
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
+    var elideEncoding: B = false
+    var rawInscription: B = false
     var rlimit: Z = 2000000
     var sequential: B = false
     var simplify: B = false
@@ -3282,6 +3306,18 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
+         } else if (arg == "--elide-encoding") {
+           val o: Option[B] = { j = j - 1; Some(!elideEncoding) }
+           o match {
+             case Some(v) => elideEncoding = v
+             case _ => return None()
+           }
+         } else if (arg == "--raw-inscription") {
+           val o: Option[B] = { j = j - 1; Some(!rawInscription) }
+           o match {
+             case Some(v) => rawInscription = v
+             case _ => return None()
+           }
          } else if (arg == "--rlimit") {
            val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
            o match {
@@ -3327,7 +3363,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

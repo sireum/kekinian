@@ -545,7 +545,7 @@ object Proyek {
       o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
       o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-      o.interproceduralContracts)
+      o.interproceduralContracts, o.rawInscription, o.elideEncoding)
 
     val lcode = Analysis.run(
       root = path,
@@ -892,8 +892,39 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
-    val config = org.sireum.logika.Config(ISZ(), 0, F, 0, 0, 8, 32, F, F, F, F, None(),
-      F, F, F, F, F, F, F, "RNE", F, F, org.sireum.logika.Config.BranchPar.Disabled, 0, F, F, 3, 3, F)
+    val config = org.sireum.logika.Config(
+      smt2Configs = ISZ(),
+      parCores = 1,
+      sat = F,
+      rlimit = 1000000,
+      timeoutInMs = 2000,
+      charBitWidth = 32,
+      intBitWidth = 0,
+      useReal = F,
+      logPc = F,
+      logRawPc = F,
+      logVc = F,
+      logVcDirOpt = None(),
+      dontSplitPfq = F,
+      splitAll = F,
+      splitContract = F,
+      splitIf = F,
+      splitMatch = F,
+      simplifiedQuery = F,
+      checkInfeasiblePatternMatch = T,
+      fpRoundingMode = "RNE",
+      caching = F,
+      smt2Seq = F,
+      branchPar = org.sireum.logika.Config.BranchPar.All,
+      branchParCores = 1,
+      atLinesFresh = F,
+      interp = F,
+      loopBound = 3,
+      callBound = 3,
+      interpContracts = F,
+      rawInscription = F,
+      elideEncoding = F
+    )
     val lcode = Analysis.run(
       root = path,
       outDirName = "out",

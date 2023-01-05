@@ -158,7 +158,7 @@ object Logika {
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
           o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
           o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-          o.interproceduralContracts)
+          o.interproceduralContracts, o.rawInscription, o.elideEncoding)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -168,7 +168,8 @@ object Logika {
           logika.Logika.checkScript(Some(f.value), content, config,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
               logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, fpRoundingMode, config.charBitWidth,
-              config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, reporter),
+              config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, config.rawInscription,
+              config.elideEncoding, config.atLinesFresh, reporter),
             logika.Smt2.NoCache(), reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -249,7 +250,7 @@ object Logika {
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
         o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-        o.interproceduralContracts)
+        o.interproceduralContracts, o.rawInscription, o.elideEncoding)
       val plugins = logika.Logika.defaultPlugins
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
@@ -257,7 +258,8 @@ object Logika {
       logika.Logika.checkPrograms(sources, files, config, th,
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
           logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, config.fpRoundingMode,
-          config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, reporter),
+          config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq,
+          config.rawInscription, config.elideEncoding, config.atLinesFresh, reporter),
         logika.Smt2.NoCache(), reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
