@@ -377,7 +377,26 @@ object Sireum {
   }
 
   def run(args: ISZ[String], reporter: Reporter = Reporter.create): Z = {
+    def printAdditionalHelp(): Unit = {
+      println(
+        s"""
+           |Available Standalone Options:
+           |    --setup              Setup IVE and dependencies
+           |    --setup-server       Setup IVE (Server) and dependencies
+           |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
+           |    --sha                Print Sireum build SHA commit tip
+           |    --test-cli           Test CLI arguments (expects strings)
+           |-v, --version            Print version information""".stripMargin)
+    }
     args match {
+      case ISZ(string"-h") =>
+        Cli(Os.pathSepChar).parseSireum(ISZ(), 0)
+        printAdditionalHelp()
+        return 0
+      case ISZ(string"--help") =>
+        Cli(Os.pathSepChar).parseSireum(ISZ(), 0)
+        printAdditionalHelp()
+        return 0
       case ISZ(string"--setup") =>
         init.deps()
         init.installMaryTTS()
@@ -531,15 +550,9 @@ object Sireum {
                 return exitCode
             }
           case Some(_: Cli.HelpOption) =>
-            println(
-              s"""
-                 |Available Standalone Options:
-                 |    --setup              Setup IVE and dependencies
-                 |    --setup-server       Setup IVE (Server) and dependencies
-                 |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
-                 |    --sha                Print Sireum build SHA commit tip
-                 |    --test-cli           Test CLI arguments (expects strings)
-                 |-v, --version            Print version information""".stripMargin)
+            if (args.isEmpty) {
+              printAdditionalHelp()
+            }
             return 0
           case Some(o: Cli.SireumServerOption) =>
             init.deps()
