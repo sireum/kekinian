@@ -327,7 +327,7 @@ def regenCliOpt(): Unit = {
 def regenSlang(): Unit = {
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangPackagePath = home / "slang" / "tipe" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang"
-  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", astPackagePath.string, s"${astPackagePath / "AST.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
@@ -339,7 +339,7 @@ def regenSlang(): Unit = {
 
 def regenLogika(): Unit = {
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
-  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-e", "Composite",
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-e", "Composite",
     "-m", "immutable,mutable", "-n", "State", "-o", logikaPackagePath.string,
     s"${logikaPackagePath / "State.scala"}")).console, message.Reporter.create)
 }
@@ -353,7 +353,7 @@ def regenAir(): Unit = {
   val slangPath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangAsts = ISZ[String]("AST.scala", "Typed.scala").map((m: String) => (slangPath / m).value)
 
-  Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "transgen", "-l", s"${airRootPath / "license.txt"}",
+  Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "trafo", "-l", s"${airRootPath / "license.txt"}",
     "-m", "immutable,mutable", "-o", airPath.string) ++ airAsts ++ slangAsts).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ[String](sireum.string, "tools", "sergen", "-p", "org.sireum.hamr.ir", "-l",
     s"${airRootPath / "license.txt"}", "-m", "json,msgpack", "-o", airPath.string) ++ airAsts ++ slangAsts).console,
@@ -363,7 +363,7 @@ def regenAir(): Unit = {
 
 def regenAct(): Unit = {
   val actPackagePath = home / "hamr" / "codegen" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "act" / "ast"
-  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "transgen", "-l", s"${home / "license.txt"}", "-m",
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", actPackagePath.string, s"${actPackagePath / "ActAst.scala"}")).console,
     message.Reporter.create)
 }

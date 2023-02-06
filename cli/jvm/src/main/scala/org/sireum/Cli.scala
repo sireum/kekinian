@@ -722,18 +722,20 @@ object Cli {
     val outputDir: Option[String]
   ) extends SireumTopOption
 
-  @enum object SireumToolsTransgenTransformerMode {
+  @enum object SireumToolsTrafoTransformerMode {
     'Immutable
     'Mutable
+    'Rimmutable
+    'Rmutable
   }
 
-  @datatype class SireumToolsTransgenOption(
+  @datatype class SireumToolsTrafoOption(
     val help: String,
     val args: ISZ[String],
     val exclude: ISZ[String],
-    val modes: ISZ[SireumToolsTransgenTransformerMode.Type],
-    val name: Option[String],
     val license: Option[String],
+    val modes: ISZ[SireumToolsTrafoTransformerMode.Type],
+    val name: Option[String],
     val outputDir: Option[String]
   ) extends SireumTopOption
 }
@@ -5443,18 +5445,18 @@ import Cli._
             |cligen                   Command-line interface (CLI) generator
             |opgen                    Object printer meta-generator
             |sergen                   De/Serializer generator
-            |transgen                 Transformer (visitor/rewriter) generator""".render
+            |trafo                    Transformer (visitor/rewriter) generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "transgen"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "trafo"))
     opt match {
       case Some(string"bcgen") => parseSireumToolsBcgen(args, i + 1)
       case Some(string"checkstack") => parseSireumToolsCheckstack(args, i + 1)
       case Some(string"cligen") => parseSireumToolsCligen(args, i + 1)
       case Some(string"opgen") => parseSireumToolsOpgen(args, i + 1)
       case Some(string"sergen") => parseSireumToolsSergen(args, i + 1)
-      case Some(string"transgen") => parseSireumToolsTransgen(args, i + 1)
+      case Some(string"trafo") => parseSireumToolsTrafo(args, i + 1)
       case _ => return None()
     }
   }
@@ -6076,33 +6078,35 @@ import Cli._
     return Some(SireumToolsSergenOption(help, parseArguments(args, j), modes, packageName, name, license, outputDir))
   }
 
-  def parseSireumToolsTransgenTransformerModeH(arg: String): Option[SireumToolsTransgenTransformerMode.Type] = {
+  def parseSireumToolsTrafoTransformerModeH(arg: String): Option[SireumToolsTrafoTransformerMode.Type] = {
     arg.native match {
-      case "immutable" => return Some(SireumToolsTransgenTransformerMode.Immutable)
-      case "mutable" => return Some(SireumToolsTransgenTransformerMode.Mutable)
+      case "immutable" => return Some(SireumToolsTrafoTransformerMode.Immutable)
+      case "mutable" => return Some(SireumToolsTrafoTransformerMode.Mutable)
+      case "rimmutable" => return Some(SireumToolsTrafoTransformerMode.Rimmutable)
+      case "rmutable" => return Some(SireumToolsTrafoTransformerMode.Rmutable)
       case s =>
-        eprintln(s"Expecting one of the following: { immutable, mutable }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { immutable, mutable, rimmutable, rmutable }, but found '$s'.")
         return None()
     }
   }
 
-  def parseSireumToolsTransgenTransformerMode(args: ISZ[String], i: Z): Option[SireumToolsTransgenTransformerMode.Type] = {
+  def parseSireumToolsTrafoTransformerMode(args: ISZ[String], i: Z): Option[SireumToolsTrafoTransformerMode.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { immutable, mutable }, but none found.")
+      eprintln("Expecting one of the following: { immutable, mutable, rimmutable, rmutable }, but none found.")
       return None()
     }
-    val r = parseSireumToolsTransgenTransformerModeH(args(i))
+    val r = parseSireumToolsTrafoTransformerModeH(args(i))
     return r
   }
 
-  def parseSireumToolsTransgenTransformerModes(args: ISZ[String], i: Z): Option[ISZ[SireumToolsTransgenTransformerMode.Type]] = {
-    val tokensOpt = tokenize(args, i, "SireumToolsTransgenTransformerMode", ',', T)
+  def parseSireumToolsTrafoTransformerModes(args: ISZ[String], i: Z): Option[ISZ[SireumToolsTrafoTransformerMode.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumToolsTrafoTransformerMode", ',', T)
     if (tokensOpt.isEmpty) {
       return None()
     }
-    var r = ISZ[SireumToolsTransgenTransformerMode.Type]()
+    var r = ISZ[SireumToolsTrafoTransformerMode.Type]()
     for (token <- tokensOpt.get) {
-      val e = parseSireumToolsTransgenTransformerModeH(token)
+      val e = parseSireumToolsTrafoTransformerModeH(token)
       e match {
         case Some(v) => r = r :+ v
         case _ => return None()
@@ -6111,7 +6115,7 @@ import Cli._
     return Some(r)
   }
 
-  def parseSireumToolsTransgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+  def parseSireumToolsTrafo(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Transformer Generator
           |
@@ -6121,20 +6125,20 @@ import Cli._
           |-e, --exclude            Exclude generating top-level transform for the
           |                           specified type identifiers (expects a string
           |                           separated by ",")
-          |-m, --modes              Transformer mode (expects one or more of { immutable,
-          |                           mutable }; default: immutable)
-          |-n, --name               Type simple name for the transformers (default:
-          |                           "Transformer" or "MTransformer") (expects a string)
           |-l, --license            License file to be inserted in the file header
           |                           (expects a path)
+          |-m, --modes              Transformer mode (expects one or more of { immutable,
+          |                           mutable, rimmutable, rmutable }; default: immutable)
+          |-n, --name               Type simple name for the transformers (default:
+          |                           "Transformer" or "MTransformer") (expects a string)
           |-o, --output-dir         Output directory for the generated transformer Slang
           |                           files (expects a path; default is ".")
           |-h, --help               Display this information""".render
 
     var exclude: ISZ[String] = ISZ[String]()
-    var modes: ISZ[SireumToolsTransgenTransformerMode.Type] = ISZ(SireumToolsTransgenTransformerMode.Immutable)
-    var name: Option[String] = None[String]()
     var license: Option[String] = None[String]()
+    var modes: ISZ[SireumToolsTrafoTransformerMode.Type] = ISZ(SireumToolsTrafoTransformerMode.Immutable)
+    var name: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
     var j = i
     var isOption = T
@@ -6150,8 +6154,14 @@ import Cli._
              case Some(v) => exclude = v
              case _ => return None()
            }
+         } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
          } else if (arg == "-m" || arg == "--modes") {
-           val o: Option[ISZ[SireumToolsTransgenTransformerMode.Type]] = parseSireumToolsTransgenTransformerModes(args, j + 1)
+           val o: Option[ISZ[SireumToolsTrafoTransformerMode.Type]] = parseSireumToolsTrafoTransformerModes(args, j + 1)
            o match {
              case Some(v) => modes = v
              case _ => return None()
@@ -6160,12 +6170,6 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => name = v
-             case _ => return None()
-           }
-         } else if (arg == "-l" || arg == "--license") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => license = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--output-dir") {
@@ -6183,7 +6187,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumToolsTransgenOption(help, parseArguments(args, j), exclude, modes, name, license, outputDir))
+    return Some(SireumToolsTrafoOption(help, parseArguments(args, j), exclude, license, modes, name, outputDir))
   }
 
   def parseSireumX(args: ISZ[String], i: Z): Option[SireumTopOption] = {

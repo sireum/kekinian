@@ -279,7 +279,7 @@ object GenTools {
     return 0
   }
 
-  def transGen(o: Cli.SireumToolsTransgenOption, reporter: Reporter): Z = {
+  def transGen(o: Cli.SireumToolsTrafoOption, reporter: Reporter): Z = {
     o.args.size match {
       case z"0" => println(o.help); return 0
       case _ =>
@@ -292,26 +292,46 @@ object GenTools {
       return -1
     }
     for (m <- o.modes) {
-      val (name, mode): (String, B) = m match {
-        case Cli.SireumToolsTransgenTransformerMode.Immutable =>
+      val (name, isImmutable, isReversed): (String, B, B) = m match {
+        case Cli.SireumToolsTrafoTransformerMode.Immutable =>
           (
             if (o.modes.size > 1)
               if (o.name.isEmpty) "Transformer" else s"${o.name.get}Transformer"
             else if (o.name.isEmpty) "Transformer"
             else o.name.get,
-            T
+            T,
+            F
           )
-        case Cli.SireumToolsTransgenTransformerMode.Mutable =>
+        case Cli.SireumToolsTrafoTransformerMode.Mutable =>
           (
             if (o.modes.size > 1)
               if (o.name.isEmpty) "MTransformer" else s"M${o.name.get}Transformer"
             else if (o.name.isEmpty) "MTransformer"
             else o.name.get,
+            F,
             F
+          )
+        case Cli.SireumToolsTrafoTransformerMode.Rimmutable =>
+          (
+            if (o.modes.size > 1)
+              if (o.name.isEmpty) "RTransformer" else s"R${o.name.get}Transformer"
+            else if (o.name.isEmpty) "RTransformer"
+            else o.name.get,
+            T,
+            T
+          )
+        case Cli.SireumToolsTrafoTransformerMode.Rmutable =>
+          (
+            if (o.modes.size > 1)
+              if (o.name.isEmpty) "RMTransformer" else s"RM${o.name.get}Transformer"
+            else if (o.name.isEmpty) "RMTransformer"
+            else o.name.get,
+            F,
+            T
           )
       }
       val dest = destDir / s"$name.scala"
-      TransformerGenJvm.run(mode, lOpt, sources, Some(name), o.exclude, reporter) match {
+      TransformerGenJvm.run(isImmutable, isReversed, lOpt, sources, Some(name), o.exclude, reporter) match {
         case Some(out) =>
           dest.writeOver(out)
           println(s"Wrote $dest")

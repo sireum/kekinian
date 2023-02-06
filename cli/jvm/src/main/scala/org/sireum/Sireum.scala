@@ -464,7 +464,7 @@ object Sireum {
             return cli.GenTools.opGen(o, reporter)
           case Some(o: Cli.SireumToolsSergenOption) =>
             return cli.GenTools.serGen(o, reporter)
-          case Some(o: Cli.SireumToolsTransgenOption) =>
+          case Some(o: Cli.SireumToolsTrafoOption) =>
             return cli.GenTools.transGen(o, reporter)
           case Some(o: Cli.SireumHamrCodegenOption) =>
             init.deps()
