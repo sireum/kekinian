@@ -11,7 +11,7 @@
 Sireum Kekinian is the most recent evolution of the Sireum platform.
 For more information, please visit Sireum's website:
 
-https://sireum.org
+https://sireum.org ([Download/Getting Started](https://sireum.org/getting-started))
 
 ## Dependencies
 
