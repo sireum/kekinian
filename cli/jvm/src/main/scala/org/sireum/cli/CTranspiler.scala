@@ -619,12 +619,12 @@ object CTranspiler {
           val ids = t.name.ids.map((id: AST.Id) => id.value)
           val tids = AST.Typed.sireumName ++ ids
           if (!th.typeMap.contains(ids) && th.typeMap.contains(tids)) {
-            AST.Typed.Name(tids, for (ta <- t.typeArgs) yield rec(ta))
+            return AST.Typed.Name(tids, for (ta <- t.typeArgs) yield rec(ta))
           } else {
-            AST.Typed.Name(ids, for (ta <- t.typeArgs) yield rec(ta))
+            return AST.Typed.Name(ids, for (ta <- t.typeArgs) yield rec(ta))
           }
-        case t: AST.Type.Tuple => AST.Typed.Tuple(for (ta <- t.args) yield rec(ta))
-        case t: AST.Type.Fun => AST.Typed.Fun(t.isPure, t.isByName, for (ta <- t.args) yield rec(ta), rec(t.ret))
+        case t: AST.Type.Tuple => return AST.Typed.Tuple(for (ta <- t.args) yield rec(ta))
+        case t: AST.Type.Fun => return AST.Typed.Fun(t.isPure, t.isByName, for (ta <- t.args) yield rec(ta), rec(t.ret))
       }
     }
     return rec(tpe)

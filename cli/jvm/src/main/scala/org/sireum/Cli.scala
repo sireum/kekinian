@@ -766,16 +766,16 @@ import Cli._
     }
     val opt = select("sireum", args, i, ISZ("anvil", "hamr", "logika", "parser", "proyek", "slang", "presentasi", "server", "tools", "x"))
     opt match {
-      case Some(string"anvil") => parseSireumAnvil(args, i + 1)
-      case Some(string"hamr") => parseSireumHamr(args, i + 1)
-      case Some(string"logika") => parseSireumLogika(args, i + 1)
-      case Some(string"parser") => parseSireumParser(args, i + 1)
-      case Some(string"proyek") => parseSireumProyek(args, i + 1)
-      case Some(string"slang") => parseSireumSlang(args, i + 1)
-      case Some(string"presentasi") => parseSireumPresentasi(args, i + 1)
-      case Some(string"server") => parseSireumServer(args, i + 1)
-      case Some(string"tools") => parseSireumTools(args, i + 1)
-      case Some(string"x") => parseSireumX(args, i + 1)
+      case Some(string"anvil") => return parseSireumAnvil(args, i + 1)
+      case Some(string"hamr") => return parseSireumHamr(args, i + 1)
+      case Some(string"logika") => return parseSireumLogika(args, i + 1)
+      case Some(string"parser") => return parseSireumParser(args, i + 1)
+      case Some(string"proyek") => return parseSireumProyek(args, i + 1)
+      case Some(string"slang") => return parseSireumSlang(args, i + 1)
+      case Some(string"presentasi") => return parseSireumPresentasi(args, i + 1)
+      case Some(string"server") => return parseSireumServer(args, i + 1)
+      case Some(string"tools") => return parseSireumTools(args, i + 1)
+      case Some(string"x") => return parseSireumX(args, i + 1)
       case _ => return None()
     }
   }
@@ -793,8 +793,8 @@ import Cli._
     }
     val opt = select("anvil", args, i, ISZ("compile", "sandbox"))
     opt match {
-      case Some(string"compile") => parseSireumAnvilCompile(args, i + 1)
-      case Some(string"sandbox") => parseSireumAnvilSandbox(args, i + 1)
+      case Some(string"compile") => return parseSireumAnvilCompile(args, i + 1)
+      case Some(string"sandbox") => return parseSireumAnvilSandbox(args, i + 1)
       case _ => return None()
     }
   }
@@ -987,8 +987,8 @@ import Cli._
     }
     val opt = select("hamr", args, i, ISZ("codegen", "phantom"))
     opt match {
-      case Some(string"codegen") => parseSireumHamrCodegen(args, i + 1)
-      case Some(string"phantom") => parseSireumHamrPhantom(args, i + 1)
+      case Some(string"codegen") => return parseSireumHamrCodegen(args, i + 1)
+      case Some(string"phantom") => return parseSireumHamrPhantom(args, i + 1)
       case _ => return None()
     }
   }
@@ -1399,7 +1399,7 @@ import Cli._
     }
     val opt = select("logika", args, i, ISZ("verifier"))
     opt match {
-      case Some(string"verifier") => parseSireumLogikaVerifier(args, i + 1)
+      case Some(string"verifier") => return parseSireumLogikaVerifier(args, i + 1)
       case _ => return None()
     }
   }
@@ -1828,7 +1828,7 @@ import Cli._
     }
     val opt = select("parser", args, i, ISZ("gen"))
     opt match {
-      case Some(string"gen") => parseSireumParserGen(args, i + 1)
+      case Some(string"gen") => return parseSireumParserGen(args, i + 1)
       case _ => return None()
     }
   }
@@ -1972,16 +1972,16 @@ import Cli._
     }
     val opt = select("proyek", args, i, ISZ("assemble", "compile", "dep", "ive", "logika", "publish", "run", "stats", "test", "tipe"))
     opt match {
-      case Some(string"assemble") => parseSireumProyekAssemble(args, i + 1)
-      case Some(string"compile") => parseSireumProyekCompile(args, i + 1)
-      case Some(string"dep") => parseSireumProyekDep(args, i + 1)
-      case Some(string"ive") => parseSireumProyekIve(args, i + 1)
-      case Some(string"logika") => parseSireumProyekLogika(args, i + 1)
-      case Some(string"publish") => parseSireumProyekPublish(args, i + 1)
-      case Some(string"run") => parseSireumProyekRun(args, i + 1)
-      case Some(string"stats") => parseSireumProyekStats(args, i + 1)
-      case Some(string"test") => parseSireumProyekTest(args, i + 1)
-      case Some(string"tipe") => parseSireumProyekTipe(args, i + 1)
+      case Some(string"assemble") => return parseSireumProyekAssemble(args, i + 1)
+      case Some(string"compile") => return parseSireumProyekCompile(args, i + 1)
+      case Some(string"dep") => return parseSireumProyekDep(args, i + 1)
+      case Some(string"ive") => return parseSireumProyekIve(args, i + 1)
+      case Some(string"logika") => return parseSireumProyekLogika(args, i + 1)
+      case Some(string"publish") => return parseSireumProyekPublish(args, i + 1)
+      case Some(string"run") => return parseSireumProyekRun(args, i + 1)
+      case Some(string"stats") => return parseSireumProyekStats(args, i + 1)
+      case Some(string"test") => return parseSireumProyekTest(args, i + 1)
+      case Some(string"tipe") => return parseSireumProyekTipe(args, i + 1)
       case _ => return None()
     }
   }
@@ -4474,9 +4474,9 @@ import Cli._
     }
     val opt = select("slang", args, i, ISZ("run", "tipe", "transpilers"))
     opt match {
-      case Some(string"run") => parseSireumSlangRun(args, i + 1)
-      case Some(string"tipe") => parseSireumSlangTipe(args, i + 1)
-      case Some(string"transpilers") => parseSireumSlangTranspilers(args, i + 1)
+      case Some(string"run") => return parseSireumSlangRun(args, i + 1)
+      case Some(string"tipe") => return parseSireumSlangTipe(args, i + 1)
+      case Some(string"transpilers") => return parseSireumSlangTranspilers(args, i + 1)
       case _ => return None()
     }
   }
@@ -4673,7 +4673,7 @@ import Cli._
     }
     val opt = select("transpilers", args, i, ISZ("c"))
     opt match {
-      case Some(string"c") => parseSireumSlangTranspilersC(args, i + 1)
+      case Some(string"c") => return parseSireumSlangTranspilersC(args, i + 1)
       case _ => return None()
     }
   }
@@ -4945,8 +4945,8 @@ import Cli._
     }
     val opt = select("presentasi", args, i, ISZ("gen", "text2speech"))
     opt match {
-      case Some(string"gen") => parseSireumPresentasiGen(args, i + 1)
-      case Some(string"text2speech") => parseSireumPresentasiText2speech(args, i + 1)
+      case Some(string"gen") => return parseSireumPresentasiGen(args, i + 1)
+      case Some(string"text2speech") => return parseSireumPresentasiText2speech(args, i + 1)
       case _ => return None()
     }
   }
@@ -5451,12 +5451,12 @@ import Cli._
     }
     val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "trafo"))
     opt match {
-      case Some(string"bcgen") => parseSireumToolsBcgen(args, i + 1)
-      case Some(string"checkstack") => parseSireumToolsCheckstack(args, i + 1)
-      case Some(string"cligen") => parseSireumToolsCligen(args, i + 1)
-      case Some(string"opgen") => parseSireumToolsOpgen(args, i + 1)
-      case Some(string"sergen") => parseSireumToolsSergen(args, i + 1)
-      case Some(string"trafo") => parseSireumToolsTrafo(args, i + 1)
+      case Some(string"bcgen") => return parseSireumToolsBcgen(args, i + 1)
+      case Some(string"checkstack") => return parseSireumToolsCheckstack(args, i + 1)
+      case Some(string"cligen") => return parseSireumToolsCligen(args, i + 1)
+      case Some(string"opgen") => return parseSireumToolsOpgen(args, i + 1)
+      case Some(string"sergen") => return parseSireumToolsSergen(args, i + 1)
+      case Some(string"trafo") => return parseSireumToolsTrafo(args, i + 1)
       case _ => return None()
     }
   }
