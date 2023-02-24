@@ -158,7 +158,7 @@ object Logika {
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
           o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
           o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-          o.interproceduralContracts, o.rawInscription, o.elideEncoding)
+          o.interproceduralContracts, o.elideEncoding, o.rawInscription)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -250,7 +250,7 @@ object Logika {
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
         o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-        o.interproceduralContracts, o.rawInscription, o.elideEncoding)
+        o.interproceduralContracts, o.elideEncoding, o.rawInscription)
       val plugins = logika.Logika.defaultPlugins
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty

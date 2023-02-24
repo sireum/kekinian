@@ -545,7 +545,7 @@ object Proyek {
       o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
       o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
       o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-      o.interproceduralContracts, o.rawInscription, o.elideEncoding)
+      o.interproceduralContracts, o.elideEncoding, o.rawInscription)
 
     val lcode = Analysis.run(
       root = path,
@@ -922,8 +922,8 @@ object Proyek {
       loopBound = 3,
       callBound = 3,
       interpContracts = F,
-      rawInscription = F,
-      elideEncoding = F
+      elideEncoding = F,
+      rawInscription = F
     )
     val lcode = Analysis.run(
       root = path,
