@@ -60,11 +60,12 @@ def usage(): Unit = {
         |       | test             | verify            | test-verify
         |       | regen-project    | regen-presentasi  | regen-slang
         |       | regen-logika     | regen-air         | regen-act
-        |       | regen-server     | regen-parser      | regen-parser-antlr3
-        |       | regen-cliopt     | regen-cli         | regen-fmide-cli
-        |       | regen-json       | m2[-lib[-js]]     | ram
+        |       | regen-slang-ll2  | regen-parser      | regen-parser-antlr3
+        |       | regen-server     | regen-cliopt      | regen-cli
+        |       | regen-fmide-cli  | regen-json        | m2[-lib[-js]]
         |       | alt-ergo-open    | cvc               | z3
         |       | mill             | jitpack           | ghpack
+        |       | ram
         |       | distro ( --linux | --linux-arm       | --mac             | --win
         |                | --sfx   | --ultimate        | --server                  )*  )*
         |""".render)
@@ -334,6 +335,15 @@ def regenSlang(): Unit = {
     s"${home / "license.txt"}", "-m", "json,msgpack", "-o", (slangPackagePath / "tipe").string,
     s"${slangPackagePath / "symbol" / "Info.scala"}", s"${astPackagePath / "AST.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
+}
+
+
+def regenSlangLl2(): Unit = {
+  val parserPackagePath = home / "slang" / "parser" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "parser"
+  val parserResourcesPackagePath = home / "slang" / "parser" / "shared" / "src" / "main" / "resources"
+  val parserInput = parserResourcesPackagePath / "SlangLl2.g"
+  Sireum.procCheck(proc"$sireum parser gen -l ${home / "license.txt"} -p org.sireum.lang.parser -m slang -n SlangLl2 --no-backtracking -o $parserPackagePath $parserInput".console,
+    message.Reporter.create)
 }
 
 
@@ -671,6 +681,7 @@ if (Os.cliArgs.isEmpty) {
       case string"test-verify" => test(); verifyRuntime()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
+      case string"regen-slang-ll2" => regenSlangLl2()
       case string"regen-logika" => regenLogika()
       case string"regen-project" => regenProject()
       case string"regen-presentasi" => regenPresentasi()
