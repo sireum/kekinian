@@ -251,7 +251,8 @@ object Logika {
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
         o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
         o.interproceduralContracts, o.elideEncoding, o.rawInscription)
-      val plugins = logika.Logika.defaultPlugins
+      val plugins = logika.Logika.defaultPlugins ++
+        (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy

@@ -569,7 +569,8 @@ object Proyek {
       disableOutput = F,
       verbose = o.verbose,
       sanityCheck = F,
-      plugins = org.sireum.logika.Logika.defaultPlugins,
+      plugins = org.sireum.logika.Logika.defaultPlugins ++
+        (if (o.infoFlow) org.sireum.logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[org.sireum.logika.plugin.Plugin]()),
       skipMethods = o.skipMethods,
       skipTypes = o.skipTypes,
       reporter = reporter
