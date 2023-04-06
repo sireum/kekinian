@@ -158,7 +158,7 @@ object Logika {
           o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
           o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
           o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-          o.interproceduralContracts, o.elideEncoding, o.rawInscription)
+          o.interproceduralContracts, o.elideEncoding, o.rawInscription, o.interproceduralStrictPure)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -250,7 +250,7 @@ object Logika {
         o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
         o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
         o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-        o.interproceduralContracts, o.elideEncoding, o.rawInscription)
+        o.interproceduralContracts, o.elideEncoding, o.rawInscription, o.interproceduralStrictPure)
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
       val th: TypeHierarchy =
