@@ -433,8 +433,9 @@ object CTranspiler {
       startTime()
     }
 
-    @strictpure def split(text: String, char: C): ISZ[String] =
-      for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
+    @pure def split(text: String, char: C): ISZ[String] = {
+      return for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
+    }
 
     var forwardingMap = HashMap.empty[ISZ[String], ISZ[String]]
     for (p <- o.forwarding) {

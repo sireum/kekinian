@@ -791,8 +791,9 @@ object Presentasi {
       return proc"$javaExe -jar $maryTtsJar -o $output -v $voice -i $input".env(ISZ("JAVA_HOME" ~> javaHome.string)).console.runCheck()
     }
 
-    @strictpure def isSoundFile(path: Os.Path): B =
-      path.ext == "mp3" || path.ext == "wav" || path.ext == "webm" || path.ext == "ogg"
+    @pure def isSoundFile(path: Os.Path): B = {
+      return path.ext == "mp3" || path.ext == "wav" || path.ext == "webm" || path.ext == "ogg"
+    }
 
     @pure def outputFile(output: Os.Path, inputFilename: String, i: Z, line: String, ext: String): Os.Path = {
       var num: String = s"$i-"
