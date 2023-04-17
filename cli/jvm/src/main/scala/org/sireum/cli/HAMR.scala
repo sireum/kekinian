@@ -135,7 +135,7 @@ object HAMR {
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       aadlRootDir = aadlRootDir,
       experimentalOptions = experimentalOptions,
-      plugins = ISZ(),
+      plugins = MSZ(),
       reporter = reporter)
   }
 
@@ -165,7 +165,7 @@ object HAMR {
                //
                experimentalOptions: ISZ[String],
                //
-               plugins: ISZ[Plugin],
+               plugins: MSZ[Plugin],
                //
                reporter: Reporter
               ): Z = {
@@ -206,10 +206,10 @@ object HAMR {
   }
 
   def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
-    return codeGenReporterP(model, o, ISZ(), reporter)
+    return codeGenReporterP(model, o, MSZ(), reporter)
   }
 
-  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: ISZ[Plugin], reporter: Reporter): CodeGenResults = {
+  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodeGenResults = {
 
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as
