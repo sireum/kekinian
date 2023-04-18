@@ -86,6 +86,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 |  :---  | :---: |
 | [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [ASM](https://plugins.jetbrains.com/plugin/10302-asm-bytecode-viewer) | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
+| [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | JetBrains Commercial (Ultimate only) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [Projector](https://plugins.jetbrains.com/plugin/16015-projector) | [GPL v2 with "Classpath" exception](https://github.com/JetBrains/projector-server/blob/master/GPLv2%2BCPE.txt) |
 | [ReStructuredText](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
@@ -95,4 +96,3 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
 | [Terminal](https://plugins.jetbrains.com/plugin/13123-terminal) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
-
