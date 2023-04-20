@@ -154,11 +154,39 @@ object Logika {
           case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
           case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
         }
-        val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
-          o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, outputDir, o.dontSplitFunQuant,
-          o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
-          o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-          o.interproceduralContracts, o.elideEncoding, o.rawInscription, o.interproceduralStrictPure)
+        val config = logika.Config(
+          smt2Configs = smt2Configs,
+          parCores = parCores,
+          sat = o.sat,
+          rlimit = o.rlimit,
+          timeoutInMs = o.timeout * 1000,
+          charBitWidth = o.charBitWidth,
+          intBitWidth = o.intBitWidth,
+          useReal = o.useReal,
+          logPc = o.logPc,
+          logRawPc = o.logRawPc,
+          logVc = o.logVc,
+          logVcDirOpt = outputDir,
+          dontSplitPfq = o.dontSplitFunQuant,
+          splitAll = o.splitAll,
+          splitIf = o.splitIf,
+          splitMatch = o.splitMatch,
+          splitContract = o.splitContract,
+          simplifiedQuery = o.simplify,
+          checkInfeasiblePatternMatch = T,
+          fpRoundingMode = fpRoundingMode,
+          caching = F,
+          smt2Seq = o.sequential,
+          branchPar = branchParMode,
+          branchParCores = branchParCores,
+          atLinesFresh = o.logPcLines,
+          interp = o.interprocedural,
+          loopBound = o.loopBound,
+          callBound = o.callBound,
+          interpContracts = o.interproceduralContracts,
+          elideEncoding = o.elideEncoding,
+          rawInscription = o.rawInscription,
+          interpStrictPure = o.interproceduralStrictPure)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -212,8 +240,8 @@ object Logika {
             var isSlang = path.ext == "slang"
             if (path.ext == "scala" || isSlang) {
               if (!isSlang) {
-                val line = conversions.String.fromCis(path.readCStream.takeWhile((c : C) => c != '\n').
-                  filter((c : C) => c != ' ' && c != '\t' && c != '\r').toISZ)
+                val line = conversions.String.fromCis(path.readCStream.takeWhile((c: C) => c != '\n').
+                  filter((c: C) => c != ' ' && c != '\t' && c != '\r').toISZ)
                 isSlang = ops.StringOps(line).contains("#Sireum")
               }
             }
@@ -246,11 +274,39 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
       val parCores = SireumApi.parCoresOpt(o.par)
-      val config = logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
-        o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc,  o.logVcDir, o.dontSplitFunQuant,
-        o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
-        o.sequential, logika.Config.BranchPar.All, parCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-        o.interproceduralContracts, o.elideEncoding, o.rawInscription, o.interproceduralStrictPure)
+      val config = logika.Config(
+        smt2Configs = smt2Configs,
+        parCores = parCores,
+        sat = o.sat,
+        rlimit = o.rlimit,
+        timeoutInMs = o.timeout * 1000,
+        charBitWidth = o.charBitWidth,
+        intBitWidth = o.intBitWidth,
+        useReal = o.useReal,
+        logPc = o.logPc,
+        logRawPc = o.logRawPc,
+        logVc = o.logVc,
+        logVcDirOpt = o.logVcDir,
+        dontSplitPfq = o.dontSplitFunQuant,
+        splitAll = o.splitAll,
+        splitIf = o.splitIf,
+        splitMatch = o.splitMatch,
+        splitContract = o.splitContract,
+        simplifiedQuery = o.simplify,
+        checkInfeasiblePatternMatch = T,
+        fpRoundingMode = fpRoundingMode,
+        caching = F,
+        smt2Seq = o.sequential,
+        branchPar = logika.Config.BranchPar.All,
+        branchParCores = parCores,
+        atLinesFresh = o.logPcLines,
+        interp = o.interprocedural,
+        loopBound = o.loopBound,
+        callBound = o.callBound,
+        interpContracts = o.interproceduralContracts,
+        elideEncoding = o.elideEncoding,
+        rawInscription = o.rawInscription,
+        interpStrictPure = o.interproceduralStrictPure)
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
       val th: TypeHierarchy =

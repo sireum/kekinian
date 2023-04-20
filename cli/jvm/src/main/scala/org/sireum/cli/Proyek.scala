@@ -540,11 +540,39 @@ object Proyek {
       case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
     }
 
-    val config = org.sireum.logika.Config(smt2Configs, parCores, o.sat, o.rlimit, o.timeout * 1000, o.charBitWidth,
-      o.intBitWidth, o.useReal, o.logPc, o.logRawPc, o.logVc, o.logVcDir, o.dontSplitFunQuant,
-      o.splitAll, o.splitIf, o.splitMatch, o.splitContract, o.simplify, T, fpRoundingMode, F,
-      o.sequential, branchParMode, branchParCores, o.logPcLines, o.interprocedural, o.loopBound, o.callBound,
-      o.interproceduralContracts, o.elideEncoding, o.rawInscription, o.interproceduralStrictPure)
+    val config = org.sireum.logika.Config(
+      smt2Configs = smt2Configs,
+      parCores = parCores,
+      sat = o.sat,
+      rlimit = o.rlimit,
+      timeoutInMs = o.timeout * 1000,
+      charBitWidth = o.charBitWidth,
+      intBitWidth = o.intBitWidth,
+      useReal = o.useReal,
+      logPc = o.logPc,
+      logRawPc = o.logRawPc,
+      logVc = o.logVc,
+      logVcDirOpt = o.logVcDir,
+      dontSplitPfq = o.dontSplitFunQuant,
+      splitAll = o.splitAll,
+      splitIf = o.splitIf,
+      splitMatch = o.splitMatch,
+      splitContract = o.splitContract,
+      simplifiedQuery = o.simplify,
+      checkInfeasiblePatternMatch = T,
+      fpRoundingMode = fpRoundingMode,
+      caching = F,
+      smt2Seq = o.sequential,
+      branchPar = branchParMode,
+      branchParCores = branchParCores,
+      atLinesFresh = o.logPcLines,
+      interp = o.interprocedural,
+      loopBound = o.loopBound,
+      callBound = o.callBound,
+      interpContracts = o.interproceduralContracts,
+      elideEncoding = o.elideEncoding,
+      rawInscription = o.rawInscription,
+      interpStrictPure = o.interproceduralStrictPure)
 
     val lcode = Analysis.run(
       root = path,
@@ -628,7 +656,7 @@ object Proyek {
       }
       ts.elements.toMS
     }
-    val dms: MSZ[project.DependencyManager] = for (isJs <-targets) yield project.DependencyManager(
+    val dms: MSZ[project.DependencyManager] = for (isJs <- targets) yield project.DependencyManager(
       project = prj,
       versions = versions,
       isJs = isJs,
@@ -924,7 +952,7 @@ object Proyek {
       interpContracts = F,
       elideEncoding = F,
       rawInscription = F,
-      interpStrictPure = F,
+      interpStrictPure = F
     )
     val lcode = Analysis.run(
       root = path,
