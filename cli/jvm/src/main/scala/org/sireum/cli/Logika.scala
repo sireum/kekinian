@@ -198,7 +198,7 @@ object Logika {
               logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, fpRoundingMode, config.charBitWidth,
               config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, config.rawInscription,
               config.elideEncoding, config.atLinesFresh, reporter),
-            logika.Smt2.NoCache(), reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
+            logika.Logika.NoSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -317,7 +317,7 @@ object Logika {
           logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, config.fpRoundingMode,
           config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq,
           config.rawInscription, config.elideEncoding, config.atLinesFresh, reporter),
-        logika.Smt2.NoCache(), reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
+        logika.Logika.NoSmt2Cache.create, reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }
