@@ -494,7 +494,7 @@ object Proyek {
         HashMap.empty[String, String] ++ ISZ[(String, String)](
           "cvc4" ~> st"cvc4$exeOpt".render,
           "cvc5" ~> st"cvc5$exeOpt".render,
-          "z3" ~> st"z3$exeOpt".render,
+          "z3" ~> st"z3$exeOpt".render
         )
     }
 
@@ -572,7 +572,7 @@ object Proyek {
       interpContracts = o.interproceduralContracts,
       elideEncoding = o.elideEncoding,
       rawInscription = o.rawInscription,
-      interpStrictPure = o.interproceduralStrictPure)
+      flipStrictPure = o.flipStrictPure)
 
     val lcode = Analysis.run(
       root = path,
@@ -952,7 +952,7 @@ object Proyek {
       interpContracts = F,
       elideEncoding = F,
       rawInscription = F,
-      interpStrictPure = F
+      flipStrictPure = F
     )
     val lcode = Analysis.run(
       root = path,

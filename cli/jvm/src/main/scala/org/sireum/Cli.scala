@@ -145,7 +145,7 @@ object Cli {
     val intBitWidth: Z,
     val interprocedural: B,
     val interproceduralContracts: B,
-    val interproceduralStrictPure: B,
+    val flipStrictPure: B,
     val line: Z,
     val loopBound: Z,
     val callBound: Z,
@@ -331,7 +331,7 @@ object Cli {
     val intBitWidth: Z,
     val interprocedural: B,
     val interproceduralContracts: B,
-    val interproceduralStrictPure: B,
+    val flipStrictPure: B,
     val line: Z,
     val loopBound: Z,
     val callBound: Z,
@@ -1482,9 +1482,11 @@ import Cli._
           |                           non-strict-pure methods
           |    --interprocedural-contracts
           |                          Use contracts in inter-procedural verification
-          |    --interprocedural-strictpure
-          |                          Enable inter-procedural verification on strict-pure
-          |                           methods
+          |    --flip-strictpure-mode
+          |                          Enable inter-procedural verification of strict-pure
+          |                           methods if on compositional verification, and enable
+          |                           compositional verification of strict-pure methods if
+          |                           on inter-procededural verification
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --loop-bound         Loop bound for inter-procedural verification (expects
@@ -1535,8 +1537,7 @@ import Cli._
           |    --smt2-seq           Disable SMT2 solvers parallelization
           |    --simplify           Simplify SMT2 query (experimental)
           |    --solver-sat         SMT2 configurations for satisfiability queries
-          |                           (expects a string; default is "cvc4; z3;
-          |                           cvc5,--finite-model-find")
+          |                           (expects a string; default is "z3")
           |    --solver-valid       SMT2 configurations for validity queries (expects a
           |                           string; default is "cvc4,--full-saturate-quant; z3;
           |                           cvc5,--full-saturate-quant")
@@ -1552,7 +1553,7 @@ import Cli._
     var intBitWidth: Z = 0
     var interprocedural: B = false
     var interproceduralContracts: B = false
-    var interproceduralStrictPure: B = false
+    var flipStrictPure: B = false
     var line: Z = 0
     var loopBound: Z = 3
     var callBound: Z = 3
@@ -1577,7 +1578,7 @@ import Cli._
     var rlimit: Z = 2000000
     var sequential: B = false
     var simplify: B = false
-    var smt2SatConfigs: Option[String] = Some("cvc4; z3; cvc5,--finite-model-find")
+    var smt2SatConfigs: Option[String] = Some("z3")
     var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant")
     var timeout: Z = 2
     var j = i
@@ -1642,10 +1643,10 @@ import Cli._
              case Some(v) => interproceduralContracts = v
              case _ => return None()
            }
-         } else if (arg == "--interprocedural-strictpure") {
-           val o: Option[B] = { j = j - 1; Some(!interproceduralStrictPure) }
+         } else if (arg == "--flip-strictpure-mode") {
+           val o: Option[B] = { j = j - 1; Some(!flipStrictPure) }
            o match {
-             case Some(v) => interproceduralStrictPure = v
+             case Some(v) => flipStrictPure = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -1825,7 +1826,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, interproceduralStrictPure, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2953,9 +2954,11 @@ import Cli._
           |                           non-strict-pure methods
           |    --interprocedural-contracts
           |                          Use contracts in inter-procedural verification
-          |    --interprocedural-strictpure
-          |                          Enable inter-procedural verification on strict-pure
-          |                           methods
+          |    --flip-strictpure-mode
+          |                          Enable inter-procedural verification of strict-pure
+          |                           methods if on compositional verification, and enable
+          |                           compositional verification of strict-pure methods if
+          |                           on inter-procededural verification
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --loop-bound         Loop bound for inter-procedural verification (expects
@@ -3006,8 +3009,7 @@ import Cli._
           |    --smt2-seq           Disable SMT2 solvers parallelization
           |    --simplify           Simplify SMT2 query (experimental)
           |    --solver-sat         SMT2 configurations for satisfiability queries
-          |                           (expects a string; default is "cvc4; z3;
-          |                           cvc5,--finite-model-find")
+          |                           (expects a string; default is "z3")
           |    --solver-valid       SMT2 configurations for validity queries (expects a
           |                           string; default is "cvc4,--full-saturate-quant; z3;
           |                           cvc5,--full-saturate-quant")
@@ -3036,7 +3038,7 @@ import Cli._
     var intBitWidth: Z = 0
     var interprocedural: B = false
     var interproceduralContracts: B = false
-    var interproceduralStrictPure: B = false
+    var flipStrictPure: B = false
     var line: Z = 0
     var loopBound: Z = 3
     var callBound: Z = 3
@@ -3061,7 +3063,7 @@ import Cli._
     var rlimit: Z = 2000000
     var sequential: B = false
     var simplify: B = false
-    var smt2SatConfigs: Option[String] = Some("cvc4; z3; cvc5,--finite-model-find")
+    var smt2SatConfigs: Option[String] = Some("z3")
     var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant")
     var timeout: Z = 2
     var j = i
@@ -3204,10 +3206,10 @@ import Cli._
              case Some(v) => interproceduralContracts = v
              case _ => return None()
            }
-         } else if (arg == "--interprocedural-strictpure") {
-           val o: Option[B] = { j = j - 1; Some(!interproceduralStrictPure) }
+         } else if (arg == "--flip-strictpure-mode") {
+           val o: Option[B] = { j = j - 1; Some(!flipStrictPure) }
            o match {
-             case Some(v) => interproceduralStrictPure = v
+             case Some(v) => flipStrictPure = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -3387,7 +3389,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, interproceduralStrictPure, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

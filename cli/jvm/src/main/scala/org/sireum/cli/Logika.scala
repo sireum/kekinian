@@ -186,7 +186,7 @@ object Logika {
           interpContracts = o.interproceduralContracts,
           elideEncoding = o.elideEncoding,
           rawInscription = o.rawInscription,
-          interpStrictPure = o.interproceduralStrictPure)
+          flipStrictPure = o.flipStrictPure)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -306,7 +306,7 @@ object Logika {
         interpContracts = o.interproceduralContracts,
         elideEncoding = o.elideEncoding,
         rawInscription = o.rawInscription,
-        interpStrictPure = o.interproceduralStrictPure)
+        flipStrictPure = o.flipStrictPure)
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
       val th: TypeHierarchy =
