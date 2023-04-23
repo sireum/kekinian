@@ -572,7 +572,8 @@ object Proyek {
       interpContracts = o.interproceduralContracts,
       elideEncoding = o.elideEncoding,
       rawInscription = o.rawInscription,
-      flipStrictPure = o.flipStrictPure)
+      flipStrictPure = o.flipStrictPure,
+      transitionCache = F)
 
     val lcode = Analysis.run(
       root = path,
@@ -583,7 +584,7 @@ object Proyek {
       cacheTypeHierarchy = F,
       mapBox = MBox2(HashMap.empty, HashMap.empty),
       config = config,
-      cache = org.sireum.logika.Logika.NoSmt2Cache.create,
+      cache = org.sireum.logika.NoTransitionSmt2Cache.create,
       files = files,
       filesWatched = F,
       vfiles = files.keys,
@@ -952,7 +953,8 @@ object Proyek {
       interpContracts = F,
       elideEncoding = F,
       rawInscription = F,
-      flipStrictPure = F
+      flipStrictPure = F,
+      transitionCache = F
     )
     val lcode = Analysis.run(
       root = path,
@@ -963,7 +965,7 @@ object Proyek {
       cacheTypeHierarchy = F,
       mapBox = MBox2(HashMap.empty, HashMap.empty),
       config = config,
-      cache = org.sireum.logika.Logika.NoSmt2Cache.create,
+      cache = org.sireum.logika.NoTransitionSmt2Cache.create,
       files = HashSMap.empty,
       filesWatched = F,
       vfiles = ISZ(),

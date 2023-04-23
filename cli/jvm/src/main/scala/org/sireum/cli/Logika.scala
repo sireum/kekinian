@@ -101,7 +101,7 @@ object Logika {
         HashMap.empty[String, String] ++ ISZ[(String, String)](
           "cvc4" ~> st"cvc4$exeOpt".render,
           "cvc5" ~> st"cvc5$exeOpt".render,
-          "z3" ~> st"z3$exeOpt".render,
+          "z3" ~> st"z3$exeOpt".render
         )
     }
 
@@ -186,7 +186,8 @@ object Logika {
           interpContracts = o.interproceduralContracts,
           elideEncoding = o.elideEncoding,
           rawInscription = o.rawInscription,
-          flipStrictPure = o.flipStrictPure)
+          flipStrictPure = o.flipStrictPure,
+          transitionCache = F)
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
@@ -198,7 +199,7 @@ object Logika {
               logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, fpRoundingMode, config.charBitWidth,
               config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, config.rawInscription,
               config.elideEncoding, config.atLinesFresh, reporter),
-            logika.Logika.NoSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
+            logika.NoTransitionSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -306,7 +307,8 @@ object Logika {
         interpContracts = o.interproceduralContracts,
         elideEncoding = o.elideEncoding,
         rawInscription = o.rawInscription,
-        flipStrictPure = o.flipStrictPure)
+        flipStrictPure = o.flipStrictPure,
+        transitionCache = F)
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
       val th: TypeHierarchy =
@@ -317,7 +319,7 @@ object Logika {
           logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, config.fpRoundingMode,
           config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq,
           config.rawInscription, config.elideEncoding, config.atLinesFresh, reporter),
-        logika.Logika.NoSmt2Cache.create, reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
+        logika.NoTransitionSmt2Cache.create, reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }
