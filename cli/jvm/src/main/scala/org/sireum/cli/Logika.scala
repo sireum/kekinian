@@ -187,18 +187,17 @@ object Logika {
           elideEncoding = o.elideEncoding,
           rawInscription = o.rawInscription,
           flipStrictPure = o.flipStrictPure,
-          transitionCache = F)
+          transitionCache = F,
+          patternExhaustive = o.patternExhaustive
+        )
         val f = Os.path(arg)
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
           (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
           val content = f.read
-          logika.Logika.checkScript(Some(f.value), content, config,
-            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
-              logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, fpRoundingMode, config.charBitWidth,
-              config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq, config.rawInscription,
-              config.elideEncoding, config.atLinesFresh, reporter),
+          logika.Logika.checkScript(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
+            logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins), th, reporter),
             logika.NoTransitionSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -308,17 +307,16 @@ object Logika {
         elideEncoding = o.elideEncoding,
         rawInscription = o.rawInscription,
         flipStrictPure = o.flipStrictPure,
-        transitionCache = F)
+        transitionCache = F,
+        patternExhaustive = o.patternExhaustive
+      )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
-      logika.Logika.checkPrograms(sources, files, config, th,
-        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(smt2Configs,
-          logika.plugin.Plugin.claimPlugins(plugins), th, config.timeoutInMs, config.fpRoundingMode,
-          config.charBitWidth, config.intBitWidth, config.useReal, config.simplifiedQuery, config.smt2Seq,
-          config.rawInscription, config.elideEncoding, config.atLinesFresh, reporter),
+      logika.Logika.checkPrograms(sources, files, config, th, (th: lang.tipe.TypeHierarchy) =>
+        logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins), th, reporter),
         logika.NoTransitionSmt2Cache.create, reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0

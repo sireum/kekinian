@@ -573,7 +573,9 @@ object Proyek {
       elideEncoding = o.elideEncoding,
       rawInscription = o.rawInscription,
       flipStrictPure = o.flipStrictPure,
-      transitionCache = F)
+      transitionCache = F,
+      patternExhaustive = o.patternExhaustive
+    )
 
     val lcode = Analysis.run(
       root = path,
@@ -954,7 +956,8 @@ object Proyek {
       elideEncoding = F,
       rawInscription = F,
       flipStrictPure = F,
-      transitionCache = F
+      transitionCache = F,
+      patternExhaustive = F
     )
     val lcode = Analysis.run(
       root = path,
