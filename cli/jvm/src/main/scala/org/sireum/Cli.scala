@@ -197,6 +197,7 @@ object Cli {
   @datatype class SireumProyekAssembleOption(
     val help: String,
     val args: ISZ[String],
+    val includeTests: B,
     val jar: Option[String],
     val mainClass: Option[String],
     val isNative: B,
@@ -724,6 +725,27 @@ object Cli {
     val name: Option[String],
     val license: Option[String],
     val outputDir: Option[String]
+  ) extends SireumTopOption
+
+  @datatype class SireumToolsSlangcheckRunnerOption(
+    val help: String,
+    val args: ISZ[String],
+    val classpath: ISZ[String],
+    val max: Z,
+    val output: Option[String],
+    val par: Option[Z],
+    val scp: Option[String],
+    val timeout: Z
+  ) extends SireumTopOption
+
+  @datatype class SireumToolsSlangcheckTesterOption(
+    val help: String,
+    val args: ISZ[String],
+    val classpath: ISZ[String],
+    val input: Option[String],
+    val output: Option[String],
+    val par: Option[Z],
+    val scp: Option[String]
   ) extends SireumTopOption
 
   @enum object SireumToolsTrafoTransformerMode {
@@ -2017,6 +2039,7 @@ import Cli._
           |Usage: <options>* <dir>
           |
           |Available Options:
+          |-t, --include-tests      Include test classes
           |-j, --jar                The assembled jar filename (defaults to the project
           |                           name) (expects a string)
           |-m, --main               The main class fully qualified name (expects a string)
@@ -2077,6 +2100,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
+    var includeTests: B = false
     var jar: Option[String] = None[String]()
     var mainClass: Option[String] = None[String]()
     var isNative: B = false
@@ -2108,7 +2132,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-j" || arg == "--jar") {
+        } else if (arg == "-t" || arg == "--include-tests") {
+           val o: Option[B] = { j = j - 1; Some(!includeTests) }
+           o match {
+             case Some(v) => includeTests = v
+             case _ => return None()
+           }
+         } else if (arg == "-j" || arg == "--jar") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => jar = v
@@ -2258,7 +2288,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), jar, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeTests, jar, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -5489,17 +5519,19 @@ import Cli._
             |cligen                   Command-line interface (CLI) generator
             |opgen                    Object printer meta-generator
             |sergen                   De/Serializer generator
+            |slangcheck               SlangCheck tools
             |trafo                    Transformer (visitor/rewriter) generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "trafo"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "slangcheck", "trafo"))
     opt match {
       case Some(string"bcgen") => return parseSireumToolsBcgen(args, i + 1)
       case Some(string"checkstack") => return parseSireumToolsCheckstack(args, i + 1)
       case Some(string"cligen") => return parseSireumToolsCligen(args, i + 1)
       case Some(string"opgen") => return parseSireumToolsOpgen(args, i + 1)
       case Some(string"sergen") => return parseSireumToolsSergen(args, i + 1)
+      case Some(string"slangcheck") => return parseSireumToolsSlangcheck(args, i + 1)
       case Some(string"trafo") => return parseSireumToolsTrafo(args, i + 1)
       case _ => return None()
     }
@@ -6120,6 +6152,188 @@ import Cli._
       }
     }
     return Some(SireumToolsSergenOption(help, parseArguments(args, j), modes, packageName, name, license, outputDir))
+  }
+
+  def parseSireumToolsSlangcheck(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""SlangCheck Tools
+            |
+            |Available modes:
+            |runner                   SlangCheck test generator runner
+            |tester                   SlangCheck test case runner""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("slangcheck", args, i, ISZ("runner", "tester"))
+    opt match {
+      case Some(string"runner") => return parseSireumToolsSlangcheckRunner(args, i + 1)
+      case Some(string"tester") => return parseSireumToolsSlangcheckTester(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumToolsSlangcheckRunner(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""SlangCheck Test Generator Runner
+          |
+          |Usage: <option>* <fully-qualified-name>
+          |
+          |Available Options:
+          |-c, --classpath          Classpath to load test runner class from (expects path
+          |                           strings)
+          |-m, --max                Maximum number of test objects (expects an integer;
+          |                           min is 1; default is 0)
+          |-o, --output             Output file to store generated test case objects
+          |                           (expects a path)
+          |-p, --parallel           Enable parallelization (accepts an optional integer;
+          |                           min is 1; default is 0)
+          |-s, --scp                Server connection to scp compressed output file to
+          |                           (expects a string)
+          |-t, --timeout            Timeout (seconds) (expects an integer; min is 1;
+          |                           default is 0)
+          |-h, --help               Display this information""".render
+
+    var classpath: ISZ[String] = ISZ[String]()
+    var max: Z = 0
+    var output: Option[String] = None[String]()
+    var par: Option[Z] = None()
+    var scp: Option[String] = None[String]()
+    var timeout: Z = 0
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-c" || arg == "--classpath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => classpath = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--max") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => max = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--parallel") {
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), None()) match {
+             case o@Some(None()) => j = j - 1; Some(Some(0))
+             case o => o
+           }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--scp") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => scp = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--timeout") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => timeout = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumToolsSlangcheckRunnerOption(help, parseArguments(args, j), classpath, max, output, par, scp, timeout))
+  }
+
+  def parseSireumToolsSlangcheckTester(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""SlangCheck Test Case Runner
+          |
+          |Usage: <option>* <fully-qualified-name>
+          |
+          |Available Options:
+          |-c, --classpath          Classpath to load test runner class from (expects path
+          |                           strings)
+          |-i, --input              Input file or directory containing compressed test
+          |                           case objects (expects a path)
+          |-o, --output             Output file to store passing/failing test case objects
+          |                           (expects a path)
+          |-p, --parallel           Enable parallelization (accepts an optional integer;
+          |                           min is 1; default is 0)
+          |-s, --scp                Server connection to scp compressed output file to
+          |                           (expects a string)
+          |-h, --help               Display this information""".render
+
+    var classpath: ISZ[String] = ISZ[String]()
+    var input: Option[String] = None[String]()
+    var output: Option[String] = None[String]()
+    var par: Option[Z] = None()
+    var scp: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-c" || arg == "--classpath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => classpath = v
+             case _ => return None()
+           }
+         } else if (arg == "-i" || arg == "--input") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => input = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--parallel") {
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), None()) match {
+             case o@Some(None()) => j = j - 1; Some(Some(0))
+             case o => o
+           }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--scp") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => scp = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumToolsSlangcheckTesterOption(help, parseArguments(args, j), classpath, input, output, par, scp))
   }
 
   def parseSireumToolsTrafoTransformerModeH(arg: String): Option[SireumToolsTrafoTransformerMode.Type] = {

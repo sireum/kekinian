@@ -222,7 +222,8 @@ object Proyek {
       dm = dm,
       mainClassNameOpt = o.mainClass,
       isNative = o.isNative,
-      isUber = o.uber
+      isUber = o.uber,
+      includeTests = o.includeTests
     )
 
     return r

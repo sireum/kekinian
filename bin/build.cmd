@@ -236,7 +236,7 @@ def build(fresh: B, isNative: B, isUber: B): Unit = {
   val nativ: String = if (isNative) " --native" else ""
   val uber: String = if (isUber) " --uber" else ""
 
-  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime$recompile$nativ$uber $home".console,
+  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime --include-tests$recompile$nativ$uber $home".console,
     message.Reporter.create)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
