@@ -608,9 +608,13 @@ object Proyek {
       reporter = reporter
     )
     reporter.printMessages()
-    println()
-    println(st"Number of SMT2 verification condition checking: ${reporter.numOfVCs} (time: ${Smt2Formatter.formatTime(reporter.vcMillis)})".render)
-    println(st"Number of SMT2 satisfiability checking: ${reporter.numOfSats} (time: ${Smt2Formatter.formatTime(reporter.satMillis)})".render)
+
+    if (!(reporter.numOfSats == 0 && reporter.numOfVCs == 0)) {
+      println()
+      println(st"Number of SMT2 verification condition checking: ${reporter.numOfVCs} (time: ${Smt2Formatter.formatTime(reporter.vcMillis)})".render)
+      println(st"Number of SMT2 satisfiability checking: ${reporter.numOfSats} (time: ${Smt2Formatter.formatTime(reporter.satMillis)})".render)
+    }
+
     println()
     if (lcode == 0) {
       println(st"Logika verified! Elapsed time: ${Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)

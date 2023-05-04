@@ -491,6 +491,7 @@ object Sireum {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
                 val rep = logika.ReporterImpl.create
+                rep.collectStats = o.stats
                 val exitCode = cli.Logika.run(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
@@ -535,6 +536,7 @@ object Sireum {
               case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
               case _ =>
                 val rep = logika.ReporterImpl.create
+                rep.collectStats = o.stats
                 val exitCode = cli.Proyek.logika(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
