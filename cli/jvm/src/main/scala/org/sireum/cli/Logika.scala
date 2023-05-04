@@ -39,6 +39,7 @@ object Logika {
   val INVALID_SOURCE_PATH: Z = -5
 
   def run(o: Cli.SireumLogikaVerifierOption, reporter: logika.Logika.Reporter): Z = {
+    val start = extension.Time.currentMillis
     if (o.args.isEmpty) {
       println(o.help)
       println()
@@ -326,8 +327,14 @@ object Logika {
       if (ops.ISZOps(o.args).forall((s: String) => Os.path(s).ext == "scala")) verifyPrograms()
       else verifyScripts()
 
+    println()
+    println(st"Number of SMT2 verification condition checking: ${reporter.numOfVCs} (time: ${logika.Smt2Formatter.formatTime(reporter.vcMillis)})".render)
+    println(st"Number of SMT2 satisfiability checking: ${reporter.numOfSats} (time: ${logika.Smt2Formatter.formatTime(reporter.satMillis)})".render)
+    println()
     if (code == 0) {
-      println("Logika verified!")
+      println(st"Logika verified! Elapsed time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
+    } else {
+      println(st"Elapsed time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
     }
 
     return code

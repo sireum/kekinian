@@ -490,7 +490,7 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
-                val rep = logika.Logika.Reporter.create
+                val rep = logika.ReporterImpl.create
                 val exitCode = cli.Logika.run(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
@@ -534,7 +534,7 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
               case _ =>
-                val rep = logika.Logika.Reporter.create
+                val rep = logika.ReporterImpl.create
                 val exitCode = cli.Proyek.logika(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
@@ -556,7 +556,7 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
               case _ =>
-                val rep = logika.Logika.Reporter.create
+                val rep = logika.ReporterImpl.create
                 val exitCode = cli.Proyek.tipe(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode

@@ -26,7 +26,7 @@
 package org.sireum.cli
 
 import org.sireum._
-import org.sireum.logika.{Smt2, Smt2Invoke}
+import org.sireum.logika.{Smt2, Smt2Formatter, Smt2Invoke}
 import org.sireum.project.DependencyManager
 import org.sireum.proyek.Analysis
 
@@ -427,6 +427,7 @@ object Proyek {
   }
 
   def logika(o: Cli.SireumProyekLogikaOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
+    val start = extension.Time.currentMillis
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -607,12 +608,16 @@ object Proyek {
       reporter = reporter
     )
     reporter.printMessages()
+    println()
+    println(st"Number of SMT2 verification condition checking: ${reporter.numOfVCs} (time: ${Smt2Formatter.formatTime(reporter.vcMillis)})".render)
+    println(st"Number of SMT2 satisfiability checking: ${reporter.numOfSats} (time: ${Smt2Formatter.formatTime(reporter.satMillis)})".render)
+    println()
     if (lcode == 0) {
-      println()
-      println("Logika verified!")
+      println(st"Logika verified! Elapsed time: ${Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
       return 0
     } else {
       println()
+      println(st"Elapsed time: ${Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
       return ILL_FORMED_PROGRAMS
     }
   }
