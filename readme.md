@@ -49,9 +49,9 @@ In addition, Sireum includes adaptations/forks of the following artifacts:
 | [Geny](https://github.com/com-lihaoyi/geny) | [Jen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/Jen.scala) & [MJen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/MJen.scala) | [MIT](https://github.com/com-lihaoyi/geny/blob/master/LICENSE) |
 | [SHA3IUF](https://github.com/brainhub/SHA3IUF) | [SHA3](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/crypto/SHA3.scala) | [MIT](https://github.com/brainhub/SHA3IUF/blob/master/LICENSE) |
 | [UnsafeUtils](https://github.com/plokhotnyuk/jsoniter-scala/tree/e089f06c2d8b4bdb87a6874e17bf716e8608b117/jsoniter-scala-examples/src/main/scala-2.13/com/github/plokhotnyuk/jsoniter_scala/examples) | [UnsafeUtils](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/java/org/sireum/%24internal/UnsafeUtils.java) | [MIT](https://github.com/plokhotnyuk/jsoniter-scala/blob/e089f06c2d8b4bdb87a6874e17bf716e8608b117/LICENSE)
-| [TextMate AADL v2](https://github.com/virtuald/language-aadl/blob/119576c99d614383ba47a79c1759a368db4eac5f/grammars/aadl.cson) | [resources/aadl](https://github.com/sireum/resources/tree/master/textmate/aadl) | Public |
-| [TextMate smtlib2](https://github.com/AdrienChampion/tmlanguages/tree/8273ebf8cfb91afe4fc9af0e4c5a06c6187fc6f5/smtlib2) | [resources/smt2](https://github.com/sireum/resources/tree/master/textmate/smt2) | Public |
-| [TextMate SysML v2](https://gitlab.com/sensmetry/public/sysml-2ls/-/tree/092431855f8effa16901a9a6fb3a2fb9b3fee226/packages/syside-languageserver/syntaxes) | [resources/sysmlv2](https://github.com/sireum/resources/tree/master/textmate/sysml) | [Eclipse 2.0](https://github.com/sireum/resources/blob/master/textmate/sysml/LICENSE) |
+| [tmLanguage: AADL v2](https://github.com/virtuald/language-aadl/blob/119576c99d614383ba47a79c1759a368db4eac5f/grammars/aadl.cson) | [resources/aadl](https://github.com/sireum/resources/tree/master/textmate/aadl) | Public |
+| [tmLanguage: smtlib2](https://github.com/AdrienChampion/tmlanguages/tree/8273ebf8cfb91afe4fc9af0e4c5a06c6187fc6f5/smtlib2) | [resources/smt2](https://github.com/sireum/resources/tree/master/textmate/smt2) | Public |
+| [tmLanguage: SysML v2](https://gitlab.com/sensmetry/public/sysml-2ls/-/tree/092431855f8effa16901a9a6fb3a2fb9b3fee226/packages/syside-languageserver/syntaxes) | [resources/sysmlv2](https://github.com/sireum/resources/tree/master/textmate/sysml) | [Eclipse 2.0](https://github.com/sireum/resources/blob/master/textmate/sysml/LICENSE) |
 
 ### Application Dependencies
 
@@ -91,9 +91,8 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [ReStructuredText](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
-| [Rust](https://plugins.jetbrains.com/plugin/8182-rust) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE)  (Ultimate/CLion) |
+| [Rust](https://plugins.jetbrains.com/plugin/8182-rust) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
 | [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
-| [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
 | [Terminal](https://plugins.jetbrains.com/plugin/13123-terminal) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
