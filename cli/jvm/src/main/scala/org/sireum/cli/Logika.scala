@@ -189,7 +189,8 @@ object Logika {
           rawInscription = o.rawInscription,
           flipStrictPure = o.flipStrictPure,
           transitionCache = F,
-          patternExhaustive = o.patternExhaustive
+          patternExhaustive = o.patternExhaustive,
+          pureFun = o.pureFun
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -309,7 +310,8 @@ object Logika {
         rawInscription = o.rawInscription,
         flipStrictPure = o.flipStrictPure,
         transitionCache = F,
-        patternExhaustive = o.patternExhaustive
+        patternExhaustive = o.patternExhaustive,
+        pureFun = o.pureFun
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())

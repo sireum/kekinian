@@ -150,6 +150,7 @@ object Cli {
     val loopBound: Z,
     val callBound: Z,
     val patternExhaustive: B,
+    val pureFun: B,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
@@ -339,6 +340,7 @@ object Cli {
     val loopBound: Z,
     val callBound: Z,
     val patternExhaustive: B,
+    val pureFun: B,
     val sat: B,
     val skipMethods: ISZ[String],
     val skipTypes: ISZ[String],
@@ -1522,6 +1524,7 @@ import Cli._
           |                           is 3)
           |    --pattern-inexhaustive
           |                          Disable pattern exhaustiveness checking
+          |    --pure-proof-fun     Always add proof functions for pure methods
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -1587,6 +1590,7 @@ import Cli._
     var loopBound: Z = 3
     var callBound: Z = 3
     var patternExhaustive: B = true
+    var pureFun: B = false
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
@@ -1702,6 +1706,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!patternExhaustive) }
            o match {
              case Some(v) => patternExhaustive = v
+             case _ => return None()
+           }
+         } else if (arg == "--pure-proof-fun") {
+           val o: Option[B] = { j = j - 1; Some(!pureFun) }
+           o match {
+             case Some(v) => pureFun = v
              case _ => return None()
            }
          } else if (arg == "--sat") {
@@ -1869,7 +1879,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3019,6 +3029,7 @@ import Cli._
           |                           is 3)
           |    --pattern-inexhaustive
           |                          Disable pattern exhaustiveness checking
+          |    --pure-proof-fun     Always add proof functions for pure methods
           |    --sat                Enable assumption satisfiability checking
           |    --skip-methods       Skip checking methods with the specified
           |                           fully-qualified names or identifiers (expects a
@@ -3097,6 +3108,7 @@ import Cli._
     var loopBound: Z = 3
     var callBound: Z = 3
     var patternExhaustive: B = true
+    var pureFun: B = false
     var sat: B = false
     var skipMethods: ISZ[String] = ISZ[String]()
     var skipTypes: ISZ[String] = ISZ[String]()
@@ -3292,6 +3304,12 @@ import Cli._
              case Some(v) => patternExhaustive = v
              case _ => return None()
            }
+         } else if (arg == "--pure-proof-fun") {
+           val o: Option[B] = { j = j - 1; Some(!pureFun) }
+           o match {
+             case Some(v) => pureFun = v
+             case _ => return None()
+           }
          } else if (arg == "--sat") {
            val o: Option[B] = { j = j - 1; Some(!sat) }
            o match {
@@ -3457,7 +3475,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

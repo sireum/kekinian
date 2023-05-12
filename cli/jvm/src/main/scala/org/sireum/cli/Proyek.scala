@@ -576,7 +576,8 @@ object Proyek {
       rawInscription = o.rawInscription,
       flipStrictPure = o.flipStrictPure,
       transitionCache = F,
-      patternExhaustive = o.patternExhaustive
+      patternExhaustive = o.patternExhaustive,
+      pureFun = o.pureFun
     )
 
     val lcode = Analysis.run(
@@ -967,7 +968,8 @@ object Proyek {
       rawInscription = F,
       flipStrictPure = F,
       transitionCache = F,
-      patternExhaustive = F
+      patternExhaustive = F,
+      pureFun = F
     )
     val lcode = Analysis.run(
       root = path,
