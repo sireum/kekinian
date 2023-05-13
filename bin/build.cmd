@@ -390,6 +390,11 @@ def regenServer(): Unit = {
     s"${logikaPackagePath / "Smt2Query.scala"}",
     s"${astPackagePath / "Typed.scala"}"
   )).console, message.Reporter.create)
+  val logikaOptionsPackagePath = logikaPackagePath / "options"
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-p", "org.sireum.logika.options", "-l",
+    s"${home / "license.txt"}", "-o", logikaOptionsPackagePath.string, "-n", "OptionsCli", "-r",
+    (logikaOptionsPackagePath / "options.sc").string
+  )).console, message.Reporter.create)
 }
 
 def regenParser(isSlang: B): Unit = {

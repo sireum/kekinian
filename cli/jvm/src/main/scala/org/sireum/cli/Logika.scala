@@ -198,8 +198,9 @@ object Logika {
           (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
         if (f.isFile && (ext == "sc" || ext == "cmd")) {
           val content = f.read
-          logika.Logika.checkScript(Some(f.value), content, config, (th: lang.tipe.TypeHierarchy) =>
-            logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins), th, reporter),
+          logika.Logika.checkScript(Some(f.value), content, config, nameExePathMap, Os.numOfProcessors,
+            (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
+              th, reporter),
             logika.NoTransitionSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
@@ -276,6 +277,12 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
       val parCores = SireumApi.parCoresOpt(o.par)
+      val branchParCores = SireumApi.parCoresOpt(o.branchPar)
+      val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+        case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
+        case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+        case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+      }
       val config = logika.Config(
         smt2Configs = smt2Configs,
         parCores = parCores,
@@ -299,8 +306,8 @@ object Logika {
         fpRoundingMode = fpRoundingMode,
         caching = F,
         smt2Seq = o.sequential,
-        branchPar = logika.Config.BranchPar.All,
-        branchParCores = parCores,
+        branchPar = branchParMode,
+        branchParCores = branchParCores,
         atLinesFresh = o.logPcLines,
         interp = o.interprocedural,
         loopBound = o.loopBound,
@@ -318,8 +325,9 @@ object Logika {
       val th: TypeHierarchy =
         if (o.noRuntime) TypeHierarchy.empty
         else lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy
-      logika.Logika.checkPrograms(sources, files, config, th, (th: lang.tipe.TypeHierarchy) =>
-        logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins), th, reporter),
+      logika.Logika.checkPrograms(sources, files, config, nameExePathMap, Os.numOfProcessors, th,
+        (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
+          th, reporter),
         logika.NoTransitionSmt2Cache.create, reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
       reporter.printMessages()
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0

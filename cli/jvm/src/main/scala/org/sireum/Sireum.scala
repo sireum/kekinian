@@ -588,23 +588,16 @@ object Sireum {
     org.sireum.lang.FrontEnd.checkedLibraryReporter
   }
 
-  def parCores(percentage: Z): Z = {
-    val maxCores = Os.numOfProcessors
-    val r = percentage * maxCores / 100
-    return if (r <= 1) 1 else if (r >= maxCores) maxCores else r
-  }
+  def parCores(percentage: Z): Z = LibUtil.parCores(Os.numOfProcessors, percentage)
 
-  def parCoresOpt(percentageOpt: Option[Z]): Z = {
-    val r: Z = percentageOpt match {
-      case Some(v) => parCores(v)
-      case _ => 1
-    }
-    return r
-  }
+  def parCoresOpt(percentageOpt: Option[Z]): Z = LibUtil.parCoresOpt(Os.numOfProcessors, percentageOpt)
 
   def parseGrammar(uriOpt: Option[String],
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] =
     parser.SireumAntlr3ParserUtil.parseGrammar(uriOpt, input, reporter)
 
+  import scala.language.experimental.macros
+
+  def setOptions(tool: String, options: String): Unit = macro $internal.Macro.setOptions
 }
