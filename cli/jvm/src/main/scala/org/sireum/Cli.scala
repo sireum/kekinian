@@ -694,6 +694,7 @@ object Cli {
     val name: Option[String],
     val outputDir: Option[String],
     val packageName: ISZ[String],
+    val reporter: B,
     val script: Option[String],
     val width: ISZ[Z]
   ) extends SireumTopOption
@@ -5869,6 +5870,7 @@ import Cli._
           |                           path; default is ".")
           |-p, --package            Package name for the CLI processor (expects a string
           |                           separated by ".")
+          |-r, --reporter           Use message.Reporter for reporting error messages
           |-s, --script             Generate a script file with the provided name instead
           |                           of a Slang program (expects a string)
           |-w, --width              First (key) column (default: 25) and second column
@@ -5880,6 +5882,7 @@ import Cli._
     var name: Option[String] = Some("Cli")
     var outputDir: Option[String] = Some(".")
     var packageName: ISZ[String] = ISZ[String]()
+    var reporter: B = false
     var script: Option[String] = None[String]()
     var width: ISZ[Z] = ISZ()
     var j = i
@@ -5914,6 +5917,12 @@ import Cli._
              case Some(v) => packageName = v
              case _ => return None()
            }
+         } else if (arg == "-r" || arg == "--reporter") {
+           val o: Option[B] = { j = j - 1; Some(!reporter) }
+           o match {
+             case Some(v) => reporter = v
+             case _ => return None()
+           }
          } else if (arg == "-s" || arg == "--script") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
@@ -5935,7 +5944,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumToolsCligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, script, width))
+    return Some(SireumToolsCligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, reporter, script, width))
   }
 
   def parseSireumToolsOpgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {

@@ -150,7 +150,7 @@ object GenTools {
     outTemp.removeAll()
     JSON.toCliOpt(configText) match {
       case Either.Left(config) =>
-        val out = CliGenJvm.run(lOpt, config, src, dest, o.packageName, o.name, first, second)
+        val out = CliGenJvm.run(lOpt, config, src, dest, o.packageName, o.name, first, second, o.reporter)
         dest.writeOver(out)
         if (dest.ext == "cmd") {
           dest.chmod("+x")
