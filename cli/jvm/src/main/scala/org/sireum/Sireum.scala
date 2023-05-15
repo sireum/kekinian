@@ -490,7 +490,7 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
-                val rep = logika.ReporterImpl.create
+                val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc)
                 rep.collectStats = o.stats
                 val exitCode = cli.Logika.run(o, rep)
                 reporter.reports(rep.messages)
@@ -535,7 +535,7 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.logika(o, reporter)
               case _ =>
-                val rep = logika.ReporterImpl.create
+                val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc)
                 rep.collectStats = o.stats
                 val exitCode = cli.Proyek.logika(o, rep)
                 reporter.reports(rep.messages)
@@ -558,7 +558,7 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
               case _ =>
-                val rep = logika.ReporterImpl.create
+                val rep = logika.ReporterImpl.create(F, F, F)
                 val exitCode = cli.Proyek.tipe(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
@@ -596,8 +596,4 @@ object Sireum {
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] =
     parser.SireumAntlr3ParserUtil.parseGrammar(uriOpt, input, reporter)
-
-  import scala.language.experimental.macros
-
-  def setOptions(tool: String, options: String): Unit = macro $internal.Macro.setOptions
 }

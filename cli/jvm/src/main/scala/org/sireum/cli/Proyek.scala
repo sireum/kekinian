@@ -501,8 +501,8 @@ object Proyek {
     }
 
     val smt2Configs =
-      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get, o.timeout * 1000, o.rlimit).left ++
-        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get, Smt2.satTimeoutInMs, o.rlimit).left
+      Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get).left ++
+        Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get).left
 
     val dm = project.DependencyManager(
       project = prj,
