@@ -459,12 +459,16 @@ object Sireum {
             init.installCheckStack()
             return cli.CheckStack.run(o, init.checkstack)
           case Some(o: Cli.SireumToolsCligenOption) =>
+            init.basicDeps()
             return cli.GenTools.cliGen(o)
           case Some(o: Cli.SireumToolsOpgenOption) =>
+            init.basicDeps()
             return cli.GenTools.opGen(o, reporter)
           case Some(o: Cli.SireumToolsSergenOption) =>
+            init.basicDeps()
             return cli.GenTools.serGen(o, reporter)
           case Some(o: Cli.SireumToolsTrafoOption) =>
+            init.basicDeps()
             return cli.GenTools.transGen(o, reporter)
           case Some(o: Cli.SireumToolsSlangcheckRunnerOption) =>
             val code = NativeUtil.nonNative(Z(-1), () => {
@@ -550,11 +554,13 @@ object Sireum {
             init.proyekCompileDeps()
             return cli.Proyek.run(o)
           case Some(o: Cli.SireumProyekStatsOption) =>
+            init.basicDeps()
             return cli.Proyek.stats(o, reporter)
           case Some(o: Cli.SireumProyekTestOption) =>
             init.deps()
             return cli.Proyek.test(o)
           case Some(o: Cli.SireumProyekTipeOption) =>
+            init.basicDeps()
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
               case _ =>
