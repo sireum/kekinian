@@ -176,7 +176,7 @@ object Logika {
           simplifiedQuery = o.simplify,
           checkInfeasiblePatternMatch = T,
           fpRoundingMode = fpRoundingMode,
-          caching = F,
+          smt2Caching = F,
           smt2Seq = o.sequential,
           branchPar = branchParMode,
           branchParCores = branchParCores,
@@ -190,7 +190,8 @@ object Logika {
           flipStrictPure = o.flipStrictPure,
           transitionCache = F,
           patternExhaustive = o.patternExhaustive,
-          pureFun = o.pureFun
+          pureFun = o.pureFun,
+          detailedInfo = o.logDetailedInfo
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -304,7 +305,7 @@ object Logika {
         simplifiedQuery = o.simplify,
         checkInfeasiblePatternMatch = T,
         fpRoundingMode = fpRoundingMode,
-        caching = F,
+        smt2Caching = F,
         smt2Seq = o.sequential,
         branchPar = branchParMode,
         branchParCores = branchParCores,
@@ -318,7 +319,8 @@ object Logika {
         flipStrictPure = o.flipStrictPure,
         transitionCache = F,
         patternExhaustive = o.patternExhaustive,
-        pureFun = o.pureFun
+        pureFun = o.pureFun,
+        detailedInfo = o.logDetailedInfo
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())

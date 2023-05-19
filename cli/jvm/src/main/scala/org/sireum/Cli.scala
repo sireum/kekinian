@@ -159,6 +159,7 @@ object Cli {
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
+    val logDetailedInfo: B,
     val stats: B,
     val par: Option[Z],
     val branchParMode: SireumLogikaVerifierBranchPar.Type,
@@ -349,6 +350,7 @@ object Cli {
     val logRawPc: B,
     val logVc: B,
     val logVcDir: Option[String],
+    val logDetailedInfo: B,
     val stats: B,
     val par: Option[Z],
     val branchParMode: SireumProyekLogikaBranchPar.Type,
@@ -1542,6 +1544,7 @@ import Cli._
           |    --log-vc             Display all verification conditions
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)
+          |    --log-detailed-info  Display detailed feedback information
           |    --stats              Collect verification statistics
           |
           |Optimizations Options:
@@ -1600,6 +1603,7 @@ import Cli._
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
+    var logDetailedInfo: B = false
     var stats: B = false
     var par: Option[Z] = None()
     var branchParMode: SireumLogikaVerifierBranchPar.Type = SireumLogikaVerifierBranchPar.All
@@ -1763,6 +1767,12 @@ import Cli._
              case Some(v) => logVcDir = v
              case _ => return None()
            }
+         } else if (arg == "--log-detailed-info") {
+           val o: Option[B] = { j = j - 1; Some(!logDetailedInfo) }
+           o match {
+             case Some(v) => logDetailedInfo = v
+             case _ => return None()
+           }
          } else if (arg == "--stats") {
            val o: Option[B] = { j = j - 1; Some(!stats) }
            o match {
@@ -1880,7 +1890,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3047,6 +3057,7 @@ import Cli._
           |    --log-vc             Display all verification conditions
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)
+          |    --log-detailed-info  Display detailed feedback information
           |    --stats              Collect verification statistics
           |
           |Optimizations Options:
@@ -3118,6 +3129,7 @@ import Cli._
     var logRawPc: B = false
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
+    var logDetailedInfo: B = false
     var stats: B = false
     var par: Option[Z] = None()
     var branchParMode: SireumProyekLogikaBranchPar.Type = SireumProyekLogikaBranchPar.All
@@ -3359,6 +3371,12 @@ import Cli._
              case Some(v) => logVcDir = v
              case _ => return None()
            }
+         } else if (arg == "--log-detailed-info") {
+           val o: Option[B] = { j = j - 1; Some(!logDetailedInfo) }
+           o match {
+             case Some(v) => logDetailedInfo = v
+             case _ => return None()
+           }
          } else if (arg == "--stats") {
            val o: Option[B] = { j = j - 1; Some(!stats) }
            o match {
@@ -3476,7 +3494,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

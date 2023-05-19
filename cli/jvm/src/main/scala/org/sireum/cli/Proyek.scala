@@ -563,7 +563,7 @@ object Proyek {
       simplifiedQuery = o.simplify,
       checkInfeasiblePatternMatch = T,
       fpRoundingMode = fpRoundingMode,
-      caching = F,
+      smt2Caching = F,
       smt2Seq = o.sequential,
       branchPar = branchParMode,
       branchParCores = branchParCores,
@@ -577,7 +577,8 @@ object Proyek {
       flipStrictPure = o.flipStrictPure,
       transitionCache = F,
       patternExhaustive = o.patternExhaustive,
-      pureFun = o.pureFun
+      pureFun = o.pureFun,
+      detailedInfo = o.logDetailedInfo
     )
 
     val lcode = Analysis.run(
@@ -955,7 +956,7 @@ object Proyek {
       simplifiedQuery = F,
       checkInfeasiblePatternMatch = T,
       fpRoundingMode = "RNE",
-      caching = F,
+      smt2Caching = F,
       smt2Seq = F,
       branchPar = org.sireum.logika.Config.BranchPar.All,
       branchParCores = 1,
@@ -969,7 +970,8 @@ object Proyek {
       flipStrictPure = F,
       transitionCache = F,
       patternExhaustive = F,
-      pureFun = F
+      pureFun = F,
+      detailedInfo = F
     )
     val lcode = Analysis.run(
       root = path,
