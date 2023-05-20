@@ -91,6 +91,7 @@ object SlangRunner {
       "-feature",
       "-howtorun:script",
       "-deprecation",
+      "-language:postfixOps",
       "-Djava.net.useSystemProxies=true"
     )
     if (o.nativ) {
