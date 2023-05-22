@@ -541,6 +541,11 @@ object Proyek {
       case Cli.SireumProyekLogikaBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
       case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
     }
+    val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
+      case Cli.SireumProyekLogikaStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default
+      case Cli.SireumProyekLogikaStrictPureMode.Flip => org.sireum.logika.Config.StrictPureMode.Flip
+      case Cli.SireumProyekLogikaStrictPureMode.Uninterpreted => org.sireum.logika.Config.StrictPureMode.Uninterpreted
+    }
 
     val config = org.sireum.logika.Config(
       smt2Configs = smt2Configs,
@@ -574,7 +579,7 @@ object Proyek {
       interpContracts = o.interproceduralContracts,
       elideEncoding = o.elideEncoding,
       rawInscription = o.rawInscription,
-      flipStrictPure = o.flipStrictPure,
+      strictPureMode = spMode,
       transitionCache = F,
       patternExhaustive = o.patternExhaustive,
       pureFun = o.pureFun,
@@ -967,7 +972,7 @@ object Proyek {
       interpContracts = F,
       elideEncoding = F,
       rawInscription = F,
-      flipStrictPure = F,
+      strictPureMode = org.sireum.logika.Config.StrictPureMode.Default,
       transitionCache = F,
       patternExhaustive = F,
       pureFun = F,

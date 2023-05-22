@@ -155,6 +155,11 @@ object Logika {
           case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
           case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
         }
+        val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
+          case Cli.SireumLogikaVerifierStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default
+          case Cli.SireumLogikaVerifierStrictPureMode.Flip => org.sireum.logika.Config.StrictPureMode.Flip
+          case Cli.SireumLogikaVerifierStrictPureMode.Uninterpreted => org.sireum.logika.Config.StrictPureMode.Uninterpreted
+        }
         val config = logika.Config(
           smt2Configs = smt2Configs,
           parCores = parCores,
@@ -187,7 +192,7 @@ object Logika {
           interpContracts = o.interproceduralContracts,
           elideEncoding = o.elideEncoding,
           rawInscription = o.rawInscription,
-          flipStrictPure = o.flipStrictPure,
+          strictPureMode = spMode,
           transitionCache = F,
           patternExhaustive = o.patternExhaustive,
           pureFun = o.pureFun,
@@ -284,6 +289,11 @@ object Logika {
         case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
         case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
       }
+      val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
+        case Cli.SireumLogikaVerifierStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default
+        case Cli.SireumLogikaVerifierStrictPureMode.Flip => org.sireum.logika.Config.StrictPureMode.Flip
+        case Cli.SireumLogikaVerifierStrictPureMode.Uninterpreted => org.sireum.logika.Config.StrictPureMode.Uninterpreted
+      }
       val config = logika.Config(
         smt2Configs = smt2Configs,
         parCores = parCores,
@@ -316,7 +326,7 @@ object Logika {
         interpContracts = o.interproceduralContracts,
         elideEncoding = o.elideEncoding,
         rawInscription = o.rawInscription,
-        flipStrictPure = o.flipStrictPure,
+        strictPureMode = spMode,
         transitionCache = F,
         patternExhaustive = o.patternExhaustive,
         pureFun = o.pureFun,

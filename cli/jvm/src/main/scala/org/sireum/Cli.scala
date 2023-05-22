@@ -127,6 +127,12 @@ object Cli {
     'TowardZero
   }
 
+  @enum object SireumLogikaVerifierStrictPureMode {
+    'Default
+    'Flip
+    'Uninterpreted
+  }
+
   @enum object SireumLogikaVerifierBranchPar {
     'All
     'Returns
@@ -145,7 +151,7 @@ object Cli {
     val intBitWidth: Z,
     val interprocedural: B,
     val interproceduralContracts: B,
-    val flipStrictPure: B,
+    val strictPureMode: SireumLogikaVerifierStrictPureMode.Type,
     val line: Z,
     val loopBound: Z,
     val callBound: Z,
@@ -305,6 +311,12 @@ object Cli {
     'TowardZero
   }
 
+  @enum object SireumProyekLogikaStrictPureMode {
+    'Default
+    'Flip
+    'Uninterpreted
+  }
+
   @enum object SireumProyekLogikaBranchPar {
     'All
     'Returns
@@ -336,7 +348,7 @@ object Cli {
     val intBitWidth: Z,
     val interprocedural: B,
     val interproceduralContracts: B,
-    val flipStrictPure: B,
+    val strictPureMode: SireumProyekLogikaStrictPureMode.Type,
     val line: Z,
     val loopBound: Z,
     val callBound: Z,
@@ -1459,6 +1471,26 @@ import Cli._
     return r
   }
 
+  def parseSireumLogikaVerifierStrictPureModeH(arg: String): Option[SireumLogikaVerifierStrictPureMode.Type] = {
+    arg.native match {
+      case "default" => return Some(SireumLogikaVerifierStrictPureMode.Default)
+      case "flip" => return Some(SireumLogikaVerifierStrictPureMode.Flip)
+      case "uninterpreted" => return Some(SireumLogikaVerifierStrictPureMode.Uninterpreted)
+      case s =>
+        eprintln(s"Expecting one of the following: { default, flip, uninterpreted }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumLogikaVerifierStrictPureMode(args: ISZ[String], i: Z): Option[SireumLogikaVerifierStrictPureMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { default, flip, uninterpreted }, but none found.")
+      return None()
+    }
+    val r = parseSireumLogikaVerifierStrictPureModeH(args(i))
+    return r
+  }
+
   def parseSireumLogikaVerifierBranchParH(arg: String): Option[SireumLogikaVerifierBranchPar.Type] = {
     arg.native match {
       case "all" => return Some(SireumLogikaVerifierBranchPar.All)
@@ -1513,11 +1545,10 @@ import Cli._
           |                           non-strict-pure methods
           |    --interprocedural-contracts
           |                          Use contracts in inter-procedural verification
-          |    --flip-strictpure-mode
-          |                          Enable inter-procedural verification of strict-pure
-          |                           methods if on compositional verification, and enable
-          |                           compositional verification of strict-pure methods if
-          |                           on inter-procededural verification
+          |    --strictpure-mode    Strict-pure method treatment mode in
+          |                           compositional/interprocedural verification (expects
+          |                           one of { default, flip, uninterpreted }; default:
+          |                           default)
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --loop-bound         Loop bound for inter-procedural verification (expects
@@ -1589,7 +1620,7 @@ import Cli._
     var intBitWidth: Z = 0
     var interprocedural: B = false
     var interproceduralContracts: B = false
-    var flipStrictPure: B = false
+    var strictPureMode: SireumLogikaVerifierStrictPureMode.Type = SireumLogikaVerifierStrictPureMode.Default
     var line: Z = 0
     var loopBound: Z = 3
     var callBound: Z = 3
@@ -1683,10 +1714,10 @@ import Cli._
              case Some(v) => interproceduralContracts = v
              case _ => return None()
            }
-         } else if (arg == "--flip-strictpure-mode") {
-           val o: Option[B] = { j = j - 1; Some(!flipStrictPure) }
+         } else if (arg == "--strictpure-mode") {
+           val o: Option[SireumLogikaVerifierStrictPureMode.Type] = parseSireumLogikaVerifierStrictPureMode(args, j + 1)
            o match {
-             case Some(v) => flipStrictPure = v
+             case Some(v) => strictPureMode = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -1890,7 +1921,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2939,6 +2970,26 @@ import Cli._
     return r
   }
 
+  def parseSireumProyekLogikaStrictPureModeH(arg: String): Option[SireumProyekLogikaStrictPureMode.Type] = {
+    arg.native match {
+      case "default" => return Some(SireumProyekLogikaStrictPureMode.Default)
+      case "flip" => return Some(SireumProyekLogikaStrictPureMode.Flip)
+      case "uninterpreted" => return Some(SireumProyekLogikaStrictPureMode.Uninterpreted)
+      case s =>
+        eprintln(s"Expecting one of the following: { default, flip, uninterpreted }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumProyekLogikaStrictPureMode(args: ISZ[String], i: Z): Option[SireumProyekLogikaStrictPureMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { default, flip, uninterpreted }, but none found.")
+      return None()
+    }
+    val r = parseSireumProyekLogikaStrictPureModeH(args(i))
+    return r
+  }
+
   def parseSireumProyekLogikaBranchParH(arg: String): Option[SireumProyekLogikaBranchPar.Type] = {
     arg.native match {
       case "all" => return Some(SireumProyekLogikaBranchPar.All)
@@ -3026,11 +3077,10 @@ import Cli._
           |                           non-strict-pure methods
           |    --interprocedural-contracts
           |                          Use contracts in inter-procedural verification
-          |    --flip-strictpure-mode
-          |                          Enable inter-procedural verification of strict-pure
-          |                           methods if on compositional verification, and enable
-          |                           compositional verification of strict-pure methods if
-          |                           on inter-procededural verification
+          |    --strictpure-mode    Strict-pure method treatment mode in
+          |                           compositional/interprocedural verification (expects
+          |                           one of { default, flip, uninterpreted }; default:
+          |                           default)
           |    --line               Focus verification to the specified program line
           |                           number (expects an integer; min is 0; default is 0)
           |    --loop-bound         Loop bound for inter-procedural verification (expects
@@ -3115,7 +3165,7 @@ import Cli._
     var intBitWidth: Z = 0
     var interprocedural: B = false
     var interproceduralContracts: B = false
-    var flipStrictPure: B = false
+    var strictPureMode: SireumProyekLogikaStrictPureMode.Type = SireumProyekLogikaStrictPureMode.Default
     var line: Z = 0
     var loopBound: Z = 3
     var callBound: Z = 3
@@ -3287,10 +3337,10 @@ import Cli._
              case Some(v) => interproceduralContracts = v
              case _ => return None()
            }
-         } else if (arg == "--flip-strictpure-mode") {
-           val o: Option[B] = { j = j - 1; Some(!flipStrictPure) }
+         } else if (arg == "--strictpure-mode") {
+           val o: Option[SireumProyekLogikaStrictPureMode.Type] = parseSireumProyekLogikaStrictPureMode(args, j + 1)
            o match {
-             case Some(v) => flipStrictPure = v
+             case Some(v) => strictPureMode = v
              case _ => return None()
            }
          } else if (arg == "--line") {
@@ -3494,7 +3544,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, flipStrictPure, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
