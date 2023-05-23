@@ -194,6 +194,13 @@ object SlangCheck {
     val sireumHome = Sireum.homeOpt.get
     val javaExe = Sireum.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
     val jacocoCli = sireumHome / "lib" / "jacococli.jar"
+    val p7za = Os.kind match {
+      case Os.Kind.Mac => sireumHome / "bin" / "mac" / "7za"
+      case Os.Kind.Linux => sireumHome / "bin" / "linux" / "7za"
+      case Os.Kind.LinuxArm => sireumHome / "bin" / "linux" / "arm" / "7za"
+      case Os.Kind.Win => sireumHome / "bin" / "win" / "7za.exe"
+      case Os.Kind.Unsupported => halt("Unsupported platform")
+    }
     o.coverage match {
       case Some(p) =>
         val prefix = Os.path(p)
@@ -293,13 +300,6 @@ object SlangCheck {
             val pNameOps = ops.StringOps(p.name)
             if (pNameOps.endsWith(".dsc.7z")) {
               val d = Os.tempDir()
-              val p7za = Os.kind match {
-                case Os.Kind.Mac => Sireum.homeOpt.get / "bin" / "mac" / "7za"
-                case Os.Kind.Linux => Sireum.homeOpt.get / "bin" / "linux" / "7za"
-                case Os.Kind.LinuxArm => Sireum.homeOpt.get / "bin" / "linux" / "arm" / "7za"
-                case Os.Kind.Win => Sireum.homeOpt.get / "bin" / "win" / "7za.exe"
-                case Os.Kind.Unsupported => halt("Unsupported platform")
-              }
               proc"$p7za x $p".at(d).runCheck()
               for (path <- d.list if path.isFile) readLines(path)
               d.removeAll()
@@ -329,14 +329,6 @@ object SlangCheck {
           } catch {
             case _: Throwable =>
           }
-        }
-
-        val p7za = Os.kind match {
-          case Os.Kind.Mac => Sireum.homeOpt.get / "bin" / "mac" / "7za"
-          case Os.Kind.Linux => Sireum.homeOpt.get / "bin" / "linux" / "7za"
-          case Os.Kind.LinuxArm => Sireum.homeOpt.get / "bin" / "linux" / "arm" / "7za"
-          case Os.Kind.Win => Sireum.homeOpt.get / "bin" / "win" / "7za.exe"
-          case Os.Kind.Unsupported => halt("Unsupported platform")
         }
 
         def file(): (Os.Path, Os.Path) = {
@@ -383,15 +375,23 @@ object SlangCheck {
         println("Generating coverage report ...")
         println(s"* $csv")
         println(s"* $html")
-        var commands = ISZ[String](javaExe.string, "-jar", jacocoCli.string, "report", exec.string, "--encoding",
-          "UTF-8", "--classfiles", dump.string, "--csv", csv.string, "--html", html.string)
-        Os.proc(commands).runCheck()
+        val srcDir = Os.tempDir()
+        val pred: Os.Path => B = (p: Os.Path) => p.ext.value == "scala" || p.ext.value == "java"
         for (p <- o.sourcepath) {
-          val path = Os.path(p)
+          val path = Os.path(p).canon
           if (path.exists) {
-            commands = commands ++ ISZ[String]("--sourcefiles", path.string)
+            if (path.ext.value == "jar") {
+              path.unzipTo(srcDir)
+            } else {
+              path.overlayCopy(dump, F, F, pred, F)
+            }
           }
         }
+        srcDir.overlayCopy(dump, F, F, pred, F)
+        srcDir.removeAll()
+        val commands = ISZ[String](javaExe.string, "-jar", jacocoCli.string, "report", exec.string, "--encoding",
+          "UTF-8", "--classfiles", dump.string, "--csv", csv.string, "--html", html.string, "--sourcefiles", dump.string)
+        Os.proc(commands).runCheck()
         println()
       case _ =>
     }
