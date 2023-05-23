@@ -381,6 +381,7 @@ object Sireum {
       println(
         s"""
            |Available Standalone Options:
+           |    --init               Setup dependencies
            |    --setup              Setup IVE and dependencies
            |    --setup-server       Setup IVE (Server) and dependencies
            |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
@@ -397,11 +398,11 @@ object Sireum {
         Cli(Os.pathSepChar).parseSireum(ISZ(), 0)
         printAdditionalHelp()
         return 0
+      case ISZ(string"--init") =>
+        init.deps()
+        return 0
       case ISZ(string"--setup") =>
         init.deps()
-        init.installMaryTTS()
-        init.installCheckStack()
-        init.installScripts()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", init.home.string), reporter)
@@ -409,9 +410,6 @@ object Sireum {
         return 0
       case ISZ(string"--setup-server") =>
         init.deps()
-        init.installMaryTTS()
-        init.installCheckStack()
-        init.installScripts()
         init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
@@ -419,9 +417,6 @@ object Sireum {
         return 0
       case ISZ(string"--setup-ultimate") =>
         init.deps()
-        init.installMaryTTS()
-        init.installCheckStack()
-        init.installScripts()
         init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
@@ -471,14 +466,17 @@ object Sireum {
             init.basicDeps()
             return cli.GenTools.transGen(o, reporter)
           case Some(o: Cli.SireumToolsSlangcheckRunnerOption) =>
+            init.basicDeps()
             val code = NativeUtil.nonNative(Z(-1), () => {
               cli.SlangCheck.run(o, reporter)
             })
             reporter.printMessages()
             return code
           case Some(o: Cli.SireumToolsSlangcheckTesterOption) =>
+            init.basicDeps()
+            init.installJacoco()
             val code = NativeUtil.nonNative(Z(-1), () => {
-              cli.SlangCheck.test(o, reporter)
+              cli.SlangCheck.test(args, o, reporter)
             })
             reporter.printMessages()
             return code
@@ -550,8 +548,7 @@ object Sireum {
             init.proyekCompileDeps()
             return cli.Proyek.publish(o)
           case Some(o: Cli.SireumProyekRunOption) =>
-            init.basicDeps()
-            init.proyekCompileDeps()
+            init.deps()
             return cli.Proyek.run(o)
           case Some(o: Cli.SireumProyekStatsOption) =>
             init.basicDeps()

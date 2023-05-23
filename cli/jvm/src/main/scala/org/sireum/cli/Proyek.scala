@@ -178,7 +178,7 @@ object Proyek {
       project = prj,
       versions = versions,
       isJs = F,
-      withSource = F,
+      withSource = o.includeSources,
       withDoc = F,
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
@@ -223,6 +223,7 @@ object Proyek {
       mainClassNameOpt = o.mainClass,
       isNative = o.isNative,
       isUber = o.uber,
+      includeSources = o.includeSources,
       includeTests = o.includeTests
     )
 

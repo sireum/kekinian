@@ -38,6 +38,8 @@ object SlangCheck {
   val OUTPUT_REQUIRED: Z = -3
   val OUTPUT_NOT_FILE: Z = -4
   val INPUT_MISSING: Z = -4
+  val EXEC_MISSING: Z = -5
+  val DUMP_MISSING: Z = -6
 
   def run(o: Cli.SireumToolsSlangcheckRunnerOption, reporter: Reporter): Z = {
     if (o.args.isEmpty) {
@@ -149,7 +151,7 @@ object SlangCheck {
     return 0
   }
 
-  def test(o: Cli.SireumToolsSlangcheckTesterOption, reporter: Reporter): Z = {
+  def test(args: ISZ[String], o: Cli.SireumToolsSlangcheckTesterOption, reporter: Reporter): Z = {
     if (o.args.isEmpty) {
       println(o.help)
       return 0
@@ -166,8 +168,8 @@ object SlangCheck {
       return INPUT_MISSING
     }
     val (outputPassing, outputFailing): (Os.Path, Os.Path) = o.output match {
-      case Some(o) =>
-        val op = Os.path(o).canon
+      case Some(out) =>
+        val op = Os.path(out).canon
         val oParent = op.up.canon
         (oParent / s"${op.name}.passing", oParent / s"${op.name}.failing")
       case _ =>
@@ -189,152 +191,210 @@ object SlangCheck {
     outputPassing.write("")
     outputFailing.write("")
 
-    val urls = for (p <- o.classpath.elements) yield new File(Os.path(p).canon.string.value).toURI.toURL
-    val cl = new URLClassLoader(urls.toArray, getClass.getClassLoader)
-    val testRunner: Random.Gen.TestRunner[AnyRef] = o.args match {
-      case ISZ(className) => cl.loadClass(className.value).getDeclaredConstructor().newInstance().asInstanceOf[Random.Gen.TestRunner[AnyRef]]
+    val sireumHome = Sireum.homeOpt.get
+    val javaExe = Sireum.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
+    val jacocoCli = sireumHome / "lib" / "jacococli.jar"
+    o.coverage match {
+      case Some(p) =>
+        val prefix = Os.path(p)
+        val exec = (prefix.up / s"${prefix.name}.exec").canon
+        val dump = (prefix.up / s"${prefix.name}.dump").canon
+        exec.removeAll()
+        dump.removeAll()
+        dump.mkdirAll()
+        val i = ops.ISZOps(args).indexOf("--coverage")
+        var newArgs = ISZ[String]()
+        for (j <- 0 until args.size) {
+          if (j != i && j != i + 1) {
+            newArgs = newArgs :+ args(j)
+          }
+        }
+        val jacocoAgent = sireumHome / "lib" / "jacocoagent.jar"
+        val commands = ISZ[String](javaExe.string, s"-javaagent:$jacocoAgent=destfile=$exec,classdumpdir=$dump",
+          "-jar", (sireumHome / "bin" / "sireum.jar").string) ++ newArgs
+        val exitCode = Os.proc(commands).console.run().exitCode
+        if (exitCode != 0) {
+          return exitCode
+        }
       case _ =>
-        reporter.error(None(), kind, s"Expecting a single fully-qualified class name argument")
-        return ARGS_ERROR
-    }
-    val maxCores = Runtime.getRuntime.availableProcessors
-    val cores = o.par match {
-      case Some(n) =>
-        if (0 < n & n <= maxCores) n.toInt
-        else if (n > maxCores) maxCores
-        else 1
-      case _ => 1
-    }
-    System.setProperty("org.sireum.silenthalt", "true")
-    val queue = new ConcurrentLinkedQueue[Predef.String]
-    var finishedThreads = 0
-    var numOfPassingObjects = 0
-    var numOfFailingObjects = 0
-    val threads = for (_ <- 0 until cores) yield new Thread {
-      override def run(): Unit = {
-        try {
-          val t = Thread.currentThread
-          while (!t.isInterrupted) {
-            val json = queue.poll
-            if (json != null) {
-              val obj = testRunner.fromJson(json)
-              try {
-                if (testRunner.test(obj)) {
-                  testRunner.synchronized {
-                    numOfPassingObjects = numOfPassingObjects + 1
-                    outputPassing.writeAppend(s"$json\n")
+        val paths = for (p <- o.classpath) yield Os.path(p).canon
+        val urls = for (p <- paths) yield new File(p.string.value).toURI.toURL
+        val cl = new URLClassLoader(urls.elements.toArray, getClass.getClassLoader)
+        val testRunner: Random.Gen.TestRunner[AnyRef] = o.args match {
+          case ISZ(className) => cl.loadClass(className.value).getDeclaredConstructor().newInstance().asInstanceOf[Random.Gen.TestRunner[AnyRef]]
+          case _ =>
+            reporter.error(None(), kind, s"Expecting a single fully-qualified class name argument")
+            return ARGS_ERROR
+        }
+
+        val maxCores = Runtime.getRuntime.availableProcessors
+        val cores = o.par match {
+          case Some(n) =>
+            if (0 < n & n <= maxCores) n.toInt
+            else if (n > maxCores) maxCores
+            else 1
+          case _ => 1
+        }
+        System.setProperty("org.sireum.silenthalt", "true")
+        val queue = new ConcurrentLinkedQueue[Predef.String]
+        var finishedThreads = 0
+        var numOfPassingObjects = 0
+        var numOfFailingObjects = 0
+        val threads = for (_ <- 0 until cores) yield new Thread {
+          override def run(): Unit = {
+            try {
+              val t = Thread.currentThread
+              while (!t.isInterrupted) {
+                val json = queue.poll
+                if (json != null) {
+                  val obj = testRunner.fromJson(json)
+                  try {
+                    if (testRunner.test(obj)) {
+                      testRunner.synchronized {
+                        numOfPassingObjects = numOfPassingObjects + 1
+                        outputPassing.writeAppend(s"$json\n")
+                      }
+                    } else {
+                      testRunner.synchronized {
+                        numOfFailingObjects = numOfFailingObjects + 1
+                        outputFailing.writeAppend(s"$json\n")
+                      }
+                    }
+                  } catch {
+                    case e: InterruptedException => throw e
+                    case _: Throwable =>
+                      testRunner.synchronized {
+                        numOfFailingObjects = numOfFailingObjects + 1
+                        outputFailing.writeAppend(s"$json\n")
+                      }
                   }
                 } else {
-                  testRunner.synchronized {
-                    numOfFailingObjects = numOfFailingObjects + 1
-                    outputFailing.writeAppend(s"$json\n")
-                  }
+                  Thread.sleep(100)
                 }
-              } catch {
-                case e: InterruptedException => throw e
-                case _: Throwable =>
-                  testRunner.synchronized {
-                    numOfFailingObjects = numOfFailingObjects + 1
-                    outputFailing.writeAppend(s"$json\n")
-                  }
               }
-            } else {
-              Thread.sleep(100)
+            } catch {
+              case _: InterruptedException =>
+            }
+            testRunner.synchronized {
+              finishedThreads = finishedThreads + 1
             }
           }
-        } catch {
-          case _: InterruptedException =>
         }
-        testRunner.synchronized {
-          finishedThreads = finishedThreads + 1
-        }
-      }
-    }
-    for (t <- threads) t.start()
+        for (t <- threads) t.start()
 
-    def readLines(f: Os.Path): Unit = {
-      for (l <- f.readLineStream) {
-        queue.add(l.value)
-      }
-    }
-
-    def process(p: Os.Path): Unit = {
-      if (p.isFile) {
-        val pNameOps = ops.StringOps(p.name)
-        if (pNameOps.endsWith(".dsc.7z")) {
-          val d = Os.tempDir()
-          val p7za = Os.kind match {
-            case Os.Kind.Mac => Sireum.homeOpt.get / "bin" / "mac" / "7za"
-            case Os.Kind.Linux => Sireum.homeOpt.get / "bin" / "linux" / "7za"
-            case Os.Kind.LinuxArm => Sireum.homeOpt.get / "bin" / "linux" / "arm" / "7za"
-            case Os.Kind.Win => Sireum.homeOpt.get / "bin" / "win" / "7za.exe"
-            case Os.Kind.Unsupported => halt("Unsupported platform")
+        def readLines(f: Os.Path): Unit = {
+          for (l <- f.readLineStream) {
+            queue.add(l.value)
           }
-          proc"$p7za x $p".at(d).runCheck()
-          for (path <- d.list if path.isFile) readLines(path)
-          d.removeAll()
-        } else if (pNameOps.endsWith(".dsc.gz")) {
-          val d = Os.tempDir()
-          proc"gunzip --keep $p".at(d).runCheck()
-          for (path <- d.list if path.isFile) readLines(path)
-          d.removeAll()
         }
-      } else if (p.isDir) {
-        for (e <- p.list) process(e)
-      }
-    }
 
-    process(input)
-    while (!queue.isEmpty) {
-      try {
-        Thread.sleep(100)
-      } catch {
-        case _: Throwable =>
-      }
-    }
-    for (t <- threads) t.interrupt()
-    while (cores != finishedThreads) {
-      try {
-        Thread.sleep(100)
-      } catch {
-        case _: Throwable =>
-      }
-    }
+        def process(p: Os.Path): Unit = {
+          if (p.isFile) {
+            val pNameOps = ops.StringOps(p.name)
+            if (pNameOps.endsWith(".dsc.7z")) {
+              val d = Os.tempDir()
+              val p7za = Os.kind match {
+                case Os.Kind.Mac => Sireum.homeOpt.get / "bin" / "mac" / "7za"
+                case Os.Kind.Linux => Sireum.homeOpt.get / "bin" / "linux" / "7za"
+                case Os.Kind.LinuxArm => Sireum.homeOpt.get / "bin" / "linux" / "arm" / "7za"
+                case Os.Kind.Win => Sireum.homeOpt.get / "bin" / "win" / "7za.exe"
+                case Os.Kind.Unsupported => halt("Unsupported platform")
+              }
+              proc"$p7za x $p".at(d).runCheck()
+              for (path <- d.list if path.isFile) readLines(path)
+              d.removeAll()
+            } else if (pNameOps.endsWith(".dsc.gz")) {
+              val d = Os.tempDir()
+              proc"gunzip --keep $p".at(d).runCheck()
+              for (path <- d.list if path.isFile) readLines(path)
+              d.removeAll()
+            }
+          } else if (p.isDir) {
+            for (e <- p.list) process(e)
+          }
+        }
 
-    def file(): (Os.Path, Os.Path) = {
-      val p7za = Os.kind match {
-        case Os.Kind.Mac => Sireum.homeOpt.get / "bin" / "mac" / "7za"
-        case Os.Kind.Linux => Sireum.homeOpt.get / "bin" / "linux" / "7za"
-        case Os.Kind.LinuxArm => Sireum.homeOpt.get / "bin" / "linux" / "arm" / "7za"
-        case Os.Kind.Win => Sireum.homeOpt.get / "bin" / "win" / "7za.exe"
-        case Os.Kind.Unsupported =>
+        process(input)
+        while (!queue.isEmpty) {
+          try {
+            Thread.sleep(100)
+          } catch {
+            case _: Throwable =>
+          }
+        }
+        for (t <- threads) t.interrupt()
+        while (cores != finishedThreads) {
+          try {
+            Thread.sleep(100)
+          } catch {
+            case _: Throwable =>
+          }
+        }
+
+        val p7za = Os.kind match {
+          case Os.Kind.Mac => Sireum.homeOpt.get / "bin" / "mac" / "7za"
+          case Os.Kind.Linux => Sireum.homeOpt.get / "bin" / "linux" / "7za"
+          case Os.Kind.LinuxArm => Sireum.homeOpt.get / "bin" / "linux" / "arm" / "7za"
+          case Os.Kind.Win => Sireum.homeOpt.get / "bin" / "win" / "7za.exe"
+          case Os.Kind.Unsupported => halt("Unsupported platform")
+        }
+
+        def file(): (Os.Path, Os.Path) = {
           println(s"Compressing $outputPassing ...")
-          proc"gzip $outputPassing.dsc.gz $outputPassing".echo.console.runCheck()
+          proc"$p7za a $outputPassing.dsc.7z $outputPassing".echo.console.runCheck()
           println(s"Compressing $outputFailing ...")
-          proc"gzip $outputFailing.dsc.gz $outputFailing".echo.console.runCheck()
-          return ((outputPassing.up / s"${outputPassing.name}.dsc.gz").canon,
-            (outputFailing.up / s"${outputFailing.name}.dsc.gz").canon)
-      }
-      println(s"Compressing $outputPassing ...")
-      proc"$p7za a $outputPassing.dsc.7z $outputPassing".echo.console.runCheck()
-      println(s"Compressing $outputFailing ...")
-      proc"$p7za a $outputFailing.dsc.7z $outputFailing".echo.console.runCheck()
-      println()
-      ((outputPassing.up / s"${outputPassing.name}.dsc.7z").canon, (outputFailing.up / s"${outputFailing.name}.dsc.7z").canon)
+          proc"$p7za a $outputFailing.dsc.7z $outputFailing".echo.console.runCheck()
+          println()
+          ((outputPassing.up / s"${outputPassing.name}.dsc.7z").canon, (outputFailing.up / s"${outputFailing.name}.dsc.7z").canon)
+        }
+
+        val p = file()
+
+        o.scp match {
+          case Some(server) =>
+            println(s"Copying to $server ...")
+            proc"scp ${p._1} ${p._2} $server".echo.console.runCheck()
+            println()
+          case _ =>
+        }
+
+        println(s"Passing: $numOfPassingObjects, Failing: $numOfFailingObjects")
+        println()
     }
 
-    val p = file()
+    o.coverage match {
+      case Some(p) =>
+        val prefix = Os.path(p)
+        val exec = (prefix.up / s"${prefix.name}.exec").canon
+        val dump = (prefix.up / s"${prefix.name}.dump").canon
 
-    o.scp match {
-      case Some(server) =>
-        println(s"Copying to $server ...")
-        proc"scp ${p._1} ${p._2} $server".echo.console.runCheck()
+        if (!exec.exists) {
+          eprintln(s"$exec was not generated")
+          return EXEC_MISSING
+        }
+        if (dump.list.isEmpty) {
+          eprintln(s"$dump was not generated")
+          return DUMP_MISSING
+        }
+        val csv = (prefix.up / s"${prefix.name}.coverage.csv").canon
+        val html = (prefix.up / s"${prefix.name}.coverage").canon
+        csv.removeAll()
+        html.removeAll()
+        println("Generating coverage report ...")
+        println(s"* $csv")
+        println(s"* $html")
+        var commands = ISZ[String](javaExe.string, "-jar", jacocoCli.string, "report", exec.string, "--encoding",
+          "UTF-8", "--classfiles", dump.string, "--csv", csv.string, "--html", html.string)
+        Os.proc(commands).runCheck()
+        for (p <- o.sourcepath) {
+          val path = Os.path(p)
+          if (path.exists) {
+            commands = commands ++ ISZ[String]("--sourcefiles", path.string)
+          }
+        }
         println()
       case _ =>
     }
-
-    println(s"Passing: $numOfPassingObjects, Failing: $numOfFailingObjects")
-    println()
 
     return 0
   }

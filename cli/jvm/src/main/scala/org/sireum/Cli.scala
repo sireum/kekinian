@@ -206,6 +206,7 @@ object Cli {
   @datatype class SireumProyekAssembleOption(
     val help: String,
     val args: ISZ[String],
+    val includeSources: B,
     val includeTests: B,
     val jar: Option[String],
     val mainClass: Option[String],
@@ -761,10 +762,12 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val classpath: ISZ[String],
+    val coverage: Option[String],
     val input: Option[String],
     val output: Option[String],
     val par: Option[Z],
-    val scp: Option[String]
+    val scp: Option[String],
+    val sourcepath: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumToolsTrafoTransformerMode {
@@ -2101,7 +2104,8 @@ import Cli._
           |Usage: <options>* <dir>
           |
           |Available Options:
-          |-t, --include-tests      Include test classes
+          |    --include-sources    Include source files
+          |    --include-tests      Include test classes
           |-j, --jar                The assembled jar filename (defaults to the project
           |                           name) (expects a string)
           |-m, --main               The main class fully qualified name (expects a string)
@@ -2162,6 +2166,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
+    var includeSources: B = false
     var includeTests: B = false
     var jar: Option[String] = None[String]()
     var mainClass: Option[String] = None[String]()
@@ -2194,7 +2199,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-t" || arg == "--include-tests") {
+        } else if (arg == "--include-sources") {
+           val o: Option[B] = { j = j - 1; Some(!includeSources) }
+           o match {
+             case Some(v) => includeSources = v
+             case _ => return None()
+           }
+         } else if (arg == "--include-tests") {
            val o: Option[B] = { j = j - 1; Some(!includeTests) }
            o match {
              case Some(v) => includeTests = v
@@ -2350,7 +2361,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeTests, jar, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -6381,6 +6392,8 @@ import Cli._
           |Available Options:
           |-c, --classpath          Classpath to load test runner class from (expects path
           |                           strings)
+          |    --coverage           JaCoCo exec and classdumpdir path prefix (without
+          |                           .exec and .dump) (expects a path)
           |-i, --input              Input file or directory containing compressed test
           |                           case objects (expects a path)
           |-o, --output             Output file to store passing/failing test case objects
@@ -6389,13 +6402,17 @@ import Cli._
           |                           min is 1; default is 0)
           |-s, --scp                Server connection to scp compressed output file to
           |                           (expects a string)
+          |    --sourcepath         Sourcepath for coverage information (expects path
+          |                           strings)
           |-h, --help               Display this information""".render
 
     var classpath: ISZ[String] = ISZ[String]()
+    var coverage: Option[String] = None[String]()
     var input: Option[String] = None[String]()
     var output: Option[String] = None[String]()
     var par: Option[Z] = None()
     var scp: Option[String] = None[String]()
+    var sourcepath: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -6408,6 +6425,12 @@ import Cli._
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => classpath = v
+             case _ => return None()
+           }
+         } else if (arg == "--coverage") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => coverage = v
              case _ => return None()
            }
          } else if (arg == "-i" || arg == "--input") {
@@ -6437,6 +6460,12 @@ import Cli._
              case Some(v) => scp = v
              case _ => return None()
            }
+         } else if (arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -6446,7 +6475,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumToolsSlangcheckTesterOption(help, parseArguments(args, j), classpath, input, output, par, scp))
+    return Some(SireumToolsSlangcheckTesterOption(help, parseArguments(args, j), classpath, coverage, input, output, par, scp, sourcepath))
   }
 
   def parseSireumToolsTrafoTransformerModeH(arg: String): Option[SireumToolsTrafoTransformerMode.Type] = {
