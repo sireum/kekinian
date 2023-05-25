@@ -584,7 +584,8 @@ object Proyek {
       transitionCache = F,
       patternExhaustive = o.patternExhaustive,
       pureFun = o.pureFun,
-      detailedInfo = o.logDetailedInfo
+      detailedInfo = o.logDetailedInfo,
+      satTimeout = o.satTimeout
     )
 
     val lcode = Analysis.run(
@@ -977,7 +978,8 @@ object Proyek {
       transitionCache = F,
       patternExhaustive = F,
       pureFun = F,
-      detailedInfo = F
+      detailedInfo = F,
+      satTimeout = F
     )
     val lcode = Analysis.run(
       root = path,

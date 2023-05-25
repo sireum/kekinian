@@ -196,7 +196,8 @@ object Logika {
           transitionCache = F,
           patternExhaustive = o.patternExhaustive,
           pureFun = o.pureFun,
-          detailedInfo = o.logDetailedInfo
+          detailedInfo = o.logDetailedInfo,
+          satTimeout = o.satTimeout
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -330,7 +331,8 @@ object Logika {
         transitionCache = F,
         patternExhaustive = o.patternExhaustive,
         pureFun = o.pureFun,
-        detailedInfo = o.logDetailedInfo
+        detailedInfo = o.logDetailedInfo,
+        satTimeout = o.satTimeout
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
