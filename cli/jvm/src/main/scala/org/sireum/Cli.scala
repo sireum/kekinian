@@ -465,6 +465,7 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val classes: ISZ[String],
+    val coverage: Option[String],
     val java: ISZ[String],
     val packages: ISZ[String],
     val suffixes: ISZ[String],
@@ -4250,6 +4251,8 @@ import Cli._
           |Available Options:
           |    --classes            Specific fully-qualified test class names to run
           |                           (expects a string separated by ",")
+          |    --coverage           JaCoCo exec, classdumpdir, report path prefix (without
+          |                           .exec, .dump, .coverage) (expects a path)
           |    --java               Java options (expects a string separated by ",")
           |    --packages           Specific fully-qualified test package names to run
           |                           (expects a string separated by ",")
@@ -4311,6 +4314,7 @@ import Cli._
           |                           ",")""".render
 
     var classes: ISZ[String] = ISZ[String]()
+    var coverage: Option[String] = None[String]()
     var java: ISZ[String] = ISZ[String]()
     var packages: ISZ[String] = ISZ[String]()
     var suffixes: ISZ[String] = ISZ[String]()
@@ -4345,6 +4349,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => classes = v
+             case _ => return None()
+           }
+         } else if (arg == "--coverage") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => coverage = v
              case _ => return None()
            }
          } else if (arg == "--java") {
@@ -4491,7 +4501,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -6412,8 +6422,8 @@ import Cli._
           |Available Options:
           |-c, --classpath          Classpath to load test runner class from (expects path
           |                           strings)
-          |    --coverage           JaCoCo exec and classdumpdir path prefix (without
-          |                           .exec and .dump) (expects a path)
+          |    --coverage           JaCoCo exec, classdumpdir, report path prefix (without
+          |                           .exec, .dump, .coverage) (expects a path)
           |-i, --input              Input file or directory containing compressed test
           |                           case objects (expects a path)
           |-o, --output             Output file to store passing/failing test case objects

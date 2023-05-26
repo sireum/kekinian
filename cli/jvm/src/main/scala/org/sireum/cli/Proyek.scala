@@ -910,7 +910,8 @@ object Proyek {
       classNames = o.classes,
       suffixes = o.suffixes,
       packageNames = o.packages,
-      names = ops.ISZOps(o.args).drop(1)
+      names = ops.ISZOps(o.args).drop(1),
+      coverageOpt = o.coverage
     )
 
     return r
