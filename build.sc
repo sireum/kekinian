@@ -190,7 +190,7 @@ object buildModule extends mill.Module {
 }
 
 def build() = T.command {
-  val jar = os.pwd / 'bin / "sireum.jar"
+  val jar = os.pwd / "bin" / "sireum.jar"
   val p = cli.assembly().path
   os.proc("java", "-cp", jar, "org.sireum.tools.ScalaGraal", p).call()
   os.copy(p, jar, replaceExisting = true, copyAttributes = true)
@@ -207,7 +207,7 @@ private def currPlatform: String = {
   import scala.util.{Properties => ps}
   if (ps.isMac) "mac"
   else if (ps.isLinux) {
-    val arch = os.proc("uname", "-m", os.pwd).call().out.trim
+    val arch = os.proc("uname", "-m", os.pwd).call().out.trim()
     if (arch == "aarch64") "linux/arm" else "linux"
   } else if (ps.isWin) "win"
   else throw new UnsupportedOperationException("Unsupported platform")
@@ -215,8 +215,8 @@ private def currPlatform: String = {
 
 private def log(r: os.CommandResult)(implicit ctx: mill.api.Ctx.Log): Unit = {
   val logger = ctx.log
-  val out = r.out.string
-  val err = r.err.string
+  val out = new String(r.out.bytes, "UTF-8")
+  val err = new String(r.err.bytes, "UTF-8")
   if (out.trim.nonEmpty) logger.info(out)
   if (err.trim.nonEmpty) logger.error(err)
   if (r.exitCode != 0) System.exit(r.exitCode)
