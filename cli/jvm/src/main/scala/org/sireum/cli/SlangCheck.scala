@@ -26,7 +26,9 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.message.Reporter
-
+import org.sireum.lang.{FrontEnd, ast => AST}
+import org.sireum.lang.tipe.{TypeChecker, TypeHierarchy, TypeOutliner}
+import org.sireum.tools.{SlangCheck => SC}
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -149,6 +151,90 @@ object SlangCheck {
       case _ =>
     }
     return 0
+  }
+
+
+  def generate(o: Cli.SireumToolsSlangcheckGeneratorOption, reporter: Reporter): Z = {
+    if (o.args.isEmpty) {
+      println(o.help)
+      return 0
+    }
+
+    val outputDir = Os.path(if (o.outputDir.nonEmpty) o.outputDir.get else ".")
+    val testDir = Os.path(if (o.testDir.nonEmpty) o.testDir.get else ".")
+
+    val files: ISZ[Os.Path] = for (arg <- o.args) yield Os.path(arg)
+    for (f <- files if !f.exists || !f.isFile) {
+      halt(s"$f is not a file")
+    }
+
+    val reporter = Reporter.create
+
+    if (files.isEmpty) { //Checks if files are present
+      reporter.error(None(), "Gen", "Expecting a program input")
+      return -1
+    }
+
+    def readFile(f: Os.Path): (Option[String], String) = {
+      return (Some(f.toUri), f.read)
+    }
+
+    var programs = ISZ[AST.TopUnit.Program]() //list of all slang programs
+    for (src <- files) { //go through all folders
+      val srcText = src.read //read files
+      val r = lang.parser.Parser.parseTopUnit[AST.TopUnit](srcText, F, F, Some(src.toUri), reporter) //parse program
+      r match { //adds all programs that are valid to programs
+        case Some(p: AST.TopUnit.Program) =>
+          programs = programs :+ p
+        case _ =>
+          reporter.error(None(), "Gen", s"$src is not a Slang program")
+          return -1
+      }
+    }
+
+
+    var sources2 = ISZ[FrontEnd.Input]()
+    for (p <- files) {
+      val x = readFile(p)
+      sources2 = sources2 :+ FrontEnd.Input(x._2, x._1)
+    }
+
+    var th: TypeHierarchy = {
+      val (thl, rep): (TypeHierarchy, Reporter) = {
+        val p = FrontEnd.libraryReporter
+        (p._1.typeHierarchy, p._2)
+      }
+
+      if (rep.hasError) {
+        rep.printMessages()
+      }
+
+      thl
+    }
+
+    val t = FrontEnd.parseProgramAndGloballyResolve(0, sources2,
+      th.nameMap, th.typeMap)
+
+    th = TypeHierarchy.build(F, th(nameMap = t._3, typeMap = t._4), reporter)
+
+    th = TypeOutliner.checkOutline(0, T, th, reporter)
+
+    th = TypeChecker.checkComponents(0, T, th, th.nameMap, th.typeMap, reporter)
+
+
+    val results: ISZ[(ISZ[String], ST)] = SC.gen(for (source <- files) yield source.toUri, programs, reporter, th)
+
+    if (!reporter.hasError) {
+      for (r <- results) {
+        val destFile = outputDir /+ r._1
+        destFile.writeOver(r._2.render)
+        println(s"Wrote: $destFile")
+      }
+    }
+
+    print()
+
+    return if (reporter.hasError) 1 else 0
   }
 
   def test(args: ISZ[String], o: Cli.SireumToolsSlangcheckTesterOption, reporter: Reporter): Z = {

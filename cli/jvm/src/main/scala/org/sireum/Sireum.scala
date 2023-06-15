@@ -465,6 +465,11 @@ object Sireum {
           case Some(o: Cli.SireumToolsTrafoOption) =>
             init.basicDeps()
             return cli.GenTools.transGen(o, reporter)
+          case Some(o: Cli.SireumToolsSlangcheckGeneratorOption) =>
+            init.basicDeps()
+            val result = cli.SlangCheck.generate(o, reporter)
+            //reporter.printMessages()
+            return result
           case Some(o: Cli.SireumToolsSlangcheckRunnerOption) =>
             init.basicDeps()
             val code = NativeUtil.nonNative(Z(-1), () => {
