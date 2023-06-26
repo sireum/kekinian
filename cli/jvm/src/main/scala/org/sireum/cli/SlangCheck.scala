@@ -170,7 +170,21 @@ object SlangCheck {
 
     val reporter = Reporter.create
 
-    SCJ.run(files, outputDir, testDir, reporter)
+    val results = SCJ.run(files, outputDir, testDir, reporter)
+
+    if (!reporter.hasError) {
+      for (r <- results._1) {
+        val destFile = outputDir /+ r._1
+        destFile.writeOver(r._2.render)
+        println(s"Wrote: $destFile")
+      }
+
+      for (r <- results._2) {
+        val destFile = testDir /+ r._1
+        destFile.writeOver(r._2.render)
+        println(s"Wrote: $destFile")
+      }
+    }
 
     return if (reporter.hasError) 1 else 0
   }
