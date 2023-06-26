@@ -773,6 +773,13 @@ object Cli {
     val sourcepath: ISZ[String]
   ) extends SireumTopOption
 
+  @datatype class SireumToolsSlangcheckGeneratorOption(
+    val help: String,
+    val args: ISZ[String],
+    val outputDir: Option[String],
+    val testDir: Option[String]
+  ) extends SireumTopOption
+
   @enum object SireumToolsTrafoTransformerMode {
     'Immutable
     'Mutable
@@ -6315,14 +6322,16 @@ import Cli._
             |
             |Available modes:
             |runner                   SlangCheck test generator runner
-            |tester                   SlangCheck test case runner""".render
+            |tester                   SlangCheck test case runner
+            |generator                Slang Check generator""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("slangcheck", args, i, ISZ("runner", "tester"))
+    val opt = select("slangcheck", args, i, ISZ("runner", "tester", "generator"))
     opt match {
       case Some(string"runner") => return parseSireumToolsSlangcheckRunner(args, i + 1)
       case Some(string"tester") => return parseSireumToolsSlangcheckTester(args, i + 1)
+      case Some(string"generator") => return parseSireumToolsSlangcheckGenerator(args, i + 1)
       case _ => return None()
     }
   }
@@ -6506,6 +6515,53 @@ import Cli._
       }
     }
     return Some(SireumToolsSlangcheckTesterOption(help, parseArguments(args, j), classpath, coverage, input, output, par, scp, sourcepath))
+  }
+
+  def parseSireumToolsSlangcheckGenerator(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Check generator
+          |
+          |Usage: <option>* <slang-file>+
+          |
+          |Available Options:
+          |-o, --output-dir         Output directory for the generated Slang Check files
+          |                           (expects a path; default is ".")
+          |-t, --test-dir           Output directory for the generated unit tests (expects
+          |                           a path; default is ".")
+          |-h, --help               Display this information""".render
+
+    var outputDir: Option[String] = Some(".")
+    var testDir: Option[String] = Some(".")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--test-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => testDir = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumToolsSlangcheckGeneratorOption(help, parseArguments(args, j), outputDir, testDir))
   }
 
   def parseSireumToolsTrafoTransformerModeH(arg: String): Option[SireumToolsTrafoTransformerMode.Type] = {

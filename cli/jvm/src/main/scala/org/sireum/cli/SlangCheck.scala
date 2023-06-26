@@ -26,7 +26,9 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.message.Reporter
-
+import org.sireum.lang.{FrontEnd, ast => AST}
+import org.sireum.lang.tipe.{TypeChecker, TypeHierarchy, TypeOutliner}
+import org.sireum.tools.{SlangCheck => SC, SlangCheckJvm => SCJ}
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -149,6 +151,42 @@ object SlangCheck {
       case _ =>
     }
     return 0
+  }
+
+
+  def generate(o: Cli.SireumToolsSlangcheckGeneratorOption, reporter: Reporter): Z = {
+    if (o.args.isEmpty) {
+      println(o.help)
+      return 0
+    }
+
+    val outputDir = Os.path(if (o.outputDir.nonEmpty) o.outputDir.get else ".")
+    val testDir = Os.path(if (o.testDir.nonEmpty) o.testDir.get else ".")
+
+    val files: ISZ[Os.Path] = for (arg <- o.args) yield Os.path(arg)
+    for (f <- files if !f.exists || !f.isFile) {
+      halt(s"$f is not a file")
+    }
+
+    val reporter = Reporter.create
+
+    val results = SCJ.run(files, outputDir, testDir, reporter)
+
+    if (!reporter.hasError) {
+      for (r <- results._1) {
+        val destFile = outputDir /+ r._1
+        destFile.writeOver(r._2.render)
+        println(s"Wrote: $destFile")
+      }
+
+      for (r <- results._2) {
+        val destFile = testDir /+ r._1
+        destFile.writeOver(r._2.render)
+        println(s"Wrote: $destFile")
+      }
+    }
+
+    return if (reporter.hasError) 1 else 0
   }
 
   def test(args: ISZ[String], o: Cli.SireumToolsSlangcheckTesterOption, reporter: Reporter): Z = {
