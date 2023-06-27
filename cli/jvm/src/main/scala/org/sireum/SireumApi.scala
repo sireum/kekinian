@@ -95,8 +95,10 @@ import org.sireum.message.Reporter
                   options: hamr.codegen.common.util.CodeGenConfig,
                   plugins: MSZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
-                  transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
-                  proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults = $
+                  transpilerCallback: (hamr.codegen.common.containers.SireumSlangTranspilersCOption, message.Reporter) => Z,
+                  proyekIveCallback: hamr.codegen.common.containers.SireumProyekIveOption => Z,
+                  sergenCallback: (hamr.codegen.common.containers.SireumToolsSergenOption, message.Reporter) => Z,
+                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodeGenResults = $
 
   def run(args: ISZ[String]): Z = $
 

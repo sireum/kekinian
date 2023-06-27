@@ -29,7 +29,7 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.Os.Path
 import org.sireum.hamr.arsit.plugin.ArsitPlugin
-import org.sireum.hamr.codegen.common.containers.{ProyekIveConfig, ProyekIveEdition, TranspilerConfig}
+import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
@@ -214,7 +214,7 @@ object HAMR {
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as
     // that leads to codegen's messages being emitted multiple times
-    def transpile(ao: TranspilerConfig, transpileReporter: Reporter): Z = {
+    def transpile(ao: SireumSlangTranspilersCOption, transpileReporter: Reporter): Z = {
       val sstco = Cli.SireumSlangTranspilersCOption(
         help = "",
         args = ISZ(),
@@ -247,18 +247,12 @@ object HAMR {
     }
 
     // call back function
-    def proyekIve(po: ProyekIveConfig): Z = {
-      val edition: Cli.SireumProyekIveEdition.Type = po.edition match {
-        case ProyekIveEdition.Community => Cli.SireumProyekIveEdition.Community
-        case ProyekIveEdition.Ultimate => Cli.SireumProyekIveEdition.Ultimate
-        case ProyekIveEdition.Server => Cli.SireumProyekIveEdition.Server
-      }
-
+    def proyekIve(po: SireumProyekIveOption): Z = {
       val spivo = Cli.SireumProyekIveOption(
         help = po.help,
         args = po.args,
         force = po.force,
-        edition = edition,
+        edition = Cli.SireumProyekIveEdition.byName(po.edition.name).get,
         javac = po.javac,
         scalac = po.scalac,
         ignoreRuntime = po.ignoreRuntime,
@@ -279,9 +273,35 @@ object HAMR {
       return Proyek.ive(spivo)
     }
 
+    def sergen(stso: SireumToolsSergenOption, sreporter: Reporter): Z = {
+      val cstso = Cli.SireumToolsSergenOption(
+        help = stso.help,
+        args = stso.args,
+        modes = for (m <- stso.modes) yield Cli.SireumToolsSergenSerializerMode.byName(m.name).get,
+        packageName = stso.packageName,
+        name = stso.name,
+        license = stso.license,
+        outputDir = stso.outputDir
+      )
+      return GenTools.serGen(cstso, sreporter)
+    }
+
+    def slangCheck(stsgo: SireumToolsSlangcheckGeneratorOption, sreporter: Reporter): Z = {
+      val cstsgo = Cli.SireumToolsSlangcheckGeneratorOption(
+        help = stsgo.help,
+        args = stsgo.args,
+        license = stsgo.license,
+        packageName = stsgo.packageName,
+        outputDir = stsgo.outputDir,
+        testDir = stsgo.testDir
+      )
+      return SlangCheck.generate(cstsgo, sreporter)
+    }
+
     val ops = toCodeGenOptions(o)
 
-    return SireumApi.hamrCodeGen(model, ops, plugins ++ ArsitPlugin.defaultPlugins(), reporter, transpile _, proyekIve _)
+    return SireumApi.hamrCodeGen(model, ops, plugins ++ ArsitPlugin.defaultPlugins(), reporter,
+      transpile _, proyekIve _, sergen _, slangCheck _)
   }
 
   def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {

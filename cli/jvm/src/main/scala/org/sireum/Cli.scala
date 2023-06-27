@@ -776,6 +776,8 @@ object Cli {
   @datatype class SireumToolsSlangcheckGeneratorOption(
     val help: String,
     val args: ISZ[String],
+    val license: Option[String],
+    val packageName: ISZ[String],
     val outputDir: Option[String],
     val testDir: Option[String]
   ) extends SireumTopOption
@@ -6524,14 +6526,20 @@ import Cli._
           |Usage: <option>* <slang-file>+
           |
           |Available Options:
+          |-l, --license            License file to be inserted in the file header
+          |                           (expects a path)
+          |-p, --package            Package name for generators (expects a string
+          |                           separated by ".")
           |-o, --output-dir         Output directory for the generated Slang Check files
           |                           (expects a path; default is ".")
           |-t, --test-dir           Output directory for the generated unit tests (expects
-          |                           a path; default is ".")
+          |                           a path)
           |-h, --help               Display this information""".render
 
+    var license: Option[String] = None[String]()
+    var packageName: ISZ[String] = ISZ[String]()
     var outputDir: Option[String] = Some(".")
-    var testDir: Option[String] = Some(".")
+    var testDir: Option[String] = None[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -6540,7 +6548,19 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-o" || arg == "--output-dir") {
+        } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => outputDir = v
@@ -6561,7 +6581,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumToolsSlangcheckGeneratorOption(help, parseArguments(args, j), outputDir, testDir))
+    return Some(SireumToolsSlangcheckGeneratorOption(help, parseArguments(args, j), license, packageName, outputDir, testDir))
   }
 
   def parseSireumToolsTrafoTransformerModeH(arg: String): Option[SireumToolsTrafoTransformerMode.Type] = {

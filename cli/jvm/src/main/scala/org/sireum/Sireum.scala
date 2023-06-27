@@ -253,9 +253,11 @@ object Sireum {
                   options: hamr.codegen.common.util.CodeGenConfig,
                   plugins: MSZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
-                  transpilerCallback: (hamr.codegen.common.containers.TranspilerConfig, message.Reporter) => Z,
-                  proyekIveCallback: hamr.codegen.common.containers.ProyekIveConfig => Z): hamr.codegen.common.util.CodeGenResults =
-    hamr.codegen.CodeGen.codeGen(model, options, plugins, reporter, transpilerCallback, proyekIveCallback)
+                  transpilerCallback: (hamr.codegen.common.containers.SireumSlangTranspilersCOption, message.Reporter) => Z,
+                  proyekIveCallback: hamr.codegen.common.containers.SireumProyekIveOption => Z,
+                  sergenCallback: (hamr.codegen.common.containers.SireumToolsSergenOption, message.Reporter) => Z,
+                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodeGenResults =
+    hamr.codegen.CodeGen.codeGen(model, options, plugins, reporter, transpilerCallback, proyekIveCallback, sergenCallback, slangCheckCallback)
 
   implicit class GZIS(val gzis: _root_.java.util.zip.GZIPInputStream) extends AnyVal {
 
@@ -468,7 +470,7 @@ object Sireum {
           case Some(o: Cli.SireumToolsSlangcheckGeneratorOption) =>
             init.basicDeps()
             val result = cli.SlangCheck.generate(o, reporter)
-            //reporter.printMessages()
+            reporter.printMessages()
             return result
           case Some(o: Cli.SireumToolsSlangcheckRunnerOption) =>
             init.basicDeps()
