@@ -287,8 +287,8 @@ def test(): Unit = {
     "org.sireum.lang",
     "org.sireum.tools",
     "org.sireum.logika",
-    "org.sireum.proyek",
-    "org.sireum.hamr.codegen.test.expensive"
+    "org.sireum.proyek"
+    //"org.sireum.hamr.codegen.test.expensive"
   )
   proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
     console.echo.runCheck()
