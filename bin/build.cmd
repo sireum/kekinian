@@ -62,10 +62,10 @@ def usage(): Unit = {
         |       | regen-logika     | regen-air         | regen-act
         |       | regen-slang-ll2  | regen-parser      | regen-parser-antlr3
         |       | regen-server     | regen-cliopt      | regen-cli
-        |       | regen-fmide-cli  | regen-json        | m2[-lib[-js]]
+        |       | regen-fmide-cli  | regen-json        | regen-slang-tt
         |       | alt-ergo-open    | cvc               | z3
         |       | mill             | jitpack           | ghpack
-        |       | ram
+        |       | m2[-lib[-js]]    | ram
         |       | distro ( --linux | --linux-arm       | --mac             | --win
         |                | --sfx   | --ultimate        | --server                  )*  )*
         |""".render)
@@ -343,6 +343,15 @@ def regenSlangLl2(): Unit = {
   val parserResourcesPackagePath = home / "slang" / "parser" / "shared" / "src" / "main" / "resources"
   val parserInput = parserResourcesPackagePath / "SlangLl2.g"
   Sireum.procCheck(proc"$sireum parser gen -l ${home / "license.txt"} -p org.sireum.lang.parser -m slang -n SlangLl2 --no-backtracking -o $parserPackagePath $parserInput".console,
+    message.Reporter.create)
+}
+
+
+def regenSlangTTLl1(): Unit = {
+  val parserPackagePath = home / "slang" / "parser" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "parser"
+  val parserResourcesPackagePath = home / "slang" / "parser" / "shared" / "src" / "main" / "resources"
+  val parserInput = parserResourcesPackagePath / "SlangTruthTable.g"
+  Sireum.procCheck(proc"$sireum parser gen -l ${home / "license.txt"} -p org.sireum.lang.parser -m slang -n SlangTruthTableLl1 --no-backtracking -o $parserPackagePath $parserInput".console,
     message.Reporter.create)
 }
 
@@ -699,6 +708,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-cli" => regenCli()
       case string"regen-fmide-cli" => regenFmideCli()
       case string"regen-json" => regenJson()
+      case string"regen-slang-tt" => regenSlangTTLl1()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)
