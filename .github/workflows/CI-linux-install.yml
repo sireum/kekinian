@@ -13,4 +13,4 @@ jobs:
           cd $GITHUB_WORKSPACE
           (DIR=Sireum && SIREUM_V=master && rm -fR $DIR && mkdir -p $DIR/bin && cd $DIR/bin && curl -JLso init.sh https://raw.githubusercontent.com/sireum/kekinian/$SIREUM_V/bin/init.sh && bash init.sh)
           git clone https://github.com/sireum/proyek-example.git
-          Sireum/bin/sireum proyek ive proyek-example
+          Sireum/bin/sireum proyek ive proyek-example & read -t 900 || kill $!
