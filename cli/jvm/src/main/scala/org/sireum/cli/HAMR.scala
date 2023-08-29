@@ -135,10 +135,23 @@ object HAMR {
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       aadlRootDir = aadlRootDir,
       experimentalOptions = experimentalOptions,
-      plugins = MSZ(),
+      plugins = ArsitPlugin.gumboEnhancedPlugins,
       reporter = reporter)
   }
 
+  /** JAVA/OSATE interface with Plugins
+    *
+    * @param plugins should at least include those in org.sireum.hamr.arsit.plugin.ArsitPlugin.defaultPlugins.
+    *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
+    *        so place plugins that override default behavior before the default plugins.
+    *
+    *        Note that MS operations like ++ may clone elements before placing them in the new sequence so updates may
+    *        be performed on the clone rather than the original. You could do one of the following if you want to
+    *        retrieve info from the plugin's state after codegen returns:
+    *          - (preferred) fetch/use the version from the new sequence
+    *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
+    *            its $owned method always return false
+    */
   def codeGenP(model: Aadl,
                //
                verbose: B,
@@ -206,9 +219,21 @@ object HAMR {
   }
 
   def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
-    return codeGenReporterP(model, o, MSZ(), reporter)
+    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins, reporter)
   }
 
+  /**
+    * @param plugins should at least include those in org.sireum.hamr.arsit.plugin.ArsitPlugin.defaultPlugins.
+    *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
+    *        so place plugins that override default behavior before the default plugins.
+    *
+    *        Note that MS operations like ++ may clone elements before placing them in the new sequence so updates may
+    *        be performed on the clone rather than the original. You could do one of the following if you want to
+    *        retrieve info from the plugin's state after codegen returns:
+    *          - (preferred) fetch/use the version from the new sequence
+    *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
+    *            its $owned method always return false
+    */
   def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodeGenResults = {
 
     // call back function. CTranspiler prints all the messages in the
@@ -298,9 +323,9 @@ object HAMR {
       return SlangCheck.generate(cstsgo, sreporter)
     }
 
-    val ops = toCodeGenOptions(o)
+    val cgops = toCodeGenOptions(o)
 
-    return SireumApi.hamrCodeGen(model, ops, plugins ++ ArsitPlugin.defaultPlugins(), reporter,
+    return SireumApi.hamrCodeGen(model, cgops, plugins, reporter,
       transpile _, proyekIve _, sergen _, slangCheck _)
   }
 
