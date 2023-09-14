@@ -585,7 +585,10 @@ object Proyek {
       patternExhaustive = o.patternExhaustive,
       pureFun = o.pureFun,
       detailedInfo = o.logDetailedInfo,
-      satTimeout = o.satTimeout
+      satTimeout = o.satTimeout,
+      mode = org.sireum.logika.Config.VerificationMode.SymExe,
+      background = org.sireum.logika.Config.BackgroundMode.Disabled,
+      atRewrite = o.logAtRewrite
     )
 
     val lcode = Analysis.run(
@@ -980,7 +983,10 @@ object Proyek {
       patternExhaustive = F,
       pureFun = F,
       detailedInfo = F,
-      satTimeout = F
+      satTimeout = F,
+      mode = org.sireum.logika.Config.VerificationMode.SymExe,
+      background = org.sireum.logika.Config.BackgroundMode.Disabled,
+      atRewrite = T
     )
     val lcode = Analysis.run(
       root = path,

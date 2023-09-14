@@ -160,6 +160,21 @@ object Logika {
           case Cli.SireumLogikaVerifierStrictPureMode.Flip => org.sireum.logika.Config.StrictPureMode.Flip
           case Cli.SireumLogikaVerifierStrictPureMode.Uninterpreted => org.sireum.logika.Config.StrictPureMode.Uninterpreted
         }
+        val mode: org.sireum.logika.Config.VerificationMode.Type = o.mode match {
+          case Cli.SireumLogikaVerifierMode.Symexe => org.sireum.logika.Config.VerificationMode.SymExe
+          case Cli.SireumLogikaVerifierMode.Auto =>
+            if (!o.logAtRewrite) {
+              eprintln("Cannot disable At(...) rewrite in auto mode")
+              return INVALID_MODE
+            }
+            org.sireum.logika.Config.VerificationMode.Auto
+          case Cli.SireumLogikaVerifierMode.Manual =>
+            if (!o.logAtRewrite) {
+              eprintln("Cannot disable At(...) rewrite in manual mode")
+              return INVALID_MODE
+            }
+            org.sireum.logika.Config.VerificationMode.Manual
+        }
         val config = logika.Config(
           smt2Configs = smt2Configs,
           parCores = parCores,
@@ -197,7 +212,10 @@ object Logika {
           patternExhaustive = o.patternExhaustive,
           pureFun = o.pureFun,
           detailedInfo = o.logDetailedInfo,
-          satTimeout = o.satTimeout
+          satTimeout = o.satTimeout,
+          mode = mode,
+          background = org.sireum.logika.Config.BackgroundMode.Disabled,
+          atRewrite = o.logAtRewrite
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -225,6 +243,13 @@ object Logika {
     }
 
     def verifyPrograms(): Z = {
+      o.mode match {
+        case Cli.SireumLogikaVerifierMode.Symexe =>
+        case _ =>
+          eprintln("Slang .scala verification can only be done using symexe mode")
+          return INVALID_MODE
+      }
+
       o.logVcDir match {
         case Some(p) =>
           val path = Os.path(p)
@@ -332,7 +357,10 @@ object Logika {
         patternExhaustive = o.patternExhaustive,
         pureFun = o.pureFun,
         detailedInfo = o.logDetailedInfo,
-        satTimeout = o.satTimeout
+        satTimeout = o.satTimeout,
+        mode = org.sireum.logika.Config.VerificationMode.SymExe,
+        background = org.sireum.logika.Config.BackgroundMode.Disabled,
+        atRewrite = o.logAtRewrite
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())

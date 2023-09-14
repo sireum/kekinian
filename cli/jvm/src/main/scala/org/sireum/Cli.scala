@@ -119,6 +119,12 @@ object Cli {
     val version: Option[String]
   ) extends SireumTopOption
 
+  @enum object SireumLogikaVerifierMode {
+    'Symexe
+    'Manual
+    'Auto
+  }
+
   @enum object SireumLogikaVerifierFPRoundingMode {
     'NearestTiesToEven
     'NearestTiesToAway
@@ -142,6 +148,7 @@ object Cli {
   @datatype class SireumLogikaVerifierOption(
     val help: String,
     val args: ISZ[String],
+    val mode: SireumLogikaVerifierMode.Type,
     val noRuntime: B,
     val sourcepath: ISZ[String],
     val infoFlow: B,
@@ -166,6 +173,7 @@ object Cli {
     val logVc: B,
     val logVcDir: Option[String],
     val logDetailedInfo: B,
+    val logAtRewrite: B,
     val stats: B,
     val par: Option[Z],
     val branchParMode: SireumLogikaVerifierBranchPar.Type,
@@ -365,6 +373,7 @@ object Cli {
     val logVc: B,
     val logVcDir: Option[String],
     val logDetailedInfo: B,
+    val logAtRewrite: B,
     val stats: B,
     val par: Option[Z],
     val branchParMode: SireumProyekLogikaBranchPar.Type,
@@ -1464,6 +1473,26 @@ import Cli._
     }
   }
 
+  def parseSireumLogikaVerifierModeH(arg: String): Option[SireumLogikaVerifierMode.Type] = {
+    arg.native match {
+      case "symexe" => return Some(SireumLogikaVerifierMode.Symexe)
+      case "manual" => return Some(SireumLogikaVerifierMode.Manual)
+      case "auto" => return Some(SireumLogikaVerifierMode.Auto)
+      case s =>
+        eprintln(s"Expecting one of the following: { symexe, manual, auto }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumLogikaVerifierMode(args: ISZ[String], i: Z): Option[SireumLogikaVerifierMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { symexe, manual, auto }, but none found.")
+      return None()
+    }
+    val r = parseSireumLogikaVerifierModeH(args(i))
+    return r
+  }
+
   def parseSireumLogikaVerifierFPRoundingModeH(arg: String): Option[SireumLogikaVerifierFPRoundingMode.Type] = {
     arg.native match {
       case "NearestTiesToEven" => return Some(SireumLogikaVerifierFPRoundingMode.NearestTiesToEven)
@@ -1533,6 +1562,8 @@ import Cli._
           |Usage: <option>* <slang-file>+
           |
           |Available Options:
+          |-m, --mode               Verification mode for Slang scripts (expects one of {
+          |                           symexe, manual, auto }; default: symexe)
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
@@ -1591,6 +1622,8 @@ import Cli._
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)
           |    --log-detailed-info  Display detailed feedback information
+          |    --log-rewrite-at     Disable At(...) rewriting as In(...)/Old(...) in
+          |                           symexe mode
           |    --stats              Collect verification statistics
           |
           |Optimizations Options:
@@ -1628,6 +1661,7 @@ import Cli._
           |-t, --timeout            Timeout (seconds) for validity checking (expects an
           |                           integer; min is 1; default is 2)""".render
 
+    var mode: SireumLogikaVerifierMode.Type = SireumLogikaVerifierMode.Symexe
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var infoFlow: B = false
@@ -1652,6 +1686,7 @@ import Cli._
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
     var logDetailedInfo: B = false
+    var logAtRewrite: B = true
     var stats: B = false
     var par: Option[Z] = None()
     var branchParMode: SireumLogikaVerifierBranchPar.Type = SireumLogikaVerifierBranchPar.All
@@ -1678,7 +1713,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-r" || arg == "--no-runtime") {
+        } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[SireumLogikaVerifierMode.Type] = parseSireumLogikaVerifierMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--no-runtime") {
            val o: Option[B] = { j = j - 1; Some(!noRuntime) }
            o match {
              case Some(v) => noRuntime = v
@@ -1822,6 +1863,12 @@ import Cli._
              case Some(v) => logDetailedInfo = v
              case _ => return None()
            }
+         } else if (arg == "--log-rewrite-at") {
+           val o: Option[B] = { j = j - 1; Some(!logAtRewrite) }
+           o match {
+             case Some(v) => logAtRewrite = v
+             case _ => return None()
+           }
          } else if (arg == "--stats") {
            val o: Option[B] = { j = j - 1; Some(!stats) }
            o match {
@@ -1945,7 +1992,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), mode, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3140,6 +3187,8 @@ import Cli._
           |    --log-vc-dir         Write all verification conditions in a directory
           |                           (expects a path)
           |    --log-detailed-info  Display detailed feedback information
+          |    --log-rewrite-at     Disable At(...) rewriting as In(...)/Old(...) in
+          |                           symexe mode
           |    --stats              Collect verification statistics
           |
           |Optimizations Options:
@@ -3214,6 +3263,7 @@ import Cli._
     var logVc: B = false
     var logVcDir: Option[String] = None[String]()
     var logDetailedInfo: B = false
+    var logAtRewrite: B = true
     var stats: B = false
     var par: Option[Z] = None()
     var branchParMode: SireumProyekLogikaBranchPar.Type = SireumProyekLogikaBranchPar.All
@@ -3462,6 +3512,12 @@ import Cli._
              case Some(v) => logDetailedInfo = v
              case _ => return None()
            }
+         } else if (arg == "--log-rewrite-at") {
+           val o: Option[B] = { j = j - 1; Some(!logAtRewrite) }
+           o match {
+             case Some(v) => logAtRewrite = v
+             case _ => return None()
+           }
          } else if (arg == "--stats") {
            val o: Option[B] = { j = j - 1; Some(!stats) }
            o match {
@@ -3585,7 +3641,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
