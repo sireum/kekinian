@@ -2193,7 +2193,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -2470,7 +2471,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -2670,7 +2672,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -2859,7 +2862,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -3113,7 +3117,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -3707,7 +3712,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -3949,7 +3955,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -4181,7 +4188,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -4337,7 +4345,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -4595,7 +4604,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
