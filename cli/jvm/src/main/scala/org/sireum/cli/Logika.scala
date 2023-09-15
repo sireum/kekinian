@@ -221,7 +221,7 @@ object Logika {
         val ext = f.ext
         val plugins = logika.Logika.defaultPlugins ++
           (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
-        if (f.isFile && (ext == "sc" || ext == "cmd")) {
+        if (f.isFile && (ext == "sc" || ext == "cmd" || ext == "logika")) {
           val content = f.read
           logika.Logika.checkScript(Some(f.value), content, config, nameExePathMap, Os.numOfProcessors,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
