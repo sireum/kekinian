@@ -586,7 +586,7 @@ object Proyek {
       pureFun = o.pureFun,
       detailedInfo = o.logDetailedInfo,
       satTimeout = o.satTimeout,
-      mode = org.sireum.logika.Config.VerificationMode.SymExe,
+      isAuto = T,
       background = org.sireum.logika.Config.BackgroundMode.Disabled,
       atRewrite = o.logAtRewrite
     )
@@ -984,7 +984,7 @@ object Proyek {
       pureFun = F,
       detailedInfo = F,
       satTimeout = F,
-      mode = org.sireum.logika.Config.VerificationMode.SymExe,
+      isAuto = T,
       background = org.sireum.logika.Config.BackgroundMode.Disabled,
       atRewrite = T
     )

@@ -160,20 +160,11 @@ object Logika {
           case Cli.SireumLogikaVerifierStrictPureMode.Flip => org.sireum.logika.Config.StrictPureMode.Flip
           case Cli.SireumLogikaVerifierStrictPureMode.Uninterpreted => org.sireum.logika.Config.StrictPureMode.Uninterpreted
         }
-        val mode: org.sireum.logika.Config.VerificationMode.Type = o.mode match {
-          case Cli.SireumLogikaVerifierMode.Symexe => org.sireum.logika.Config.VerificationMode.SymExe
-          case Cli.SireumLogikaVerifierMode.Auto =>
-            if (!o.logAtRewrite) {
-              eprintln("Cannot disable At(...) rewrite in auto mode")
-              return INVALID_MODE
-            }
-            org.sireum.logika.Config.VerificationMode.Auto
-          case Cli.SireumLogikaVerifierMode.Manual =>
-            if (!o.logAtRewrite) {
-              eprintln("Cannot disable At(...) rewrite in manual mode")
-              return INVALID_MODE
-            }
-            org.sireum.logika.Config.VerificationMode.Manual
+        if (o.manual) {
+          if (!o.logAtRewrite) {
+            eprintln("Cannot disable At(...) rewrite in manual mode")
+            return INVALID_MODE
+          }
         }
         val config = logika.Config(
           smt2Configs = smt2Configs,
@@ -213,7 +204,7 @@ object Logika {
           pureFun = o.pureFun,
           detailedInfo = o.logDetailedInfo,
           satTimeout = o.satTimeout,
-          mode = mode,
+          isAuto = !o.manual,
           background = org.sireum.logika.Config.BackgroundMode.Disabled,
           atRewrite = o.logAtRewrite
         )
@@ -243,11 +234,9 @@ object Logika {
     }
 
     def verifyPrograms(): Z = {
-      o.mode match {
-        case Cli.SireumLogikaVerifierMode.Symexe =>
-        case _ =>
-          eprintln("Slang .scala verification can only be done using symexe mode")
-          return INVALID_MODE
+      if (o.manual) {
+        eprintln("Slang .scala verification can only be done using symexe mode")
+        return INVALID_MODE
       }
 
       o.logVcDir match {
@@ -358,7 +347,7 @@ object Logika {
         pureFun = o.pureFun,
         detailedInfo = o.logDetailedInfo,
         satTimeout = o.satTimeout,
-        mode = org.sireum.logika.Config.VerificationMode.SymExe,
+        isAuto = T,
         background = org.sireum.logika.Config.BackgroundMode.Disabled,
         atRewrite = o.logAtRewrite
       )

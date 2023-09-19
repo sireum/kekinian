@@ -119,12 +119,6 @@ object Cli {
     val version: Option[String]
   ) extends SireumTopOption
 
-  @enum object SireumLogikaVerifierMode {
-    'Symexe
-    'Manual
-    'Auto
-  }
-
   @enum object SireumLogikaVerifierFPRoundingMode {
     'NearestTiesToEven
     'NearestTiesToAway
@@ -148,7 +142,7 @@ object Cli {
   @datatype class SireumLogikaVerifierOption(
     val help: String,
     val args: ISZ[String],
-    val mode: SireumLogikaVerifierMode.Type,
+    val manual: B,
     val noRuntime: B,
     val sourcepath: ISZ[String],
     val infoFlow: B,
@@ -1473,26 +1467,6 @@ import Cli._
     }
   }
 
-  def parseSireumLogikaVerifierModeH(arg: String): Option[SireumLogikaVerifierMode.Type] = {
-    arg.native match {
-      case "symexe" => return Some(SireumLogikaVerifierMode.Symexe)
-      case "manual" => return Some(SireumLogikaVerifierMode.Manual)
-      case "auto" => return Some(SireumLogikaVerifierMode.Auto)
-      case s =>
-        eprintln(s"Expecting one of the following: { symexe, manual, auto }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumLogikaVerifierMode(args: ISZ[String], i: Z): Option[SireumLogikaVerifierMode.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { symexe, manual, auto }, but none found.")
-      return None()
-    }
-    val r = parseSireumLogikaVerifierModeH(args(i))
-    return r
-  }
-
   def parseSireumLogikaVerifierFPRoundingModeH(arg: String): Option[SireumLogikaVerifierFPRoundingMode.Type] = {
     arg.native match {
       case "NearestTiesToEven" => return Some(SireumLogikaVerifierFPRoundingMode.NearestTiesToEven)
@@ -1562,8 +1536,7 @@ import Cli._
           |Usage: <option>* <slang-file>+
           |
           |Available Options:
-          |-m, --mode               Verification mode for Slang scripts (expects one of {
-          |                           symexe, manual, auto }; default: symexe)
+          |-m, --manual             Set verification mode to manual for Slang scripts
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
@@ -1661,7 +1634,7 @@ import Cli._
           |-t, --timeout            Timeout (seconds) for validity checking (expects an
           |                           integer; min is 1; default is 2)""".render
 
-    var mode: SireumLogikaVerifierMode.Type = SireumLogikaVerifierMode.Symexe
+    var manual: B = false
     var noRuntime: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var infoFlow: B = false
@@ -1713,10 +1686,10 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-m" || arg == "--mode") {
-           val o: Option[SireumLogikaVerifierMode.Type] = parseSireumLogikaVerifierMode(args, j + 1)
+        } else if (arg == "-m" || arg == "--manual") {
+           val o: Option[B] = { j = j - 1; Some(!manual) }
            o match {
-             case Some(v) => mode = v
+             case Some(v) => manual = v
              case _ => return None()
            }
          } else if (arg == "-r" || arg == "--no-runtime") {
@@ -1992,7 +1965,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), mode, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
