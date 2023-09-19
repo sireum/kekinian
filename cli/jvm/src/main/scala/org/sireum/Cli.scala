@@ -1356,8 +1356,8 @@ import Cli._
           |                           <feature-id>=<repo-url-1>,...,<repo-url-N>. Latest
           |                           Sireum plugins installed if not provided (expects a
           |                           string separated by ";")
-          |-v, --version            OSATE version (expects a string; default is
-          |                           "2.12.0-vfinal")""".render
+          |    --version            OSATE version (expects a string; default is
+          |                           "2.13.0-vfinal")""".render
 
     var impl: Option[String] = None[String]()
     var main: Option[String] = None[String]()
@@ -1369,7 +1369,7 @@ import Cli._
     var osate: Option[String] = None[String]()
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
-    var version: Option[String] = Some("2.12.0-vfinal")
+    var version: Option[String] = Some("2.13.0-vfinal")
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1438,7 +1438,7 @@ import Cli._
              case Some(v) => features = v
              case _ => return None()
            }
-         } else if (arg == "-v" || arg == "--version") {
+         } else if (arg == "--version") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => version = v
