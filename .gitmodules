@@ -55,3 +55,6 @@
 [submodule "bin/install"]
 	path = bin/install
 	url = https://github.com/sireum/bin-install
+[submodule "hamr/vision"]
+	path = hamr/vision
+	url = https://github.com/sireum/hamr-vision.git

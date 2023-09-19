@@ -56,6 +56,7 @@ val projects = ISZ(
   homeDir / "hamr" / "codegen" / "act",
   homeDir / "hamr" / "codegen" / "arsit",
   homeDir / "hamr" / "codegen",
+  homeDir / "hamr" / "vision",
   homeDir / "anvil",
   homeDir / "server",
   homeDir / "cli"
