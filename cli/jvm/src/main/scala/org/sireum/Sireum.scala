@@ -550,6 +550,18 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
+          case Some(o: Cli.SireumProyekSlangcheckOption) =>
+            init.basicDeps()
+            init.logikaDeps()
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Proyek.slangCheck(o, reporter)
+              case _ =>
+                val rep = logika.ReporterImpl.create(F, F, F, F)
+                rep.collectStats = F
+                val exitCode = cli.Proyek.slangCheck(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
           case Some(o: Cli.SireumProyekPublishOption) =>
             init.basicDeps()
             init.proyekCompileDeps()

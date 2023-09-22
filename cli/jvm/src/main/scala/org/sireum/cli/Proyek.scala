@@ -26,9 +26,13 @@
 package org.sireum.cli
 
 import org.sireum._
+import org.sireum.lang.tipe.TypeHierarchy
+import org.sireum.logika.Config.StrictPureMode
 import org.sireum.logika.{Smt2, Smt2Formatter, Smt2Invoke}
 import org.sireum.project.DependencyManager
 import org.sireum.proyek.Analysis
+import org.sireum.message.Reporter
+import org.sireum.tools.{SlangCheck => SC}
 
 object Proyek {
   val HOME_NOT_FOUND: Z = -1
@@ -425,6 +429,127 @@ object Proyek {
     )
 
     return r
+  }
+
+  def slangCheck(o: Cli.SireumProyekSlangcheckOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
+
+    val (help, code, path, prj, versions) = org.sireum.cli.Proyek.check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    if (o.args.size < 2) {
+      eprintln(st"Unexpected command line arguments: ${(ops.ISZOps(o.args).drop(1), " ")}".render)
+      return org.sireum.cli.Proyek.INVALID_ARGS
+    }
+
+    val dm = project.DependencyManager(
+      project = prj,
+      versions = versions,
+      isJs = F,
+      withSource = F,
+      withDoc = F,
+      javaHome = SireumApi.javaHomeOpt.get,
+      scalaHome = SireumApi.scalaHomeOpt.get,
+      sireumHome = SireumApi.homeOpt.get,
+      cacheOpt = o.cache.map((p: String) => Os.path(p))
+    )
+
+    val config = org.sireum.logika.Config(
+      smt2Configs = ISZ(),
+      parCores = 1,
+      sat = F,
+      rlimit = 1000000,
+      timeoutInMs = 2000,
+      charBitWidth = 32,
+      intBitWidth = 0,
+      useReal = F,
+      logPc = F,
+      logRawPc = F,
+      logVc = F,
+      logVcDirOpt = None(),
+      dontSplitPfq = F,
+      splitAll = F,
+      splitContract = F,
+      splitIf = F,
+      splitMatch = F,
+      simplifiedQuery = F,
+      checkInfeasiblePatternMatch = T,
+      fpRoundingMode = "RNE",
+      smt2Seq = F,
+      branchPar = org.sireum.logika.Config.BranchPar.All,
+      branchParCores = 1,
+      atLinesFresh = F,
+      interp = F,
+      loopBound = 3,
+      callBound = 3,
+      interpContracts = F,
+      elideEncoding = F,
+      rawInscription = F,
+      smt2Caching = F,
+      strictPureMode = StrictPureMode.Default,
+      transitionCache = F,
+      patternExhaustive = F,
+      pureFun = F,
+      detailedInfo = F,
+      satTimeout = F
+    )
+    val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
+    val lcode = org.sireum.proyek.Analysis.run(
+      root = path,
+      outDirName = "out",
+      project = prj,
+      dm = dm,
+      cacheInput = F,
+      cacheTypeHierarchy = F,
+      mapBox = mbox,
+      config = config,
+      cache = org.sireum.logika.NoTransitionSmt2Cache.create,
+      files = HashSMap.empty,
+      filesWatched = F,
+      vfiles = ISZ(),
+      line = 0,
+      par = SireumApi.parCoresOpt(o.par),
+      strictAliasing = o.strictAliasing,
+      followSymLink = o.symlink,
+      all = T,
+      disableOutput = F,
+      verify = F,
+      verbose = o.verbose,
+      sanityCheck = T,
+      plugins = ISZ(),
+      skipMethods = ISZ(),
+      skipTypes = ISZ(),
+      reporter = reporter
+    )
+
+    if (reporter.hasIssue) {
+      println()
+      reporter.printMessages()
+    } else if (lcode == 0) {
+      println()
+      println("Programs are well-typed!")
+
+
+      val outputDir = Os.path(if (o.outputDir.nonEmpty) o.outputDir.get else ".")
+      val testDir = Os.path(if (o.testDir.nonEmpty) o.testDir.get else ".")
+
+      val files: ISZ[Os.Path] = for (arg <- ops.ISZOps(o.args).drop(1)) yield Os.path(arg)
+      for (f <- files if !f.exists || !f.isFile) {
+        halt(s"$f is not a file")
+      }
+
+      print()
+
+      assert(mbox.value2.values.size == 1)
+      SC.gen(ops.StringOps(o.packageName.get).split((c: C) => c == '.'), for (source <- files) yield source.toUri, ISZ(), reporter, mbox.value2.values(0))
+      return if (reporter.hasError) 1 else 0
+    }
+
+    return if (lcode === 0) 0 else org.sireum.cli.Proyek.ILL_FORMED_PROGRAMS
   }
 
   def logika(o: Cli.SireumProyekLogikaOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
