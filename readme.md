@@ -40,18 +40,19 @@ Sireum depends on open source software libraries and applications
 | [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs1_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://search.maven.org/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
 
-In addition, Sireum includes adaptations/forks of the following artifacts:
+In addition, Sireum includes adaptations of the following artifacts:
 
-| Source | Adaptation/Fork | License |
+| Source | Adaptation | License |
 | :--- | :--- | :---: | 
 | [ANTLRv3.g](https://github.com/antlr/grammars-v3/blob/master/Antlrv3/ANTLRv3.g) | [SireumAntlr3.g](https://github.com/sireum/parser/blob/master/jvm/src/main/resources/SireumAntlr3.g) | [BSD3](https://github.com/antlr/grammars-v3/blob/master/Antlrv3/ANTLRv3.g) |
 | [diff_match_patch.java](https://github.com/google/diff-match-patch/blob/master/java/src/name/fraser/neil/plaintext/diff_match_patch.java) | [DiffMatchPatch](https://github.com/sireum/runtime/blob/master/library/jvm/src/main/java/org/sireum/DiffMatchPatch.java) | [Apache 2.0](https://github.com/google/diff-match-patch/blob/master/LICENSE) |
 | [Geny](https://github.com/com-lihaoyi/geny) | [Jen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/Jen.scala) & [MJen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/MJen.scala) | [MIT](https://github.com/com-lihaoyi/geny/blob/master/LICENSE) |
+| [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) | [SireumMono](https://github.com/sireum/resources/fonts) | [OFL](https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt) |
 | [SHA3IUF](https://github.com/brainhub/SHA3IUF) | [SHA3](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/crypto/SHA3.scala) | [MIT](https://github.com/brainhub/SHA3IUF/blob/master/LICENSE) |
-| [UnsafeUtils](https://github.com/plokhotnyuk/jsoniter-scala/tree/e089f06c2d8b4bdb87a6874e17bf716e8608b117/jsoniter-scala-examples/src/main/scala-2.13/com/github/plokhotnyuk/jsoniter_scala/examples) | [UnsafeUtils](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/java/org/sireum/%24internal/UnsafeUtils.java) | [MIT](https://github.com/plokhotnyuk/jsoniter-scala/blob/e089f06c2d8b4bdb87a6874e17bf716e8608b117/LICENSE) |
 | [tmLanguage: AADL v2](https://github.com/virtuald/language-aadl/blob/119576c99d614383ba47a79c1759a368db4eac5f/grammars/aadl.cson) | [resources/aadl](https://github.com/sireum/resources/tree/master/textmate/aadl) | [GPL v3 with GCC Runtime Exception](https://github.com/OpenAADL/ocarina/blob/master/COPYING.RUNTIME) |
 | [tmLanguage: smtlib2](https://github.com/AdrienChampion/tmlanguages/tree/8273ebf8cfb91afe4fc9af0e4c5a06c6187fc6f5/smtlib2) | [resources/smt2](https://github.com/sireum/resources/tree/master/textmate/smt2) | Public |
 | [tmLanguage: SysML v2](https://gitlab.com/sensmetry/public/sysml-2ls/-/tree/092431855f8effa16901a9a6fb3a2fb9b3fee226/packages/syside-languageserver/syntaxes) | [resources/sysmlv2](https://github.com/sireum/resources/tree/master/textmate/sysml) | [Eclipse 2.0](https://github.com/sireum/resources/blob/master/textmate/sysml/LICENSE) |
+| [UnsafeUtils](https://github.com/plokhotnyuk/jsoniter-scala/tree/e089f06c2d8b4bdb87a6874e17bf716e8608b117/jsoniter-scala-examples/src/main/scala-2.13/com/github/plokhotnyuk/jsoniter_scala/examples) | [UnsafeUtils](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/java/org/sireum/%24internal/UnsafeUtils.java) | [MIT](https://github.com/plokhotnyuk/jsoniter-scala/blob/e089f06c2d8b4bdb87a6874e17bf716e8608b117/LICENSE) |
 
 
 ### Application Dependencies
