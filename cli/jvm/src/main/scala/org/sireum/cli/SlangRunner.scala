@@ -168,10 +168,9 @@ object SlangRunner {
         case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
         case _ => return 0
       }
-      command = (nativeImage.string +: flags) ++ ISZ("--initialize-at-build-time", "--allow-incomplete-classpath",
-        "--report-unsupported-elements-at-runtime", "--no-fallback", "-H:+ReportExceptionStackTraces",
-        "-H:-DeadlockWatchdogExitOnTimeout", "-H:DeadlockWatchdogInterval=0", "--enable-url-protocols=https",
-        "-cp", sJar.string, "-jar", jarFile.name, nativeName)
+
+      command = (nativeImage.string +: flags) ++ proyek.Assemble.graalOpts ++
+        ISZ("-cp", sJar.string, "-jar", jarFile.name, nativeName)
       r = Os.proc(command).at(jarFile.up).redirectErr.run()
       for (f <- wd.list if ops.StringOps(f.name).startsWith(s"$nativeName.") && !ops.StringOps(f.name).endsWith(".exe")) {
         f.removeAll()
