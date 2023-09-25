@@ -28,7 +28,7 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.lang.tipe.TypeHierarchy
 import org.sireum.logika.Config.StrictPureMode
-import org.sireum.logika.{Smt2, Smt2Formatter, Smt2Invoke}
+import org.sireum.logika.{Config, Smt2, Smt2Formatter, Smt2Invoke}
 import org.sireum.project.DependencyManager
 import org.sireum.proyek.Analysis
 import org.sireum.message.Reporter
@@ -495,7 +495,10 @@ object Proyek {
       patternExhaustive = F,
       pureFun = F,
       detailedInfo = F,
-      satTimeout = F
+      satTimeout = F,
+      isAuto = F,
+      background = Config.BackgroundMode.Disabled,
+      atRewrite = F
     )
     val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
     val lcode = org.sireum.proyek.Analysis.run(
