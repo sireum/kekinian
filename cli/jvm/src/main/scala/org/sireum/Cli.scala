@@ -185,7 +185,8 @@ object Cli {
     val smt2SatConfigs: Option[String],
     val smt2ValidConfigs: Option[String],
     val satTimeout: B,
-    val timeout: Z
+    val timeout: Z,
+    val searchPC: B
   ) extends SireumTopOption
 
   @enum object SireumParserGenParserGenMode {
@@ -385,7 +386,8 @@ object Cli {
     val smt2SatConfigs: Option[String],
     val smt2ValidConfigs: Option[String],
     val satTimeout: B,
-    val timeout: Z
+    val timeout: Z,
+    val searchPC: B
   ) extends SireumTopOption
 
   @enum object SireumProyekPublishTarget {
@@ -1632,7 +1634,9 @@ import Cli._
           |    --sat-timeout        Use validity checking timeout for satisfiability
           |                           checking (otherwise: 500ms)
           |-t, --timeout            Timeout (seconds) for validity checking (expects an
-          |                           integer; min is 1; default is 2)""".render
+          |                           integer; min is 1; default is 2)
+          |    --search-pc          Search path conditions first before employing SMT2
+          |                           solvers when discharging VCs""".render
 
     var manual: B = false
     var noRuntime: B = false
@@ -1678,6 +1682,7 @@ import Cli._
     var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant")
     var satTimeout: B = false
     var timeout: Z = 2
+    var searchPC: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1956,6 +1961,12 @@ import Cli._
              case Some(v) => timeout = v
              case _ => return None()
            }
+         } else if (arg == "--search-pc") {
+           val o: Option[B] = { j = j - 1; Some(!searchPC) }
+           o match {
+             case Some(v) => searchPC = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -1965,7 +1976,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3202,7 +3213,9 @@ import Cli._
           |    --sat-timeout        Use validity checking timeout for satisfiability
           |                           checking (otherwise: 500ms)
           |-t, --timeout            Timeout (seconds) for validity checking (expects an
-          |                           integer; min is 1; default is 2)""".render
+          |                           integer; min is 1; default is 2)
+          |    --search-pc          Search path conditions first before employing SMT2
+          |                           solvers when discharging VCs""".render
 
     var all: B = false
     var strictAliasing: B = false
@@ -3260,6 +3273,7 @@ import Cli._
     var smt2ValidConfigs: Option[String] = Some("cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant")
     var satTimeout: B = false
     var timeout: Z = 2
+    var searchPC: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -3610,6 +3624,12 @@ import Cli._
              case Some(v) => timeout = v
              case _ => return None()
            }
+         } else if (arg == "--search-pc") {
+           val o: Option[B] = { j = j - 1; Some(!searchPC) }
+           o match {
+             case Some(v) => searchPC = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -3619,7 +3639,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

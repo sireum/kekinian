@@ -588,7 +588,8 @@ object Proyek {
       satTimeout = o.satTimeout,
       isAuto = T,
       background = org.sireum.logika.Config.BackgroundMode.Disabled,
-      atRewrite = o.logAtRewrite
+      atRewrite = o.logAtRewrite,
+      searchPc = o.searchPC
     )
 
     val lcode = Analysis.run(
@@ -986,7 +987,8 @@ object Proyek {
       satTimeout = F,
       isAuto = T,
       background = org.sireum.logika.Config.BackgroundMode.Disabled,
-      atRewrite = T
+      atRewrite = T,
+      searchPc = F
     )
     val lcode = Analysis.run(
       root = path,
