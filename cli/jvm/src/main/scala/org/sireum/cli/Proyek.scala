@@ -718,11 +718,7 @@ object Proyek {
       isAuto = T,
       background = org.sireum.logika.Config.BackgroundMode.Disabled,
       atRewrite = o.logAtRewrite,
-<<<<<<< HEAD
       searchPc = o.searchPC
-=======
-      searchPc = F
->>>>>>> 684d08a (update cli)
     )
 
     val lcode = Analysis.run(
