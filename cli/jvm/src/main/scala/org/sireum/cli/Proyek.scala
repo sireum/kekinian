@@ -498,7 +498,8 @@ object Proyek {
       satTimeout = F,
       isAuto = F,
       background = Config.BackgroundMode.Disabled,
-      atRewrite = F
+      atRewrite = F,
+      searchPc = F
     )
     val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
     val lcode = org.sireum.proyek.Analysis.run(
@@ -717,7 +718,11 @@ object Proyek {
       isAuto = T,
       background = org.sireum.logika.Config.BackgroundMode.Disabled,
       atRewrite = o.logAtRewrite,
+<<<<<<< HEAD
       searchPc = o.searchPC
+=======
+      searchPc = F
+>>>>>>> 684d08a (update cli)
     )
 
     val lcode = Analysis.run(
