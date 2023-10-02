@@ -4194,15 +4194,12 @@ import Cli._
           |
           |Available Options:
           |-l, --license            License file to be inserted in the file header
-          |                           (expects a path) (expects a path)
-          |-p, --packageName        Package name for generators (expects a string
-          |                           separated by .) (expects a path)
+          |                           (expects a path)
+          |-p, --packageName        Package name for generators (expects a path)
           |-o, --output-dir         Output directory for the generated Slang Check files
-          |                           (expects a path; default is .) (expects a path;
-          |                           default is ".")
+          |                           (expects a path; default is ".")
           |-t, --test-dir           Output directory for the generated unit tests (expects
-          |                           a path; default is .) (expects a path; default is
-          |                           ".")
+          |                           a path)
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
@@ -4222,7 +4219,8 @@ import Cli._
           |                           default is "out")
           |    --project            The project.cmd file accepting the 'json' argument
           |                           (defaults to
-          |                           <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
           |                           mutually exclusive with the 'json' option) (expects
           |                           a path)
           |    --slice              Slice the project starting from the given module IDs
@@ -4247,7 +4245,7 @@ import Cli._
     var license: Option[String] = None[String]()
     var packageName: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
-    var testDir: Option[String] = Some(".")
+    var testDir: Option[String] = None[String]()
     var par: Option[Z] = None()
     var strictAliasing: B = false
     var verbose: B = false
