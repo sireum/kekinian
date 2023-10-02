@@ -31,8 +31,6 @@ import org.sireum.logika.Config.StrictPureMode
 import org.sireum.logika.{Config, Smt2, Smt2Formatter, Smt2Invoke}
 import org.sireum.project.DependencyManager
 import org.sireum.proyek.Analysis
-import org.sireum.message.Reporter
-import org.sireum.tools.{SlangCheck => SC}
 
 object Proyek {
   val HOME_NOT_FOUND: Z = -1
@@ -537,19 +535,43 @@ object Proyek {
       println()
       println("Programs are well-typed!")
 
-
-      val outputDir = Os.path(if (o.outputDir.nonEmpty) o.outputDir.get else ".")
-      val testDir = Os.path(if (o.testDir.nonEmpty) o.testDir.get else ".")
+      val outputDir = Os.path(o.outputDir.get) // outputDir has a cli default of '.'
 
       val files: ISZ[Os.Path] = for (arg <- ops.ISZOps(o.args).drop(1)) yield Os.path(arg)
       for (f <- files if !f.exists || !f.isFile) {
+        // TODO convert to an error report
         halt(s"$f is not a file")
       }
 
-      print()
-
+      // TODO convert this into an error report
       assert(mbox.value2.values.size == 1)
-      SC.gen(ops.StringOps(o.packageName.get).split((c: C) => c == '.'), for (source <- files) yield source.toUri, ISZ(), reporter, mbox.value2.values(0))
+
+
+      val packageName: ISZ[String] =
+        if (o.packageName.nonEmpty) ops.StringOps(o.packageName.get).split((c: C) => c == '.')
+        else ISZ()
+      val srcFiles = for (source <- files) yield source.toUri
+      val genFiles = org.sireum.tools.SlangCheck.gen(packageName, srcFiles, ISZ(), reporter, mbox.value2.values(0))
+
+      if (!reporter.hasError) {
+        for (f <- genFiles) {
+          val output = outputDir /+ packageName /+ f._1
+          output.writeOver(f._2.render)
+          println(s"Wrote: $output")
+        }
+
+        /* TODO complete this
+        if (o.testDir.nonEmpty) { // testDir does not have a cli default value so need to check for empty
+          val testDir = Os.path(o.testDir.get)
+          val testFiles = SlangCheckTest.gen(packageName, srcFiles, reporter, mbox.value2.values(0))
+          for (f <- testFiles) {
+            val output = testDir /+ packageName /+ f._1
+            output.writeOver(f._2.render)
+            println(s"Wrote: $output")
+          }
+        }
+        */
+      }
       return if (reporter.hasError) 1 else 0
     }
 

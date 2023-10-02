@@ -61,11 +61,25 @@ class SlangCheckTest extends TestSuite with TestUtil {
     val destDir = resultsDir / "src" / "main" / "data"
     val testDir = resultsDir / "src" / "test"
 
-    val v: ST = st"${(for(d <- dataFiles) yield d, " ")}"
-    val cmd = ops.StringOps(st"proyek slangcheck -p $packageName -o $destDir -t $testDir ${destDir.up.up.up.value} ${v.render}".render).split((c: C) => c == C(' '))
-    val results = Sireum.run(cmd , reporter)
-
     var failureReasons: ISZ[String] = ISZ()
+
+    val v: String = st"${(for (d <- dataFiles) yield d, " ")}".render
+    val proyekRoot: Os.Path = destDir.up.up.up
+    val cmd = ops.StringOps(s"proyek slangcheck -p $packageName -o $destDir -t $testDir $proyekRoot $v").split((c: C) => c == C(' '))
+    val results = Sireum.run(cmd, reporter)
+
+    val outDir = resultsDir / "out"
+    if (outDir.exists) {
+      outDir.removeAll()
+    }
+
+    if (results != 0) {
+      failureReasons = failureReasons :+ s"proyek slangcheck returned $results"
+    }
+
+    if (reporter.hasError) {
+      failureReasons = failureReasons ++ (for (e <- reporter.errors) yield e.text)
+    }
 
     if (generateExpected) {
       assert (!isCI, "generateExpected should be F when code is pushed to github")
@@ -95,6 +109,10 @@ class SlangCheckTest extends TestSuite with TestUtil {
         //  failureReasons = failureReasons :+ "Generated unit tests produced a failure"
         //}
       }
+    }
+
+    if (outDir.exists) {
+      outDir.removeAll()
     }
 
     assert (failureReasons.size == 0)

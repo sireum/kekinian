@@ -284,6 +284,7 @@ def test(): Unit = {
     "org.sireum"
   )
   val names = ISZ[String](
+    "org.sireum.cli",
     "org.sireum.lang",
     "org.sireum.tools",
     "org.sireum.logika",
