@@ -2,52 +2,21 @@ package org.sireum.cli.slangcheck
 
 import org.sireum._
 import org.sireum.message.Reporter
-import org.sireum.test.TestSuite
-import org.sireum.tools.{SlangCheckJvm => SCJVM}
+import org.sireum.tools.slangcheck.SlangCheckTest
 
-class SlangCheckTest extends TestSuite with TestUtil {
+class SlangCheckProyekIntegrationTest extends SlangCheckTest {
 
-  val resourceDir: Os.Path = Os.path(implicitly[sourcecode.File].value).up.up.up.up.up.up.up.up.up.up / "tools" / "jvm" / "src" / "test" / "resources" / "org" / "sireum" / "tools" / "slangcheck"
+  override val resourceDir: Os.Path = Os.path(implicitly[sourcecode.File].value).up.up.up.up.up.up.up.up.up.up / "tools" / "jvm" / "src" / "test" / "resources" / "org" / "sireum" / "tools" / "slangcheck"
 
-  val generateExpected: B = F
+  override val generateExpected: B = F
 
-  val runTipe: B = T && willingToWait
+  override val runTipe: B = T && willingToWait
 
-  val runGeneratedTests: B = T && willingToWait
+  override val runGeneratedTests: B = T && willingToWait
 
-  val verbose: B = F
+  override val verbose: B = F
 
-  val sireum: Os.Path = Os.path(Os.env("SIREUM_HOME").get) / "bin" / (if (Os.isWin) "sireum.bat" else "sireum")
-
-  "isolette" in {
-    test("isolette", "isolette", x => !x.value.native.contains("component"))
-  }
-
-  "temp_control" in {
-    test("temp_control", "tc")
-  }
-
-  "option_argument" in {
-    test("option_argument", "oa")
-  }
-
-  "is_argument" in {
-    test("is_argument", "is")
-  }
-
-  "ms_argument" in {
-    test("ms_argument", "ms")
-  }
-
-//  "is_is_argument" in {
-//    test("is_is_argument", "ms")
-//  }
-
-  "datatype_trait" in {
-    test("datatype_trait", "dttr")
-  }
-
-  def test(expectedName: String, packageName: String, filter: Os.Path => B = x => T): Unit = {
+  override def test(expectedName: String, packageName: String, filter: Os.Path => B = x => T): Unit = {
 
     val resultsDir = copy(expectedName, "results")
 
@@ -95,16 +64,24 @@ class SlangCheckTest extends TestSuite with TestUtil {
     }
 
     if (runGeneratedTests) {
-      var passed = proc"$sireum proyek compile .".at(resultsDir).echo.console.run().ok
-      if(!passed) {
+      println("Compiling via proyek compile ...")
+      var passed = Sireum.run(ISZ("proyek", "compile", resultsDir.value), reporter)
+      if(passed != 0) {
         failureReasons = failureReasons :+ "Compilation failed"
       }
 
-      if (passed) {
-        passed = proc"$sireum proyek test .".at(resultsDir).echo.console.run().ok
-        println(s"Generated Tests: ${if (passed) "passing" else "failing"}")
+      if (passed == 0) {
+        println("Running generated SlangCheck tests via proyek test ...")
+
+        // use a different reporter as we don't necessarily care about errors coming from the generated tests
+        //passed = Sireum.run(ISZ("proyek", "test", resultsDir.value), Reporter.create)
+        //println(s"Generated Tests: ${if (passed == 0) "passing" else "failing"}")
+
+        // tests probably have to be run in a different JVM
+        passed = proc"$sireum proyek test ${resultsDir}".at(resultsDir).echo.console.run().exitCode
 
         // TODO: generated test could be failing due to 'requirements too strict'
+        println(s"Generated Tests: ${if (passed == 0) "passing" else "failing"}")
         //if (!passed) {
         //  failureReasons = failureReasons :+ "Generated unit tests produced a failure"
         //}
@@ -115,6 +92,9 @@ class SlangCheckTest extends TestSuite with TestUtil {
       outDir.removeAll()
     }
 
+    if (reporter.hasError) {
+      reporter.printMessages()
+    }
     assert (failureReasons.size == 0)
   }
 }
