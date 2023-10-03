@@ -550,7 +550,7 @@ object Proyek {
       val packageName: ISZ[String] =
         if (o.packageName.nonEmpty) ops.StringOps(o.packageName.get).split((c: C) => c == '.')
         else ISZ()
-      val srcFiles = for (source <- files) yield source.toUri
+      val srcFiles: ISZ[String] = for (source <- files) yield source.toUri
       val genFiles = org.sireum.tools.SlangCheck.gen(packageName, srcFiles, ISZ(), reporter, mbox.value2.values(0))
 
       if (!reporter.hasError) {
