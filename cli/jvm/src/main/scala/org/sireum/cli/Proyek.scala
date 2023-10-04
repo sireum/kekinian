@@ -555,7 +555,7 @@ object Proyek {
 
       if (!reporter.hasError) {
         for (f <- genFiles) {
-          val output = outputDir /+ packageName /+ f._1
+          val output = outputDir /+ f._1
           output.writeOver(f._2.render)
           println(s"Wrote: $output")
         }

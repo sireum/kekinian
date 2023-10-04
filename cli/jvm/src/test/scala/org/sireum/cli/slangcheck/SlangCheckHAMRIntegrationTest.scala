@@ -30,51 +30,47 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil {
     val json = (resourceDir / projName / "aadl" / ".slang").list.filter(p => p.ext == string"json")
     assert(json.size == 1)
 
-    val outDir = resultsDir / "hamr" / "slang"
+    val proyekRootDir = resultsDir / "hamr" / "slang"
 
     val reporter = Reporter.create
 
     println("Running codegen ...")
-    val cmd = ISZ[String]("hamr", "codegen", "--no-proyek-ive", "--package-name", packageName, "--output-dir", outDir.value, json(0).value)
-    Sireum.run(cmd, reporter)
+    val hcmd = ISZ[String]("hamr", "codegen", "--no-proyek-ive", "--package-name", packageName, "--output-dir", proyekRootDir.value, json(0).value)
+    val hresult = Sireum.run(hcmd, reporter)
 
-    assert(!reporter.hasError, reporter.errors)
+    assert(hresult == 0 && !reporter.hasError, reporter.errors)
 
-    val dataFiles = {
-      val slangcheckBin = ops.StringOps((outDir / "bin" / "slangcheck.cmd").read)
+    val dataFilesArg: ISZ[String] = {
+      val slangcheckBin = ops.StringOps((proyekRootDir / "bin" / "slangcheck.cmd").read)
       val searchString = "val files: ISZ[String] = ISZ("
       val start = slangcheckBin.stringIndexOf(searchString)
 
       def toFile(s: String): Os.Path = {
         val ss = ops.StringOps(ops.StringOps(s).trim)
-        return outDir / ss.substring(4, ss.stringIndexOf("scala") + 5)
+        return proyekRootDir / ss.substring(4, ss.stringIndexOf("scala") + 5)
       }
 
-      for (file <- ops.StringOps(ops.StringOps(slangcheckBin.substring(start + searchString.length, slangcheckBin.stringIndexOfFrom(")", start))).replaceAllLiterally("\r\n", "|")).split(c => c == C('|'))) yield toFile(file)
+      val raw = for (file <- ops.StringOps(ops.StringOps(slangcheckBin.substring(start + searchString.length, slangcheckBin.stringIndexOfFrom(")", start))).replaceAllLiterally("\r\n", "|")).split(c => c == C('|'))) yield toFile(file)
+      for(r <- raw) yield r.value
     }
 
-    val results = SlangCheckJvm.run(ISZ(packageName), dataFiles, reporter)
+    val outputDir: Os.Path = (proyekRootDir / "src" / "main" / "data") /+ ops.StringOps(packageName).split(c => c == C('.'))
 
-    assert(!reporter.hasError, reporter.errors)
+    val sccmd = ISZ[String]("proyek", "slangcheck", "-p", packageName, "-o", outputDir.value, proyekRootDir.value) ++ dataFilesArg
+    val scresults = Sireum.run(sccmd, reporter)
 
-    val dataDir = outDir / "src" / "main" / "data" / packageName
-    for (r <- results._1) {
-      val destFile = dataDir /+ r._1
-      assert(destFile.exists)
-      destFile.writeOver(ops.StringOps(r._2.render).replaceAllLiterally("\n\n", "\n"))
-      println(s"Replaced: $destFile")
-    }
+    assert(scresults == 0 && !reporter.hasError, reporter.errors)
 
     println("Running tipe ...")
-    Sireum.run(ISZ("proyek", "tipe", outDir.value), reporter)
+    Sireum.run(ISZ("proyek", "tipe", proyekRootDir.value), reporter)
     assert (!reporter.hasError, reporter.errors)
 
-    val vprops = outDir / "version.properties"
+    val vprops = proyekRootDir / "version.properties"
     vprops.removeAll()
     println("Removed codegen generated version.properties before compiling")
 
     println("Compiling ...")
-    Sireum.run(ISZ("proyek", "compile", outDir.value), reporter)
+    Sireum.run(ISZ("proyek", "compile", proyekRootDir.value), reporter)
     assert (!reporter.hasError, reporter.errors)
   }
 }
