@@ -25,21 +25,26 @@ class SlangCheckProyekIntegrationTest extends SlangCheckTest with BeforeAndAfter
     var failureReasons: ISZ[String] = ISZ()
 
     val proyekRootDir = copy(expectedName, "results")
+    val proyekOutDir = proyekRootDir / "out"
 
     // the following becomes a hyperlink in IVE. You can then use IVE's "Compare Directories"
     // to manually see any changes
     println(s"Result Dir: ${proyekRootDir.toUri}")
 
-    // use separate out/err streams when verbose is false
     val oldOut = System.out
     val oldErr = System.err
 
-    val outCapture = if (verbose) Console.out else new ByteArrayOutputStream
-    val errCapture = if (verbose) Console.err else new ByteArrayOutputStream
     try {
+      val outCapture = new ByteArrayOutputStream
+      val errCapture = new ByteArrayOutputStream
       System.setOut(if (verbose) oldOut else new PrintStream(outCapture))
-      System.setErr(if (verbose) oldErr else new PrintStream(errCapture))
-
+      System.setErr(if (verbose) oldOut else new PrintStream(errCapture))
+      def flush(): Unit = {
+        if (!verbose) {
+          oldOut.println(outCapture.toString); outCapture.reset()
+          oldErr.println(errCapture.toString); errCapture.reset()
+        }
+      }
       val dataDir = proyekRootDir / "src" / "main" // pointing at main in order to pickup art.art.DataContent
       val dataFiles = Os.Path.walk(dataDir, F, F, p => p.ext == string"scala" && !ops.StringOps(p.name).contains("SlangCheck"))
       val outputDir = dataDir / "data" /+ ops.StringOps(packageName).split(c => c == c".")
@@ -50,14 +55,13 @@ class SlangCheckProyekIntegrationTest extends SlangCheckTest with BeforeAndAfter
       val cmd = ISZ[String]("proyek", "slangcheck", "-p", packageName, "-o", outputDir.value, "-t", testDir.value, proyekRootDir.value) ++ dataFilesArg
       var passing = Sireum.run(cmd, reporter)
 
-      val proyekOutDir = proyekRootDir / "out"
-      if (proyekOutDir.exists) {
-        proyekOutDir.removeAll()
-      }
-
       if (passing != 0) {
         failureReasons = failureReasons :+ s"proyek slangcheck returned $passing"
+        flush()
       } else {
+        if (proyekOutDir.exists) {
+          proyekOutDir.removeAll()
+        }
         if (generateExpected) {
           assert(!isCI, "generateExpected should be F when code is pushed to github")
 
@@ -68,6 +72,7 @@ class SlangCheckProyekIntegrationTest extends SlangCheckTest with BeforeAndAfter
         } else {
           if (!compare(proyekRootDir, filter)) {
             failureReasons = failureReasons :+ "Results did not match expected"
+            flush()
           }
         }
       }
@@ -77,6 +82,7 @@ class SlangCheckProyekIntegrationTest extends SlangCheckTest with BeforeAndAfter
         passing = Sireum.run(ISZ("proyek", "compile", proyekRootDir.value), reporter)
         if (passing != 0) {
           failureReasons = failureReasons :+ "Compilation failed"
+          flush()
         } else {
           oldOut.println("Running generated SlangCheck tests via proyek test ...")
 
@@ -89,19 +95,16 @@ class SlangCheckProyekIntegrationTest extends SlangCheckTest with BeforeAndAfter
         }
       }
 
-      if (proyekOutDir.exists) {
-        proyekOutDir.removeAll()
-      }
-
-      if (reporter.hasError) {
-        reporter.printMessages()
-        failureReasons = failureReasons ++ (for (e <- reporter.errors) yield e.text)
-      }
+      failureReasons = failureReasons ++ (for (e <- reporter.errors) yield e.text)
 
       assert(failureReasons.size == 0)
     } finally {
       System.setOut(oldOut)
       System.setErr(oldErr)
+
+      if (proyekOutDir.exists) {
+        proyekOutDir.removeAll()
+      }
     }
   }
 }
