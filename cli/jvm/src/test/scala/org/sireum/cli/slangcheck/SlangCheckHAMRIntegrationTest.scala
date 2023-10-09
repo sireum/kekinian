@@ -42,11 +42,13 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
 
       var reporter = Reporter.create
 
-      def check(tool:String, exitCode: Z): Unit = {
+      def check(tool: String, exitCode: Z): Unit = {
         if (verbose || exitCode != 0 || reporter.hasError) {
           reporter.printMessages()
-          oldOut.println(s"Out: \n${outCapture.toString}"); oldOut.flush()
-          oldErr.println(s"Err: \n${errCapture.toString}"); oldErr.flush()
+          oldOut.println(s"Out: \n${outCapture.toString}");
+          oldOut.flush()
+          oldErr.println(s"Err: \n${errCapture.toString}");
+          oldErr.flush()
         }
         assert(exitCode == 0 && !reporter.hasError, s"$tool failed")
 
@@ -96,37 +98,48 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
   var osateHome: Option[Os.Path] = None()
 
   override def beforeAll(): Unit = {
-    val cand: Option[Os.Path] = Os.env("OSATE_HOME") match {
-      case Some(h) => Some(Os.path(h))
-      case _ =>
-        if (Os.kind == Os.Kind.LinuxArm || (Os.isMac && Os.prop("os.arch").get == string"aarch64")) {
-          None()
-        } else {
-          Os.env("SIREUM_HOME") match {
-            case Some(h) =>
-              val sireumHome = Os.path(h)
-              println("Installing/Updating FMIDE ...")
-              val results = proc"${sireumHome / "bin" / "install" / "fmide.cmd"}".at(sireumHome).run()
-              if (!results.ok) {
-                println(results.out)
-                println(results.err)
-                assert(F, "FMIDE install failed")
-              }
-              if (Os.isWin) Some(sireumHome / "bin" / "win" / "fmide")
-              else if (Os.isMac) Some(sireumHome / "bin" / "mac" / "fmide.app")
-              else if (Os.isLinux) Some(sireumHome / "bin" / "linux" / "fmide")
-              else None()
-            case _ =>
-              assert(F, "Please set the SIREUM_HOME environment variable")
-              halt("Infeasible assuming -ea")
+    Os.env("SIREUM_HOME") match {
+      case Some(h) =>
+        val sireumHome = Os.path(h)
+        val pv = "phantom_versions.properties"
+        val loc: (Option[Os.Path], ISZ[String]) =
+          if (Os.isWin) (Some(sireumHome / "bin" / "win" / "osate"), ISZ(pv))
+          else if (Os.isMac) (Some(sireumHome / "bin" / "mac" / "osate.app"), ISZ("Contents", "Eclipse", pv))
+          else if (Os.isLinux) (Some(sireumHome / "bin" / "linux" / "osate"), ISZ(pv))
+          else (None(), ISZ())
+
+        if (loc._1.isEmpty) {
+          assert(F, s"Unsupported operating system: ${Os.kind}")
+          halt("Infeasible assuming -ea")
+        }
+        osateHome = loc._1
+
+        val phantomVer = Os.path(implicitly[sourcecode.File].value).up.up.up.up.up.up.up.up.up.up / "hamr" / "codegen" / "jvm" / "src" / "main" / "resources" / pv
+        val cachedVer = osateHome.get /+ loc._2
+
+        def iu(installing: B): Unit = {
+          println(s"${if (installing) "Installing" else "Updating"} OSATE ${if(installing) "to" else "at" } ${osateHome.get} (this will take a while) ...")
+          val oresults = proc"${sireumHome / "bin" / "sireum"} hamr phantom -u -o ${osateHome.get}".at(sireumHome).run()
+          if (oresults.ok) {
+            cachedVer.writeOver(phantomVer.read)
+          } else {
+            println(oresults.out)
+            println(oresults.err)
+            assert(F, s"OSATE ${if (installing) "installation" else "update"} failed")
           }
         }
-    }
 
-    if (cand.isEmpty || !cand.get.exists) {
-      assert(F, "Please install FMIDE or point to an OSATE installation via the OSATE_HOME environment variable")
-    } else {
-      osateHome = cand
+        if (!osateHome.get.exists) {
+          iu(T)
+        } else if (phantomVer.read != cachedVer.read) {
+          iu(F)
+        } else {
+          println("OSATE up-to-date")
+        }
+
+      case _ =>
+        assert(F, "Please set the SIREUM_HOME environment variable")
+        halt("Infeasible assuming -ea")
     }
   }
 }
