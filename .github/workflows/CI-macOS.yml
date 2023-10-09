@@ -48,6 +48,12 @@ jobs:
             bin/mac/.cvc5.ver
             bin/mac/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+      - name: Cache FMIDE
+        id: cache-fmide
+        uses: actions/cache@v3
+        with:
+          path: bin/mac/fmide.app
+          key: ${{ runner.os }}-${{ hashFiles('bin/linux/fmide/Contents/Eclipse/VER') }}-fmide
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier

@@ -42,6 +42,12 @@ jobs:
             bin\win\.cvc5.ver
             bin\win\z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+      - name: Cache FMIDE
+        id: cache-fmide
+        uses: actions/cache@v3
+        with:
+          path: bin\win\fmide
+          key: ${{ runner.os }}-${{ hashFiles('bin\win\fmide\VER') }}-fmide
       - name: Test
         shell: cmd
         run: |
