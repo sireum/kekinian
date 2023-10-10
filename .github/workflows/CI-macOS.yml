@@ -48,6 +48,12 @@ jobs:
             bin/mac/.cvc5.ver
             bin/mac/z3
           key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+      - name: Cache OSATE
+        id: cache-osate
+        uses: actions/cache@v3
+        with:
+          path: bin/mac/osate.app
+          key: ${{ runner.os }}-${{ hashFiles('hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
