@@ -98,6 +98,9 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
   var osateHome: Option[Os.Path] = None()
 
   override def beforeAll(): Unit = {
+    if (!willingToWait) {
+      return
+    }
     Os.env("SIREUM_HOME") match {
       case Some(h) =>
         val sireumHome = Os.path(h)
@@ -119,7 +122,8 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
 
         def iu(installing: B): Unit = {
           println(s"${if (installing) "Installing" else "Updating"} OSATE ${if(installing) "to" else "at" } ${osateHome.get} (this will take a while) ...")
-          val oresults = proc"${sireumHome / "bin" / "sireum"} hamr phantom -u -o ${osateHome.get}".at(sireumHome).run()
+          val sireum = sireumHome / "bin" / (if (Os.isWin) "sireum.bat" else "sireum")
+          val oresults = proc"$sireum hamr phantom -u -o ${osateHome.get}".at(sireumHome).run()
           if (oresults.ok) {
             cachedVer.writeOver(phantomVer.read)
           } else {
