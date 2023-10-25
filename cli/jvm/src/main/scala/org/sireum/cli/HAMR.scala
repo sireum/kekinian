@@ -367,6 +367,6 @@ object HAMR {
       return 0
     }
     val out = Os.path(o.args(0))
-    SysMLGrammar.translate(o.url.get, o.version.get, out)
+    return SysMLGrammar.translate(o.url.get, o.version.get, out)
   }
 }
