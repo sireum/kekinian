@@ -119,6 +119,13 @@ object Cli {
     val version: Option[String]
   ) extends SireumTopOption
 
+  @datatype class SireumHamrSysmlTranslatorOption(
+    val help: String,
+    val args: ISZ[String],
+    val version: Option[String],
+    val url: Option[String]
+  ) extends SireumTopOption
+
   @enum object SireumLogikaVerifierFPRoundingMode {
     'NearestTiesToEven
     'NearestTiesToAway
@@ -1070,14 +1077,16 @@ import Cli._
             |
             |Available modes:
             |codegen                 
-            |phantom                 """.render
+            |phantom                 
+            |sysml                    SysML v2 Tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("hamr", args, i, ISZ("codegen", "phantom"))
+    val opt = select("hamr", args, i, ISZ("codegen", "phantom", "sysml"))
     opt match {
       case Some(string"codegen") => return parseSireumHamrCodegen(args, i + 1)
       case Some(string"phantom") => return parseSireumHamrPhantom(args, i + 1)
+      case Some(string"sysml") => return parseSireumHamrSysml(args, i + 1)
       case _ => return None()
     }
   }
@@ -1474,6 +1483,72 @@ import Cli._
       }
     }
     return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, verbose, verbosePlus, osate, update, features, version))
+  }
+
+  def parseSireumHamrSysml(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum HAMR SysML v2 Tools
+            |
+            |Available modes:
+            |translator               SysML v2 Grammar Translator to ANTLR v4""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("sysml", args, i, ISZ("translator"))
+    opt match {
+      case Some(string"translator") => return parseSireumHamrSysmlTranslator(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumHamrSysmlTranslator(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum HAMR SysML v2 Grammar Translator
+          |
+          |Usage: <option>* <output>
+          |
+          |Available Options:
+          |-v, --version            SysML v2 grammar version (expects a string; default is
+          |                           "2023-08")
+          |-u, --url                SysML v2 ANTLR v3 grammar URL (%version is replaced
+          |                           with --version option, if any) (expects a string;
+          |                           default is
+          |                           "https://raw.githubusercontent.com/Systems-Modeling/SysML-v2-Pilot-Implementation/%version/org.omg.sysml.xtext/src-gen/org/omg/sysml/xtext/parser/antlr/internal/InternalSysML.g")
+          |-h, --help               Display this information""".render
+
+    var version: Option[String] = Some("2023-08")
+    var url: Option[String] = Some("https://raw.githubusercontent.com/Systems-Modeling/SysML-v2-Pilot-Implementation/%version/org.omg.sysml.xtext/src-gen/org/omg/sysml/xtext/parser/antlr/internal/InternalSysML.g")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-v" || arg == "--version") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => version = v
+             case _ => return None()
+           }
+         } else if (arg == "-u" || arg == "--url") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => url = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumHamrSysmlTranslatorOption(help, parseArguments(args, j), version, url))
   }
 
   def parseSireumLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2219,7 +2294,7 @@ import Cli._
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
-          |                           -Xlint:deprecation")
+          |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -2259,7 +2334,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -2453,7 +2528,7 @@ import Cli._
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
-          |                           -Xlint:deprecation")
+          |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -2504,7 +2579,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -2853,7 +2928,7 @@ import Cli._
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
-          |                           -Xlint:deprecation")
+          |                           -Xlint:deprecation, -proc:none")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 8, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
@@ -2899,7 +2974,7 @@ import Cli._
     var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
     var force: B = false
     var rebuildIve: B = false
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
@@ -3747,7 +3822,7 @@ import Cli._
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
-          |                           -Xlint:deprecation")
+          |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -3784,7 +3859,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -3990,7 +4065,7 @@ import Cli._
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
-          |                           -Xlint:deprecation")
+          |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -4026,7 +4101,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
@@ -4592,7 +4667,7 @@ import Cli._
           |    --javac              Javac options (expects a string separated by ",";
           |                           default is "-source, 1.8, -target, 1.8, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
-          |                           -Xlint:deprecation")
+          |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
@@ -4631,7 +4706,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation")
+    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()

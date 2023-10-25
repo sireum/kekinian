@@ -33,6 +33,7 @@ import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumS
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
+import org.sireum.hamr.sysml.SysMLGrammar
 import org.sireum.message._
 
 object HAMR {
@@ -358,5 +359,14 @@ object HAMR {
       //
       experimentalOptions = o.experimentalOptions
     )
+  }
+
+  def sysmlTranslator(o: Cli.SireumHamrSysmlTranslatorOption): Z = {
+    if (o.args.size != 1) {
+      println(o.help)
+      return 0
+    }
+    val out = Os.path(o.args(0))
+    SysMLGrammar.translate(o.url.get, o.version.get, out)
   }
 }

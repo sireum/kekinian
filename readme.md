@@ -23,6 +23,7 @@ Sireum depends on open source software libraries and applications
 | Library | Maven | License |
 | :--- | :---: | :---: | 
 | [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://search.maven.org/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
+| [ANTLR4 Runtime](https://github.com/antlr/antlr4) | [(link)](https://search.maven.org/artifact/org.antlr/antlr4-runtime) | [BSD3](https://www.antlr.org/license.html) |
 | [Apache Common Compress](https://commons.apache.org/proper/commons-compress) | [(link)](https://search.maven.org/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
@@ -49,9 +50,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Geny](https://github.com/com-lihaoyi/geny) | [Jen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/Jen.scala) & [MJen](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/MJen.scala) | [MIT](https://github.com/com-lihaoyi/geny/blob/master/LICENSE) |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono/tree/v2.304) & [FiraCode](https://github.com/tonsky/FiraCode/tree/e9943d2d631a4558613d7a77c58ed1d3cb790992) | [Sireum Mono](https://github.com/sireum/resources/fonts) | [OFL](https://github.com/JetBrains/JetBrainsMono/blob/v2.304/OFL.txt) & [OFL](https://github.com/tonsky/FiraCode/blob/e9943d2d631a4558613d7a77c58ed1d3cb790992/LICENSE)|
 | [SHA3IUF](https://github.com/brainhub/SHA3IUF) | [SHA3](https://github.com/sireum/runtime/blob/master/library/shared/src/main/scala/org/sireum/crypto/SHA3.scala) | [MIT](https://github.com/brainhub/SHA3IUF/blob/master/LICENSE) |
-| [tmLanguage: AADL v2](https://github.com/virtuald/language-aadl/blob/119576c99d614383ba47a79c1759a368db4eac5f/grammars/aadl.cson) | [resources/aadl](https://github.com/sireum/resources/tree/master/textmate/aadl) | [GPL v3 with GCC Runtime Exception](https://github.com/OpenAADL/ocarina/blob/master/COPYING.RUNTIME) |
 | [tmLanguage: smtlib2](https://github.com/AdrienChampion/tmlanguages/tree/8273ebf8cfb91afe4fc9af0e4c5a06c6187fc6f5/smtlib2) | [resources/smt2](https://github.com/sireum/resources/tree/master/textmate/smt2) | Public |
-| [tmLanguage: SysML v2](https://gitlab.com/sensmetry/public/sysml-2ls/-/tree/092431855f8effa16901a9a6fb3a2fb9b3fee226/packages/syside-languageserver/syntaxes) | [resources/sysmlv2](https://github.com/sireum/resources/tree/master/textmate/sysml) | [Eclipse 2.0](https://github.com/sireum/resources/blob/master/textmate/sysml/LICENSE) |
 | [UnsafeUtils](https://github.com/plokhotnyuk/jsoniter-scala/tree/e089f06c2d8b4bdb87a6874e17bf716e8608b117/jsoniter-scala-examples/src/main/scala-2.13/com/github/plokhotnyuk/jsoniter_scala/examples) | [UnsafeUtils](https://github.com/sireum/runtime/blob/master/macros/shared/src/main/java/org/sireum/%24internal/UnsafeUtils.java) | [MIT](https://github.com/plokhotnyuk/jsoniter-scala/blob/e089f06c2d8b4bdb87a6874e17bf716e8608b117/LICENSE) |
 
 

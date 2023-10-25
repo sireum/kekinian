@@ -28,6 +28,7 @@ import org.sireum._
 import org.sireum.cli.CliOpt._
 import org.sireum.hamr.codegen
 import org.sireum.hamr.phantom
+import org.sireum.hamr.sysml
 import org.sireum.lang
 import org.sireum.transpilers
 import org.sireum.proyek
@@ -39,7 +40,7 @@ val hamr = Group(
   header =
     st"""HAMR: High Assurance Model-based Rapid-engineering tools for embedded systems""".render,
   unlisted = F,
-  subs = ISZ(codegen.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool)
+  subs = ISZ(codegen.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool, sysml.cli.group)
 )
 
 val x = Group(

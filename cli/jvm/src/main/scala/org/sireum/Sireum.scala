@@ -493,6 +493,9 @@ object Sireum {
           case Some(o: Cli.SireumHamrPhantomOption) =>
             init.basicDeps()
             return cli.Phantom.run(o)
+          case Some(o: Cli.SireumHamrSysmlTranslatorOption) =>
+            init.basicDeps()
+            return cli.HAMR.sysmlTranslator(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             init.basicDeps()
             init.logikaDeps()

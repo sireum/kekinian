@@ -38,6 +38,7 @@ import $file.hamr.codegen.Codegen
 import $file.hamr.codegen.act.Act
 import $file.hamr.codegen.arsit.Arsit
 import $file.hamr.phantom.Phantom
+import $file.hamr.sysml.SysML
 import $file.proyek.Proyek
 import $file.anvil.Anvil
 import $file.server.Server
@@ -115,6 +116,8 @@ object parser extends Parser.Module with runtime.testProvider {
   final override def libraryObject = runtime.library
 }
 
+def topParser = parser
+
 object hamr extends mill.Module {
 
   object air extends Air.Module {
@@ -122,7 +125,14 @@ object hamr extends mill.Module {
     final override def libraryObject = runtime.library
     final override def testObject = runtime.test
   }
-  
+
+  object sysml extends mill.Module {
+    object parser extends SysML.ParserModule {
+      final override def airObject = air
+      final override def parserObject = topParser
+    }
+  }
+
   object phantom extends Phantom.Module {
     final override def libraryObject = runtime.library
   }
@@ -133,6 +143,8 @@ object hamr extends mill.Module {
       final override def airObject = air
 
       final override def slangFrontendObject = slang.frontend
+
+      final override def sysmlParserObject = sysml.parser
     }
 
     object act extends Act.Module {
@@ -150,6 +162,7 @@ object hamr extends mill.Module {
     final override def actObject = act    
     final override def airObject = air
     final override def arsitObject = arsit
+    final override def sysmlParserObject = sysml.parser
 
     object art extends Art.Module {
       final override def libraryObject = runtime.library
