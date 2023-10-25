@@ -58,3 +58,6 @@
 [submodule "hamr/vision"]
 	path = hamr/vision
 	url = https://github.com/sireum/hamr-vision.git
+[submodule "hamr/sysml"]
+	path = hamr/sysml
+	url = https://github.com/sireum/hamr-sysml.git
