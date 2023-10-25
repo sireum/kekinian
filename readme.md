@@ -90,7 +90,6 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 |  :---  | :---: |
 | [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [ASM](https://plugins.jetbrains.com/plugin/10302-asm-bytecode-viewer) | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
-| [Grammar-Kit](https://plugins.jetbrains.com/plugin/6606-grammar-kit) | [Apache 2.0](https://github.com/JetBrains/Grammar-Kit/blob/master/LICENSE.md) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [ReStructuredText](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
