@@ -110,6 +110,7 @@ object Sireum {
   lazy val commitHash: String = $internal.Macro.commitHash
 
   lazy val homeOpt: Option[Os.Path] = Some(init.home)
+  def homePathString: String = homeOpt.get.string
 
   lazy val javaHomeOpt: Option[Os.Path] = {
     var rOpt: Option[Os.Path] =
@@ -124,12 +125,16 @@ object Sireum {
     }
     rOpt
   }
+  def javaHomePathString: String = javaHomeOpt.get.string
 
   lazy val scalaHomeOpt: Option[Os.Path] = Some(init.scalaHome)
+  def scalaHomePathString: String = scalaHomeOpt.get.string
 
   lazy val scalacPluginJar: Os.Path = init.scalacPlugin
+  def scalacPluginJarPathString: String = scalacPluginJar.string
 
   lazy val sireumJar: Os.Path = init.sireumJar
+  def sireumJarPathString: String = sireumJar.string
 
   lazy val ideaDir: Os.Path =
     if (platform == "mac") homeOpt.get / "bin" / platform / "idea" / "IVE.app" / "Contents"
