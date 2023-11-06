@@ -89,6 +89,7 @@ object HAMR {
   def codeGenR(model: Aadl,
                //
                verbose: B,
+               runtimeMonitoring: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
@@ -118,6 +119,7 @@ object HAMR {
     return codeGenP(
       model = model,
       verbose = verbose,
+      runtimeMonitoring = runtimeMonitoring,
       platform = platform,
       slangOutputDir = slangOutputDir,
       slangPackageName = slangPackageName,
@@ -156,6 +158,7 @@ object HAMR {
   def codeGenP(model: Aadl,
                //
                verbose: B,
+               runtimeMonitoring: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
@@ -190,6 +193,7 @@ object HAMR {
       //
       msgpack = F, // not relevant since in-memory AIR being used
       verbose = verbose,
+      runtimeMonitoring = runtimeMonitoring,
       platform = platform,
       //
       outputDir = slangOutputDir,
@@ -309,6 +313,9 @@ object HAMR {
         license = stso.license,
         outputDir = stso.outputDir
       )
+      if (stso.outputDir.nonEmpty) {
+        Os.path(stso.outputDir.get).mkdirAll() // sergen requires the output dir to exist
+      }
       return GenTools.serGen(cstso, sreporter)
     }
 
@@ -321,6 +328,9 @@ object HAMR {
         outputDir = stsgo.outputDir,
         testDir = stsgo.testDir
       )
+      if (stsgo.outputDir.nonEmpty) {
+        Os.path(stsgo.outputDir.get).mkdirAll()
+      }
       return SlangCheck.generate(cstsgo, sreporter)
     }
 
@@ -336,6 +346,7 @@ object HAMR {
       ipc = CodeGenIpcMechanism.SharedMemory,
       //
       verbose = o.verbose,
+      runtimeMonitoring = o.runtimeMonitoring,
       platform = CodeGenPlatform.byName(o.platform.name).get,
       //
       slangOutputDir = o.outputDir,
