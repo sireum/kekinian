@@ -105,11 +105,18 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
       case Some(h) =>
         val sireumHome = Os.path(h)
         val pv = "phantom_versions.properties"
-        val loc: (Option[Os.Path], ISZ[String]) =
-          if (Os.isWin) (Some(sireumHome / "bin" / "win" / "osate"), ISZ(pv))
-          else if (Os.isMac) (Some(sireumHome / "bin" / "mac" / "osate.app"), ISZ("Contents", "Eclipse", pv))
-          else if (Os.isLinux) (Some(sireumHome / "bin" / "linux" / "osate"), ISZ(pv))
+        val loc: (Option[Os.Path], ISZ[String]) = {
+          // jenkins Sireum-Kekinian is setup to delete the workspace before building
+          // so setup an osate-cache in the parent directory to speed up builds
+          val cacheLoc =
+            if (Os.env("JENKINS_HOME").nonEmpty) sireumHome.up / "osate-cache"
+            else sireumHome
+          if (Os.isWin) (Some(cacheLoc / "bin" / "win" / "osate"), ISZ(pv))
+          else if (Os.isMac) (Some(cacheLoc / "bin" / "mac" / "osate.app"), ISZ("Contents", "Eclipse", pv))
+          else if (Os.isLinux) (Some(cacheLoc / "bin" / "linux" / "osate"), ISZ(pv))
           else (None(), ISZ())
+        }
+
 
         if (loc._1.isEmpty) {
           assert(F, s"Unsupported operating system: ${Os.kind}")
