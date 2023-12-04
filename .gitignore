@@ -43,3 +43,4 @@ stale_outputs_checked
 /.settings
 /reports
 /bin/reports
+.fleet
