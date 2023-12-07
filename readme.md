@@ -94,8 +94,9 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [ASM](https://plugins.jetbrains.com/plugin/10302-asm-bytecode-viewer) | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
+| [PlantUML Integration](https://plugins.jetbrains.com/plugin/7017-plantuml-integration) | [Apache 2.0](https://github.com/esteinberg/plantuml4idea/blob/master/LICENSE.txt) |
 | [ReStructuredText](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
-| [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
+| [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | Commercial (Ultimate only) |
 | [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
 | [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
