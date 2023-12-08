@@ -63,8 +63,7 @@ def usage(): Unit = {
         |       | regen-slang-ll2  | regen-parser      | regen-parser-antlr3
         |       | regen-server     | regen-cliopt      | regen-cli
         |       | regen-fmide-cli  | regen-json        | regen-slang-tt
-        |       | regen-sysml
-        |       | cvc               | z3
+        |       | regen-sysml      | cvc               | z3
         |       | mill             | jitpack           | ghpack
         |       | m2[-lib[-js]]    | ram
         |       | distro ( --linux | --linux-arm       | --mac             | --win
