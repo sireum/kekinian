@@ -64,7 +64,7 @@ def usage(): Unit = {
         |       | regen-server     | regen-cliopt      | regen-cli
         |       | regen-fmide-cli  | regen-json        | regen-slang-tt
         |       | regen-sysml
-        |       | alt-ergo-open    | cvc               | z3
+        |       | cvc               | z3
         |       | mill             | jitpack           | ghpack
         |       | m2[-lib[-js]]    | ram
         |       | distro ( --linux | --linux-arm       | --mac             | --win
@@ -146,24 +146,6 @@ def cvc(): Unit = {
   println("Installing CVC for Windows ...")
   println()
   installCVC(Os.Kind.Win)
-  println()
-}
-
-
-def installAltErgoOpen(kind: Os.Kind.Type): Unit = {
-  Init(home, kind, versions).installAltErgoOpen()
-}
-
-
-def altErgoOpen(): Unit = {
-  println("Installing Alt-Ergo for macOS ...")
-  println()
-  installAltErgoOpen(Os.Kind.Mac)
-  println()
-
-  println("Installing Alt-Ergo for Linux ...")
-  println()
-  installAltErgoOpen(Os.Kind.Linux)
   println()
 }
 
@@ -733,7 +715,6 @@ if (Os.cliArgs.isEmpty) {
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"ram" => ram()
-      case string"alt-ergo-open" => altErgoOpen()
       case string"cvc" => cvc()
       case string"z3" => z3()
       case string"-h" => usage()

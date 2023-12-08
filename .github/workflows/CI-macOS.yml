@@ -40,8 +40,6 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            bin/mac/alt-ergo-open
-            bin/mac/.alt-ergo-open.ver
             bin/mac/cvc
             bin/mac/cvc5
             bin/mac/.cvc.ver
