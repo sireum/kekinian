@@ -71,14 +71,14 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 
 | Pre-built Executable | License |
 | :--- | :---: |
-| [7-zip](https://sourceforge.net/projects/sevenzip) | [LGPL v2](https://www.7-zip.org/license.txt) |
-| [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
+| [7a](https://sourceforge.net/projects/sevenzip) | [LGPL v2](https://www.7-zip.org/license.txt) |
 
 ### Optional Application Dependencies
 
 | Application | License |
 | :--- | :---: |
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
+| [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
 | [GraalVM (OpenJDK)](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
 | [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [Mill](https://github.com/com-lihaoyi/mill) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
