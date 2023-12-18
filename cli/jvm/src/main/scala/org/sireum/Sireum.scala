@@ -171,10 +171,11 @@ object Sireum {
 
   lazy val (isDev, javaVer, scalaVer, scalacPluginVer): (B, String, String, String) = {
     import project.DependencyManager._
-    (!(Some("false") == versions.get("org.sireum.version.dev")),
-      versions.get(javaKey).get,
-      versions.get(scalaKey).get,
-      versions.get(scalacPluginKey).get)
+    (//!(Some("false") == versions.get("org.sireum.version.dev")),
+     F,
+     versions.get(javaKey).get,
+     versions.get(scalaKey).get,
+     versions.get(scalacPluginKey).get)
   }
 
   def homeFound: B = {
@@ -410,21 +411,21 @@ object Sireum {
         return 0
       case ISZ(string"--setup") =>
         init.deps()
-        init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = F)
+        init.distro(isDev = F, buildSfx = F, isUltimate = F, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", init.home.string), reporter)
         }
         return 0
       case ISZ(string"--setup-server") =>
         init.deps()
-        init.distro(isDev = T, buildSfx = F, isUltimate = F, isServer = T)
+        init.distro(isDev = F, buildSfx = F, isUltimate = F, isServer = T)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
         }
         return 0
       case ISZ(string"--setup-ultimate") =>
         init.deps()
-        init.distro(isDev = T, buildSfx = F, isUltimate = T, isServer = F)
+        init.distro(isDev = F, buildSfx = F, isUltimate = T, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
         }
@@ -534,7 +535,7 @@ object Sireum {
             val isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate
             val isServer = o.edition == Cli.SireumProyekIveEdition.Server
             if (o.rebuildIve || !init.ideaDirPath(isUltimate, isServer).exists) {
-              init.distro(isDev = T, buildSfx = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
+              init.distro(isDev = F, buildSfx = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
                 isServer = o.edition == Cli.SireumProyekIveEdition.Server)
             }
             return cli.Proyek.ive(o)

@@ -510,7 +510,7 @@ def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   build(fresh, F, F)
   val init = Init(home, Os.kind, versions)
   init.deps()
-  init.distro(isDev = T, buildSfx = F, isUltimate = isUltimate, isServer = isServer)
+  init.distro(isDev = F, buildSfx = F, isUltimate = isUltimate, isServer = isServer)
   val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
   project(T, isUltimate, isServer)
   Os.kind match {
@@ -743,7 +743,7 @@ if (Os.cliArgs.isEmpty) {
           kinds = kinds :+ Os.kind
         }
         for (kind <- kinds) {
-          Init(home, kind, versions).distro(T, isSfx, isUltimate, isServer)
+          Init(home, kind, versions).distro(F, isSfx, isUltimate, isServer)
           println()
         }
       case cmd =>
