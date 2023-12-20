@@ -139,7 +139,6 @@ val main = Group(
         |Build $${SireumApi.version}""".render,
   unlisted = F,
   subs = ISZ(
-    anvil.cli.group,
     hamr,
     logika.cli.group,
     parser.cli.group,
