@@ -72,7 +72,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 
 | Pre-built Executable | License |
 | :--- | :---: |
-| [7a](https://sourceforge.net/projects/sevenzip) | [LGPL v2](https://www.7-zip.org/license.txt) |
+| [7z](https://sourceforge.net/projects/sevenzip) | [LGPL v2, BSD3, unRAR restriction](https://www.7-zip.org/license.txt) |
 
 ### Optional Application Dependencies
 
