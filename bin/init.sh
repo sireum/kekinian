@@ -134,38 +134,34 @@ fi
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
   exit
 fi
-JAVA_NAME="Zulu JDK"
+JAVA_NAME="JDK"
 if [[ -z ${JAVA_VERSION} ]]; then
-  JAVA_VERSION=$(getVersion "org.sireum.version.zulu")
+  JAVA_VERSION=$(getVersion "org.sireum.version.java")
 fi
 if [[ "${PLATFORM}" == "mac" ]]; then
   if [[ "$(uname -m)" == "arm64" ]]; then
-    JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_aarch64.tar.gz
+    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-macos-aarch64-full.tar.gz
   else
-    JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-macosx_x64.tar.gz
+    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-macos-amd64-full.tar.gz
   fi
 elif [[ "${PLATFORM}" == "linux/arm" ]]; then
-  JAVA_VERSION=${JAVA_VERSION/-fx}
-  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_aarch64.tar.gz
+  JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-linux-aarch64-full.tar.gz
 elif [[ "${PLATFORM}" == "linux" ]]; then
-  if [[ -n ${SIREUM_ZING_VERSION} ]]; then
-    echo "Azul Platform Prime Stream Build is only for evaluation purposes"
-    echo "(see: https://www.azul.com/wp-content/uploads/Azul-Platform-Prime-Evaluation-Agreement.pdf)"
-    JAVA_NAME="Zing JDK"
-    JAVA_VERSION=${SIREUM_ZING_VERSION}
-    JAVA_DROP_URL=https://cdn.azul.com/zing-zvm/ZVM${JAVA_VERSION%%-*}/zing${JAVA_VERSION}-linux_x64.tar.gz
-  else
-    JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-linux_x64.tar.gz
-  fi
+  JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-linux-amd64-full.tar.gz
 elif [[ "${PLATFORM}" == "win" ]]; then
-  JAVA_DROP_URL=https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}-win_x64.zip
+  if [[ "${PROCESSOR_ARCHITECTURE}" == "ARM64" ]]; then
+    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-aarch64-full.zip
+  else
+    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-amd64-full.zip
+  fi
 fi
 mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
 cd ${SIREUM_HOME}/bin/${PLATFORM}
 JAVA_DROP="${JAVA_DROP_URL##*/}"
-JAVA_DIR="${JAVA_DROP%.*}"
-if [[ ${JAVA_DIR} == *.tar ]]; then
-  JAVA_DIR="${JAVA_DIR%.*}"
+if [[ "${PLATFORM}" == "mac" ]]; then
+  JAVA_DIR="jdk-${JAVA_VERSION%+*}-full.jdk"
+else
+  JAVA_DIR="jdk-${JAVA_VERSION%+*}-full"
 fi
 grep -q ${JAVA_VERSION} java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDATE=true
 if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then

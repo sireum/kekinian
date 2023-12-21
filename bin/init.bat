@@ -89,7 +89,7 @@ if ($Env:SIREUM_PROVIDED_JAVA) {
   $Global:ProgressPreference = $OriginalProgressPreference
   Exit
 }
-$java_version = $properties["org.sireum.version.zulu"]
+$java_version = $properties["org.sireum.version.java"]
 $java_ver_path = "$sireum_bin\win\java\VER"
 $java_update = $TRUE
 if (Test-Path "$java_ver_path") {
@@ -99,19 +99,25 @@ if (Test-Path "$java_ver_path") {
   }
 }
 if ($java_update) {
-  $java_drop = "$cache_dir\zulu$java_version-win_x64.zip"
+  if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+    $arch = "aarch64"
+  } else {
+    $arch = "amd64"
+  }
+  $java_drop = "$cache_dir\bellsoft-jdk$java_version-windows-$arch-full.zip"
   if (!(Test-Path "$java_drop")) {
-    "Please wait while downloading Zulu JDK $java_version ... "
-    $java_url = "https://cdn.azul.com/zulu/bin/zulu$java_version-win_x64.zip"
+    "Please wait while downloading JDK $java_version ... "
+    $java_url = "https://download.bell-sw.com/java/$java_version/bellsoft-jdk$java_version-windows-$arch-full.zip"
     Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
   }
-  "Extracting Zulu JDK $java_version ... "
+  "Extracting JDK $java_version ... "
   Expand-Archive "$java_drop" -DestinationPath "$sireum_bin\win"
   ""
   if (Test-Path "$sireum_bin\win\java") {
     Remove-Item -Path "$sireum_bin\win\java" -Recurse -Force
   }
-  Move "$sireum_bin\win\zulu$java_version-win_x64" "$sireum_bin\win\java"
+  $jver = $java_version -replace "\+.*"
+  Move "$sireum_bin\win\jdk-$jver-full" "$sireum_bin\win\java"
   "$java_version" | Set-Content "$java_ver_path"
 }
 
