@@ -22,24 +22,24 @@ Sireum depends on open source software libraries and applications
 
 | Library | Maven | License |
 | :--- | :---: | :---: | 
-| [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://search.maven.org/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
-| [ANTLR4 Runtime](https://github.com/antlr/antlr4) | [(link)](https://search.maven.org/artifact/org.antlr/antlr4-runtime) | [BSD3](https://www.antlr.org/license.html) |
-| [Apache Common Compress](https://commons.apache.org/proper/commons-compress) | [(link)](https://search.maven.org/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
-| [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://search.maven.org/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
+| [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://central.sonatype.com/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
+| [ANTLR4 Runtime](https://github.com/antlr/antlr4) | [(link)](https://central.sonatype.com/artifact/org.antlr/antlr4-runtime) | [BSD3](https://www.antlr.org/license.html) |
+| [Apache Common Compress](https://commons.apache.org/proper/commons-compress) | [(link)](https://central.sonatype.com/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
+| [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://central.sonatype.com/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
-| [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://search.maven.org/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
-| [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://search.maven.org/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
-| [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://search.maven.org/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
+| [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://central.sonatype.com/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
+| [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://central.sonatype.com/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
+| [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://central.sonatype.com/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
 | [JavaFX for Presentasi](https://github.com/sireum/presentasi-jfx) | [(link)](https://jitpack.io/#org.sireum/presentasi-jfx) | [BSD2](https://github.com/sireum/presentasi-jfx/blob/master/license.md) |
-| [Scala](https://github.com/scala/scala) | [(link)](https://search.maven.org/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
-| [Scalafmt](https://github.com/scalameta/scalafmt) | [(link)](https://search.maven.org/artifact/org.scalameta/scalafmt-cli_2.13) | [Apache 2.0](https://github.com/scalameta/scalafmt/blob/master/LICENCE.md) |
-| [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://search.maven.org/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
-| [ScalaTest](https://github.com/scalatest/scalatest) | [(link)](https://search.maven.org/artifact/org.scalatest/scalatest_2.13) | [Apache 2.0](https://github.com/scalatest/scalatest/blob/3.2.x-new/LICENSE) |
-| [Scala Java 8 Compatibility Kit](https://github.com/scala/scala-java8-compat) | [(link)](https://search.maven.org/artifact/org.scala-lang.modules/scala-java8-compat_2.13) | [Apache 2.0](https://github.com/scala/scala-java8-compat/blob/main/LICENSE) |
-| [Scala Parallel Collection](https://github.com/scala/scala-parallel-collections) | [(link)](https://search.maven.org/artifact/org.scala-lang.modules/scala-parallel-collections_2.13) | [Apache 2.0](https://github.com/scala/scala-parallel-collections/blob/main/LICENSE) |
-| [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-compiler_2.13.6) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
-| [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://search.maven.org/artifact/org.scala-js/scalajs-dom_sjs1_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
-| [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://search.maven.org/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
+| [Scala](https://github.com/scala/scala) | [(link)](https://central.sonatype.com/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
+| [Scalafmt](https://github.com/scalameta/scalafmt) | [(link)](https://central.sonatype.com/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scalameta/scalafmt/blob/master/LICENCE.md) |
+| [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://central.sonatype.com/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
+| [ScalaTest](https://github.com/scalatest/scalatest) | [(link)](https://central.sonatype.com/artifact/org.scalatest/scalatest_2.13) | [Apache 2.0](https://github.com/scalatest/scalatest/blob/3.2.x-new/LICENSE) |
+| [Scala Java 8 Compatibility Kit](https://github.com/scala/scala-java8-compat) | [(link)](https://central.sonatype.com/artifact/org.scala-lang.modules/scala-java8-compat_2.13) | [Apache 2.0](https://github.com/scala/scala-java8-compat/blob/main/LICENSE) |
+| [Scala Parallel Collection](https://github.com/scala/scala-parallel-collections) | [(link)](https://central.sonatype.com/artifact/org.scala-lang.modules/scala-parallel-collections_2.13) | [Apache 2.0](https://github.com/scala/scala-parallel-collections/blob/main/LICENSE) |
+| [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://central.sonatype.com/artifact/org.scala-js/scalajs-compiler_2.13.12) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
+| [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://central.sonatype.com/artifact/org.scala-js/scalajs-dom_sjs1_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
+| [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://central.sonatype.com/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
 
 In addition, Sireum includes adaptations of the following artifacts:
 
