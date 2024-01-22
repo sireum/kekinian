@@ -95,10 +95,13 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
     }
   }
 
-  var osateHome: Option[Os.Path] = None()
+  var osateHome: Option[Os.Path] = Os.env("OSATE_HOME") match {
+    case Some(p) => Some(Os.path(p))
+    case _ => None()
+  }
 
   override def beforeAll(): Unit = {
-    if (!willingToWait) {
+    if (!willingToWait || osateHome.nonEmpty) {
       return
     }
     Os.env("SIREUM_HOME") match {
