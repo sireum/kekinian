@@ -312,11 +312,15 @@ def regenCliOpt(): Unit = {
 def regenSlang(): Unit = {
   val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangPackagePath = home / "slang" / "tipe" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang"
+  val tipePath = slangPackagePath / "tipe"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", astPackagePath.string, s"${astPackagePath / "AST.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", astPackagePath.string, "-n", "CoreExp", s"${astPackagePath / "CoreExp.scala"}",
+    s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
-    s"${home / "license.txt"}", "-m", "json,msgpack", "-o", (slangPackagePath / "tipe").string,
+    s"${home / "license.txt"}", "-m", "json,msgpack", "-o", tipePath.string,
     s"${slangPackagePath / "symbol" / "Info.scala"}", s"${astPackagePath / "AST.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
 }
