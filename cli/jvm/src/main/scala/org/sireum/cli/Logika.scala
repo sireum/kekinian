@@ -207,7 +207,9 @@ object Logika {
           isAuto = !o.manual,
           background = org.sireum.logika.Config.BackgroundMode.Disabled,
           atRewrite = o.logAtRewrite,
-          searchPc = o.searchPC
+          searchPc = o.searchPC,
+          rwTrace = o.rwTrace,
+          rwMax = o.rwMax
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -351,7 +353,9 @@ object Logika {
         isAuto = T,
         background = org.sireum.logika.Config.BackgroundMode.Disabled,
         atRewrite = o.logAtRewrite,
-        searchPc = o.searchPC
+        searchPc = o.searchPC,
+        rwTrace = o.rwTrace,
+        rwMax = o.rwMax
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
