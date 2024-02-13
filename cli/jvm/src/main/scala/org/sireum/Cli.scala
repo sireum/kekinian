@@ -154,15 +154,15 @@ object Cli {
     val logAtRewrite: B,
     val stats: B,
     val par: Option[Z],
-    val branchParMode: SireumLogikaVerifierBranchPar.Type,
-    val branchPar: Option[Z],
+    val branchPar: SireumLogikaVerifierBranchPar.Type,
+    val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val rwTrace: B,
     val rwMax: Z,
+    val rwTrace: B,
     val elideEncoding: B,
     val rawInscription: B,
     val rlimit: Z,
@@ -357,15 +357,15 @@ object Cli {
     val logAtRewrite: B,
     val stats: B,
     val par: Option[Z],
-    val branchParMode: SireumProyekLogikaBranchPar.Type,
-    val branchPar: Option[Z],
+    val branchPar: SireumProyekLogikaBranchPar.Type,
+    val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
     val splitContract: B,
     val splitIf: B,
     val splitMatch: B,
-    val rwTrace: B,
     val rwMax: Z,
+    val rwTrace: B,
     val elideEncoding: B,
     val rawInscription: B,
     val rlimit: Z,
@@ -1498,11 +1498,9 @@ import Cli._
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
-          |    --par-branch-mode    Branch parallelization mode (expects one of { all,
+          |    --par-branch         Branch parallelization mode (expects one of { all,
           |                           returns, disabled }; default: all)
-          |    --par-branch         Enable parallelization (with CPU cores percentage to
-          |                           use) (accepts an optional integer; min is 1; max is
-          |                           100; default is 100)
+          |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
           |    --dont-split-pfq     Do not force splitting in quantifiers and proof
@@ -1513,9 +1511,9 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |Rewriting Options:
-          |    --rw-trace           Disable rewriting trace
           |    --rw-max             Maximum number of rewriting (expects an integer; min
           |                           is 1; default is 100)
+          |    --rw-trace           Disable rewriting trace
           |
           |SMT2 Options:
           |    --elide-encoding     Strip out SMT2 encoding in feedback
@@ -1564,15 +1562,15 @@ import Cli._
     var logAtRewrite: B = true
     var stats: B = false
     var par: Option[Z] = None()
-    var branchParMode: SireumLogikaVerifierBranchPar.Type = SireumLogikaVerifierBranchPar.All
-    var branchPar: Option[Z] = None()
+    var branchPar: SireumLogikaVerifierBranchPar.Type = SireumLogikaVerifierBranchPar.All
+    var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var rwTrace: B = true
     var rwMax: Z = 100
+    var rwTrace: B = true
     var elideEncoding: B = false
     var rawInscription: B = false
     var rlimit: Z = 2000000
@@ -1762,19 +1760,16 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
-         } else if (arg == "--par-branch-mode") {
+         } else if (arg == "--par-branch") {
            val o: Option[SireumLogikaVerifierBranchPar.Type] = parseSireumLogikaVerifierBranchPar(args, j + 1)
            o match {
-             case Some(v) => branchParMode = v
+             case Some(v) => branchPar = v
              case _ => return None()
            }
-         } else if (arg == "--par-branch") {
-           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
-             case o@Some(None()) => j = j - 1; Some(Some(100))
-             case o => o
-           }
+         } else if (arg == "--par-rw") {
+           val o: Option[B] = { j = j - 1; Some(!rwPar) }
            o match {
-             case Some(v) => branchPar = v
+             case Some(v) => rwPar = v
              case _ => return None()
            }
          } else if (arg == "--dont-split-pfq") {
@@ -1807,16 +1802,16 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--rw-trace") {
-           val o: Option[B] = { j = j - 1; Some(!rwTrace) }
-           o match {
-             case Some(v) => rwTrace = v
-             case _ => return None()
-           }
          } else if (arg == "--rw-max") {
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => rwMax = v
+             case _ => return None()
+           }
+         } else if (arg == "--rw-trace") {
+           val o: Option[B] = { j = j - 1; Some(!rwTrace) }
+           o match {
+             case Some(v) => rwTrace = v
              case _ => return None()
            }
          } else if (arg == "--elide-encoding") {
@@ -1888,7 +1883,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwTrace, rwMax, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3098,11 +3093,9 @@ import Cli._
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
-          |    --par-branch-mode    Branch parallelization mode (expects one of { all,
+          |    --par-branch         Branch parallelization mode (expects one of { all,
           |                           returns, disabled }; default: all)
-          |    --par-branch         Enable parallelization (with CPU cores percentage to
-          |                           use) (accepts an optional integer; min is 1; max is
-          |                           100; default is 100)
+          |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
           |    --dont-split-pfq     Do not force splitting in quantifiers and proof
@@ -3113,9 +3106,9 @@ import Cli._
           |    --split-match        Split on match expressions and statements
           |
           |Rewriting Options:
-          |    --rw-trace           Disable rewriting trace
           |    --rw-max             Maximum number of rewriting (expects an integer; min
           |                           is 1; default is 100)
+          |    --rw-trace           Disable rewriting trace
           |
           |SMT2 Options:
           |    --elide-encoding     Strip out SMT2 encoding in feedback
@@ -3176,15 +3169,15 @@ import Cli._
     var logAtRewrite: B = true
     var stats: B = false
     var par: Option[Z] = None()
-    var branchParMode: SireumProyekLogikaBranchPar.Type = SireumProyekLogikaBranchPar.All
-    var branchPar: Option[Z] = None()
+    var branchPar: SireumProyekLogikaBranchPar.Type = SireumProyekLogikaBranchPar.All
+    var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
     var splitContract: B = false
     var splitIf: B = false
     var splitMatch: B = false
-    var rwTrace: B = true
     var rwMax: Z = 100
+    var rwTrace: B = true
     var elideEncoding: B = false
     var rawInscription: B = false
     var rlimit: Z = 2000000
@@ -3446,19 +3439,16 @@ import Cli._
              case Some(v) => par = v
              case _ => return None()
            }
-         } else if (arg == "--par-branch-mode") {
+         } else if (arg == "--par-branch") {
            val o: Option[SireumProyekLogikaBranchPar.Type] = parseSireumProyekLogikaBranchPar(args, j + 1)
            o match {
-             case Some(v) => branchParMode = v
+             case Some(v) => branchPar = v
              case _ => return None()
            }
-         } else if (arg == "--par-branch") {
-           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
-             case o@Some(None()) => j = j - 1; Some(Some(100))
-             case o => o
-           }
+         } else if (arg == "--par-rw") {
+           val o: Option[B] = { j = j - 1; Some(!rwPar) }
            o match {
-             case Some(v) => branchPar = v
+             case Some(v) => rwPar = v
              case _ => return None()
            }
          } else if (arg == "--dont-split-pfq") {
@@ -3491,16 +3481,16 @@ import Cli._
              case Some(v) => splitMatch = v
              case _ => return None()
            }
-         } else if (arg == "--rw-trace") {
-           val o: Option[B] = { j = j - 1; Some(!rwTrace) }
-           o match {
-             case Some(v) => rwTrace = v
-             case _ => return None()
-           }
          } else if (arg == "--rw-max") {
            val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
            o match {
              case Some(v) => rwMax = v
+             case _ => return None()
+           }
+         } else if (arg == "--rw-trace") {
+           val o: Option[B] = { j = j - 1; Some(!rwTrace) }
+           o match {
+             case Some(v) => rwTrace = v
              case _ => return None()
            }
          } else if (arg == "--elide-encoding") {
@@ -3572,7 +3562,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchParMode, branchPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwTrace, rwMax, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

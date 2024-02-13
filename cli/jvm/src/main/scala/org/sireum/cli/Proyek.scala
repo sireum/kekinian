@@ -479,7 +479,6 @@ object Proyek {
       fpRoundingMode = "RNE",
       smt2Seq = F,
       branchPar = org.sireum.logika.Config.BranchPar.All,
-      branchParCores = 1,
       atLinesFresh = F,
       interp = F,
       loopBound = 3,
@@ -499,7 +498,8 @@ object Proyek {
       atRewrite = F,
       searchPc = F,
       rwTrace = T,
-      rwMax = 100
+      rwMax = 100,
+      rwPar = T,
     )
     val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
     val lcode = org.sireum.proyek.Analysis.run(
@@ -688,9 +688,8 @@ object Proyek {
     }
 
     val parCores = SireumApi.parCoresOpt(o.par)
-    val branchParCores = SireumApi.parCoresOpt(o.branchPar)
 
-    val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+    val branchPar: org.sireum.logika.Config.BranchPar.Type = o.branchPar match {
       case Cli.SireumProyekLogikaBranchPar.All => org.sireum.logika.Config.BranchPar.All
       case Cli.SireumProyekLogikaBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
       case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
@@ -724,8 +723,7 @@ object Proyek {
       fpRoundingMode = fpRoundingMode,
       smt2Caching = F,
       smt2Seq = o.sequential,
-      branchPar = branchParMode,
-      branchParCores = branchParCores,
+      branchPar = branchPar,
       atLinesFresh = o.logPcLines,
       interp = o.interprocedural,
       loopBound = o.loopBound,
@@ -744,7 +742,8 @@ object Proyek {
       atRewrite = o.logAtRewrite,
       searchPc = o.searchPC,
       rwTrace = o.rwTrace,
-      rwMax = o.rwMax
+      rwMax = o.rwMax,
+      rwPar = o.rwPar
     )
 
     val lcode = Analysis.run(
@@ -1126,7 +1125,6 @@ object Proyek {
       smt2Caching = F,
       smt2Seq = F,
       branchPar = org.sireum.logika.Config.BranchPar.All,
-      branchParCores = 1,
       atLinesFresh = F,
       interp = F,
       loopBound = 3,
@@ -1145,7 +1143,8 @@ object Proyek {
       atRewrite = T,
       searchPc = F,
       rwTrace = T,
-      rwMax = 100
+      rwMax = 100,
+      rwPar = T
     )
     val lcode = Analysis.run(
       root = path,

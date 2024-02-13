@@ -149,8 +149,7 @@ object Logika {
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
         }
         val parCores = SireumApi.parCoresOpt(o.par)
-        val branchParCores = SireumApi.parCoresOpt(o.branchPar)
-        val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+        val branchPar: org.sireum.logika.Config.BranchPar.Type = o.branchPar match {
           case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
           case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
           case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
@@ -189,8 +188,7 @@ object Logika {
           fpRoundingMode = fpRoundingMode,
           smt2Caching = F,
           smt2Seq = o.sequential,
-          branchPar = branchParMode,
-          branchParCores = branchParCores,
+          branchPar = branchPar,
           atLinesFresh = o.logPcLines,
           interp = o.interprocedural,
           loopBound = o.loopBound,
@@ -209,7 +207,8 @@ object Logika {
           atRewrite = o.logAtRewrite,
           searchPc = o.searchPC,
           rwTrace = o.rwTrace,
-          rwMax = o.rwMax
+          rwMax = o.rwMax,
+          rwPar = o.rwPar
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -301,8 +300,7 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
       val parCores = SireumApi.parCoresOpt(o.par)
-      val branchParCores = SireumApi.parCoresOpt(o.branchPar)
-      val branchParMode: org.sireum.logika.Config.BranchPar.Type = o.branchParMode match {
+      val branchPar: org.sireum.logika.Config.BranchPar.Type = o.branchPar match {
         case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
         case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
         case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
@@ -335,8 +333,7 @@ object Logika {
         fpRoundingMode = fpRoundingMode,
         smt2Caching = F,
         smt2Seq = o.sequential,
-        branchPar = branchParMode,
-        branchParCores = branchParCores,
+        branchPar = branchPar,
         atLinesFresh = o.logPcLines,
         interp = o.interprocedural,
         loopBound = o.loopBound,
@@ -355,7 +352,8 @@ object Logika {
         atRewrite = o.logAtRewrite,
         searchPc = o.searchPC,
         rwTrace = o.rwTrace,
-        rwMax = o.rwMax
+        rwMax = o.rwMax,
+        rwPar = o.rwPar
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
