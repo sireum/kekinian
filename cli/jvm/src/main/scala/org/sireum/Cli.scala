@@ -117,12 +117,6 @@ object Cli {
     'Uninterpreted
   }
 
-  @enum object SireumLogikaVerifierBranchPar {
-    'All
-    'Returns
-    'Disabled
-  }
-
   @datatype class SireumLogikaVerifierOption(
     val help: String,
     val args: ISZ[String],
@@ -154,7 +148,8 @@ object Cli {
     val logAtRewrite: B,
     val stats: B,
     val par: Option[Z],
-    val branchPar: SireumLogikaVerifierBranchPar.Type,
+    val branchPar: B,
+    val branchParReturn: B,
     val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -308,12 +303,6 @@ object Cli {
     'Uninterpreted
   }
 
-  @enum object SireumProyekLogikaBranchPar {
-    'All
-    'Returns
-    'Disabled
-  }
-
   @datatype class SireumProyekLogikaOption(
     val help: String,
     val args: ISZ[String],
@@ -357,7 +346,8 @@ object Cli {
     val logAtRewrite: B,
     val stats: B,
     val par: Option[Z],
-    val branchPar: SireumProyekLogikaBranchPar.Type,
+    val branchPar: B,
+    val branchParReturn: B,
     val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -1404,26 +1394,6 @@ import Cli._
     return r
   }
 
-  def parseSireumLogikaVerifierBranchParH(arg: String): Option[SireumLogikaVerifierBranchPar.Type] = {
-    arg.native match {
-      case "all" => return Some(SireumLogikaVerifierBranchPar.All)
-      case "returns" => return Some(SireumLogikaVerifierBranchPar.Returns)
-      case "disabled" => return Some(SireumLogikaVerifierBranchPar.Disabled)
-      case s =>
-        eprintln(s"Expecting one of the following: { all, returns, disabled }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumLogikaVerifierBranchPar(args: ISZ[String], i: Z): Option[SireumLogikaVerifierBranchPar.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, returns, disabled }, but none found.")
-      return None()
-    }
-    val r = parseSireumLogikaVerifierBranchParH(args(i))
-    return r
-  }
-
   def parseSireumLogikaVerifier(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Logika Verifier for Slang
@@ -1498,8 +1468,8 @@ import Cli._
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
-          |    --par-branch         Branch parallelization mode (expects one of { all,
-          |                           returns, disabled }; default: all)
+          |    --par-branch         Enable branch parallelization
+          |    --par-branch-return  Only use branch parallelization if all branches return
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -1562,7 +1532,8 @@ import Cli._
     var logAtRewrite: B = true
     var stats: B = false
     var par: Option[Z] = None()
-    var branchPar: SireumLogikaVerifierBranchPar.Type = SireumLogikaVerifierBranchPar.All
+    var branchPar: B = false
+    var branchParReturn: B = false
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -1761,9 +1732,15 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--par-branch") {
-           val o: Option[SireumLogikaVerifierBranchPar.Type] = parseSireumLogikaVerifierBranchPar(args, j + 1)
+           val o: Option[B] = { j = j - 1; Some(!branchPar) }
            o match {
              case Some(v) => branchPar = v
+             case _ => return None()
+           }
+         } else if (arg == "--par-branch-return") {
+           val o: Option[B] = { j = j - 1; Some(!branchParReturn) }
+           o match {
+             case Some(v) => branchParReturn = v
              case _ => return None()
            }
          } else if (arg == "--par-rw") {
@@ -1883,7 +1860,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -2966,26 +2943,6 @@ import Cli._
     return r
   }
 
-  def parseSireumProyekLogikaBranchParH(arg: String): Option[SireumProyekLogikaBranchPar.Type] = {
-    arg.native match {
-      case "all" => return Some(SireumProyekLogikaBranchPar.All)
-      case "returns" => return Some(SireumProyekLogikaBranchPar.Returns)
-      case "disabled" => return Some(SireumProyekLogikaBranchPar.Disabled)
-      case s =>
-        eprintln(s"Expecting one of the following: { all, returns, disabled }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumProyekLogikaBranchPar(args: ISZ[String], i: Z): Option[SireumProyekLogikaBranchPar.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { all, returns, disabled }, but none found.")
-      return None()
-    }
-    val r = parseSireumProyekLogikaBranchParH(args(i))
-    return r
-  }
-
   def parseSireumProyekLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Logika for Proyek
@@ -3093,8 +3050,8 @@ import Cli._
           |-p, --par                Enable parallelization (with CPU cores percentage to
           |                           use) (accepts an optional integer; min is 1; max is
           |                           100; default is 100)
-          |    --par-branch         Branch parallelization mode (expects one of { all,
-          |                           returns, disabled }; default: all)
+          |    --par-branch         Enable branch parallelization
+          |    --par-branch-return  Only use branch parallelization if all branches return
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -3169,7 +3126,8 @@ import Cli._
     var logAtRewrite: B = true
     var stats: B = false
     var par: Option[Z] = None()
-    var branchPar: SireumProyekLogikaBranchPar.Type = SireumProyekLogikaBranchPar.All
+    var branchPar: B = false
+    var branchParReturn: B = false
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -3440,9 +3398,15 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--par-branch") {
-           val o: Option[SireumProyekLogikaBranchPar.Type] = parseSireumProyekLogikaBranchPar(args, j + 1)
+           val o: Option[B] = { j = j - 1; Some(!branchPar) }
            o match {
              case Some(v) => branchPar = v
+             case _ => return None()
+           }
+         } else if (arg == "--par-branch-return") {
+           val o: Option[B] = { j = j - 1; Some(!branchParReturn) }
+           o match {
+             case Some(v) => branchParReturn = v
              case _ => return None()
            }
          } else if (arg == "--par-rw") {
@@ -3562,7 +3526,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {

@@ -149,10 +149,11 @@ object Logika {
           case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
         }
         val parCores = SireumApi.parCoresOpt(o.par)
-        val branchPar: org.sireum.logika.Config.BranchPar.Type = o.branchPar match {
-          case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
-          case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
-          case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+        val branchPar: org.sireum.logika.Config.BranchPar.Type = (o.branchPar, o.branchParReturn) match {
+          case (T, F) => org.sireum.logika.Config.BranchPar.All
+          case (T, T) => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+          case (F, F) => org.sireum.logika.Config.BranchPar.Disabled
+          case (F, T) => org.sireum.logika.Config.BranchPar.Disabled
         }
         val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
           case Cli.SireumLogikaVerifierStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default
@@ -300,10 +301,11 @@ object Logika {
         case Cli.SireumLogikaVerifierFPRoundingMode.TowardZero => "RTZ"
       }
       val parCores = SireumApi.parCoresOpt(o.par)
-      val branchPar: org.sireum.logika.Config.BranchPar.Type = o.branchPar match {
-        case Cli.SireumLogikaVerifierBranchPar.All => org.sireum.logika.Config.BranchPar.All
-        case Cli.SireumLogikaVerifierBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
-        case Cli.SireumLogikaVerifierBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+      val branchPar: org.sireum.logika.Config.BranchPar.Type = (o.branchPar, o.branchParReturn) match {
+        case (T, F) => org.sireum.logika.Config.BranchPar.All
+        case (T, T) => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+        case (F, F) => org.sireum.logika.Config.BranchPar.Disabled
+        case (F, T) => org.sireum.logika.Config.BranchPar.Disabled
       }
       val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
         case Cli.SireumLogikaVerifierStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default

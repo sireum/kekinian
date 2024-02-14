@@ -689,10 +689,11 @@ object Proyek {
 
     val parCores = SireumApi.parCoresOpt(o.par)
 
-    val branchPar: org.sireum.logika.Config.BranchPar.Type = o.branchPar match {
-      case Cli.SireumProyekLogikaBranchPar.All => org.sireum.logika.Config.BranchPar.All
-      case Cli.SireumProyekLogikaBranchPar.Returns => org.sireum.logika.Config.BranchPar.OnlyAllReturns
-      case Cli.SireumProyekLogikaBranchPar.Disabled => org.sireum.logika.Config.BranchPar.Disabled
+    val branchPar: org.sireum.logika.Config.BranchPar.Type = (o.branchPar, o.branchParReturn) match {
+      case (T, F) => org.sireum.logika.Config.BranchPar.All
+      case (T, T) => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+      case (F, F) => org.sireum.logika.Config.BranchPar.Disabled
+      case (F, T) => org.sireum.logika.Config.BranchPar.Disabled
     }
     val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
       case Cli.SireumProyekLogikaStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default
