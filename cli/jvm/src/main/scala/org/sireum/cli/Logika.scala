@@ -209,7 +209,8 @@ object Logika {
           searchPc = o.searchPC,
           rwTrace = o.rwTrace,
           rwMax = o.rwMax,
-          rwPar = o.rwPar
+          rwPar = o.rwPar,
+          rwEvalTrace = o.rwEvalTrace
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -355,7 +356,8 @@ object Logika {
         searchPc = o.searchPC,
         rwTrace = o.rwTrace,
         rwMax = o.rwMax,
-        rwPar = o.rwPar
+        rwPar = o.rwPar,
+        rwEvalTrace = o.rwEvalTrace
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())

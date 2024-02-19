@@ -500,6 +500,7 @@ object Proyek {
       rwTrace = T,
       rwMax = 100,
       rwPar = T,
+      rwEvalTrace = T
     )
     val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
     val lcode = org.sireum.proyek.Analysis.run(
@@ -744,7 +745,8 @@ object Proyek {
       searchPc = o.searchPC,
       rwTrace = o.rwTrace,
       rwMax = o.rwMax,
-      rwPar = o.rwPar
+      rwPar = o.rwPar,
+      rwEvalTrace = o.rwEvalTrace
     )
 
     val lcode = Analysis.run(
@@ -1145,7 +1147,8 @@ object Proyek {
       searchPc = F,
       rwTrace = T,
       rwMax = 100,
-      rwPar = T
+      rwPar = T,
+      rwEvalTrace = T
     )
     val lcode = Analysis.run(
       root = path,

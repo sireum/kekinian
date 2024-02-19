@@ -158,6 +158,7 @@ object Cli {
     val splitMatch: B,
     val rwMax: Z,
     val rwTrace: B,
+    val rwEvalTrace: B,
     val elideEncoding: B,
     val rawInscription: B,
     val rlimit: Z,
@@ -356,6 +357,7 @@ object Cli {
     val splitMatch: B,
     val rwMax: Z,
     val rwTrace: B,
+    val rwEvalTrace: B,
     val elideEncoding: B,
     val rawInscription: B,
     val rlimit: Z,
@@ -1484,6 +1486,7 @@ import Cli._
           |    --rw-max             Maximum number of rewriting (expects an integer; min
           |                           is 1; default is 100)
           |    --rw-trace           Disable rewriting trace
+          |    --rw-eval-trace      Disable evaluation rewriting trace
           |
           |SMT2 Options:
           |    --elide-encoding     Strip out SMT2 encoding in feedback
@@ -1542,6 +1545,7 @@ import Cli._
     var splitMatch: B = false
     var rwMax: Z = 100
     var rwTrace: B = true
+    var rwEvalTrace: B = true
     var elideEncoding: B = false
     var rawInscription: B = false
     var rlimit: Z = 2000000
@@ -1791,6 +1795,12 @@ import Cli._
              case Some(v) => rwTrace = v
              case _ => return None()
            }
+         } else if (arg == "--rw-eval-trace") {
+           val o: Option[B] = { j = j - 1; Some(!rwEvalTrace) }
+           o match {
+             case Some(v) => rwEvalTrace = v
+             case _ => return None()
+           }
          } else if (arg == "--elide-encoding") {
            val o: Option[B] = { j = j - 1; Some(!elideEncoding) }
            o match {
@@ -1860,7 +1870,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3066,6 +3076,7 @@ import Cli._
           |    --rw-max             Maximum number of rewriting (expects an integer; min
           |                           is 1; default is 100)
           |    --rw-trace           Disable rewriting trace
+          |    --rw-eval-trace      Disable evaluation rewriting trace
           |
           |SMT2 Options:
           |    --elide-encoding     Strip out SMT2 encoding in feedback
@@ -3136,6 +3147,7 @@ import Cli._
     var splitMatch: B = false
     var rwMax: Z = 100
     var rwTrace: B = true
+    var rwEvalTrace: B = true
     var elideEncoding: B = false
     var rawInscription: B = false
     var rlimit: Z = 2000000
@@ -3457,6 +3469,12 @@ import Cli._
              case Some(v) => rwTrace = v
              case _ => return None()
            }
+         } else if (arg == "--rw-eval-trace") {
+           val o: Option[B] = { j = j - 1; Some(!rwEvalTrace) }
+           o match {
+             case Some(v) => rwEvalTrace = v
+             case _ => return None()
+           }
          } else if (arg == "--elide-encoding") {
            val o: Option[B] = { j = j - 1; Some(!elideEncoding) }
            o match {
@@ -3526,7 +3544,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
