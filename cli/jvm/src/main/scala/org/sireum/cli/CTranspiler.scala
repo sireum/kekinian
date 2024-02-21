@@ -625,7 +625,7 @@ object CTranspiler {
             return AST.Typed.Name(ids, for (ta <- t.typeArgs) yield rec(ta))
           }
         case t: AST.Type.Tuple => return AST.Typed.Tuple(for (ta <- t.args) yield rec(ta))
-        case t: AST.Type.Fun => return AST.Typed.Fun(t.isPure, t.isByName, for (ta <- t.args) yield rec(ta), rec(t.ret))
+        case t: AST.Type.Fun => return AST.Typed.Fun(if (t.isPure) AST.Purity.Pure else AST.Purity.Impure, t.isByName, for (ta <- t.args) yield rec(ta), rec(t.ret))
       }
     }
     return rec(tpe)
