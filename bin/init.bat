@@ -1,5 +1,9 @@
 @@setlocal
 @@set POWERSHELL_BAT_ARGS=%~dp0 %*
+@@set SIREUM_HOME=%~dp0..\
+@@pushd %SIREUM_HOME%
+@@set SIREUM_HOME=%CD%
+@@popd
 @@if defined POWERSHELL_BAT_ARGS set POWERSHELL_BAT_ARGS=%POWERSHELL_BAT_ARGS:"=\"%
 @@PowerShell -noprofile -executionpolicy bypass -Command Invoke-Expression $('$args=@(^&{$args} %POWERSHELL_BAT_ARGS%);'+[String]::Join([char]10,$((Get-Content '%~f0') -notmatch '^^@@'))) & goto :EOF
 
@@ -56,8 +60,8 @@ if ($Env:SIREUM_CACHE) {
 New-Item -Type directory -Path "$cache_dir" -Force | Out-Null
 
 
-$sireum_bin = $args[0]
-$sireum_home = "$sireum_bin\.."
+$sireum_home = $env:SIREUM_HOME
+$sireum_bin = "$sireum_home\bin"
 $sireum_jar = "$sireum_bin\sireum.jar"
 $sireum_bat = "$sireum_bin\sireum.bat"
 $versions_properties = "$sireum_home\versions.properties"
@@ -133,8 +137,7 @@ if (!(Test-Path "$build_path") -And $sireum_setup) {
   } else {
     $java = "java"
   }
-  Start-Process -NoNewWindow -Wait -FilePath "$java" -ArgumentList "-jar $sireum_bin\sireum.jar --setup"
+  Start-Process -NoNewWindow -Wait -FilePath "$java" -ArgumentList @("-Dorg.sireum.home=`"$sireum_home`"", "-jar", "`"$sireum_jar`"", "--setup")
 }
-
 
 $Global:ProgressPreference = $OriginalProgressPreference
