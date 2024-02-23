@@ -424,7 +424,7 @@ def regenSysML(): Unit = {
     message.Reporter.create)
   val deps = Coursier.fetch(Sireum.scalaVer, ISZ(s"org.antlr:antlr4:${versions.get("org.antlr%antlr4-runtime%").get}"))
   val classpath: ISZ[String] = for (dep <- deps) yield dep.path.string
-  val java = Sireum.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
+  val java = Os.path(Sireum.javaHomePathString) / "bin" / (if (Os.isWin) "java.exe" else "java")
   Os.proc(ISZ(java.string, "-cp", st"${(classpath, Os.pathSep)}".render, "org.antlr.v4.Tool", "-o",
     outDir.string, "-Xexact-output-dir", "-package", "org.sireum.hamr.sysml", (outDir / "SysMLv2.g4").string)).console.runCheck()
   println("Regenerated lexer/parser")
@@ -471,13 +471,14 @@ def m2Lib(isJs: B): Unit = {
 }
 
 def jitpack(): Unit = {
-  val ver = ops.StringOps(proc"git log -n 1 --pretty=format:%H".at(home).runCheck().out).substring(0, 10)
-  val scalaVer = versions.get(DependencyManager.scalaKey).get
+  val init = Init(home, Os.kind, versions)
+  init.installCoursier()
+  val ver = ops.StringOps(Sireum.commitHash).substring(0, 10)
+  println(s"Triggering jitpack build for $ver ...")
   val sc = Os.tempFix("", ".sc")
   sc.writeOver(
     st"""import org.sireum._
-        |Coursier.setScalaVersion("$scalaVer")
-        |for (cif <- Coursier.fetch(ISZ(s"org.sireum.kekinian::cli:$ver"))) {
+        |for (cif <- Coursier.fetch("${Sireum.scalaVer}", ISZ(s"org.sireum.kekinian::cli:$ver"))) {
         |  println(cif.path)
         |}""".render
   )
