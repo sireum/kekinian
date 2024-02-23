@@ -1,9 +1,12 @@
 @echo off
 setlocal
 set SIREUM_HOME=%~dp0..\
-set JAVA_HOME=%~dp0win\java
+pushd %SIREUM_HOME%
+set SIREUM_HOME=%CD%
+popd
+set JAVA_HOME=%SIREUM_HOME%\bin\win\java
 set NEWER=False
-if exist %~dp0win\sireum.exe for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dp0win\sireum.exe).LastWriteTime -gt (Get-Item %~dp0sireum.jar).LastWriteTime"') do @set NEWER=%%i
+if exist "%~dp0win\sireum.exe" for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dp0win\sireum.exe).LastWriteTime -gt (Get-Item %~dp0sireum.jar).LastWriteTime"') do @set NEWER=%%i
 if "%NEWER%" == "True" goto native
 del "%~dp0win\sireum.exe" > nul 2>&1
 del "%~dp0win\.sireum.exe" > nul 2>&1
@@ -17,13 +20,13 @@ exit /B %errorlevel%
 
 :native
 set NEWER=False
-if exist %~dp0win\.sireum.exe for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dp0win\.sireum.exe).LastWriteTime -gt (Get-Item %~dp0win\sireum.exe).LastWriteTime"') do @set NEWER=%%i
+if exist "%~dp0win\.sireum.exe" for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dp0win\.sireum.exe).LastWriteTime -gt (Get-Item %~dp0win\sireum.exe).LastWriteTime"') do @set NEWER=%%i
 if "%NEWER%" == "True" goto native-run
 copy /Y "%~dp0win\sireum.exe" "%~dp0win\.sireum.exe" > nul 2>&1
 goto native-run
 
 :native-run
-%~dp0win\.sireum.exe %*
+"%~dp0win\.sireum.exe" %*
 exit /b %errorlevel%
 
 :error
