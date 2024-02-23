@@ -77,7 +77,7 @@ else
 fi
 
 getVersion() {
-  grep "^$1=" ${SIREUM_HOME}/versions.properties | cut -d'=' -f2-
+  grep "^$1=" "${SIREUM_HOME}/versions.properties" | cut -d'=' -f2-
 }
 
 download() {
@@ -112,7 +112,7 @@ uncompress() {
 # Sireum
 #
 SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
-cd ${SIREUM_HOME}
+cd "${SIREUM_HOME}"
 if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
   download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar
@@ -155,8 +155,8 @@ elif [[ "${PLATFORM}" == "win" ]]; then
     JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-amd64-full.zip
   fi
 fi
-mkdir -p ${SIREUM_HOME}/bin/${PLATFORM}
-cd ${SIREUM_HOME}/bin/${PLATFORM}
+mkdir -p "${SIREUM_HOME}/bin/${PLATFORM}"
+cd "${SIREUM_HOME}/bin/${PLATFORM}"
 JAVA_DROP="${JAVA_DROP_URL##*/}"
 if [[ "${PLATFORM}" == "mac" ]]; then
   JAVA_DIR="jdk-${JAVA_VERSION%+*}-full.jdk"
@@ -165,18 +165,18 @@ else
 fi
 grep -q ${JAVA_VERSION} java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDATE=true
 if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
-  if [[ ! -f ${SIREUM_CACHE}/${JAVA_DROP} ]]; then
+  if [[ ! -f "${SIREUM_CACHE}/${JAVA_DROP}" ]]; then
       echo "Please wait while downloading ${JAVA_NAME} ${JAVA_VERSION} ..."
-      download  ${SIREUM_CACHE}/${JAVA_DROP} ${JAVA_DROP_URL}
+      download "${SIREUM_CACHE}/${JAVA_DROP}" ${JAVA_DROP_URL}
   fi
   echo "Extracting ${JAVA_NAME} ${JAVA_VERSION} ..."
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
-    tar xf ${SIREUM_CACHE}/${JAVA_DROP}
+    tar xf "${SIREUM_CACHE}/${JAVA_DROP}"
   else
-    uncompress ${SIREUM_CACHE}/${JAVA_DROP}
+    uncompress "${SIREUM_CACHE}/${JAVA_DROP}"
   fi
   rm -fR java
-  mv ${JAVA_DIR} java
+  mv "${JAVA_DIR}" java
   echo
   if [[ -d "java/bin" ]]; then
     chmod +x java/bin/*
@@ -194,5 +194,5 @@ fi
 #
 if [[ ! -f ${SIREUM_HOME}/bin/build.cmd ]] && [[ ! "${SIREUM_NO_SETUP}" = "true" ]]; then
   export PATH=${SIREUM_HOME}/bin/${PLATFORM}/java/bin:$PATH
-  java -jar ${SIREUM_HOME}/bin/sireum.jar --setup
+  java -jar "${SIREUM_HOME}/bin/sireum.jar" --setup
 fi
