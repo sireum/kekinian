@@ -274,7 +274,7 @@ def test(): Unit = {
     "org.sireum.proyek",
     "org.sireum.hamr.codegen.test.expensive"
   )
-  proc"$sireum proyek test -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
+  proc"$sireum proyek test --java -Xss2M -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
     console.echo.runCheck()
   println()
 }
