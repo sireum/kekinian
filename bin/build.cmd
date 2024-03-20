@@ -279,6 +279,18 @@ def test(): Unit = {
   println()
 }
 
+def verifyLogikaExamples(): Unit = {
+  println("Building ...")
+  build(F, F, F)
+
+  println("Verifying https://github.com/sireum/logika-examples ...")
+  val logikaExamples = home / "logika-examples"
+  logikaExamples.removeAll()
+  proc"git clone https://github.com/sireum/logika-examples".console.echo.at(home).runCheck()
+  proc"${logikaExamples / "bin" / "verify.cmd"}".console.echo.at(home).env(ISZ("SIREUM_HOME" ~> home.string)).runCheck()
+
+  println()
+}
 
 def verifyRuntime(): Unit = {
   proc"$sireum proyek logika --all --par --par-branch --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
@@ -694,8 +706,8 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
       case string"test" => test()
-      case string"verify" => verifyRuntime()
-      case string"test-verify" => test(); verifyRuntime()
+      case string"verify" => verifyLogikaExamples(); verifyRuntime()
+      case string"test-verify" => test(); verifyLogikaExamples(); verifyRuntime()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-slang-ll2" => regenSlangLl2()
