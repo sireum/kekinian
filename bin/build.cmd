@@ -298,6 +298,12 @@ def verifyRuntime(): Unit = {
 }
 
 
+def verify(): Unit = {
+  verifyLogikaExamples()
+  verifyRuntime()
+}
+
+
 def regenProject(): Unit = {
   val projectPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "project"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.project", "-l", s"${home / "license.txt"}",
@@ -706,8 +712,8 @@ if (Os.cliArgs.isEmpty) {
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
       case string"test" => test()
-      case string"verify" => verifyLogikaExamples(); verifyRuntime()
-      case string"test-verify" => test(); verifyLogikaExamples(); verifyRuntime()
+      case string"verify" => verify()
+      case string"test-verify" => test(); verify()
       case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-slang-ll2" => regenSlangLl2()
