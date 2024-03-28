@@ -180,7 +180,7 @@ def buildMill(): Unit = {
   symlink(millBuildBin / sireum.name, sireum)
   symlink(millBuildBin / "scala", homeBin / "scala")
   symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
-  symlink(millBuildBin / "prelude.ps1", homeBin / "init.ps1")
+  symlink(millBuildBin / "init.bat", homeBin / "init.bat")
   val millBuildBinPlatform = millBuildBin / platform
   symlink(millBuildBinPlatform / "java", homeBin / platform / "java")
   if ((homeBin / platform / "z3").exists) {
