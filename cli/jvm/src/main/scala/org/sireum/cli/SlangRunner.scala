@@ -165,7 +165,7 @@ object SlangRunner {
         case Os.Kind.Mac => ISZ()
         case Os.Kind.Linux => ISZ()
         case Os.Kind.LinuxArm => ISZ()
-        case Os.Kind.Win => ISZ("--static", "-H:NativeLinkerOption=Winhttp.lib")
+        case Os.Kind.Win => ISZ("-H:NativeLinkerOption=Winhttp.lib")
         case _ => return 0
       }
 
