@@ -93,6 +93,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [ASM](https://github.com/sireum/intellij-asm) | [Apache 2.0](https://github.com/sireum/intellij-asm/blob/master/LICENSE) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
+| [PDF Viewer](https://plugins.jetbrains.com/plugin/14494-pdf-viewer) | [MIT](https://github.com/FirstTimeInForever/intellij-pdf-viewer/blob/master/LICENSE) |
 | [PlantUML Integration](https://plugins.jetbrains.com/plugin/7017-plantuml-integration) | [Apache 2.0](https://github.com/esteinberg/plantuml4idea/blob/master/LICENSE.txt) |
 | [Plugin DevKit](https://plugins.jetbrains.com/plugin/22851-plugin-devkit) | [JetBrains User Agreement](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [ReStructuredText](https://plugins.jetbrains.com/plugin/7124-restructuredtext) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
@@ -101,4 +102,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
 | [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
 | [Terminal](https://plugins.jetbrains.com/plugin/13123-terminal) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
+| [TeXiFy IDEA](https://plugins.jetbrains.com/plugin/9473-texify-idea | [MIT](https://github.com/Hannah-Sten/TeXiFy-IDEA/blob/master/LICENSE) |
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
+
+
