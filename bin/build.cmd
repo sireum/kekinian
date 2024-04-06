@@ -63,9 +63,8 @@ def usage(): Unit = {
         |       | regen-slang-ll2  | regen-parser      | regen-parser-antlr3
         |       | regen-server     | regen-cliopt      | regen-cli
         |       | regen-fmide-cli  | regen-json        | regen-slang-tt
-        |       | regen-sysml      | cvc               | z3
-        |       | m2[-lib[-js]]    | jitpack          | ghpack
-        |       | ram
+        |       | cvc              | z3                | m2[-lib[-js]]
+        |       | jitpack          | ghpack            | ram
         |       | distro ( --linux | --linux-arm       | --mac             | --win
         |                | --sfx   | --ultimate        | --server                  )*  )*
         |""".render)
@@ -385,20 +384,6 @@ def regenFmideCli(): Unit = {
     s"${installPath / "fmide-cli.sc"}")).console, message.Reporter.create)
 }
 
-def regenSysML(): Unit = {
-  val outDir = home / "hamr" / "sysml" / "parser" / "jvm" / "src" / "main"/ "java" / "org" / "sireum" / "hamr" / "sysml"
-  outDir.removeAll()
-  outDir.mkdirAll()
-  Sireum.procCheck(Os.proc(ISZ(sireum.string, "hamr", "sysml", "translator", s"$outDir")).console,
-    message.Reporter.create)
-  val deps = Coursier.fetch(Sireum.scalaVer, ISZ(s"org.antlr:antlr4:${versions.get("org.antlr%antlr4-runtime%").get}"))
-  val classpath: ISZ[String] = for (dep <- deps) yield dep.path.string
-  val java = Os.path(Sireum.javaHomePathString) / "bin" / (if (Os.isWin) "java.exe" else "java")
-  Os.proc(ISZ(java.string, "-cp", st"${(classpath, Os.pathSep)}".render, "org.antlr.v4.Tool", "-o",
-    outDir.string, "-Xexact-output-dir", "-package", "org.sireum.hamr.sysml", (outDir / "SysMLv2.g4").string)).console.runCheck()
-  println("Regenerated lexer/parser")
-}
-
 
 def regenJson(): Unit = {
   val jsonPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser"
@@ -680,7 +665,6 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-fmide-cli" => regenFmideCli()
       case string"regen-json" => regenJson()
       case string"regen-slang-tt" => regenSlangTTLl1()
-      case string"regen-sysml" => regenSysML()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)

@@ -40,6 +40,7 @@ Sireum depends on open source software libraries and applications
 | [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://central.sonatype.com/artifact/org.scala-js/scalajs-compiler_2.13.13) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
 | [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://central.sonatype.com/artifact/org.scala-js/scalajs-dom_sjs1_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://central.sonatype.com/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
+| [SysML v2 Parser for HAMR](https://github.com/sireum/hamr-sysml-parser) | [(link)](https://jitpack.io/#org.sireum/hamr-sysml-parser) | [LGPL3](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation/blob/master/LICENSE) |
 
 In addition, Sireum includes adaptations of the following artifacts:
 
