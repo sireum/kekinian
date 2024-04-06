@@ -64,8 +64,8 @@ def usage(): Unit = {
         |       | regen-server     | regen-cliopt      | regen-cli
         |       | regen-fmide-cli  | regen-json        | regen-slang-tt
         |       | regen-sysml      | cvc               | z3
-        |       | mill             | jitpack           | ghpack
-        |       | m2[-lib[-js]]    | ram
+        |       | m2[-lib[-js]]    | jitpack          | ghpack
+        |       | ram
         |       | distro ( --linux | --linux-arm       | --mac             | --win
         |                | --sfx   | --ultimate        | --server                  )*  )*
         |""".render)
@@ -146,55 +146,6 @@ def cvc(): Unit = {
   println()
   installCVC(Os.Kind.Win)
   println()
-}
-
-
-def buildMill(): Unit = {
-  def copyIfNewer(from: Os.Path, to: Os.Path): Unit = {
-    if (!to.exists || from.lastModified > to.lastModified) {
-      from.copyOverTo(to)
-    }
-  }
-
-  def symlink(p: Os.Path, target: Os.Path): Unit = {
-    if (Os.isWin) {
-      copyIfNewer(target, p)
-    } else if (!p.isSymLink) {
-      if (p.exists) {
-        p.removeAll()
-      }
-      p.up.mkdirAll()
-      p.mklink(target)
-    }
-  }
-
-  val millBuild = home / "mill"
-  if (millBuild.exists) {
-    proc"git pull".at(millBuild).console.runCheck()
-  } else {
-    proc"git clone https://github.com/sireum/mill ${millBuild.name}".at(home).console.runCheck()
-  }
-  symlink(millBuild / "versions.properties", home / "versions.properties")
-  val millBuildBin = millBuild / "bin"
-  symlink(millBuildBin / sireumJar.name, homeBin / sireumJar.name)
-  symlink(millBuildBin / sireum.name, sireum)
-  symlink(millBuildBin / "scala", homeBin / "scala")
-  symlink(millBuildBin / "prelude.sh", homeBin / "init.sh")
-  symlink(millBuildBin / "init.bat", homeBin / "init.bat")
-  val millBuildBinPlatform = millBuildBin / platform
-  symlink(millBuildBinPlatform / "java", homeBin / platform / "java")
-  if ((homeBin / platform / "z3").exists) {
-    symlink(millBuildBinPlatform / "z3", homeBin / platform / "z3")
-  }
-  val millBuildLib = millBuild / "lib"
-  for (p <- (home / "lib").list) {
-    symlink(millBuildLib / p.name, p)
-  }
-  val homeBinMill = homeBin / "mill"
-  val homeBinMillBat = homeBin / "mill.bat"
-  (millBuildBin / "build.cmd").slash(ISZ())
-  copyIfNewer(millBuild / "mill-standalone", homeBinMill)
-  copyIfNewer(millBuild / "mill-standalone.bat", homeBinMillBat)
 }
 
 
@@ -714,7 +665,6 @@ if (Os.cliArgs.isEmpty) {
       case string"test" => test()
       case string"verify" => verify()
       case string"test-verify" => test(); verify()
-      case string"mill" => buildMill()
       case string"regen-slang" => regenSlang()
       case string"regen-slang-ll2" => regenSlangLl2()
       case string"regen-logika" => regenLogika()
