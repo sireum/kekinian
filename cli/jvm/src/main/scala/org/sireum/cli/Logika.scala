@@ -372,6 +372,8 @@ object Logika {
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }
 
+    val vstart = extension.Time.currentMillis
+
     val code: Z =
       if (ops.ISZOps(o.args).forall((s: String) => Os.path(s).ext == "scala")) verifyPrograms()
       else verifyScripts()
@@ -382,8 +384,9 @@ object Logika {
       println(st"Number of SMT2 satisfiability checking: ${reporter.numOfSats} (time: ${logika.Smt2Formatter.formatTime(reporter.satMillis)})".render)
     }
     println()
+    println(st"Verification time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - vstart)}".render)
     if (code == 0) {
-      println(st"Logika verified! Elapsed time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
+      println(st"Logika verified! Verification time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - vstart)}, Elapsed time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
     } else {
       println(st"Elapsed time: ${logika.Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
     }

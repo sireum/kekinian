@@ -529,7 +529,7 @@ object Proyek {
       skipMethods = ISZ(),
       skipTypes = ISZ(),
       reporter = reporter
-    )
+    )._1
 
     if (reporter.hasIssue) {
       println()
@@ -749,7 +749,7 @@ object Proyek {
       rwEvalTrace = o.rwEvalTrace
     )
 
-    val lcode = Analysis.run(
+    val (lcode, vtime) = Analysis.run(
       root = path,
       outDirName = o.outputDirName.get,
       project = prj,
@@ -787,7 +787,7 @@ object Proyek {
 
     println()
     if (lcode == 0) {
-      println(st"Logika verified! Elapsed time: ${Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
+      println(st"Logika verified! Verification time: ${Smt2Formatter.formatTime(vtime)}, Elapsed time: ${Smt2Formatter.formatTime(extension.Time.currentMillis - start)}".render)
       return 0
     } else {
       println()
@@ -1176,7 +1176,7 @@ object Proyek {
       skipMethods = ISZ(),
       skipTypes = ISZ(),
       reporter = reporter
-    )
+    )._1
 
     if (reporter.hasIssue) {
       println()
