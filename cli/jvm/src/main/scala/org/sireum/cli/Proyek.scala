@@ -221,6 +221,7 @@ object Proyek {
       project = prj,
       projectName = projectName,
       jarName = o.jar.getOrElse(projectName),
+      noDeps = o.noDeps,
       dm = dm,
       mainClassNameOpt = o.mainClass,
       isNative = o.isNative,

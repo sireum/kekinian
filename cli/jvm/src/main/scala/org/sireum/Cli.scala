@@ -195,6 +195,7 @@ object Cli {
     val includeSources: B,
     val includeTests: B,
     val jar: Option[String],
+    val noDeps: B,
     val mainClass: Option[String],
     val isNative: B,
     val uber: B,
@@ -2056,6 +2057,7 @@ import Cli._
           |    --include-tests      Include test classes
           |-j, --jar                The assembled jar filename (defaults to the project
           |                           name) (expects a string)
+          |    --no-deps            Exclude library dependencies
           |-m, --main               The main class fully qualified name (expects a string)
           |    --native             Generates native image
           |    --uber               Generates uber jar
@@ -2118,6 +2120,7 @@ import Cli._
     var includeSources: B = false
     var includeTests: B = false
     var jar: Option[String] = None[String]()
+    var noDeps: B = false
     var mainClass: Option[String] = None[String]()
     var isNative: B = false
     var uber: B = false
@@ -2164,6 +2167,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => jar = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-deps") {
+           val o: Option[B] = { j = j - 1; Some(!noDeps) }
+           o match {
+             case Some(v) => noDeps = v
              case _ => return None()
            }
          } else if (arg == "-m" || arg == "--main") {
@@ -2310,7 +2319,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, noDeps, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
