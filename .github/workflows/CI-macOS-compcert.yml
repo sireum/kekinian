@@ -5,7 +5,7 @@ on: [push]
 jobs:
 
   ci:
-    runs-on: macOS-latest
+    runs-on: macos-latest-large
     steps:
       - name: Checkout
         uses: actions/checkout@v4
