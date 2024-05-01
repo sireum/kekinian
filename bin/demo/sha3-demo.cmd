@@ -114,7 +114,7 @@ def proc(desc: String, command: String, inputOpt: Option[String]): Os.Proc = {
   pause(s"Press enter to execute ($desc) ... ")
   val r = Os.proc(split(command))
   inputOpt match {
-    case Some(input) => r.input(input)
+    case Some(input) => return r.input(input)
     case _ => return r
   }
 }
