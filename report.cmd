@@ -1,1 +1,0 @@
-/Users/belt/devel/git/logika-overview-case-studies-private/bin/report.cmd
