@@ -95,7 +95,6 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [PDF Viewer](https://plugins.jetbrains.com/plugin/14494-pdf-viewer) | [MIT](https://github.com/FirstTimeInForever/intellij-pdf-viewer/blob/master/LICENSE) |
 | [PlantUML Integration](https://plugins.jetbrains.com/plugin/7017-plantuml-integration) | [Apache 2.0](https://github.com/esteinberg/plantuml4idea/blob/master/LICENSE.txt) |
-| [Plugin DevKit](https://plugins.jetbrains.com/plugin/22851-plugin-devkit) | [JetBrains User Agreement](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | Commercial (Ultimate only) |
 | [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
