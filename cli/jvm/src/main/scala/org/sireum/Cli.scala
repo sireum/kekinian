@@ -1297,14 +1297,14 @@ import Cli._
           |
           |Available Options:
           |-v, --version            SysML v2 grammar version (expects a string; default is
-          |                           "2024-04.1")
+          |                           "2024-05")
           |-u, --url                SysML v2 ANTLR v3 grammar URL (%version is replaced
           |                           with --version option, if any) (expects a string;
           |                           default is
           |                           "https://raw.githubusercontent.com/Systems-Modeling/SysML-v2-Pilot-Implementation/%version/org.omg.sysml.xtext/src-gen/org/omg/sysml/xtext/parser/antlr/internal/InternalSysML.g")
           |-h, --help               Display this information""".render
 
-    var version: Option[String] = Some("2024-04.1")
+    var version: Option[String] = Some("2024-05")
     var url: Option[String] = Some("https://raw.githubusercontent.com/Systems-Modeling/SysML-v2-Pilot-Implementation/%version/org.omg.sysml.xtext/src-gen/org/omg/sysml/xtext/parser/antlr/internal/InternalSysML.g")
     var j = i
     var isOption = T
