@@ -46,6 +46,7 @@ object Cli {
     'SeL4
     'SeL4_Only
     'SeL4_TB
+    'Ros2
   }
 
   @datatype class SireumHamrCodegenOption(
@@ -878,15 +879,16 @@ import Cli._
       case "seL4" => return Some(SireumHamrCodegenHamrPlatform.SeL4)
       case "seL4_Only" => return Some(SireumHamrCodegenHamrPlatform.SeL4_Only)
       case "seL4_TB" => return Some(SireumHamrCodegenHamrPlatform.SeL4_TB)
+      case "ros2" => return Some(SireumHamrCodegenHamrPlatform.Ros2)
       case s =>
-        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumHamrCodegenHamrPlatform(args: ISZ[String], i: Z): Option[SireumHamrCodegenHamrPlatform.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB }, but none found.")
+      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but none found.")
       return None()
     }
     val r = parseSireumHamrCodegenHamrPlatformH(args(i))
@@ -906,7 +908,8 @@ import Cli._
           |-m, --runtime-monitoring    
           |                          Enable runtime monitoring
           |-p, --platform           Target platform (expects one of { JVM, Linux, Cygwin,
-          |                           MacOS, seL4, seL4_Only, seL4_TB }; default: JVM)
+          |                           MacOS, seL4, seL4_Only, seL4_TB, ros2 }; default:
+          |                           JVM)
           |-h, --help               Display this information
           |
           |Slang Options:
