@@ -101,7 +101,9 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val version: Option[String],
-    val url: Option[String]
+    val grammar: Option[String],
+    val url: Option[String],
+    val keywords: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumLogikaVerifierFPRoundingMode {
@@ -1301,14 +1303,17 @@ import Cli._
           |Available Options:
           |-v, --version            SysML v2 grammar version (expects a string; default is
           |                           "2024-05")
-          |-u, --url                SysML v2 ANTLR v3 grammar URL (%version is replaced
-          |                           with --version option, if any) (expects a string;
-          |                           default is
-          |                           "https://raw.githubusercontent.com/Systems-Modeling/SysML-v2-Pilot-Implementation/%version/org.omg.sysml.xtext/src-gen/org/omg/sysml/xtext/parser/antlr/internal/InternalSysML.g")
+          |-g, --grammar            File containing an ANTLR v3 grammar (expects a string)
+          |-u, --url                URL of an ANTLR v3 grammar (%version is replaced with
+          |                           --version option, if any) (expects a string)
+          |-k, --keywords           Strings that should be treated as keywords rather than
+          |                           operators (expects a string separated by ",")
           |-h, --help               Display this information""".render
 
     var version: Option[String] = Some("2024-05")
-    var url: Option[String] = Some("https://raw.githubusercontent.com/Systems-Modeling/SysML-v2-Pilot-Implementation/%version/org.omg.sysml.xtext/src-gen/org/omg/sysml/xtext/parser/antlr/internal/InternalSysML.g")
+    var grammar: Option[String] = None[String]()
+    var url: Option[String] = None[String]()
+    var keywords: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1323,10 +1328,22 @@ import Cli._
              case Some(v) => version = v
              case _ => return None()
            }
+         } else if (arg == "-g" || arg == "--grammar") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => grammar = v
+             case _ => return None()
+           }
          } else if (arg == "-u" || arg == "--url") {
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => url = v
+             case _ => return None()
+           }
+         } else if (arg == "-k" || arg == "--keywords") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => keywords = v
              case _ => return None()
            }
          } else {
@@ -1338,7 +1355,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlTranslatorOption(help, parseArguments(args, j), version, url))
+    return Some(SireumHamrSysmlTranslatorOption(help, parseArguments(args, j), version, grammar, url, keywords))
   }
 
   def parseSireumLogika(args: ISZ[String], i: Z): Option[SireumTopOption] = {

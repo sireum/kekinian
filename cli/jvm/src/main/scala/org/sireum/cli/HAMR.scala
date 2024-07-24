@@ -40,6 +40,12 @@ object HAMR {
 
   val toolName: String = "HAMR"
 
+  val ERROR_URL: Z = -1
+  //val PARSING_FAILED: Z = -2 // used by SysMLGrammar
+  val FILE_DOES_NOT_EXIST: Z = -3
+  val INVALID_OPTIONS: Z = -4
+
+
   // cli interface
   def codeGen(o: Cli.SireumHamrCodegenOption, reporter: Reporter): Z = {
     o.args.size match {
@@ -377,7 +383,34 @@ object HAMR {
       println(o.help)
       return 0
     }
-    val out = Os.path(o.args(0))
-    return SysMLGrammar.translate(o.url.get, o.version.get, out)
+
+    val outFile = Os.path(o.args(0))
+    outFile.up.mkdirAll()
+
+    val (content, uri): (String, Option[String]) = (o.url, o.grammar) match {
+      case (Some(url), None()) =>
+        val input = Os.tempFix(outFile.name, ".g")
+        input.removeAll()
+        val version: String = if (o.version.nonEmpty) o.version.get else ""
+        val u = ops.StringOps(url).replaceAllLiterally("%version", version)
+        input.downloadFrom(u)
+        input.removeOnExit()
+        if (!input.exists) {
+          eprintln(s"Could not download from $u")
+          return ERROR_URL
+        }
+        (input.read, Some(u))
+      case (None(), Some(file)) =>
+        val input = Os.path(file)
+        if (!input.exists) {
+          eprintln(s"Grammar file does not exist: $file")
+          return FILE_DOES_NOT_EXIST
+        }
+        (input.read, Some(input.value))
+      case _ =>
+        eprintln("Provide either a URL or a grammar file")
+        return INVALID_OPTIONS
+    }
+    return SysMLGrammar.translate(content, uri, o.keywords, outFile)
   }
 }
