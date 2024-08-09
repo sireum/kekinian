@@ -422,7 +422,7 @@ object Proyek {
       force = o.force,
       javacOptions = o.javac,
       scalacOptions = o.scalac,
-      configPath = SireumApi.init.ideaConfig(SireumApi.isDev, o.edition == Cli.SireumProyekIveEdition.Ultimate,
+      configPath = SireumApi.init.ideaConfig(F, SireumApi.isDev, o.edition == Cli.SireumProyekIveEdition.Ultimate,
         if (o.edition == Cli.SireumProyekIveEdition.Server) Some(path) else None()),
       sandboxPath = SireumApi.init.ideaSandbox(SireumApi.isDev)
     )
