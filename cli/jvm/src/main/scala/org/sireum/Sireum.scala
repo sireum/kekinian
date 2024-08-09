@@ -416,7 +416,7 @@ object Sireum {
         }
         proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, F),
           Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
-          init.ideaConfig(F, F, None()), init.ideaSandbox(F))
+          init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
         return 0
       case ISZ(string"--setup-server") =>
         init.deps()
@@ -426,7 +426,7 @@ object Sireum {
         }
         proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, T),
           Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
-          init.ideaConfig(F, F, None()), init.ideaSandbox(F))
+          init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
         return 0
       case ISZ(string"--setup-ultimate") =>
         init.deps()
@@ -436,7 +436,7 @@ object Sireum {
         }
         proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(T, F),
           Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
-          init.ideaConfig(F, T, None()), init.ideaSandbox(F))
+          init.ideaConfig(T, F, T, None()), init.ideaSandbox(F))
         return 0
       case ISZ(string"--sha") =>
         println(commitSha)
