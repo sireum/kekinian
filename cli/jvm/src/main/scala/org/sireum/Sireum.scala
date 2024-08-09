@@ -39,13 +39,12 @@ object Sireum {
     var r = Os.sireumHomeOpt match {
       case Some(d) => Init(d, Os.kind, Map.empty)
       case _ =>
-        val home: Os.Path = Os.kind match {
-          case Os.Kind.Win => Os.home / "AppData" / "Local" / "Sireum"
-          case Os.Kind.Mac => Os.home / "Library" / "Application Support" / "org.sireum"
-          case _ => Os.home / ".sireum"
+        val home: Os.Path = Os.home / "Applications" / "Sireum"
+        if (!(home / "bin" / (if (Os.isWin) "sireum.bat" else "sireum")).exists) {
+          halt("Please set SIREUM_HOME environment variable")
         }
         System.setProperty("org.sireum.home", home.string.value)
-        Init(Os.home / "Applications" / "Sireum", Os.kind, Map.empty)
+        Init(home, Os.kind, Map.empty)
     }
     val vs: Map[String, String] = {
       val f = r.home / "versions.properties"
