@@ -700,7 +700,9 @@ if (Os.cliArgs.isEmpty) {
           kinds = kinds :+ Os.kind
         }
         for (kind <- kinds) {
-          Init(home, kind, versions).distro(F, isSfx, isUltimate, isServer)
+          val init = Init(home, kind, versions)
+          init.deps()
+          init.distro(F, isSfx, isUltimate, isServer)
           println()
         }
       case cmd =>
