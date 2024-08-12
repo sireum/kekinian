@@ -411,6 +411,16 @@ object Proyek {
       cacheOpt = o.cache.map((p: String) => Os.path(p))
     )
 
+    val configPath: Os.Path = o.edition match {
+      case Cli.SireumProyekIveEdition.Server =>
+        SireumApi.init.ideaConfig(F, SireumApi.isDev, F, Some(path))
+      case _ =>
+        var ideaConfigPath = (ideaDir / "bin" / "idea.properties").properties.get("idea.config.path").get
+        ideaConfigPath = ops.StringOps(ideaConfigPath).replaceAllLiterally("${idea.home.path}", ideaDir.canon.toUri)
+        ideaConfigPath = ops.StringOps(ideaConfigPath).replaceAllLiterally("${user.home}", Os.home.toUri)
+        Os.Path.fromUri(ideaConfigPath).canon
+    }
+
     val r = proyek.Ive.run(
       path = path,
       project = prj,
@@ -422,8 +432,7 @@ object Proyek {
       force = o.force,
       javacOptions = o.javac,
       scalacOptions = o.scalac,
-      configPath = SireumApi.init.ideaConfig(F, SireumApi.isDev, o.edition == Cli.SireumProyekIveEdition.Ultimate,
-        if (o.edition == Cli.SireumProyekIveEdition.Server) Some(path) else None()),
+      configPath = configPath,
       sandboxPath = SireumApi.init.ideaSandbox(SireumApi.isDev)
     )
 
