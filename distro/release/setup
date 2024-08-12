@@ -10,7 +10,7 @@ INSTALL_PATH=${INSTALL_PATH:-~/Applications}
 echo "Installing in ${INSTALL_PATH} ..."
 mkdir -p ${INSTALL_PATH}
 rm -fR ${INSTALL_PATH}/Sireum
-mv Sireum ${INSTALL_PATH}/ 2> /dev/null
+mv Sireum ${INSTALL_PATH}/ 2> /dev/null || true
 if [[ -d ${INSTALL_PATH}/Sireum ]]; then
   if [[ "$(uname)" == "Darwin" ]]; then
     echo "Sireum IVE can now be launched by opening ${INSTALL_PATH}/Sireum/bin/mac/idea/IVE.app"
