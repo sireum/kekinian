@@ -97,6 +97,13 @@ object Cli {
     val version: Option[String]
   ) extends SireumTopOption
 
+  @datatype class SireumHamrSysmlTipeOption(
+    val help: String,
+    val args: ISZ[String],
+    val exclude: ISZ[String],
+    val sourcepath: ISZ[String]
+  ) extends SireumTopOption
+
   @datatype class SireumHamrSysmlTranslatorOption(
     val help: String,
     val args: ISZ[String],
@@ -1283,15 +1290,64 @@ import Cli._
         st"""Sireum HAMR SysML v2 Tools
             |
             |Available modes:
+            |tipe                     SysML v2 Type Checker
             |translator               SysML v2 Grammar Translator to ANTLR v4""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sysml", args, i, ISZ("translator"))
+    val opt = select("sysml", args, i, ISZ("tipe", "translator"))
     opt match {
+      case Some(string"tipe") => return parseSireumHamrSysmlTipe(args, i + 1)
       case Some(string"translator") => return parseSireumHamrSysmlTranslator(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumHamrSysmlTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum HAMR SysML v2 Type Checker
+          |
+          |Usage: <option>* [<sysmlv2-file]
+          |
+          |Available Options:
+          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |                           separated by ",")
+          |-s, --sourcepath         Sourcepath of SysML v2 .sysml files (expects path
+          |                           strings)
+          |-h, --help               Display this information""".render
+
+    var exclude: ISZ[String] = ISZ[String]()
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-x" || arg == "--exclude") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => exclude = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumHamrSysmlTipeOption(help, parseArguments(args, j), exclude, sourcepath))
   }
 
   def parseSireumHamrSysmlTranslator(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1302,7 +1358,7 @@ import Cli._
           |
           |Available Options:
           |-v, --version            SysML v2 grammar version (expects a string; default is
-          |                           "2024-05")
+          |                           "2024-07")
           |-g, --grammar            File containing an ANTLR v3 grammar (expects a string)
           |-u, --url                URL of an ANTLR v3 grammar (%version is replaced with
           |                           --version option, if any) (expects a string)
@@ -1310,7 +1366,7 @@ import Cli._
           |                           operators (expects a string separated by ",")
           |-h, --help               Display this information""".render
 
-    var version: Option[String] = Some("2024-05")
+    var version: Option[String] = Some("2024-07")
     var grammar: Option[String] = None[String]()
     var url: Option[String] = None[String]()
     var keywords: ISZ[String] = ISZ[String]()

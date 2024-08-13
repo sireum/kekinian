@@ -34,6 +34,7 @@ import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.SysMLGrammar
+import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.message._
 
 object HAMR {
@@ -412,5 +413,9 @@ object HAMR {
         return INVALID_OPTIONS
     }
     return SysMLGrammar.translate(content, uri, o.keywords, outFile)
+  }
+
+  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[sysmlTypeHierarchy, Z] = {
+    halt("")
   }
 }
