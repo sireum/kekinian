@@ -28,6 +28,8 @@ package org.sireum
 import org.sireum.message.Reporter
 import org.sireum.project.DependencyManager
 
+import java.io.{FileWriter, OutputStream, PrintStream}
+
 object Sireum {
 
   private lazy val commitSha: String = {
@@ -617,9 +619,45 @@ object Sireum {
             init.deps()
             homeOpt match {
               case Some(home) =>
-                return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.workers,
-                  !o.noInputCache, !o.noTypeCache, o.log, o.verbose, javaHomeOpt.get, scalaHomeOpt.get,
-                  home, versions.entries)
+                val buffer = new Array[Char](1024)
+                var i = 0
+                val log = (home / ".server.log").string.value
+                def flush(): Unit = {
+                  val fs = new FileWriter(log, true)
+                  try {
+                    fs.write(buffer, 0, i)
+                  } finally {
+                    i = 0
+                    fs.close()
+                  }
+                }
+                val ps = new PrintStream(new OutputStream {
+                  def w(b: Int): Unit = {
+                    if (i >= buffer.length) {
+                      flush()
+                    }
+                    buffer(i) = (b & 0xFF).toChar
+                    i += 1
+                    if (b == '\n') {
+                      flush()
+                    }
+                  }
+                  override def write(b: Int): Unit = buffer.synchronized(w(b))
+                  override def write(b: Array[Byte], off: Int, len: Int): Unit = buffer.synchronized {
+                    for (i <- 0 until len) {
+                      w(b(off + i))
+                    }
+                  }
+                })
+                try {
+                  System.setOut(ps)
+                  System.setErr(ps)
+                  return server.Server.run(version, o.message == Cli.SireumServerServerMessage.Msgpack, o.workers,
+                    !o.noInputCache, !o.noTypeCache, o.log, o.verbose, javaHomeOpt.get, scalaHomeOpt.get,
+                    home, versions.entries)
+                } finally {
+                  flush()
+                }
               case _ =>
                 eprintln("Please set SIREUM_HOME env var")
                 return -1

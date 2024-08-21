@@ -650,8 +650,8 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumServerServerMessage {
-    'Msgpack
     'Json
+    'Msgpack
   }
 
   @datatype class SireumServerOption(
@@ -5828,17 +5828,17 @@ import Cli._
 
   def parseSireumServerServerMessageH(arg: String): Option[SireumServerServerMessage.Type] = {
     arg.native match {
-      case "msgpack" => return Some(SireumServerServerMessage.Msgpack)
       case "json" => return Some(SireumServerServerMessage.Json)
+      case "msgpack" => return Some(SireumServerServerMessage.Msgpack)
       case s =>
-        eprintln(s"Expecting one of the following: { msgpack, json }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumServerServerMessage(args: ISZ[String], i: Z): Option[SireumServerServerMessage.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { msgpack, json }, but none found.")
+      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
       return None()
     }
     val r = parseSireumServerServerMessageH(args(i))
@@ -5852,8 +5852,8 @@ import Cli._
           |Usage: <option>*
           |
           |Available Options:
-          |-m, --message            Message format (expects one of { msgpack, json };
-          |                           default: msgpack)
+          |-m, --message            Message format (expects one of { json, msgpack };
+          |                           default: json)
           |-l, --log                Enable logging
           |-i, --no-input-cache     Disable file input caching
           |-t, --no-type-cache      Disable type information caching
@@ -5862,7 +5862,7 @@ import Cli._
           |                           min is 1; default is 1)
           |-h, --help               Display this information""".render
 
-    var message: SireumServerServerMessage.Type = SireumServerServerMessage.Msgpack
+    var message: SireumServerServerMessage.Type = SireumServerServerMessage.Json
     var log: B = false
     var noInputCache: B = false
     var noTypeCache: B = false
