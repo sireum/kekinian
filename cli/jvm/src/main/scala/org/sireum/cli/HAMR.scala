@@ -31,9 +31,9 @@ import org.sireum.Os.Path
 import org.sireum.hamr.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
-import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults}
+import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults, ModelUtil}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
-import org.sireum.hamr.sysml.SysMLGrammar
+import org.sireum.hamr.sysml.{FrontEnd, SysMLGrammar}
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.message._
 
@@ -415,7 +415,40 @@ object HAMR {
     return SysMLGrammar.translate(content, uri, o.keywords, outFile)
   }
 
-  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[sysmlTypeHierarchy, Z] = {
-    halt("")
+  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements]), Z] = {
+    var sysmlFiles: ISZ[Os.Path] = ISZ()
+    for(p <- o.sourcepath) {
+      val cand = Os.path(p)
+      if (cand.exists) {
+        sysmlFiles = sysmlFiles ++ Os.Path.walk(cand, T, T, f => f.isFile && f.ext == "sysml")
+      } else {
+        eprintln(s"Directory does not exist: $cand")
+        return Either.Right(FILE_DOES_NOT_EXIST)
+      }
+    }
+
+    for (a <- o.args) {
+      val cand = Os.path(a)
+      if (cand.isFile && cand.ext == "sysml") {
+        sysmlFiles = sysmlFiles :+ cand
+      } else {
+        eprintln(s"Not a valid SysML v2 file: $cand")
+        return Either.Right(INVALID_OPTIONS)
+      }
+    }
+
+    val inputs: ISZ[FrontEnd.Input] = for (f <- sysmlFiles) yield FrontEnd.Input(content = f.read, fileUri = Some(f.toUri))
+
+    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements]), Z] = FrontEnd.typeCheck(0, inputs, reporter) match {
+      case (Some(th), aadls) => Either.Left((th, aadls))
+      case _ => Either.Right(1)
+    }
+
+    if (reporter.hasIssue) {
+      println()
+      reporter.printMessages()
+    }
+
+    return ret
   }
 }
