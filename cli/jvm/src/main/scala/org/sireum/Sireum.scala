@@ -625,7 +625,7 @@ object Sireum {
                 val buffer = new Array[Char](1024)
                 var i = 0
                 val log = (home / ".server.log").string.value
-                def flush(): Unit = {
+                def flushLog(): Unit = {
                   val fs = new FileWriter(log, true)
                   try {
                     fs.write(buffer, 0, i)
@@ -639,7 +639,7 @@ object Sireum {
                     buffer(i) = (b & 0xFF).toChar
                     i += 1
                     if (i >= buffer.length || b == '\n') {
-                      flush()
+                      flushLog()
                     }
                   }
                   override def write(b: Int): Unit = buffer.synchronized(w(b))
@@ -648,6 +648,7 @@ object Sireum {
                       w(b(off + i))
                     }
                   }
+                  override def flush(): Unit = flushLog()
                 })
                 try {
                   System.setOut(ps)
@@ -656,7 +657,7 @@ object Sireum {
                     !o.noInputCache, !o.noTypeCache, o.log, o.verbose, javaHomeOpt.get, scalaHomeOpt.get,
                     home, versions.entries)
                 } finally {
-                  flush()
+                  flushLog()
                 }
               case _ =>
                 eprintln("Please set SIREUM_HOME env var")
