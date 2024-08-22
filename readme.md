@@ -76,7 +76,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [7z](https://sourceforge.net/projects/sevenzip) | [LGPL v2, BSD3, unRAR restriction](https://www.7-zip.org/license.txt) |
 
 
-### Optional Application Dependencies
+### Optional Applications
 
 | Application | License |
 | :--- | :---: |
@@ -84,6 +84,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
 | [ACL2](https://www.cs.utexas.edu/~moore/acl2/) | [BSD3](https://www.cs.utexas.edu/~moore/acl2/v8-5/HTML/LICENSE) |
 | [Alt-Ergo](https://alt-ergo.ocamlpro.com/) | [OCamlPro-Non-Commercial-License](https://github.com/OCamlPro/alt-ergo/blob/next/licenses/OCamlPro-Non-Commercial-License.pdf) |
+| [Brave Browser](https://brave.com/) | [MPL 2.0](https://github.com/brave/brave-browser/blob/master/LICENSE) |
 | [CompCert](https://compcert.org/) | [INRIA Non-Commercial License Agreement](https://compcert.org/doc/LICENSE.txt) |
 | [Coq](https://coq.inria.fr/) | [LGPL 2.1](https://github.com/coq/coq/blob/master/LICENSE) |
 | [CLion](https://www.jetbrains.com/clion/) | Commercial |
@@ -116,6 +117,19 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 
 | VSCodium Extension | License |
 |  :---  | :---: |
+| [clangd](https://open-vsx.org/extension/llvm-vs-code-extensions/vscode-clangd) | [MIT](https://github.com/clangd/vscode-clangd/blob/master/LICENSE) |
+| [Bash IDE](https://open-vsx.org/extension/mads-hartmann/bash-ide-vscode) | [MIT](https://github.com/bash-lsp/bash-language-server/blob/main/LICENSE) |
+| [Git Graph](https://open-vsx.org/extension/mhutchie/git-graph) | [MIT w/ non-derivative work restrictions](https://github.com/mhutchie/vscode-git-graph/blob/develop/LICENSE) |
+| [HTML CSS](https://open-vsx.org/extension/ecmel/vscode-html-css) | [MIT](https://github.com/ecmel/vscode-html-css/blob/master/LICENSE.md) |
+| [Hugo Utilities](https://open-vsx.org/extension/kofuk/hugo-utils) | [MIT](https://github.com/kofuk/vscode-hugo-utils/blob/master/LICENSE) |
+| [Java](https://open-vsx.org/extension/redhat/java) | [EPL 2.0](https://github.com/redhat-developer/vscode-java) |
 | [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
+| [Powershell](https://open-vsx.org/extension/ms-vscode/powershell) | [MIT](https://github.com/PowerShell/vscode-powershell/blob/main/LICENSE.txt) |
+| [Python](https://open-vsx.org/extension/ms-python/python) | [MIT](https://github.com/microsoft/vscode-python/blob/main/LICENSE) |
+| [Rust Analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer) | [MIT](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-MIT) & [Apache 2.0](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-APACHE) |
 | [Scala Metals](https://open-vsx.org/extension/scalameta/metals) | [Apache 2.0](https://github.com/scalameta/metals/blob/main/LICENSE) |
 | [SysIDE CE](https://open-vsx.org/extension/sensmetry/sysml-2ls) | [EPL 2.0](https://gitlab.com/sensmetry/public/sysml-2ls/-/blob/main/LICENSE?ref_type=heads) |
+| [VerilogHDL/SystemVerilog/Bluespec SystemVerilog](https://open-vsx.org/extension/mshr-h/veriloghdl) | [MIT](https://github.com/mshr-h/vscode-verilog-hdl-support/blob/main/LICENSE) |
+| [XML](https://open-vsx.org/extension/redhat/vscode-xml) | [EPL 2.0](https://github.com/redhat-developer/vscode-xml/blob/main/LICENSE) |
+| [YAML](https://open-vsx.org/extension/redhat/vscode-yaml) | [MIT](https://github.com/redhat-developer/vscode-yaml/blob/main/LICENSE) |
+| [Zip Tools](https://open-vsx.org/extension/adamraichu/zip-viewer) | [MIT](https://github.com/AdamRaichu/vscode-zip-viewer/blob/main/LICENSE.md) |
