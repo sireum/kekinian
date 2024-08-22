@@ -451,4 +451,13 @@ object HAMR {
 
     return ret
   }
+
+  def sysmlLogika(o: Cli.SireumHamrSysmlLogikaOption, reporter: Reporter): Z = {
+    sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath), reporter) match {
+      case Either.Left((th, models)) =>
+        println("SysML v2 verification coming soon")
+        return 0
+      case Either.Right(ret) => return ret
+    }
+  }
 }

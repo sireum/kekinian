@@ -509,6 +509,9 @@ object Sireum {
           case Some(o: Cli.SireumHamrPhantomOption) =>
             init.basicDeps()
             return cli.Phantom.run(o)
+          case Some(o: Cli.SireumHamrSysmlLogikaOption) =>
+            init.basicDeps()
+            return cli.HAMR.sysmlLogika(o, reporter)
           case Some(o: Cli.SireumHamrSysmlTipeOption) =>
             init.basicDeps()
             cli.HAMR.sysmlRun(o, reporter) match {

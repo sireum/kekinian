@@ -40,7 +40,11 @@ val hamr = Group(
   header =
     st"""HAMR: High Assurance Model-based Rapid-engineering tools for embedded systems""".render,
   unlisted = F,
-  subs = ISZ(codegen.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool, sysml.cli.group)
+  subs = ISZ(codegen.hamrCodeGenCli.codeGenTool, phantom.cli.phantomTool, sysml.cli.group(subs =
+    for (sub <- sysml.cli.group.subs) yield
+      if (sub.name == "sysmlLogika") sub.asInstanceOf[Tool](groups = ops.ISZOps(logika.cli.logikaVerifier.groups).drop(1))
+      else sub)
+  )
 )
 
 val x = Group(
