@@ -633,12 +633,9 @@ object Sireum {
                 }
                 val ps = new PrintStream(new OutputStream {
                   def w(b: Int): Unit = {
-                    if (i >= buffer.length) {
-                      flush()
-                    }
                     buffer(i) = (b & 0xFF).toChar
                     i += 1
-                    if (b == '\n') {
+                    if (i >= buffer.length || b == '\n') {
                       flush()
                     }
                   }
