@@ -75,19 +75,29 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | :--- | :---: |
 | [7z](https://sourceforge.net/projects/sevenzip) | [LGPL v2, BSD3, unRAR restriction](https://www.7-zip.org/license.txt) |
 
+
 ### Optional Application Dependencies
 
 | Application | License |
 | :--- | :---: |
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
 | [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
+| [ACL2](https://www.cs.utexas.edu/~moore/acl2/) | [BSD3](https://www.cs.utexas.edu/~moore/acl2/v8-5/HTML/LICENSE) |
+| [Alt-Ergo](https://alt-ergo.ocamlpro.com/) | [OCamlPro-Non-Commercial-License](https://github.com/OCamlPro/alt-ergo/blob/next/licenses/OCamlPro-Non-Commercial-License.pdf) |
+| [CompCert](https://compcert.org/) | [INRIA Non-Commercial License Agreement](https://compcert.org/doc/LICENSE.txt) |
+| [Coq](https://coq.inria.fr/) | [LGPL 2.1](https://github.com/coq/coq/blob/master/LICENSE) |
+| [CLion](https://www.jetbrains.com/clion/) | Commercial |
+| [FM Workbench](https://github.com/loonwerks/formal-methods-workbench) | [BSD3](https://github.com/loonwerks/formal-methods-workbench/blob/master/LICENSE) |
 | [GraalVM (OpenJDK)](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
 | [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
+| [Isabelle](https://isabelle.in.tum.de/) | [BSD3](https://isabelle-dev.sketis.net/source/isabelle/browse/default/COPYRIGHT) |
 | [Oracle GraalVM](https://www.oracle.com/java/graalvm/) | [GFTC](https://www.oracle.com/downloads/licenses/graal-free-license.html) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
 | [Rust](https://www.rust-lang.org/) | [MIT](https://www.rust-lang.org/policies/licenses) |
+| [VSCodium](https://vscodium.com/) | [MIT](https://github.com/VSCodium/vscodium/blob/master/LICENSE) |
 
-| IntelliJ Plugin | License |
+
+| IntelliJ/CLion Plugin | License |
 |  :---  | :---: |
 | [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [ASM](https://github.com/sireum/intellij-asm) | [Apache 2.0](https://github.com/sireum/intellij-asm/blob/master/LICENSE) |
@@ -104,4 +114,8 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
 
 
-
+| VSCodium Extension | License |
+|  :---  | :---: |
+| [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
+| [Scala Metals](https://open-vsx.org/extension/scalameta/metals) | [Apache 2.0](https://github.com/scalameta/metals/blob/main/LICENSE) |
+| [SysIDE CE](https://open-vsx.org/extension/sensmetry/sysml-2ls) | [EPL 2.0](https://gitlab.com/sensmetry/public/sysml-2ls/-/blob/main/LICENSE?ref_type=heads) |
