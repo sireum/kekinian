@@ -57,6 +57,20 @@ object Phantom {
       return -1
     }
 
+    val altSireumHome: Option[Os.Path] = {
+      o.sireum match {
+        case Some(p) =>
+          val cand = Os.path(p)
+          if (!cand.exists || !(cand / "bin" / "sireum.jar").exists) {
+            addError(s"Not a valid Sireum home directory: $cand")
+            return - 1
+          } else {
+            Some(cand)
+          }
+        case _ => None()
+      }
+    }
+
     val osate: Option[Os.Path] = o.osate match {
       case Some(d) =>
         val cand = Os.path(d)
@@ -120,7 +134,7 @@ object Phantom {
     }
 
     val verbosity: Verbosity.Type = if(o.verbosePlus) Verbosity.High else if (o.verbose) Verbosity.Low else Verbosity.Off
-    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, verbosity, SireumApi.homeOpt.get)
+    val phantom = org.sireum.hamr.phantom.Phantom(o.version.get, osate, verbosity, SireumApi.homeOpt.get, altSireumHome)
 
     val ret: Z = phantom.getOsateExe() match {
       case Some(osateExe) =>

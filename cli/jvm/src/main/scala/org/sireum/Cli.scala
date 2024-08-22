@@ -94,7 +94,8 @@ object Cli {
     val osate: Option[String],
     val update: B,
     val features: ISZ[String],
-    val version: Option[String]
+    val version: Option[String],
+    val sireum: Option[String]
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
@@ -1232,8 +1233,8 @@ import Cli._
           |-s, --sys-impl           Name of the system implementation. (expects a string)
           |-a, --main-package       AADL main package file that contains a system
           |                           implementation. (expects a path)
-          |-m, --mode               Serialization method (expects one of { json,
-          |                           json_compact, msgpack }; default: json)
+          |-m, --mode               AADL model serialization method (expects one of {
+          |                           json, json_compact, msgpack }; default: json)
           |-f, --output-file        AIR output file path (expects a path)
           |-p, --projects           OSATE project directories, each must contain an OSATE
           |                           '.project' file (expects path strings)
@@ -1251,7 +1252,9 @@ import Cli._
           |                           Sireum plugins installed if not provided (expects a
           |                           string separated by ";")
           |    --version            OSATE version (expects a string; default is
-          |                           "2.14.0-vfinal")""".render
+          |                           "2.14.0-vfinal")
+          |    --sireum-home        Change the location of the Sireum home installation
+          |                           directory that OSATE uses (expects a path)""".render
 
     var impl: Option[String] = None[String]()
     var main: Option[String] = None[String]()
@@ -1264,6 +1267,7 @@ import Cli._
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
     var version: Option[String] = Some("2.14.0-vfinal")
+    var sireum: Option[String] = None[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1338,6 +1342,12 @@ import Cli._
              case Some(v) => version = v
              case _ => return None()
            }
+         } else if (arg == "--sireum-home") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => sireum = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -1347,7 +1357,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, verbose, verbosePlus, osate, update, features, version))
+    return Some(SireumHamrPhantomOption(help, parseArguments(args, j), impl, main, mode, output, projects, verbose, verbosePlus, osate, update, features, version, sireum))
   }
 
   def parseSireumHamrSysml(args: ISZ[String], i: Z): Option[SireumTopOption] = {
