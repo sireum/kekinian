@@ -1219,7 +1219,7 @@ import Cli._
       st"""Sireum Phantom: Headless OSATE AADL to AIR Translator
           |
           |Usage: ${st"""
-                  |    phantom --update [--osate <path>] [--features <config>]
+                  |    phantom --update [--osate <path>] [--features <config>] [--sireum-home <path>]
                   |
                   |      Just update/install features
                   |
