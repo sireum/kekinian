@@ -124,7 +124,6 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Hugo Utilities](https://open-vsx.org/extension/kofuk/hugo-utils) | [MIT](https://github.com/kofuk/vscode-hugo-utils/blob/master/LICENSE) |
 | [Java](https://open-vsx.org/extension/redhat/java) | [EPL 2.0](https://github.com/redhat-developer/vscode-java) |
 | [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
-| [Powershell](https://open-vsx.org/extension/ms-vscode/powershell) | [MIT](https://github.com/PowerShell/vscode-powershell/blob/main/LICENSE.txt) |
 | [Python](https://open-vsx.org/extension/ms-python/python) | [MIT](https://github.com/microsoft/vscode-python/blob/main/LICENSE) |
 | [Rust Analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer) | [MIT](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-MIT) & [Apache 2.0](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-APACHE) |
 | [Scala Metals](https://open-vsx.org/extension/scalameta/metals) | [Apache 2.0](https://github.com/scalameta/metals/blob/main/LICENSE) |
