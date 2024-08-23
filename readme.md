@@ -24,7 +24,7 @@ Sireum depends on open source software libraries and applications
 | :--- | :---: | :---: | 
 | [ANTLR3 Runtime](https://github.com/antlr/antlr3) | [(link)](https://central.sonatype.com/artifact/org.antlr/antlr-runtime) | [BSD3](https://www.antlr3.org/license.html) |
 | [ANTLR4 Runtime](https://github.com/antlr/antlr4) | [(link)](https://central.sonatype.com/artifact/org.antlr/antlr4-runtime) | [BSD3](https://www.antlr.org/license.html) |
-| [Apache Common Compress](https://commons.apache.org/proper/commons-compress) | [(link)](https://central.sonatype.com/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
+| [Apache Common Compress](https://github.com/apache/commons-compress) | [(link)](https://central.sonatype.com/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://central.sonatype.com/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://central.sonatype.com/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
@@ -118,12 +118,18 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | VSCodium Extension | License |
 |  :---  | :---: |
 | [clangd](https://open-vsx.org/extension/llvm-vs-code-extensions/vscode-clangd) | [MIT](https://github.com/clangd/vscode-clangd/blob/master/LICENSE) |
+| [markdownlint](https://open-vsx.org/extension/DavidAnson/vscode-markdownlint) | [MIT](https://github.com/DavidAnson/vscode-markdownlint/blob/main/LICENSE) |
+| [ANTLR4 grammar syntax support](https://open-vsx.org/extension/mike-lischke/vscode-antlr4) | [MIT](https://github.com/mike-lischke/vscode-antlr4/blob/master/License.txt) |
 | [Bash IDE](https://open-vsx.org/extension/mads-hartmann/bash-ide-vscode) | [MIT](https://github.com/bash-lsp/bash-language-server/blob/main/LICENSE) |
+| [ESLint](https://open-vsx.org/extension/dbaeumer/vscode-eslint) | [MIT](https://github.com/microsoft/vscode-eslint/blob/main/License.txt) |
 | [Git Graph](https://open-vsx.org/extension/mhutchie/git-graph) | [MIT w/ non-derivative work restrictions](https://github.com/mhutchie/vscode-git-graph/blob/develop/LICENSE) |
 | [HTML CSS](https://open-vsx.org/extension/ecmel/vscode-html-css) | [MIT](https://github.com/ecmel/vscode-html-css/blob/master/LICENSE.md) |
 | [Hugo Utilities](https://open-vsx.org/extension/kofuk/hugo-utils) | [MIT](https://github.com/kofuk/vscode-hugo-utils/blob/master/LICENSE) |
 | [Java](https://open-vsx.org/extension/redhat/java) | [EPL 2.0](https://github.com/redhat-developer/vscode-java) |
+| [Jest](https://open-vsx.org/extension/Orta/vscode-jest) | [MIT](https://github.com/jest-community/vscode-jest/blob/master/LICENSE) |
+| [Langium](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/eclipse-langium/langium/blob/main/LICENSE) |
 | [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
+| [Prettier - Code Formatter](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/prettier/prettier-vscode/blob/main/LICENSE) |
 | [Python](https://open-vsx.org/extension/ms-python/python) | [MIT](https://github.com/microsoft/vscode-python/blob/main/LICENSE) |
 | [Rust Analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer) | [MIT](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-MIT) & [Apache 2.0](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-APACHE) |
 | [Scala Metals](https://open-vsx.org/extension/scalameta/metals) | [Apache 2.0](https://github.com/scalameta/metals/blob/main/LICENSE) |
