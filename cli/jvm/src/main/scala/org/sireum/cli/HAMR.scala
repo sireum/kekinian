@@ -46,46 +46,83 @@ object HAMR {
   val FILE_DOES_NOT_EXIST: Z = -3
   val INVALID_OPTIONS: Z = -4
 
-
   // cli interface
   def codeGen(o: Cli.SireumHamrCodegenOption, reporter: Reporter): Z = {
-    o.args.size match {
-      case z"0 " => println(o.help); return 0
-      case _ =>
-    }
 
-    val inputFile: Option[Path] = if (o.args.size != 1) None[Path]() else Some(Os.path(o.args(0)))
+    val model: Aadl =
+      if (o.systemRoot.nonEmpty) {
+        if (o.sourcePaths.isEmpty) {
+          eprintln(s"Source paths of .sysml files required")
+          return -1
+        } else {
+          val tipeOpts = Cli.SireumHamrSysmlTipeOption(
+            help = "",
+            args = ISZ(),
+            exclude = ISZ(),
+            sourcepath = o.sourcePaths,
+            parseableMessages = F
+          )
+          sysmlRun(tipeOpts, reporter) match {
+            case Either.Left((_, models)) =>
+              val cands = models.filter(p => p.symbolTable.rootSystem.classifier == o.systemRoot.get)
+              cands match {
+                case ISZ(modelElements) =>
+                  codeGenReporter(modelElements.model, o, reporter)
+                  if (!reporter.hasError && o.outputDir.nonEmpty) {
+                    val airOut = Os.path(o.outputDir.get) / "air.json"
+                    airOut.writeOver(org.sireum.hamr.ir.JSON.fromAadl(modelElements.model, F))
+                    println(s"Wrote: ${airOut}")
+                  }
+                  return if (reporter.hasError) -1 else 0
+                case _ =>
+                  if (reporter.hasError) {
+                    return -1
+                  }
+                  eprintln(s"Found ${cands.size} system roots matching ${o.systemRoot.get}")
+                  return -1
+              }
+            case Either.Right(msg) => return msg
+          }
+        }
+      } else {
+        o.args.size match {
+          case z"0 " => println(o.help); return 0
+          case _ =>
+        }
 
-    val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
-      inputFile.get.read
-    } else {
-      val fname: String = if (inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
-      eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
-      return -1
-    }
+        val inputFile: Option[Path] = if (o.args.size != 1) None[Path]() else Some(Os.path(o.args(0)))
 
-    val model: Aadl = if (o.msgpack) {
-      org.sireum.conversions.String.fromBase64(input) match {
-        case Either.Left(u) =>
-          irMsgPack.toAadl(u) match {
-            case Either.Left(m) => m
+        val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
+          inputFile.get.read
+        } else {
+          val fname: String = if (inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
+          eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
+          return -1
+        }
+
+        if (o.msgpack) {
+          org.sireum.conversions.String.fromBase64(input) match {
+            case Either.Left(u) =>
+              irMsgPack.toAadl(u) match {
+                case Either.Left(m) => m
+                case Either.Right(m) =>
+                  eprintln(s"MsgPack deserialization error at offset ${m.offset}: ${m.message}")
+                  return -1
+              }
             case Either.Right(m) =>
-              eprintln(s"MsgPack deserialization error at offset ${m.offset}: ${m.message}")
+              eprintln(m)
               return -1
           }
-        case Either.Right(m) =>
-          eprintln(m)
-          return -1
+        }
+        else {
+          irJSON.toAadl(input) match {
+            case Either.Left(m) => m
+            case Either.Right(m) =>
+              eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
+              return -1
+          }
+        }
       }
-    }
-    else {
-      irJSON.toAadl(input) match {
-        case Either.Left(m) => m
-        case Either.Right(m) =>
-          eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
-          return -1
-      }
-    }
 
     codeGenReporter(model, o, reporter)
 
@@ -221,6 +258,9 @@ object HAMR {
       camkesOutputDir = camkesOutputDirectory,
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       aadlRootDir = aadlRootDir,
+      //
+      systemRoot = None(),
+      sourcePaths = ISZ(),
       //
       experimentalOptions = experimentalOptions,
       parseableMessages = F
@@ -418,7 +458,7 @@ object HAMR {
 
   def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements]), Z] = {
     var sysmlFiles: ISZ[Os.Path] = ISZ()
-    for(p <- o.sourcepath) {
+    for (p <- o.sourcepath) {
       val cand = Os.path(p)
       if (cand.exists) {
         sysmlFiles = sysmlFiles ++ Os.Path.walk(cand, T, T, f => f.isFile && f.ext == "sysml")

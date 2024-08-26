@@ -73,6 +73,8 @@ object Cli {
     val camkesOutputDir: Option[String],
     val camkesAuxCodeDirs: ISZ[String],
     val aadlRootDir: Option[String],
+    val systemRoot: Option[String],
+    val sourcePaths: ISZ[String],
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -1027,6 +1029,12 @@ import Cli._
           |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
           |                           path)
           |
+          |SysML v2 Options:
+          |    --system             Fully qualified name of the system to instantiate
+          |                           (expects a string)
+          |    --source-paths       Source paths of SysML v2 .sysml files (expects path
+          |                           strings)
+          |
           |Experimental Options:
           |-x, --experimental-options    
           |                           (expects a string separated by ";")""".render
@@ -1052,6 +1060,8 @@ import Cli._
     var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var aadlRootDir: Option[String] = None[String]()
+    var systemRoot: Option[String] = None[String]()
+    var sourcePaths: ISZ[String] = ISZ[String]()
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1187,6 +1197,18 @@ import Cli._
              case Some(v) => aadlRootDir = v
              case _ => return None()
            }
+         } else if (arg == "--system") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => systemRoot = v
+             case _ => return None()
+           }
+         } else if (arg == "--source-paths") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcePaths = v
+             case _ => return None()
+           }
          } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
@@ -1202,7 +1224,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, systemRoot, sourcePaths, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
