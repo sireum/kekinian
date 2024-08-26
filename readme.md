@@ -129,6 +129,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Jest](https://open-vsx.org/extension/Orta/vscode-jest) | [MIT](https://github.com/jest-community/vscode-jest/blob/master/LICENSE) |
 | [Langium](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/eclipse-langium/langium/blob/main/LICENSE) |
 | [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
+| [PlantUML](https://open-vsx.org/extension/jebbs/plantuml) | [MIT](https://github.com/qjebbs/vscode-plantuml/blob/master/LICENSE.txt) |
 | [Prettier - Code Formatter](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/prettier/prettier-vscode/blob/main/LICENSE) |
 | [Python](https://open-vsx.org/extension/ms-python/python) | [MIT](https://github.com/microsoft/vscode-python/blob/main/LICENSE) |
 | [Rust Analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer) | [MIT](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-MIT) & [Apache 2.0](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-APACHE) |
