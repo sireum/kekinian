@@ -56,6 +56,7 @@ object Cli {
     val verbose: B,
     val runtimeMonitoring: B,
     val platform: SireumHamrCodegenHamrPlatform.Type,
+    val parseableMessages: B,
     val outputDir: Option[String],
     val packageName: Option[String],
     val noProyekIve: B,
@@ -117,6 +118,7 @@ object Cli {
     val args: ISZ[String],
     val exclude: ISZ[String],
     val sourcepath: ISZ[String],
+    val parseableMessages: B,
     val charBitWidth: Z,
     val fpRounding: SireumHamrSysmlLogikaFPRoundingMode.Type,
     val useReal: B,
@@ -168,7 +170,8 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val exclude: ISZ[String],
-    val sourcepath: ISZ[String]
+    val sourcepath: ISZ[String],
+    val parseableMessages: B
   ) extends SireumTopOption
 
   @datatype class SireumHamrSysmlTranslatorOption(
@@ -986,6 +989,7 @@ import Cli._
           |-p, --platform           Target platform (expects one of { JVM, Linux, Cygwin,
           |                           MacOS, seL4, seL4_Only, seL4_TB, ros2 }; default:
           |                           JVM)
+          |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
           |
           |Slang Options:
@@ -1031,6 +1035,7 @@ import Cli._
     var verbose: B = false
     var runtimeMonitoring: B = false
     var platform: SireumHamrCodegenHamrPlatform.Type = SireumHamrCodegenHamrPlatform.JVM
+    var parseableMessages: B = false
     var outputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
     var noProyekIve: B = false
@@ -1078,6 +1083,12 @@ import Cli._
            val o: Option[SireumHamrCodegenHamrPlatform.Type] = parseSireumHamrCodegenHamrPlatform(args, j + 1)
            o match {
              case Some(v) => platform = v
+             case _ => return None()
+           }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--output-dir") {
@@ -1191,7 +1202,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1434,6 +1445,7 @@ import Cli._
           |                           separated by ",")
           |-s, --sourcepath         Sourcepath of SysML v2 .sysml files (expects path
           |                           strings)
+          |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
           |
           |Approximation Options:
@@ -1532,6 +1544,7 @@ import Cli._
 
     var exclude: ISZ[String] = ISZ[String]()
     var sourcepath: ISZ[String] = ISZ[String]()
+    var parseableMessages: B = false
     var charBitWidth: Z = 32
     var fpRounding: SireumHamrSysmlLogikaFPRoundingMode.Type = SireumHamrSysmlLogikaFPRoundingMode.NearestTiesToEven
     var useReal: B = false
@@ -1595,6 +1608,12 @@ import Cli._
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
              case _ => return None()
            }
          } else if (arg == "--c-bitwidth") {
@@ -1879,7 +1898,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, sourcepath, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumHamrSysmlTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -1893,10 +1912,12 @@ import Cli._
           |                           separated by ",")
           |-s, --sourcepath         Sourcepath of SysML v2 .sysml files (expects path
           |                           strings)
+          |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information""".render
 
     var exclude: ISZ[String] = ISZ[String]()
     var sourcepath: ISZ[String] = ISZ[String]()
+    var parseableMessages: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -1917,6 +1938,12 @@ import Cli._
              case Some(v) => sourcepath = v
              case _ => return None()
            }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -1926,7 +1953,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlTipeOption(help, parseArguments(args, j), exclude, sourcepath))
+    return Some(SireumHamrSysmlTipeOption(help, parseArguments(args, j), exclude, sourcepath, parseableMessages))
   }
 
   def parseSireumHamrSysmlTranslator(args: ISZ[String], i: Z): Option[SireumTopOption] = {

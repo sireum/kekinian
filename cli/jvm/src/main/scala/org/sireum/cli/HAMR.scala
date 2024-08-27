@@ -222,7 +222,8 @@ object HAMR {
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       aadlRootDir = aadlRootDir,
       //
-      experimentalOptions = experimentalOptions
+      experimentalOptions = experimentalOptions,
+      parseableMessages = F
     )
 
     codeGenReporterP(model, o, plugins, reporter)
@@ -446,14 +447,18 @@ object HAMR {
 
     if (reporter.hasIssue) {
       println()
-      reporter.printMessages()
+      if (o.parseableMessages) {
+        reporter.printParseableMessages()
+      } else {
+        reporter.printMessages()
+      }
     }
 
     return ret
   }
 
   def sysmlLogika(o: Cli.SireumHamrSysmlLogikaOption, reporter: Reporter): Z = {
-    sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath), reporter) match {
+    sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath, o.parseableMessages), reporter) match {
       case Either.Left((th, models)) =>
         println("SysML v2 verification coming soon")
         return 0
