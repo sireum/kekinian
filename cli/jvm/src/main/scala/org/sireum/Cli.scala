@@ -2744,7 +2744,7 @@ import Cli._
           |
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
-          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           default is "-source, 17, -target, 17, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
           |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
@@ -2754,7 +2754,7 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
           |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
@@ -2787,11 +2787,11 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -2985,7 +2985,7 @@ import Cli._
           |
           |Available Options:
           |    --javac              Javac options (expects a string separated by ",";
-          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           default is "-source, 17, -target, 17, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
           |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
@@ -2995,7 +2995,7 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
           |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
@@ -3038,11 +3038,11 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var js: B = false
     var ignoreRuntime: B = false
@@ -3385,11 +3385,11 @@ import Cli._
           |                           (e.g., JDK info, etc.)
           |    --rebuild-ive        Rebuild IVE
           |    --javac              Javac options (expects a string separated by ",";
-          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           default is "-source, 17, -target, 17, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
           |                           -Xlint:deprecation, -proc:none")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
           |                           -Xfatal-warnings, -language:postfixOps")
           |-h, --help               Display this information
@@ -3433,8 +3433,8 @@ import Cli._
     var edition: SireumProyekIveEdition.Type = SireumProyekIveEdition.Community
     var force: B = false
     var rebuildIve: B = false
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
-    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -4288,7 +4288,7 @@ import Cli._
           |
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
-          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           default is "-source, 17, -target, 17, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
           |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
@@ -4298,7 +4298,7 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
           |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
@@ -4327,11 +4327,11 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -4531,7 +4531,7 @@ import Cli._
           |
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
-          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           default is "-source, 17, -target, 17, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
           |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
@@ -4541,7 +4541,7 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
           |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
@@ -4569,11 +4569,11 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -5133,7 +5133,7 @@ import Cli._
           |
           |Compilation Options:
           |    --javac              Javac options (expects a string separated by ",";
-          |                           default is "-source, 1.8, -target, 1.8, -encoding,
+          |                           default is "-source, 17, -target, 17, -encoding,
           |                           utf8, -XDignore.symbol.file, -Xlint:-options,
           |                           -Xlint:deprecation, -proc:none")
           |-f, --fresh              Fresh compilation from a clean slate
@@ -5143,7 +5143,7 @@ import Cli._
           |    --recompile          Module IDs to force recompilation on (expects a string
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
-          |                           default is "-release, 8, -deprecation, -Yrangepos,
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
           |                           -Xfatal-warnings, -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
@@ -5174,11 +5174,11 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var symlink: B = false
     var versions: ISZ[String] = ISZ[String]()
-    var javac: ISZ[String] = ISZ("-source", "1.8", "-target", "1.8", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "8", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
