@@ -488,7 +488,7 @@ object HAMR {
     if (reporter.hasIssue) {
       println()
       if (o.parseableMessages) {
-        reporter.printParseableMessages()
+        Os.printParseableMessages(reporter)
       } else {
         reporter.printMessages()
       }
