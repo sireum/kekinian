@@ -54,19 +54,20 @@ import org.sireum.project.DependencyManager
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup[-ultimate  | -server]          | project[-ultimate | -server]
-        |       | jar              | fresh             | uber
-        |       | tipe             | compile[-js]      | native
-        |       | test             | verify            | test-verify
-        |       | regen-project    | regen-presentasi  | regen-slang
-        |       | regen-logika     | regen-air         | regen-act
-        |       | regen-slang-ll2  | regen-parser      | regen-parser-antlr3
-        |       | regen-server     | regen-cliopt      | regen-cli
-        |       | regen-fmide-cli  | regen-json        | regen-slang-tt
-        |       | cvc              | z3                | m2[-lib[-js]]
-        |       | jitpack          | ghpack            | ram
-        |       | distro ( --linux | --linux-arm       | --mac             | --win
-        |                | --sfx   | --ultimate        | --server                  )*  )*
+        |Usage: ( setup[-ultimate  | -server]            | project[-ultimate | -server]
+        |       | jar              | fresh               | uber
+        |       | tipe             | compile[-js]        | native
+        |       | test             | verify              | test-verify
+        |       | regen-project    | regen-presentasi    | regen-slang
+        |       | regen-logika     | regen-air           | regen-act
+        |       | regen-slang-ll2  | regen-parser        | regen-parser-antlr3
+        |       | regen-server     | regen-cliopt        | regen-cli
+        |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
+        |       | regen-slang-tt
+        |       | cvc              | z3                  | m2[-lib[-js]]
+        |       | jitpack          | ghpack              | ram
+        |       | distro ( --linux | --linux-arm         | --mac             | --win
+        |                | --sfx   | --ultimate          | --server                  )*  )*
         |""".render)
 }
 
@@ -385,6 +386,11 @@ def regenFmideCli(): Unit = {
     s"${installPath / "fmide-cli.sc"}")).console, message.Reporter.create)
 }
 
+def regenVSCodiumCli(): Unit = {
+  val installPath = homeBin / "install"
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-s", "vscodium.cmd", "-o", installPath.string,
+    s"${installPath / "vscodium-cli.sc"}")).console, message.Reporter.create)
+}
 
 def regenJson(): Unit = {
   val jsonPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser"
@@ -664,6 +670,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-parser-antlr3" => regenParser(F)
       case string"regen-cli" => regenCli()
       case string"regen-fmide-cli" => regenFmideCli()
+      case string"regen-vscodium-cli" => regenVSCodiumCli()
       case string"regen-json" => regenJson()
       case string"regen-slang-tt" => regenSlangTTLl1()
       case string"m2" => m2()
