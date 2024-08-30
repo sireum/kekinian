@@ -391,6 +391,7 @@ object Sireum {
         s"""
            |Available Standalone Options:
            |    --init               Setup dependencies
+           |    --native             Build native executable
            |    --setup              Setup IVE and dependencies
            |    --setup-server       Setup IVE (Server) and dependencies
            |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
@@ -409,6 +410,10 @@ object Sireum {
         return 0
       case ISZ(string"--init") =>
         init.deps()
+        return 0
+      case ISZ(string"--native") =>
+        init.deps()
+        nativ()
         return 0
       case ISZ(string"--setup") =>
         init.deps()
@@ -680,4 +685,21 @@ object Sireum {
                    input: String,
                    reporter: message.Reporter): Option[parser.ParseTree] =
     parser.SireumAntlr3ParserUtil.parseGrammar(uriOpt, input, reporter)
+
+  def nativ(): Unit = {
+    val homeBin = homeOpt.get / "bin"
+    val exePath: Os.Path = Os.kind match {
+      case Os.Kind.Win => homeBin / "win" / "sireum.exe"
+      case Os.Kind.Linux => homeBin / "linux" / "sireum"
+      case Os.Kind.LinuxArm => homeBin / "linux" / "arm" / "sireum"
+      case Os.Kind.Mac => homeBin / "mac" / "sireum"
+      case _ => halt("Infeasible")
+    }
+    val d = Os.tempDir()
+    val f = d / "sireum.jar"
+    (homeBin / "sireum.jar").copyOverTo(f)
+    proyek.Assemble.nativ(homeOpt.get, f)
+    (f.up / exePath.name).canon.moveOverTo(exePath)
+    d.removeAll()
+  }
 }

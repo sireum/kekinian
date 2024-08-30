@@ -121,4 +121,5 @@ import org.sireum.message.Reporter
                    reporter: message.Reporter): Option[parser.ParseTree] = $
 
   def init: Init = $
+  def nativ(): Unit = $
 }
