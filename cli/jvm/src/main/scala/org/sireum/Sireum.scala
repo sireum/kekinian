@@ -516,7 +516,15 @@ object Sireum {
             return cli.Phantom.run(o)
           case Some(o: Cli.SireumHamrSysmlLogikaOption) =>
             init.basicDeps()
-            return cli.HAMR.sysmlLogika(o, reporter)
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.HAMR.sysmlLogika(o, reporter)
+              case _ =>
+                val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo)
+                rep.collectStats = o.stats
+                val exitCode = cli.HAMR.sysmlLogika(o, rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
           case Some(o: Cli.SireumHamrSysmlTipeOption) =>
             init.basicDeps()
             cli.HAMR.sysmlRun(o, reporter) match {

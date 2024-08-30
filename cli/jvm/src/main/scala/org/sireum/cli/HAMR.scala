@@ -35,6 +35,7 @@ import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, 
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.{FrontEnd, SysMLGrammar}
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
+import org.sireum.logika.NoTransitionSmt2Cache
 import org.sireum.message._
 
 object HAMR {
@@ -45,6 +46,7 @@ object HAMR {
   //val PARSING_FAILED: Z = -2 // used by SysMLGrammar
   val FILE_DOES_NOT_EXIST: Z = -3
   val INVALID_OPTIONS: Z = -4
+  val ILL_FORMED: Z = -5
 
   // cli interface
   def codeGen(o: Cli.SireumHamrCodegenOption, reporter: Reporter): Z = {
@@ -63,7 +65,7 @@ object HAMR {
             parseableMessages = F
           )
           sysmlRun(tipeOpts, reporter) match {
-            case Either.Left((_, models)) =>
+            case Either.Left((_, models, _)) =>
               val cands = models.filter(p => p.symbolTable.rootSystem.classifier == o.systemRoot.get)
               cands match {
                 case ISZ(modelElements) =>
@@ -456,7 +458,7 @@ object HAMR {
     return SysMLGrammar.translate(content, uri, o.keywords, outFile)
   }
 
-  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements]), Z] = {
+  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input]), Z] = {
     var sysmlFiles: ISZ[Os.Path] = ISZ()
     for (p <- o.sourcepath) {
       val cand = Os.path(p)
@@ -480,8 +482,8 @@ object HAMR {
 
     val inputs: ISZ[FrontEnd.Input] = for (f <- sysmlFiles) yield FrontEnd.Input(content = f.read, fileUri = Some(f.toUri))
 
-    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements]), Z] = FrontEnd.typeCheck(0, inputs, reporter) match {
-      case (Some(th), aadls) => Either.Left((th, aadls))
+    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input]), Z] = FrontEnd.typeCheck(0, inputs, reporter) match {
+      case (Some(th), aadls) => Either.Left((th, aadls, inputs))
       case _ => Either.Right(1)
     }
 
@@ -497,12 +499,208 @@ object HAMR {
     return ret
   }
 
-  def sysmlLogika(o: Cli.SireumHamrSysmlLogikaOption, reporter: Reporter): Z = {
+  def sysmlLogika(o: Cli.SireumHamrSysmlLogikaOption, reporter: logika.Logika.Reporter): Z = {
+    val start = extension.Time.currentMillis
+    var uris = HashSet.empty[String]
+    var ok = T
+    for (arg <- o.args) {
+      val p = Os.path(arg)
+      if (p.exists) {
+        uris = uris + p.toUri
+      } else {
+        eprintln(s"$arg does not exist")
+        ok = F
+      }
+    }
+    if (!ok) {
+      return FILE_DOES_NOT_EXIST
+    }
+    if (uris.isEmpty && o.line != 0) {
+      eprintln(s"Line option cannot be provided without a file argument")
+      return INVALID_OPTIONS
+    }
+    var connections = ISZ[(lang.tipe.TypeHierarchy, hamr.sysml.FrontEnd.IntegerationConnection)]()
+    var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
     sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath, o.parseableMessages), reporter) match {
-      case Either.Left((th, models)) =>
-        println("SysML v2 verification coming soon")
-        return 0
+      case Either.Left((_, models, inputs)) =>
+        var fileContentMap = HashMap.empty[String, String]
+        for (input <- inputs) {
+          fileContentMap = fileContentMap + input.fileUri.get ~> input.content
+        }
+        for (ic <- hamr.sysml.FrontEnd.getIntegerationConstraints(models, reporter);
+             c <- ic.connections if c.srcConstraint.nonEmpty && c.dstConstraint.nonEmpty) {
+          var add = F
+          for (posOpt <- c.connectionReferences.values) {
+            posOpt match {
+              case Some(pos) => pos.uriOpt match {
+                case Some(uri) =>
+                  if (fileOptionMap.get(pos.uriOpt).isEmpty) {
+                    fileOptionMap = fileOptionMap + pos.uriOpt ~> LibUtil.mineOptions(fileContentMap.get(uri).get)
+                  }
+                  if (uris.isEmpty || (uris.contains(uri) && (o.line == 0 || (pos.beginLine <= o.line && o.line <= pos.endLine)))) {
+                    add = T
+                  }
+                case _ =>
+              }
+              case _ =>
+            }
+          }
+          if (add) {
+            connections = connections :+ (ic.typeHierarchy, c)
+          }
+        }
       case Either.Right(ret) => return ret
+    }
+    if (connections.isEmpty || reporter.hasError) {
+      if (o.parseableMessages) {
+        Os.printParseableMessages(reporter)
+      } else {
+        reporter.printMessages()
+      }
+      return if (reporter.hasError) ILL_FORMED else 0
+    }
+
+    o.charBitWidth match {
+      case z"8" =>
+      case z"16" =>
+      case z"32" =>
+      case _ =>
+        eprintln(s"C (character) bit-width has to be 8, 16, or 32 (instead of ${o.charBitWidth})")
+        return Proyek.INVALID_CHAR_WIDTH
+    }
+
+    o.intBitWidth match {
+      case z"0" =>
+      case z"8" =>
+      case z"16" =>
+      case z"32" =>
+      case z"64" =>
+      case _ =>
+        eprintln(s"Z (integer) bit-width has to be 0 (arbitrary-precision), 8, 16, 32, or 64 (instead of ${o.intBitWidth})")
+        return Proyek.INVALID_INT_WIDTH
+    }
+
+    val nameExePathMap: HashMap[String, String] = SireumApi.homeOpt match {
+      case Some(sireumHome) => logika.Smt2Invoke.nameExePathMap(sireumHome)
+      case _ =>
+        val exeOpt: Option[String] = if (Os.isWin) Some(".exe") else None()
+        HashMap.empty[String, String] ++ ISZ[(String, String)](
+          "cvc4" ~> st"cvc4$exeOpt".render,
+          "cvc5" ~> st"cvc5$exeOpt".render,
+          "z3" ~> st"z3$exeOpt".render
+        )
+    }
+
+    val smt2Configs =
+      logika.Smt2.parseConfigs(nameExePathMap, F, o.smt2ValidConfigs.get).left ++
+        logika.Smt2.parseConfigs(nameExePathMap, T, o.smt2SatConfigs.get).left
+
+    val fpRoundingMode: String = o.fpRounding match {
+      case Cli.SireumHamrSysmlLogikaFPRoundingMode.NearestTiesToEven => "RNE"
+      case Cli.SireumHamrSysmlLogikaFPRoundingMode.NearestTiesToAway => "RNA"
+      case Cli.SireumHamrSysmlLogikaFPRoundingMode.TowardPositive => "RTP"
+      case Cli.SireumHamrSysmlLogikaFPRoundingMode.TowardNegative => "RTN"
+      case Cli.SireumHamrSysmlLogikaFPRoundingMode.TowardZero => "RTZ"
+    }
+    val parCores = SireumApi.parCoresOpt(o.par)
+    val branchPar: org.sireum.logika.Config.BranchPar.Type = (o.branchPar, o.branchParReturn) match {
+      case (T, F) => org.sireum.logika.Config.BranchPar.All
+      case (T, T) => org.sireum.logika.Config.BranchPar.OnlyAllReturns
+      case (F, F) => org.sireum.logika.Config.BranchPar.Disabled
+      case (F, T) => org.sireum.logika.Config.BranchPar.Disabled
+    }
+    val spMode: org.sireum.logika.Config.StrictPureMode.Type = o.strictPureMode match {
+      case Cli.SireumHamrSysmlLogikaStrictPureMode.Default => org.sireum.logika.Config.StrictPureMode.Default
+      case Cli.SireumHamrSysmlLogikaStrictPureMode.Flip => org.sireum.logika.Config.StrictPureMode.Flip
+      case Cli.SireumHamrSysmlLogikaStrictPureMode.Uninterpreted => org.sireum.logika.Config.StrictPureMode.Uninterpreted
+    }
+    val config = logika.Config(
+      smt2Configs = smt2Configs,
+      parCores = parCores,
+      sat = o.sat,
+      rlimit = o.rlimit,
+      timeoutInMs = o.timeout * 1000,
+      charBitWidth = o.charBitWidth,
+      intBitWidth = o.intBitWidth,
+      useReal = o.useReal,
+      logPc = o.logPc,
+      logRawPc = o.logRawPc,
+      logVc = o.logVc,
+      logVcDirOpt = o.logVcDir,
+      dontSplitPfq = o.dontSplitFunQuant,
+      splitAll = o.splitAll,
+      splitIf = o.splitIf,
+      splitMatch = o.splitMatch,
+      splitContract = o.splitContract,
+      simplifiedQuery = o.simplify,
+      checkInfeasiblePatternMatch = T,
+      fpRoundingMode = fpRoundingMode,
+      smt2Caching = F,
+      smt2Seq = o.sequential,
+      branchPar = branchPar,
+      atLinesFresh = o.logPcLines,
+      interp = o.interprocedural,
+      loopBound = o.loopBound,
+      callBound = o.callBound,
+      interpContracts = o.interproceduralContracts,
+      elideEncoding = o.elideEncoding,
+      rawInscription = o.rawInscription,
+      strictPureMode = spMode,
+      transitionCache = F,
+      patternExhaustive = o.patternExhaustive,
+      pureFun = o.pureFun,
+      detailedInfo = o.logDetailedInfo,
+      satTimeout = o.satTimeout,
+      isAuto = T,
+      background = org.sireum.logika.Config.BackgroundMode.Disabled,
+      atRewrite = o.logAtRewrite,
+      searchPc = o.searchPC,
+      rwTrace = o.rwTrace,
+      rwMax = o.rwMax,
+      rwPar = o.rwPar,
+      rwEvalTrace = o.rwEvalTrace
+    )
+    val plugins = logika.Logika.defaultPlugins
+
+    val verifyingStartTime = extension.Time.currentMillis
+    val implyResOpt = Option.some[lang.ast.ResolvedInfo](
+      lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryImply))
+
+    var tasks = ISZ[logika.Task]()
+    for (p <- connections) {
+      val (th, c) = p
+      val src = c.srcConstraint.get
+      val dst = c.dstConstraint.get
+      var posOpt = Option.none[message.Position]()
+      var ids = ISZ[String]()
+      for (kv <- c.connectionReferences.entries) {
+        if (posOpt.isEmpty) {
+          posOpt = kv._2
+        }
+        ids = ids :+ st"${(kv._2, ".")}".render
+      }
+      val claim = lang.ast.Exp.Binary(src, lang.ast.Exp.BinaryOp.Imply, dst,
+        lang.ast.ResolvedAttr(posOpt, implyResOpt, lang.ast.Typed.bOpt), posOpt)
+      println(st"Checking integration constraints of ${(ids, ", ")}".render)
+      tasks = tasks :+ logika.Task.Claim(th, config, s"Integration constraint of ${(ids, ", ")}", claim, plugins)
+    }
+    val smt2f = (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
+      th, reporter)
+    logika.Logika.checkTasks(
+      tasks = tasks,
+      par = parCores,
+      nameExePathMap = nameExePathMap,
+      maxCores = Os.numOfProcessors,
+      fileOptions = fileOptionMap,
+      smt2f = smt2f,
+      cache = NoTransitionSmt2Cache.create,
+      reporter = reporter,
+      verifyingStartTime = verifyingStartTime)
+    if (reporter.hasError) {
+      return ILL_FORMED
+    } else {
+      println("Integration constraints verified!")
+      return 0
     }
   }
 }
