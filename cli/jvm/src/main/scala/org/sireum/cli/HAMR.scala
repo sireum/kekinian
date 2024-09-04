@@ -664,6 +664,10 @@ object HAMR {
     val plugins = logika.Logika.defaultPlugins
 
     val verifyingStartTime = extension.Time.currentMillis
+    val andResOpt = Option.some[lang.ast.ResolvedInfo](
+      lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryAnd))
+    val equivResOpt = Option.some[lang.ast.ResolvedInfo](
+      lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryEquiv))
     val implyResOpt = Option.some[lang.ast.ResolvedInfo](
       lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryImply))
 
@@ -672,22 +676,15 @@ object HAMR {
       val (th, c) = p
       val src = c.srcConstraint.get
       val dst = c.dstConstraint.get
-      var posOpt = Option.none[message.Position]()
-      var ids = ISZ[String]()
-      for (kv <- c.connectionReferences.entries) {
-        if (posOpt.isEmpty) {
-          posOpt = kv._2
-        }
-        ids = ids :+ st"${(kv._2, ".")}".render
-      }
-      val lhs = lang.ast.Exp.Binary(p._2.portEquality, lang.ast.Exp.BinaryOp.And, src,
-        lang.ast.ResolvedAttr(posOpt, implyResOpt, lang.ast.Typed.bOpt), posOpt)
+      val (ids, midPointPos) = p._2.connectionMidPoint
+      val portEquiv = lang.ast.Exp.Binary(p._2.srcPortExp, lang.ast.Exp.BinaryOp.Equiv, p._2.dstPortExp,
+        lang.ast.ResolvedAttr(midPointPos, equivResOpt, lang.ast.Typed.bOpt), midPointPos)
+      val lhs = lang.ast.Exp.Binary(portEquiv, lang.ast.Exp.BinaryOp.And, src,
+        lang.ast.ResolvedAttr(midPointPos, andResOpt, lang.ast.Typed.bOpt), midPointPos)
+      val claim = lang.ast.Exp.Binary(lhs, lang.ast.Exp.BinaryOp.Imply, dst,
+        lang.ast.ResolvedAttr(midPointPos, implyResOpt, lang.ast.Typed.bOpt), midPointPos)
 
-      val claim =
-        lang.ast.Exp.Binary(lhs, lang.ast.Exp.BinaryOp.Imply, dst,
-          lang.ast.ResolvedAttr(posOpt, implyResOpt, lang.ast.Typed.bOpt), posOpt)
-
-      println(st"Checking integration constraints of ${(ids, ", ")}".render)
+      println(st"Checking integration constraints of ${(ids, ".")}".render)
       tasks = tasks :+ logika.Task.Claim(th, config, s"Integration constraint of ${(ids, ", ")}", claim, plugins)
     }
     val smt2f = (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
@@ -702,6 +699,7 @@ object HAMR {
       cache = NoTransitionSmt2Cache.create,
       reporter = reporter,
       verifyingStartTime = verifyingStartTime)
+    Os.printParseableMessages(reporter)
     if (reporter.hasError) {
       return ILL_FORMED
     } else {
