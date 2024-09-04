@@ -33,7 +33,8 @@ import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumS
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults, ModelUtil}
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
-import org.sireum.hamr.sysml.{FrontEnd, SysMLGrammar}
+import org.sireum.hamr.sysml.FrontEnd
+import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.logika.NoTransitionSmt2Cache
 import org.sireum.message._
@@ -66,7 +67,7 @@ object HAMR {
           )
           sysmlRun(tipeOpts, reporter) match {
             case Either.Left((_, models, _)) =>
-              val cands = models.filter(p => p.symbolTable.rootSystem.classifier == o.systemRoot.get)
+              val cands = models.filter(p => p.symbolTable.rootSystem.classifierAsString == o.systemRoot.get)
               cands match {
                 case ISZ(modelElements) =>
                   codeGenReporter(modelElements.model, o, reporter)
@@ -679,8 +680,13 @@ object HAMR {
         }
         ids = ids :+ st"${(kv._2, ".")}".render
       }
-      val claim = lang.ast.Exp.Binary(src, lang.ast.Exp.BinaryOp.Imply, dst,
+      val lhs = lang.ast.Exp.Binary(p._2.portEquality, lang.ast.Exp.BinaryOp.And, src,
         lang.ast.ResolvedAttr(posOpt, implyResOpt, lang.ast.Typed.bOpt), posOpt)
+
+      val claim =
+        lang.ast.Exp.Binary(lhs, lang.ast.Exp.BinaryOp.Imply, dst,
+          lang.ast.ResolvedAttr(posOpt, implyResOpt, lang.ast.Typed.bOpt), posOpt)
+
       println(st"Checking integration constraints of ${(ids, ", ")}".render)
       tasks = tasks :+ logika.Task.Claim(th, config, s"Integration constraint of ${(ids, ", ")}", claim, plugins)
     }
