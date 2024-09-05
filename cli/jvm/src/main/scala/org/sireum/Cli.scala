@@ -73,8 +73,6 @@ object Cli {
     val camkesOutputDir: Option[String],
     val camkesAuxCodeDirs: ISZ[String],
     val aadlRootDir: Option[String],
-    val systemRoot: Option[String],
-    val sourcePaths: ISZ[String],
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -99,6 +97,46 @@ object Cli {
     val features: ISZ[String],
     val version: Option[String],
     val sireum: Option[String]
+  ) extends SireumTopOption
+
+  @enum object SireumHamrSysmlCodegenHamrPlatform {
+    'JVM
+    'Linux
+    'Cygwin
+    'MacOS
+    'SeL4
+    'SeL4_Only
+    'SeL4_TB
+    'Ros2
+  }
+
+  @datatype class SireumHamrSysmlCodegenOption(
+    val help: String,
+    val args: ISZ[String],
+    val sourcepath: ISZ[String],
+    val line: Z,
+    val system: Option[String],
+    val verbose: B,
+    val runtimeMonitoring: B,
+    val platform: SireumHamrSysmlCodegenHamrPlatform.Type,
+    val parseableMessages: B,
+    val outputDir: Option[String],
+    val packageName: Option[String],
+    val noProyekIve: B,
+    val noEmbedArt: B,
+    val devicesAsThreads: B,
+    val genSbtMill: B,
+    val slangAuxCodeDirs: ISZ[String],
+    val slangOutputCDir: Option[String],
+    val excludeComponentImpl: B,
+    val bitWidth: Z,
+    val maxStringSize: Z,
+    val maxArraySize: Z,
+    val runTranspiler: B,
+    val camkesOutputDir: Option[String],
+    val camkesAuxCodeDirs: ISZ[String],
+    val aadlRootDir: Option[String],
+    val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
@@ -1029,12 +1067,6 @@ import Cli._
           |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
           |                           path)
           |
-          |SysML v2 Options:
-          |    --system             Fully qualified name of the system to instantiate
-          |                           (expects a string)
-          |    --source-paths       Source paths of SysML v2 .sysml files (expects path
-          |                           strings)
-          |
           |Experimental Options:
           |-x, --experimental-options    
           |                           (expects a string separated by ";")""".render
@@ -1060,8 +1092,6 @@ import Cli._
     var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var aadlRootDir: Option[String] = None[String]()
-    var systemRoot: Option[String] = None[String]()
-    var sourcePaths: ISZ[String] = ISZ[String]()
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1197,18 +1227,6 @@ import Cli._
              case Some(v) => aadlRootDir = v
              case _ => return None()
            }
-         } else if (arg == "--system") {
-           val o: Option[Option[String]] = parseString(args, j + 1)
-           o match {
-             case Some(v) => systemRoot = v
-             case _ => return None()
-           }
-         } else if (arg == "--source-paths") {
-           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
-           o match {
-             case Some(v) => sourcePaths = v
-             case _ => return None()
-           }
          } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
@@ -1224,7 +1242,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, systemRoot, sourcePaths, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1399,19 +1417,296 @@ import Cli._
         st"""Sireum HAMR SysML v2 Tools
             |
             |Available modes:
+            |codegen                  SysML v2 Codegen
             |logika                   SysML v2 Verifier
             |tipe                     SysML v2 Type Checker
             |translator               SysML v2 Grammar Translator to ANTLR v4""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sysml", args, i, ISZ("logika", "tipe", "translator"))
+    val opt = select("sysml", args, i, ISZ("codegen", "logika", "tipe", "translator"))
     opt match {
+      case Some(string"codegen") => return parseSireumHamrSysmlCodegen(args, i + 1)
       case Some(string"logika") => return parseSireumHamrSysmlLogika(args, i + 1)
       case Some(string"tipe") => return parseSireumHamrSysmlTipe(args, i + 1)
       case Some(string"translator") => return parseSireumHamrSysmlTranslator(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumHamrSysmlCodegenHamrPlatformH(arg: String): Option[SireumHamrSysmlCodegenHamrPlatform.Type] = {
+    arg.native match {
+      case "JVM" => return Some(SireumHamrSysmlCodegenHamrPlatform.JVM)
+      case "Linux" => return Some(SireumHamrSysmlCodegenHamrPlatform.Linux)
+      case "Cygwin" => return Some(SireumHamrSysmlCodegenHamrPlatform.Cygwin)
+      case "MacOS" => return Some(SireumHamrSysmlCodegenHamrPlatform.MacOS)
+      case "seL4" => return Some(SireumHamrSysmlCodegenHamrPlatform.SeL4)
+      case "seL4_Only" => return Some(SireumHamrSysmlCodegenHamrPlatform.SeL4_Only)
+      case "seL4_TB" => return Some(SireumHamrSysmlCodegenHamrPlatform.SeL4_TB)
+      case "ros2" => return Some(SireumHamrSysmlCodegenHamrPlatform.Ros2)
+      case s =>
+        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlCodegenHamrPlatform(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenHamrPlatform.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlCodegenHamrPlatformH(args(i))
+    return r
+  }
+
+  def parseSireumHamrSysmlCodegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum HAMR SysML v2 Code Generator
+          |
+          |Usage: <option>* [<sysmlv2-file>]
+          |
+          |Available Options:
+          |    --sourcepath         Source paths of SysML v2 .sysml files (expects path
+          |                           strings)
+          |    --line               Line number containing the system to instantiate in
+          |                           the <sysmlv2-file> argument (expects an integer; min
+          |                           is 0; default is 0)
+          |    --system-name        Fully qualified name of the system to instantiate
+          |                           (expects a string)
+          |-v, --verbose            Enable verbose mode
+          |-m, --runtime-monitoring    
+          |                          Enable runtime monitoring
+          |-p, --platform           Target platform (expects one of { JVM, Linux, Cygwin,
+          |                           MacOS, seL4, seL4_Only, seL4_TB, ros2 }; default:
+          |                           JVM)
+          |    --parseable-messages Print parseable file messages
+          |-h, --help               Display this information
+          |
+          |Slang Options:
+          |-o, --output-dir         Output directory for the generated project files
+          |                           (expects a path; default is ".")
+          |-n, --package-name       Base package name for Slang project (output-dir's
+          |                           simple name used if not provided) (expects a string)
+          |    --no-proyek-ive      Do not run Proyek IVE
+          |    --no-embed-art       Do not embed ART project files
+          |    --devices-as-thread  Treat AADL devices as threads
+          |    --sbt-mill           Generate SBT and Mill projects in addition to Proyek
+          |
+          |Transpiler Options:
+          |    --aux-code-dirs      Auxiliary C source code directories (expects path
+          |                           strings)
+          |    --output-c-dir       Output directory for C artifacts (expects a path)
+          |-e, --exclude-component-impl    
+          |                          Exclude Slang component implementations, behavior
+          |                           code written in C
+          |-b, --bit-width          Default bit-width for unbounded integer types (e.g.,
+          |                           Z) (expects one of { 64, 32, 16, 8 })
+          |-s, --max-string-size    
+          |                          Size for statically allocated strings (expects an
+          |                           integer; default is 100)
+          |-a, --max-array-size     Default sequence size (e.g., for ISZ, MSZ (expects an
+          |                           integer; default is 100)
+          |-t, --run-transpiler     Run Transpiler during HAMR Codegen
+          |
+          |CAmkES Options:
+          |    --camkes-output-dir  Output directory for the generated CAmkES project
+          |                           files (expects a path)
+          |    --camkes-aux-code-dirs
+          |                          Directories containing C files to be included in
+          |                           CAmkES build (expects path strings)
+          |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
+          |                           path)
+          |
+          |Experimental Options:
+          |-x, --experimental-options    
+          |                           (expects a string separated by ";")""".render
+
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var line: Z = 0
+    var system: Option[String] = None[String]()
+    var verbose: B = false
+    var runtimeMonitoring: B = false
+    var platform: SireumHamrSysmlCodegenHamrPlatform.Type = SireumHamrSysmlCodegenHamrPlatform.JVM
+    var parseableMessages: B = false
+    var outputDir: Option[String] = Some(".")
+    var packageName: Option[String] = None[String]()
+    var noProyekIve: B = false
+    var noEmbedArt: B = false
+    var devicesAsThreads: B = false
+    var genSbtMill: B = false
+    var slangAuxCodeDirs: ISZ[String] = ISZ[String]()
+    var slangOutputCDir: Option[String] = None[String]()
+    var excludeComponentImpl: B = false
+    var bitWidth: Z = 64
+    var maxStringSize: Z = 100
+    var maxArraySize: Z = 100
+    var runTranspiler: B = false
+    var camkesOutputDir: Option[String] = None[String]()
+    var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
+    var aadlRootDir: Option[String] = None[String]()
+    var experimentalOptions: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--line") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => line = v
+             case _ => return None()
+           }
+         } else if (arg == "--system-name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => system = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--runtime-monitoring") {
+           val o: Option[B] = { j = j - 1; Some(!runtimeMonitoring) }
+           o match {
+             case Some(v) => runtimeMonitoring = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--platform") {
+           val o: Option[SireumHamrSysmlCodegenHamrPlatform.Type] = parseSireumHamrSysmlCodegenHamrPlatform(args, j + 1)
+           o match {
+             case Some(v) => platform = v
+             case _ => return None()
+           }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--package-name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-proyek-ive") {
+           val o: Option[B] = { j = j - 1; Some(!noProyekIve) }
+           o match {
+             case Some(v) => noProyekIve = v
+             case _ => return None()
+           }
+         } else if (arg == "--no-embed-art") {
+           val o: Option[B] = { j = j - 1; Some(!noEmbedArt) }
+           o match {
+             case Some(v) => noEmbedArt = v
+             case _ => return None()
+           }
+         } else if (arg == "--devices-as-thread") {
+           val o: Option[B] = { j = j - 1; Some(!devicesAsThreads) }
+           o match {
+             case Some(v) => devicesAsThreads = v
+             case _ => return None()
+           }
+         } else if (arg == "--sbt-mill") {
+           val o: Option[B] = { j = j - 1; Some(!genSbtMill) }
+           o match {
+             case Some(v) => genSbtMill = v
+             case _ => return None()
+           }
+         } else if (arg == "--aux-code-dirs") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => slangAuxCodeDirs = v
+             case _ => return None()
+           }
+         } else if (arg == "--output-c-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => slangOutputCDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--exclude-component-impl") {
+           val o: Option[B] = { j = j - 1; Some(!excludeComponentImpl) }
+           o match {
+             case Some(v) => excludeComponentImpl = v
+             case _ => return None()
+           }
+         } else if (arg == "-b" || arg == "--bit-width") {
+           val o: Option[Z] = parseNumChoice(args, j + 1, ISZ(z"64", z"32", z"16", z"8"))
+           o match {
+             case Some(v) => bitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--max-string-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxStringSize = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--max-array-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxArraySize = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--run-transpiler") {
+           val o: Option[B] = { j = j - 1; Some(!runTranspiler) }
+           o match {
+             case Some(v) => runTranspiler = v
+             case _ => return None()
+           }
+         } else if (arg == "--camkes-output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => camkesOutputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "--camkes-aux-code-dirs") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => camkesAuxCodeDirs = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--aadl-root-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => aadlRootDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--experimental-options") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => experimentalOptions = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
   }
 
   def parseSireumHamrSysmlLogikaFPRoundingModeH(arg: String): Option[SireumHamrSysmlLogikaFPRoundingMode.Type] = {
@@ -1460,12 +1755,12 @@ import Cli._
     val help =
       st"""Sireum HAMR SysML v2 Logika Verifier
           |
-          |Usage: <option>* [<sysmlv2-file]
+          |Usage: <option>* <sysmlv2-file>*
           |
           |Available Options:
           |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
           |                           separated by ",")
-          |-s, --sourcepath         Sourcepath of SysML v2 .sysml files (expects path
+          |-s, --sourcepath         Source paths of SysML v2 .sysml files (expects path
           |                           strings)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
@@ -1927,12 +2222,12 @@ import Cli._
     val help =
       st"""Sireum HAMR SysML v2 Type Checker
           |
-          |Usage: <option>* [<sysmlv2-file]
+          |Usage: <option>* [<sysmlv2-file>]
           |
           |Available Options:
           |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
           |                           separated by ",")
-          |-s, --sourcepath         Sourcepath of SysML v2 .sysml files (expects path
+          |-s, --sourcepath         Source paths of SysML v2 .sysml files (expects path
           |                           strings)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information""".render

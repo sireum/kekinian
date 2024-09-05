@@ -27,13 +27,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.sireum.cli
 
 import org.sireum._
+import org.sireum.LibUtil.FileOptionMap
 import org.sireum.Os.Path
 import org.sireum.hamr.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
-import org.sireum.hamr.codegen.common.util.{CodeGenConfig, CodeGenIpcMechanism, CodeGenPlatform, CodeGenResults, ModelUtil}
+import org.sireum.hamr.codegen.common.util._
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.FrontEnd
+import org.sireum.hamr.sysml.cli.sysmlCodegen
+import org.sireum.hamr.sysml.instantiation.InstantiateUtil
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.logika.NoTransitionSmt2Cache
@@ -51,83 +54,155 @@ object HAMR {
 
   // cli interface
   def codeGen(o: Cli.SireumHamrCodegenOption, reporter: Reporter): Z = {
+    o.args.size match {
+      case z"0 " => println(o.help); return 0
+      case _ =>
+    }
 
-    val model: Aadl =
-      if (o.systemRoot.nonEmpty) {
-        if (o.sourcePaths.isEmpty) {
-          eprintln(s"Source paths of .sysml files required")
-          return -1
-        } else {
-          val tipeOpts = Cli.SireumHamrSysmlTipeOption(
-            help = "",
-            args = ISZ(),
-            exclude = ISZ(),
-            sourcepath = o.sourcePaths,
-            parseableMessages = F
-          )
-          sysmlRun(tipeOpts, reporter) match {
-            case Either.Left((_, models, _)) =>
-              val cands = models.filter(p => p.symbolTable.rootSystem.classifierAsString == o.systemRoot.get)
-              cands match {
-                case ISZ(modelElements) =>
-                  codeGenReporter(modelElements.model, o, reporter)
-                  if (!reporter.hasError && o.outputDir.nonEmpty) {
-                    val airOut = Os.path(o.outputDir.get) / "air.json"
-                    airOut.writeOver(org.sireum.hamr.ir.JSON.fromAadl(modelElements.model, F))
-                    println(s"Wrote: ${airOut}")
-                  }
-                  return if (reporter.hasError) -1 else 0
-                case _ =>
-                  if (reporter.hasError) {
-                    return -1
-                  }
-                  eprintln(s"Found ${cands.size} system roots matching ${o.systemRoot.get}")
-                  return -1
-              }
-            case Either.Right(msg) => return msg
-          }
-        }
-      } else {
-        o.args.size match {
-          case z"0 " => println(o.help); return 0
-          case _ =>
-        }
+    val inputFile: Option[Path] = if (o.args.size != 1) None[Path]() else Some(Os.path(o.args(0)))
 
-        val inputFile: Option[Path] = if (o.args.size != 1) None[Path]() else Some(Os.path(o.args(0)))
+    val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
+      inputFile.get.read
+    } else {
+      val fname: String = if (inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
+      eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
+      return -1
+    }
 
-        val input: String = if (inputFile.nonEmpty && inputFile.get.exists && inputFile.get.isFile) {
-          inputFile.get.read
-        } else {
-          val fname: String = if (inputFile.nonEmpty) s"'${inputFile.get.value}' " else ""
-          eprintln(s"AIR input file ${fname}not found.  Expecting exactly 1")
-          return -1
-        }
-
-        if (o.msgpack) {
-          org.sireum.conversions.String.fromBase64(input) match {
-            case Either.Left(u) =>
-              irMsgPack.toAadl(u) match {
-                case Either.Left(m) => m
-                case Either.Right(m) =>
-                  eprintln(s"MsgPack deserialization error at offset ${m.offset}: ${m.message}")
-                  return -1
-              }
-            case Either.Right(m) =>
-              eprintln(m)
-              return -1
-          }
-        }
-        else {
-          irJSON.toAadl(input) match {
+    val model: Aadl = if (o.msgpack) {
+      org.sireum.conversions.String.fromBase64(input) match {
+        case Either.Left(u) =>
+          irMsgPack.toAadl(u) match {
             case Either.Left(m) => m
             case Either.Right(m) =>
-              eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
+              eprintln(s"MsgPack deserialization error at offset ${m.offset}: ${m.message}")
               return -1
           }
-        }
+        case Either.Right(m) =>
+          eprintln(m)
+          return -1
       }
+    }
+    else {
+      irJSON.toAadl(input) match {
+        case Either.Left(m) => m
+        case Either.Right(m) =>
+          eprintln(s"Json deserialization error at (${m.line}, ${m.column}): ${m.message}")
+          return -1
+      }
+    }
 
     codeGenReporter(model, o, reporter)
+
+    return if (reporter.hasError) 1 else 0
+  }
+
+  // sysml interface
+  def codeGenS(o: Cli.SireumHamrSysmlCodegenOption, reporter: Reporter): Z = {
+    if (o.sourcepath.isEmpty) {
+      eprintln("The sourcepath option is required")
+      return INVALID_OPTIONS
+    }
+
+    if (o.line > 0 && o.system.nonEmpty) {
+      eprintln(s"Either specify the line number or the name of the system to instantiate, not both")
+      return INVALID_OPTIONS
+    }
+
+    if (o.line > 0 && o.args.isEmpty) {
+      eprintln("The sysml file argument is required when using the line option")
+      return INVALID_OPTIONS
+    }
+
+    if (o.system.nonEmpty && o.args.nonEmpty) {
+      // TODO: could see if the file has exactly one system, if so then instantiate that
+      println("The file argument is currently ignored when the system-name is set")
+    }
+
+    val tipeOpts = Cli.SireumHamrSysmlTipeOption(
+      help = "",
+      args = ISZ(),
+      exclude = ISZ(),
+      sourcepath = o.sourcepath,
+      parseableMessages = F
+    )
+    val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input]), Z] = sysmlRun(tipeOpts, reporter)
+    if (!reporter.hasError) {
+      results match {
+        case Either.Left((th, models, inputs)) =>
+
+          var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
+          for (input <- inputs) {
+            fileOptionMap = fileOptionMap + input.fileUri ~> LibUtil.mineOptions(input.content)
+          }
+
+          val (modelElement, mergedOptions): (ModelUtil.ModelElements, Cli.SireumHamrSysmlCodegenOption) = {
+            if (o.system.nonEmpty) {
+              models.filter(p => p.symbolTable.rootSystem.classifierAsString == o.system.get) match {
+                case ISZ(me) =>
+                  mergeOptions(o, me.symbolTable.rootSystem.component.identifier.pos, fileOptionMap) match {
+                    case Some(mo) => (me, mo)
+                    case _ =>
+                      return INVALID_OPTIONS
+                  }
+                case x =>
+                  eprintln(s"Found ${x.size} system roots matching ${o.system.get}")
+                  return FILE_DOES_NOT_EXIST
+              }
+            } else {
+              val f = Os.path(o.args(0))
+              if (!f.exists) {
+                eprintln(s"File does not exist: ${f.value}")
+                return FILE_DOES_NOT_EXIST
+              }
+
+              @strictpure def matchingUris(p: Option[Position], uri: String): B = p.nonEmpty && p.get.uriOpt.nonEmpty && p.get.uriOpt.get == uri
+
+              InstantiateUtil.getSystemRoots(th) match {
+                case ISZ() =>
+                  eprintln(s"The model does not contain any systems")
+                  return -1
+                case roots =>
+                  roots.filter(r => matchingUris(r.posOpt, f.toUri)) match {
+                    case ISZ() =>
+                      eprintln(s"No systems found in ${f.value}")
+                      return -1
+                    case cands =>
+                      val mergedOptions: Cli.SireumHamrSysmlCodegenOption = mergeOptionsU(o, f.toUri, fileOptionMap) match {
+                        case Some(mo) => mo
+                        case _ =>
+                          return INVALID_OPTIONS
+                      }
+
+                      cands.filter(c => c.posOpt.get.beginLine <= mergedOptions.line && mergedOptions.line <= c.posOpt.get.endLine) match {
+                        case ISZ(cand) =>
+                          models.filter(p => matchingUris(p.symbolTable.rootSystem.component.identifier.pos, f.toUri)) match {
+                            case ISZ(me) => (me, mergedOptions)
+                            case _ => halt(s"Infeasible: could not find an AADL node corresponding to ${cand.name}")
+                          }
+                        case x =>
+                          eprintln(s"Found ${x.size} systems at line ${o.line} in ${f.value}")
+                          return INVALID_OPTIONS
+                      }
+                  }
+              }
+            }
+          }
+
+          codeGenReporter(modelElement.model, convertSysmlOptions(mergedOptions), reporter)
+          if (!reporter.hasError && o.outputDir.nonEmpty) {
+            val airOut = Os.path(o.outputDir.get) / "air.json"
+            airOut.writeOver(org.sireum.hamr.ir.JSON.fromAadl(modelElement.model, F))
+            println(s"Wrote: ${airOut}")
+          }
+
+        case Either.Right(msg) => return msg
+      }
+    }
+
+    if (o.parseableMessages) {
+      Os.printParseableMessages(reporter)
+    }
 
     return if (reporter.hasError) 1 else 0
   }
@@ -262,9 +337,6 @@ object HAMR {
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       aadlRootDir = aadlRootDir,
       //
-      systemRoot = None(),
-      sourcePaths = ISZ(),
-      //
       experimentalOptions = experimentalOptions,
       parseableMessages = F
     )
@@ -389,38 +461,6 @@ object HAMR {
 
     return SireumApi.hamrCodeGen(model, cgops, plugins, reporter,
       transpile _, proyekIve _, sergen _, slangCheck _)
-  }
-
-  def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
-    return CodeGenConfig(
-      writeOutResources = T,
-      ipc = CodeGenIpcMechanism.SharedMemory,
-      //
-      verbose = o.verbose,
-      runtimeMonitoring = o.runtimeMonitoring,
-      platform = CodeGenPlatform.byName(o.platform.name).get,
-      //
-      slangOutputDir = o.outputDir,
-      packageName = o.packageName,
-      noProyekIve = o.noProyekIve,
-      noEmbedArt = o.noEmbedArt,
-      devicesAsThreads = o.devicesAsThreads,
-      genSbtMill = o.genSbtMill,
-      //
-      slangAuxCodeDirs = o.slangAuxCodeDirs,
-      slangOutputCDir = o.slangOutputCDir,
-      excludeComponentImpl = o.excludeComponentImpl,
-      bitWidth = o.bitWidth,
-      maxStringSize = o.maxStringSize,
-      maxArraySize = o.maxArraySize,
-      runTranspiler = o.runTranspiler,
-      //
-      camkesOutputDir = o.camkesOutputDir,
-      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
-      aadlRootDir = o.aadlRootDir,
-      //
-      experimentalOptions = o.experimentalOptions
-    )
   }
 
   def sysmlTranslator(o: Cli.SireumHamrSysmlTranslatorOption): Z = {
@@ -706,5 +746,180 @@ object HAMR {
       println("Integration constraints verified!")
       return 0
     }
+  }
+
+  def convertSysmlOptions(o: Cli.SireumHamrSysmlCodegenOption): Cli.SireumHamrCodegenOption = {
+    return Cli.SireumHamrCodegenOption(
+      help = "",
+      args = ISZ(),
+      msgpack = F,
+      verbose = o.verbose,
+      runtimeMonitoring = o.runtimeMonitoring,
+      platform = Cli.SireumHamrCodegenHamrPlatform.byName(o.platform.name).get,
+      parseableMessages = o.parseableMessages,
+      outputDir = o.outputDir,
+      packageName = o.packageName,
+      noProyekIve = o.noProyekIve,
+      noEmbedArt = o.noEmbedArt,
+      devicesAsThreads = o.devicesAsThreads,
+      genSbtMill = o.genSbtMill,
+      slangAuxCodeDirs = o.slangAuxCodeDirs,
+      slangOutputCDir = o.slangOutputCDir,
+      excludeComponentImpl = o.excludeComponentImpl,
+      bitWidth = o.bitWidth,
+      maxStringSize = o.maxStringSize,
+      maxArraySize = o.maxArraySize,
+      runTranspiler = o.runTranspiler,
+      camkesOutputDir = o.camkesOutputDir,
+      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
+      aadlRootDir = o.aadlRootDir,
+      experimentalOptions = o.experimentalOptions)
+  }
+
+  def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
+    return CodeGenConfig(
+      writeOutResources = T,
+      ipc = CodeGenIpcMechanism.SharedMemory,
+      //
+      verbose = o.verbose,
+      runtimeMonitoring = o.runtimeMonitoring,
+      platform = CodeGenPlatform.byName(o.platform.name).get,
+      //
+      slangOutputDir = o.outputDir,
+      packageName = o.packageName,
+      noProyekIve = o.noProyekIve,
+      noEmbedArt = o.noEmbedArt,
+      devicesAsThreads = o.devicesAsThreads,
+      genSbtMill = o.genSbtMill,
+      //
+      slangAuxCodeDirs = o.slangAuxCodeDirs,
+      slangOutputCDir = o.slangOutputCDir,
+      excludeComponentImpl = o.excludeComponentImpl,
+      bitWidth = o.bitWidth,
+      maxStringSize = o.maxStringSize,
+      maxArraySize = o.maxArraySize,
+      runTranspiler = o.runTranspiler,
+      //
+      camkesOutputDir = o.camkesOutputDir,
+      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
+      aadlRootDir = o.aadlRootDir,
+      //
+      experimentalOptions = o.experimentalOptions
+    )
+  }
+
+  def mergeOptions(o: Cli.SireumHamrSysmlCodegenOption, systemPos: Option[Position], fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
+    if (systemPos.nonEmpty && systemPos.get.uriOpt.nonEmpty) {
+      return mergeOptionsU(o, systemPos.get.uriOpt.get, fileOptionMap)
+    } else {
+      return Some(o)
+    }
+  }
+
+  def mergeOptionsU(o: Cli.SireumHamrSysmlCodegenOption, fileUri: String, fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
+    fileOptionMap.get(Some(fileUri)) match {
+      case Some(optionMap) if optionMap.nonEmpty && optionMap.contains("Codegen") =>
+        val fileOptionString = optionMap.get("Codegen").get(0)
+        val fileOpts: ISZ[String] = for (option <- ops.StringOps(fileOptionString).split((c: C) => c.isWhitespace)) yield
+          ops.StringOps(option).replaceAllChars('␣', ' ')
+
+        Cli(':').parseSireumHamrSysmlCodegen(fileOpts, 0) match {
+          case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
+            return mergeOptionsM(o, fileOptions, fileOpts)
+          case _ =>
+            // parse should have emitted errors to console
+            return None()
+        }
+      case _ => return Some(o)
+    }
+  }
+
+  def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
+                    fileOptions: Cli.SireumHamrSysmlCodegenOption,
+                    fileOpts: ISZ[String]): Option[Cli.SireumHamrSysmlCodegenOption] = {
+    var validKeys: Set[String] = Set.empty
+
+    def addOptions(opts: ISZ[CliOpt.Opt]): Unit = {
+      for (o <- opts) {
+        validKeys = validKeys + s"--${o.longKey}"
+        if (o.shortKey.nonEmpty) {
+          validKeys = validKeys + s"-${o.shortKey.get}"
+        }
+      }
+    }
+
+    addOptions(sysmlCodegen.opts)
+    for (g <- sysmlCodegen.groups) {
+      addOptions(g.opts)
+    }
+
+    var keys: ISZ[String] = ISZ()
+    for (k <- fileOpts) {
+      if (ops.StringOps(k).startsWith("-") && validKeys.contains(k)) {
+        keys = keys :+ k
+      }
+    }
+
+    // TODO: for now the file options (if set) takes precedence over any cli options (expect line and system-name)
+    var ret = o
+    for (k <- keys) {
+      if (k == "--sourcepath") {
+        ret = ret(sourcepath = fileOptions.sourcepath)
+      } else if (k == "--line") {
+        eprintln("Cannot set 'line' in file options")
+        return None()
+      } else if (k == "--system-name") {
+        eprintln("Cannot set 'system-name' in file options")
+        return None()
+      } else if (k == "-v" || k == "--verbose") {
+        ret = ret(verbose = fileOptions.verbose)
+      } else if (k == "-m" || k == "--runtime-monitoring") {
+        ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
+      } else if (k == "-p" || k == "--platform") {
+        ret = ret(platform = fileOptions.platform)
+      } else if (k == "--parseable-messages") {
+        ret = ret(parseableMessages = fileOptions.parseableMessages)
+      } else if (k == "-h" || k == "--help") {
+        ret = ret(help = fileOptions.help)
+      } else if (k == "-o" || k == "--output-dir") {
+        ret = ret(outputDir = fileOptions.outputDir)
+      } else if (k == "-n" || k == "--package-name") {
+        ret = ret(packageName = fileOptions.packageName)
+      } else if (k == "--no-proyek-ive") {
+        ret = ret(noProyekIve = fileOptions.noProyekIve)
+      } else if (k == "--no-embed-art") {
+        ret = ret(noEmbedArt = fileOptions.noEmbedArt)
+      } else if (k == "--devices-as-thread") {
+        ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
+      } else if (k == "--sbt-mill") {
+        ret = ret(genSbtMill = fileOptions.genSbtMill)
+      } else if (k == "--aux-code-dirs") {
+        ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
+      } else if (k == "--output-c-dir") {
+        ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
+      } else if (k == "-e" || k == "--exclude-component-impl") {
+        ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
+      } else if (k == "-b" || k == "--bit-width") {
+        ret = ret(bitWidth = fileOptions.bitWidth)
+      } else if (k == "-s" || k == "--max-string-size") {
+        ret = ret(maxStringSize = fileOptions.maxStringSize)
+      } else if (k == "-a" || k == "--max-array-size") {
+        ret = ret(maxArraySize = fileOptions.maxArraySize)
+      } else if (k == "-t" || k == "--run-transpiler") {
+        ret = ret(runTranspiler = fileOptions.runTranspiler)
+      } else if (k == "--camkes-output-dir") {
+        ret = ret(camkesOutputDir = fileOptions.camkesOutputDir)
+      } else if (k == "--camkes-aux-code-dirs") {
+        ret = ret(camkesAuxCodeDirs = fileOptions.camkesAuxCodeDirs)
+      } else if (k == "-r" || k == "--aadl-root-dir") {
+        ret = ret(aadlRootDir = fileOptions.aadlRootDir)
+      } else if (k == "-x" || k == "--experimental-options") {
+        ret = ret(experimentalOptions = fileOptions.experimentalOptions)
+      } else {
+        eprintln(s"'$k' is not a valid option key")
+        return None()
+      }
+    }
+    return Some(ret)
   }
 }

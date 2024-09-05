@@ -511,6 +511,9 @@ object Sireum {
           case Some(o: Cli.SireumHamrCodegenOption) =>
             init.deps()
             return cli.HAMR.codeGen(o, reporter)
+          case Some(o: Cli.SireumHamrSysmlCodegenOption) =>
+            init.deps()
+            return cli.HAMR.codeGenS(o, reporter)
           case Some(o: Cli.SireumHamrPhantomOption) =>
             init.basicDeps()
             return cli.Phantom.run(o)
