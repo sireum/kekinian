@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.sireum.cli
 
 import org.sireum._
-import org.sireum.LibUtil.FileOptionMap
+import org.sireum.LibUtil.{FileOptionMap, mineOptions}
 import org.sireum.Os.Path
 import org.sireum.hamr.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
@@ -36,7 +36,6 @@ import org.sireum.hamr.codegen.common.util._
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.FrontEnd
 import org.sireum.hamr.sysml.cli.sysmlCodegen
-import org.sireum.hamr.sysml.instantiation.InstantiateUtil
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.logika.NoTransitionSmt2Cache
@@ -155,36 +154,28 @@ object HAMR {
                 eprintln(s"File does not exist: ${f.value}")
                 return FILE_DOES_NOT_EXIST
               }
-
               @strictpure def matchingUris(p: Option[Position], uri: String): B = p.nonEmpty && p.get.uriOpt.nonEmpty && p.get.uriOpt.get == uri
+              @strictpure def matchingLine(p: Option[Position], line: Z): B = p.nonEmpty && p.get.beginLine <= line && line <= p.get.endLine
 
-              InstantiateUtil.getSystemRoots(th) match {
-                case ISZ() =>
-                  eprintln(s"The model does not contain any systems")
-                  return -1
-                case roots =>
-                  roots.filter(r => matchingUris(r.posOpt, f.toUri)) match {
-                    case ISZ() =>
-                      eprintln(s"No systems found in ${f.value}")
-                      return -1
-                    case cands =>
-                      val mergedOptions: Cli.SireumHamrSysmlCodegenOption = mergeOptionsU(o, f.toUri, fileOptionMap) match {
-                        case Some(mo) => mo
-                        case _ =>
-                          return INVALID_OPTIONS
-                      }
+              val mergedOptions: Cli.SireumHamrSysmlCodegenOption = mergeOptionsU(o, f.toUri, fileOptionMap) match {
+                case Some(mo) => mo
+                case _ => return INVALID_OPTIONS
+              }
 
-                      cands.filter(c => c.posOpt.get.beginLine <= mergedOptions.line && mergedOptions.line <= c.posOpt.get.endLine) match {
-                        case ISZ(cand) =>
-                          models.filter(p => matchingUris(p.symbolTable.rootSystem.component.identifier.pos, f.toUri)) match {
-                            case ISZ(me) => (me, mergedOptions)
-                            case _ => halt(s"Infeasible: could not find an AADL node corresponding to ${cand.name}")
-                          }
-                        case x =>
-                          eprintln(s"Found ${x.size} systems at line ${o.line} in ${f.value}")
-                          return INVALID_OPTIONS
-                      }
-                  }
+              val cands = models.filter(p => matchingUris(p.modelPosOpt, f.toUri))
+              if (cands.size == 1) {
+                (cands(0), mergedOptions)
+              } else if (cands.size > 1) {
+                cands.filter(p => matchingLine(p.modelPosOpt, o.line)) match {
+                  case ISZ(single) =>
+                    (single, mergedOptions)
+                  case x =>
+                    eprintln(s"Found ${x.size} systems at line ${o.line} in file ${f.value}")
+                    return -1
+                }
+              } else {
+                eprintln(s"No systems contained in ${f.value}")
+                return -1
               }
             }
           }
