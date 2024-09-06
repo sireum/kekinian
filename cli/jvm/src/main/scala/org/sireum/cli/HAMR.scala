@@ -818,8 +818,8 @@ object HAMR {
 
   def mergeOptionsU(o: Cli.SireumHamrSysmlCodegenOption, fileUri: String, fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
     fileOptionMap.get(Some(fileUri)) match {
-      case Some(optionMap) if optionMap.nonEmpty && optionMap.contains("Codegen") =>
-        val fileOptionString = optionMap.get("Codegen").get(0)
+      case Some(optionMap) if optionMap.nonEmpty && optionMap.contains(toolName) =>
+        val fileOptionString = optionMap.get(toolName).get(0)
         val fileOpts: ISZ[String] = for (option <- ops.StringOps(fileOptionString).split((c: C) => c.isWhitespace)) yield
           ops.StringOps(option).replaceAllChars('␣', ' ')
 
@@ -827,7 +827,7 @@ object HAMR {
           case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
             return mergeOptionsM(o, fileOptions, fileOpts)
           case _ =>
-            // parse should have emitted errors to console
+            // parser should have emitted errors to console
             return None()
         }
       case _ => return Some(o)
