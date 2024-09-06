@@ -481,19 +481,19 @@ def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   project(T, isUltimate, isServer)
   Os.kind match {
     case Os.Kind.Win =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "win" / s"idea$suffix" / "bin" / "IVE.exe"}")
+      println(s"Sireum IVE can now be launched by running ${homeBin / "win" / s"idea$suffix" / "bin" / "IVE.exe"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "win" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.Linux =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / (if (isServer) "idea.sh" else "IVE.sh")}")
+      println(s"Sireum IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / (if (isServer) "idea.sh" else "IVE.sh")}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.LinuxArm =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "linux" / "arm" / s"idea$suffix" / "bin" / "IVE.sh"}")
+      println(s"Sireum IVE can now be launched by running ${homeBin / "linux" / "arm" / s"idea$suffix" / "bin" / "IVE.sh"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "arm" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.Mac =>
-      println(s"Sireum-dev IVE can now be launched by running ${homeBin / "mac" / s"idea$suffix" / "IVE.app"}")
+      println(s"Sireum IVE can now be launched by running ${homeBin / "mac" / s"idea$suffix" / "IVE.app"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "mac" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case _ =>
