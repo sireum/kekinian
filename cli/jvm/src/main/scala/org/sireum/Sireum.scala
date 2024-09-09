@@ -25,10 +25,13 @@
 
 package org.sireum
 
-import org.sireum.message.Reporter
+import org.sireum.logika.Logika.Reporter.Info.Kind
+import org.sireum.logika.Smt2Query
+import org.sireum.message.{Position, Reporter}
 import org.sireum.project.DependencyManager
 
 import java.io.{FileWriter, OutputStream, PrintStream}
+import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
 
@@ -531,7 +534,27 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.HAMR.sysmlLogika(o, reporter)
               case _ =>
-                val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo)
+                class Rep extends logika.ReporterImpl(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, F, ISZ(), o.stats,
+                  new AtomicLong(0), new AtomicLong(0), new AtomicLong(0), new AtomicLong(0)) {
+
+                    override def empty: logika.Logika.Reporter = {
+                      new Rep()
+                    }
+                    override def query(pos: Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: Smt2Query.Result): Unit = {
+                      super.query(pos, title, isSat, time, forceReport, detailElided, r)
+                      if (!isSat && r.kind == Smt2Query.Result.Kind.Unsat) {
+                        info(Some(pos), "Logika", s"Verified: $title")
+                      }
+                    }
+                    override def inform(pos: Position, kind: Kind.Type, message: String): Unit = {
+                      super.inform(pos, kind, message)
+                      if (kind == Kind.Verified) {
+                        info(Some(pos), "Logika", s"Verified: ${message.value.takeWhile(c => c != '\n')}")
+                      }
+                    }
+                  }
+
+                val rep = new Rep
                 rep.collectStats = o.stats
                 val exitCode = cli.HAMR.sysmlLogika(o, rep)
                 reporter.reports(rep.messages)
