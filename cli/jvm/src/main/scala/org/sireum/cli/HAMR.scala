@@ -125,10 +125,10 @@ object HAMR {
       sourcepath = o.sourcepath,
       parseableMessages = F
     )
-    val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input]), Z] = sysmlRun(tipeOpts, reporter)
+    val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = sysmlRun(tipeOpts, reporter)
     if (!reporter.hasError) {
       results match {
-        case Either.Left((th, models, inputs)) =>
+        case Either.Left((th, models, inputs, _)) =>
 
           var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
           for (input <- inputs) {
@@ -490,7 +490,7 @@ object HAMR {
     return SysMLGrammar.translate(content, uri, o.keywords, outFile)
   }
 
-  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input]), Z] = {
+  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = {
     var sysmlFiles: ISZ[Os.Path] = ISZ()
     for (p <- o.sourcepath) {
       val cand = Os.path(p)
@@ -514,8 +514,8 @@ object HAMR {
 
     val inputs: ISZ[FrontEnd.Input] = for (f <- sysmlFiles) yield FrontEnd.Input(content = f.read, fileUri = Some(f.toUri))
 
-    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input]), Z] = FrontEnd.typeCheck(0, inputs, reporter) match {
-      case (Some(th), aadls) => Either.Left((th, aadls, inputs))
+    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = FrontEnd.typeCheck(0, inputs, reporter) match {
+      case (Some(th), aadls) => Either.Left((th, aadls, inputs, reporter.hasError))
       case _ => Either.Right(1)
     }
 
@@ -554,7 +554,10 @@ object HAMR {
     var connections = ISZ[(lang.tipe.TypeHierarchy, hamr.sysml.FrontEnd.IntegerationConnection)]()
     var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
     sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath, o.parseableMessages), reporter) match {
-      case Either.Left((_, models, inputs)) =>
+      case Either.Left((_, models, inputs, hasError)) =>
+        if (hasError) {
+          return -1
+        }
         var fileContentMap = HashMap.empty[String, String]
         for (input <- inputs) {
           fileContentMap = fileContentMap + input.fileUri.get ~> input.content
@@ -912,5 +915,10 @@ object HAMR {
       }
     }
     return Some(ret)
+  }
+
+  def sysmlConfig(o: Cli.SireumHamrSysmlConfigOption): Z = {
+    println("Coming soon!")
+    return 0
   }
 }

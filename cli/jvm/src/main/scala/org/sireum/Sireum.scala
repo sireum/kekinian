@@ -541,13 +541,18 @@ object Sireum {
             init.basicDeps()
             cli.HAMR.sysmlRun(o, reporter) match {
               case Either.Right(code) => return code
-              case _ =>
-                println("Well-formed!")
+              case Either.Left((_, _, _, hasError)) =>
+                if (!hasError) {
+                  println("Well-formed!")
+                }
                 return 0
             }
           case Some(o: Cli.SireumHamrSysmlTranslatorOption) =>
             init.basicDeps()
             return cli.HAMR.sysmlTranslator(o)
+          case Some(o: Cli.SireumHamrSysmlConfigOption) =>
+            init.basicDeps()
+            return cli.HAMR.sysmlConfig(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             init.basicDeps()
             init.logikaDeps()

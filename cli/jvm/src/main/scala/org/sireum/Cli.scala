@@ -139,6 +139,24 @@ object Cli {
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumHamrSysmlConfigPlatform {
+    'JVM
+    'MacOS
+    'Linux
+    'Cygwin
+    'SeL4
+    'SeL4_Only
+    'SeL4_TB
+  }
+
+  @datatype class SireumHamrSysmlConfigOption(
+    val help: String,
+    val args: ISZ[String],
+    val parseableMessages: B,
+    val properties: Option[String],
+    val target: SireumHamrSysmlConfigPlatform.Type
+  ) extends SireumTopOption
+
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
     'NearestTiesToEven
     'NearestTiesToAway
@@ -1418,15 +1436,17 @@ import Cli._
             |
             |Available modes:
             |codegen                  SysML v2 Codegen
+            |config                   SysML v2 CodeGen Config
             |logika                   SysML v2 Verifier
             |tipe                     SysML v2 Type Checker
             |translator               SysML v2 Grammar Translator to ANTLR v4""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sysml", args, i, ISZ("codegen", "logika", "tipe", "translator"))
+    val opt = select("sysml", args, i, ISZ("codegen", "config", "logika", "tipe", "translator"))
     opt match {
       case Some(string"codegen") => return parseSireumHamrSysmlCodegen(args, i + 1)
+      case Some(string"config") => return parseSireumHamrSysmlConfig(args, i + 1)
       case Some(string"logika") => return parseSireumHamrSysmlLogika(args, i + 1)
       case Some(string"tipe") => return parseSireumHamrSysmlTipe(args, i + 1)
       case Some(string"translator") => return parseSireumHamrSysmlTranslator(args, i + 1)
@@ -1707,6 +1727,84 @@ import Cli._
       }
     }
     return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+  }
+
+  def parseSireumHamrSysmlConfigPlatformH(arg: String): Option[SireumHamrSysmlConfigPlatform.Type] = {
+    arg.native match {
+      case "JVM" => return Some(SireumHamrSysmlConfigPlatform.JVM)
+      case "macOS" => return Some(SireumHamrSysmlConfigPlatform.MacOS)
+      case "Linux" => return Some(SireumHamrSysmlConfigPlatform.Linux)
+      case "Cygwin" => return Some(SireumHamrSysmlConfigPlatform.Cygwin)
+      case "seL4" => return Some(SireumHamrSysmlConfigPlatform.SeL4)
+      case "seL4_Only" => return Some(SireumHamrSysmlConfigPlatform.SeL4_Only)
+      case "seL4_TB" => return Some(SireumHamrSysmlConfigPlatform.SeL4_TB)
+      case s =>
+        eprintln(s"Expecting one of the following: { JVM, macOS, Linux, Cygwin, seL4, seL4_Only, seL4_TB }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlConfigPlatform(args: ISZ[String], i: Z): Option[SireumHamrSysmlConfigPlatform.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { JVM, macOS, Linux, Cygwin, seL4, seL4_Only, seL4_TB }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlConfigPlatformH(args(i))
+    return r
+  }
+
+  def parseSireumHamrSysmlConfig(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum HAMR SysML v2 CodeGen Config
+          |
+          |Usage: <option>* <sysmlv2-file>+
+          |
+          |Available Options:
+          |    --parseable-messages Print parseable file messages
+          |-p, --properties         Options .properties file (expects a path)
+          |-t, --target             Target platform (expects one of { JVM, macOS, Linux,
+          |                           Cygwin, seL4, seL4_Only, seL4_TB }; default: JVM)
+          |-h, --help               Display this information""".render
+
+    var parseableMessages: B = false
+    var properties: Option[String] = None[String]()
+    var target: SireumHamrSysmlConfigPlatform.Type = SireumHamrSysmlConfigPlatform.JVM
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--properties") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => properties = v
+             case _ => return None()
+           }
+         } else if (arg == "-t" || arg == "--target") {
+           val o: Option[SireumHamrSysmlConfigPlatform.Type] = parseSireumHamrSysmlConfigPlatform(args, j + 1)
+           o match {
+             case Some(v) => target = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), parseableMessages, properties, target))
   }
 
   def parseSireumHamrSysmlLogikaFPRoundingModeH(arg: String): Option[SireumHamrSysmlLogikaFPRoundingMode.Type] = {
