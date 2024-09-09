@@ -719,7 +719,7 @@ object HAMR {
         lang.ast.ResolvedAttr(midPointPos, implyResOpt, lang.ast.Typed.bOpt), midPointPos)
 
       println(st"Checking integration constraints of ${(ids, ".")}".render)
-      tasks = tasks :+ logika.Task.Claim(th, config, s"Integration constraint of ${(ids, ", ")}", claim, plugins)
+      tasks = tasks :+ logika.Task.Claim(th, config, st"Integration constraint of ${(ids, ".")}".render, claim, plugins)
     }
     val smt2f = (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
       th, reporter)
