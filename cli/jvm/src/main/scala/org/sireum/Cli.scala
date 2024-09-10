@@ -175,6 +175,7 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val exclude: ISZ[String],
+    val feedback: Option[String],
     val sourcepath: ISZ[String],
     val parseableMessages: B,
     val charBitWidth: Z,
@@ -1856,9 +1857,10 @@ import Cli._
           |Usage: <option>* <sysmlv2-file>*
           |
           |Available Options:
-          |-x, --exclude            Sourcepath exclusion as URI segment (expects a string
+          |    --exclude            Sourcepath exclusion as URI segment (expects a string
           |                           separated by ",")
-          |-s, --sourcepath         Source paths of SysML v2 .sysml files (expects path
+          |    --feedback           Feedback output directory (expects a path)
+          |    --sourcepath         Source paths of SysML v2 .sysml files (expects path
           |                           strings)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
@@ -1958,6 +1960,7 @@ import Cli._
           |                           solvers when discharging VCs""".render
 
     var exclude: ISZ[String] = ISZ[String]()
+    var feedback: Option[String] = None[String]()
     var sourcepath: ISZ[String] = ISZ[String]()
     var parseableMessages: B = false
     var charBitWidth: Z = 32
@@ -2013,13 +2016,19 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-x" || arg == "--exclude") {
+        } else if (arg == "--exclude") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => exclude = v
              case _ => return None()
            }
-         } else if (arg == "-s" || arg == "--sourcepath") {
+         } else if (arg == "--feedback") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => feedback = v
+             case _ => return None()
+           }
+         } else if (arg == "--sourcepath") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
              case Some(v) => sourcepath = v
@@ -2313,7 +2322,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, feedback, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumHamrSysmlTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
