@@ -26,11 +26,12 @@
 package org.sireum
 
 import org.sireum.logika.Logika.Reporter.Info.Kind
-import org.sireum.logika.Smt2Query
+import org.sireum.logika.{Logika, Smt2Query}
 import org.sireum.message.{Position, Reporter}
 import org.sireum.project.DependencyManager
 
 import java.io.{FileWriter, OutputStream, PrintStream}
+import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
@@ -114,6 +115,7 @@ object Sireum {
   lazy val commitHash: String = $internal.Macro.commitHash
 
   lazy val homeOpt: Option[Os.Path] = Some(init.home)
+
   def homePathString: String = homeOpt.get.string
 
   lazy val javaHomeOpt: Option[Os.Path] = {
@@ -129,15 +131,19 @@ object Sireum {
     }
     rOpt
   }
+
   def javaHomePathString: String = javaHomeOpt.get.string
 
   lazy val scalaHomeOpt: Option[Os.Path] = Some(init.scalaHome)
+
   def scalaHomePathString: String = scalaHomeOpt.get.string
 
   lazy val scalacPluginJar: Os.Path = init.scalacPlugin
+
   def scalacPluginJarPathString: String = scalacPluginJar.string
 
   lazy val sireumJar: Os.Path = init.sireumJar
+
   def sireumJarPathString: String = sireumJar.string
 
   lazy val ideaDir: Os.Path =
@@ -175,11 +181,11 @@ object Sireum {
 
   lazy val (isDev, javaVer, scalaVer, scalacPluginVer): (B, String, String, String) = {
     import project.DependencyManager._
-    (//!(Some("false") == versions.get("org.sireum.version.dev")),
-     F,
-     versions.get(javaKey).get,
-     versions.get(scalaKey).get,
-     versions.get(scalacPluginKey).get)
+    ( //!(Some("false") == versions.get("org.sireum.version.dev")),
+      F,
+      versions.get(javaKey).get,
+      versions.get(scalaKey).get,
+      versions.get(scalacPluginKey).get)
   }
 
   def homeFound: B = {
@@ -298,6 +304,7 @@ object Sireum {
     def firstErr(): ISZ[String] = {
       halt(s"The first path command should be 'sireum${if (Os.isWin) ".bat" else ""}'")
     }
+
     p match {
       case p: Os.Proc if p.envMap.nonEmpty || p.shouldPrintEnv || p.timeoutInMillis > 0 || p.outLineActionOpt.nonEmpty || p.errLineActionOpt.nonEmpty =>
         println("Some proc options are ignored (e.g., env, timeout, line action, etc.)")
@@ -306,7 +313,7 @@ object Sireum {
     }
 
     val args: ISZ[String] = p.cmds match {
-      case ISZ(first,  _*) =>
+      case ISZ(first, _*) =>
         val firstName = Os.path(first).name
         if (firstName === "sireum" || firstName === "sireum.bat") ops.ISZOps(p.cmds).drop(1)
         else firstErr()
@@ -324,6 +331,7 @@ object Sireum {
           oldOut.flush()
         }
       }
+
       override def write(b: Array[Byte], off: Int, len: Int): Unit = {
         super.write(b, off, len)
         if (p.shouldOutputConsole) {
@@ -340,6 +348,7 @@ object Sireum {
           oldErr.flush()
         }
       }
+
       override def write(b: Array[Byte], off: Int, len: Int): Unit = {
         super.write(b, off, len)
         if (p.shouldOutputConsole) {
@@ -402,6 +411,7 @@ object Sireum {
            |    --test-cli           Test CLI arguments (expects strings)
            |-v, --version            Print version information""".stripMargin)
     }
+
     args match {
       case ISZ(string"-h") =>
         Cli(Os.pathSepChar).parseSireum(ISZ(), 0)
@@ -534,26 +544,56 @@ object Sireum {
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.HAMR.sysmlLogika(o, reporter)
               case _ =>
+                val feedbackDirOpt: Option[Os.Path] = o.feedback match {
+                  case Some(d) => Some(Os.path(d))
+                  case _ => None()
+                }
+                val sha3 = MessageDigest.getInstance("SHA3-512")
+
+                def write(d: Os.Path, content: String): Unit = {
+                  val f = d / st"${(ISZ(sha3.digest(content.value.getBytes("UTF-8")).take(8).map(U8(_)).toSeq: _*), "")}.json".render
+                  f.writeOver(content)
+                }
                 class Rep extends logika.ReporterImpl(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, F, ISZ(), o.stats,
                   new AtomicLong(0), new AtomicLong(0), new AtomicLong(0), new AtomicLong(0)) {
-
-                    override def empty: logika.Logika.Reporter = {
-                      new Rep()
-                    }
-                    override def query(pos: Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: Smt2Query.Result): Unit = {
-                      super.query(pos, title, isSat, time, forceReport, detailElided, r)
-                      if (!isSat && r.kind == Smt2Query.Result.Kind.Unsat) {
-                        info(Some(pos), "Logika", s"Verified: $title")
-                      }
-                    }
-                    override def inform(pos: Position, kind: Kind.Type, message: String): Unit = {
-                      super.inform(pos, kind, message)
-                      if (kind == Kind.Verified) {
-                        info(Some(pos), "Logika", s"Verified: ${message.value.takeWhile(c => c != '\n')}")
-                      }
+                  override def empty: logika.Logika.Reporter = {
+                    new Rep()
+                  }
+                  override def query(pos: Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: Smt2Query.Result): Unit = {
+                    super.query(pos, title, isSat, time, forceReport, detailElided, r)
+                    feedbackDirOpt match {
+                      case Some(d) =>
+                        val content = server.protocol.JSON.fromLogikaVerifySmt2Query(
+                          server.protocol.Logika.Verify.Smt2Query(ISZ(), pos, isSat, time, title, r.kind, r.solverName,
+                            r.query, r.info, r.output), T)
+                        write(d, content)
+                      case _ =>
                     }
                   }
-
+                  override def coverage(setCache: B, cached: U64, pos: Position): Unit = {
+                    feedbackDirOpt match {
+                      case Some(d) =>
+                        val content = server.protocol.JSON.fromAnalysisCoverage(
+                          server.protocol.Analysis.Coverage(ISZ(), setCache, cached, pos), T)
+                        write(d, content)
+                      case _ =>
+                    }
+                  }
+                  override def inform(pos: Position, kind: Kind.Type, message: String): Unit = {
+                    super.inform(pos, kind, message)
+                    feedbackDirOpt match {
+                      case Some(d) =>
+                        val k: server.protocol.Logika.Verify.Info.Kind.Type = kind match {
+                          case logika.Logika.Reporter.Info.Kind.Verified => server.protocol.Logika.Verify.Info.Kind.Verified
+                          case logika.Logika.Reporter.Info.Kind.Error => server.protocol.Logika.Verify.Info.Kind.Error
+                        }
+                        val content = server.protocol.JSON.fromLogikaVerifyInfo(server.protocol.Logika.Verify.Info(ISZ(),
+                          pos, k, message), T)
+                        write(d, content)
+                      case _ =>
+                    }
+                  }
+                }
                 val rep = new Rep
                 rep.collectStats = o.stats
                 val exitCode = cli.HAMR.sysmlLogika(o, rep)
@@ -680,6 +720,7 @@ object Sireum {
                 val buffer = new Array[Char](1024)
                 var i = 0
                 val log = (home / ".server.log").string.value
+
                 def flushLog(): Unit = {
                   val fs = new FileWriter(log, true)
                   try {
@@ -689,6 +730,7 @@ object Sireum {
                     fs.close()
                   }
                 }
+
                 val ps = new PrintStream(new OutputStream {
                   def w(b: Int): Unit = {
                     buffer(i) = (b & 0xFF).toChar
@@ -697,12 +739,15 @@ object Sireum {
                       flushLog()
                     }
                   }
+
                   override def write(b: Int): Unit = buffer.synchronized(w(b))
+
                   override def write(b: Array[Byte], off: Int, len: Int): Unit = buffer.synchronized {
                     for (i <- 0 until len) {
                       w(b(off + i))
                     }
                   }
+
                   override def flush(): Unit = flushLog()
                 })
                 try {
