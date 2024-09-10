@@ -57,7 +57,7 @@ object Cli {
     val runtimeMonitoring: B,
     val platform: SireumHamrCodegenHamrPlatform.Type,
     val parseableMessages: B,
-    val outputDir: Option[String],
+    val slangOutputDir: Option[String],
     val packageName: Option[String],
     val noProyekIve: B,
     val noEmbedArt: B,
@@ -72,7 +72,7 @@ object Cli {
     val runTranspiler: B,
     val camkesOutputDir: Option[String],
     val camkesAuxCodeDirs: ISZ[String],
-    val aadlRootDir: Option[String],
+    val workspaceRootDir: Option[String],
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -120,7 +120,7 @@ object Cli {
     val runtimeMonitoring: B,
     val platform: SireumHamrSysmlCodegenHamrPlatform.Type,
     val parseableMessages: B,
-    val outputDir: Option[String],
+    val slangOutputDir: Option[String],
     val packageName: Option[String],
     val noProyekIve: B,
     val noEmbedArt: B,
@@ -135,7 +135,7 @@ object Cli {
     val runTranspiler: B,
     val camkesOutputDir: Option[String],
     val camkesAuxCodeDirs: ISZ[String],
-    val aadlRootDir: Option[String],
+    val workspaceRootDir: Option[String],
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -1052,7 +1052,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Slang Options:
-          |-o, --output-dir         Output directory for the generated project files
+          |-o, --slang-output-dir    
+          |                          Output directory for the generated project files
           |                           (expects a path; default is ".")
           |-n, --package-name       Base package name for Slang project (output-dir's
           |                           simple name used if not provided) (expects a string)
@@ -1083,8 +1084,9 @@ import Cli._
           |    --camkes-aux-code-dirs
           |                          Directories containing C files to be included in
           |                           CAmkES build (expects path strings)
-          |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
-          |                           path)
+          |-r, --workspace-root-dir    
+          |                          Root directory containing the architectural model
+          |                           project (expects a path)
           |
           |Experimental Options:
           |-x, --experimental-options    
@@ -1095,7 +1097,7 @@ import Cli._
     var runtimeMonitoring: B = false
     var platform: SireumHamrCodegenHamrPlatform.Type = SireumHamrCodegenHamrPlatform.JVM
     var parseableMessages: B = false
-    var outputDir: Option[String] = Some(".")
+    var slangOutputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
     var noProyekIve: B = false
     var noEmbedArt: B = false
@@ -1110,7 +1112,7 @@ import Cli._
     var runTranspiler: B = false
     var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
-    var aadlRootDir: Option[String] = None[String]()
+    var workspaceRootDir: Option[String] = None[String]()
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1150,10 +1152,10 @@ import Cli._
              case Some(v) => parseableMessages = v
              case _ => return None()
            }
-         } else if (arg == "-o" || arg == "--output-dir") {
+         } else if (arg == "-o" || arg == "--slang-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => outputDir = v
+             case Some(v) => slangOutputDir = v
              case _ => return None()
            }
          } else if (arg == "-n" || arg == "--package-name") {
@@ -1240,10 +1242,10 @@ import Cli._
              case Some(v) => camkesAuxCodeDirs = v
              case _ => return None()
            }
-         } else if (arg == "-r" || arg == "--aadl-root-dir") {
+         } else if (arg == "-r" || arg == "--workspace-root-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => aadlRootDir = v
+             case Some(v) => workspaceRootDir = v
              case _ => return None()
            }
          } else if (arg == "-x" || arg == "--experimental-options") {
@@ -1261,7 +1263,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1504,7 +1506,8 @@ import Cli._
           |-h, --help               Display this information
           |
           |Slang Options:
-          |-o, --output-dir         Output directory for the generated project files
+          |-o, --slang-output-dir    
+          |                          Output directory for the generated project files
           |                           (expects a path; default is ".")
           |-n, --package-name       Base package name for Slang project (output-dir's
           |                           simple name used if not provided) (expects a string)
@@ -1535,8 +1538,9 @@ import Cli._
           |    --camkes-aux-code-dirs
           |                          Directories containing C files to be included in
           |                           CAmkES build (expects path strings)
-          |-r, --aadl-root-dir      Root directory containing the AADL project (expects a
-          |                           path)
+          |-r, --workspace-root-dir    
+          |                          Root directory containing the architectural model
+          |                           project (expects a path)
           |
           |Experimental Options:
           |-x, --experimental-options    
@@ -1549,7 +1553,7 @@ import Cli._
     var runtimeMonitoring: B = false
     var platform: SireumHamrSysmlCodegenHamrPlatform.Type = SireumHamrSysmlCodegenHamrPlatform.JVM
     var parseableMessages: B = false
-    var outputDir: Option[String] = Some(".")
+    var slangOutputDir: Option[String] = Some(".")
     var packageName: Option[String] = None[String]()
     var noProyekIve: B = false
     var noEmbedArt: B = false
@@ -1564,7 +1568,7 @@ import Cli._
     var runTranspiler: B = false
     var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
-    var aadlRootDir: Option[String] = None[String]()
+    var workspaceRootDir: Option[String] = None[String]()
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1616,10 +1620,10 @@ import Cli._
              case Some(v) => parseableMessages = v
              case _ => return None()
            }
-         } else if (arg == "-o" || arg == "--output-dir") {
+         } else if (arg == "-o" || arg == "--slang-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => outputDir = v
+             case Some(v) => slangOutputDir = v
              case _ => return None()
            }
          } else if (arg == "-n" || arg == "--package-name") {
@@ -1706,10 +1710,10 @@ import Cli._
              case Some(v) => camkesAuxCodeDirs = v
              case _ => return None()
            }
-         } else if (arg == "-r" || arg == "--aadl-root-dir") {
+         } else if (arg == "-r" || arg == "--workspace-root-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => aadlRootDir = v
+             case Some(v) => workspaceRootDir = v
              case _ => return None()
            }
          } else if (arg == "-x" || arg == "--experimental-options") {
@@ -1727,7 +1731,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, outputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, aadlRootDir, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigPlatformH(arg: String): Option[SireumHamrSysmlConfigPlatform.Type] = {

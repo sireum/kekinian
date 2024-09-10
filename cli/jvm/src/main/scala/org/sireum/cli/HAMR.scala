@@ -113,6 +113,11 @@ object HAMR {
       return INVALID_OPTIONS
     }
 
+    if (o.system.isEmpty && o.args.isEmpty) {
+      eprintln("Must provide the file argument or use the system-name option")
+      return INVALID_OPTIONS
+    }
+
     if (o.system.nonEmpty && o.args.nonEmpty) {
       // TODO: could see if the file has exactly one system, if so then instantiate that
       println("The file argument is currently ignored when the system-name is set")
@@ -181,8 +186,8 @@ object HAMR {
           }
 
           codeGenReporter(modelElement.model, convertSysmlOptions(mergedOptions), reporter)
-          if (!reporter.hasError && o.outputDir.nonEmpty) {
-            val airOut = Os.path(o.outputDir.get) / "air.json"
+          if (!reporter.hasError && o.slangOutputDir.nonEmpty) {
+            val airOut = Os.path(o.slangOutputDir.get) / "air.json"
             airOut.writeOver(org.sireum.hamr.ir.JSON.fromAadl(modelElement.model, F))
             println(s"Wrote: ${airOut}")
           }
@@ -222,7 +227,7 @@ object HAMR {
                //
                camkesOutputDirectory: Option[String],
                camkesAuxCodeDirs: ISZ[String],
-               aadlRootDir: Option[String],
+               workspaceRootDir: Option[String],
                //
                experimentalOptions: ISZ[String],
                //
@@ -249,7 +254,7 @@ object HAMR {
       runTranspiler = runTranspiler,
       camkesOutputDirectory = camkesOutputDirectory,
       camkesAuxCodeDirs = camkesAuxCodeDirs,
-      aadlRootDir = aadlRootDir,
+      workspaceRootDir = workspaceRootDir,
       experimentalOptions = experimentalOptions,
       plugins = ArsitPlugin.gumboEnhancedPlugins,
       reporter = reporter)
@@ -291,7 +296,7 @@ object HAMR {
                //
                camkesOutputDirectory: Option[String],
                camkesAuxCodeDirs: ISZ[String],
-               aadlRootDir: Option[String],
+               workspaceRootDir: Option[String],
                //
                experimentalOptions: ISZ[String],
                //
@@ -309,7 +314,7 @@ object HAMR {
       runtimeMonitoring = runtimeMonitoring,
       platform = platform,
       //
-      outputDir = slangOutputDir,
+      slangOutputDir = slangOutputDir,
       packageName = slangPackageName,
       noProyekIve = noProyekIve,
       noEmbedArt = noEmbedArt,
@@ -326,7 +331,7 @@ object HAMR {
       //
       camkesOutputDir = camkesOutputDirectory,
       camkesAuxCodeDirs = camkesAuxCodeDirs,
-      aadlRootDir = aadlRootDir,
+      workspaceRootDir = workspaceRootDir,
       //
       experimentalOptions = experimentalOptions,
       parseableMessages = F
@@ -751,7 +756,7 @@ object HAMR {
       runtimeMonitoring = o.runtimeMonitoring,
       platform = Cli.SireumHamrCodegenHamrPlatform.byName(o.platform.name).get,
       parseableMessages = o.parseableMessages,
-      outputDir = o.outputDir,
+      slangOutputDir = o.slangOutputDir,
       packageName = o.packageName,
       noProyekIve = o.noProyekIve,
       noEmbedArt = o.noEmbedArt,
@@ -766,7 +771,7 @@ object HAMR {
       runTranspiler = o.runTranspiler,
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
-      aadlRootDir = o.aadlRootDir,
+      workspaceRootDir = o.workspaceRootDir,
       experimentalOptions = o.experimentalOptions)
   }
 
@@ -779,7 +784,7 @@ object HAMR {
       runtimeMonitoring = o.runtimeMonitoring,
       platform = CodeGenPlatform.byName(o.platform.name).get,
       //
-      slangOutputDir = o.outputDir,
+      slangOutputDir = o.slangOutputDir,
       packageName = o.packageName,
       noProyekIve = o.noProyekIve,
       noEmbedArt = o.noEmbedArt,
@@ -796,7 +801,7 @@ object HAMR {
       //
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
-      aadlRootDir = o.aadlRootDir,
+      workspaceRootDir = o.workspaceRootDir,
       //
       experimentalOptions = o.experimentalOptions
     )
@@ -831,83 +836,85 @@ object HAMR {
   def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Option[Cli.SireumHamrSysmlCodegenOption] = {
-    var validKeys: Set[String] = Set.empty
-
-    def addOptions(opts: ISZ[CliOpt.Opt]): Unit = {
+    var shorts: Map[String, String] = Map.empty
+    var longs: Map[String, String] = Map.empty
+    @strictpure def long(s: String): String = longs.get(s).get
+    @strictpure def short(s: String): String = shorts.get(s).get
+    def addOptions(opts: ISZ[CliOpt.Opt], optGroup: String): Unit = {
       for (o <- opts) {
-        validKeys = validKeys + s"--${o.longKey}"
+        longs = longs + s"$optGroup${o.name}" ~> s"--${o.longKey}"
         if (o.shortKey.nonEmpty) {
-          validKeys = validKeys + s"-${o.shortKey.get}"
+          shorts = shorts + s"$optGroup${o.name}" ~> s"-${o.shortKey.get}"
         }
       }
     }
-
-    addOptions(sysmlCodegen.opts)
+    addOptions(sysmlCodegen.opts, "")
     for (g <- sysmlCodegen.groups) {
-      addOptions(g.opts)
+      addOptions(g.opts, s"${g.name}.")
     }
 
-    var keys: ISZ[String] = ISZ()
-    for (k <- fileOpts) {
-      if (ops.StringOps(k).startsWith("-") && validKeys.contains(k)) {
-        keys = keys :+ k
-      }
-    }
+    assert(longs.size == 24, s"Expecting 24 keys but found ${longs.size}") // will need to update the if/elses below to reflect added/removed options
 
     // TODO: for now the file options (if set) takes precedence over any cli options (expect line and system-name)
     var ret = o
-    for (k <- keys) {
-      if (k == "--sourcepath") {
+    for (k <- fileOpts if (ops.StringOps(k).startsWith("--") && longs.valueSet.contains(k)) || (ops.StringOps(k).startsWith("-") && shorts.valueSet.contains(k))) {
+      if (k == long("sourcepath")) {
         ret = ret(sourcepath = fileOptions.sourcepath)
-      } else if (k == "--line") {
+      } else if (k == long("line")) {
         eprintln("Cannot set 'line' in file options")
         return None()
-      } else if (k == "--system-name") {
+      } else if (k == long("system")) {
         eprintln("Cannot set 'system-name' in file options")
         return None()
-      } else if (k == "-v" || k == "--verbose") {
+      } else if (k == short("verbose") || k == long("verbose")) {
         ret = ret(verbose = fileOptions.verbose)
-      } else if (k == "-m" || k == "--runtime-monitoring") {
+      } else if (k == short("runtimeMonitoring") || k == long("runtimeMonitoring")) {
         ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
-      } else if (k == "-p" || k == "--platform") {
+      } else if (k == short("platform") || k == long("platform")) {
         ret = ret(platform = fileOptions.platform)
-      } else if (k == "--parseable-messages") {
+      } else if (k == long("parseableMessages")) {
         ret = ret(parseableMessages = fileOptions.parseableMessages)
-      } else if (k == "-h" || k == "--help") {
-        ret = ret(help = fileOptions.help)
-      } else if (k == "-o" || k == "--output-dir") {
-        ret = ret(outputDir = fileOptions.outputDir)
-      } else if (k == "-n" || k == "--package-name") {
+      }
+      //
+      else if (k == short("Slang.slangOutputDir") || k == long("Slang.slangOutputDir")) {
+        ret = ret(slangOutputDir = fileOptions.slangOutputDir)
+      } else if (k == short("Slang.packageName") || k == long("Slang.packageName")) {
         ret = ret(packageName = fileOptions.packageName)
-      } else if (k == "--no-proyek-ive") {
+      } else if (k == long("Slang.noProyekIve")) {
         ret = ret(noProyekIve = fileOptions.noProyekIve)
-      } else if (k == "--no-embed-art") {
+      } else if (k == long("Slang.noEmbedArt")) {
         ret = ret(noEmbedArt = fileOptions.noEmbedArt)
-      } else if (k == "--devices-as-thread") {
+      } else if (k == long("Slang.devicesAsThreads")) {
         ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
-      } else if (k == "--sbt-mill") {
+      } else if (k == long("Slang.genSbtMill")) {
         ret = ret(genSbtMill = fileOptions.genSbtMill)
-      } else if (k == "--aux-code-dirs") {
+      }
+      //
+      else if (k == long("Transpiler.slangAuxCodeDirs")) {
         ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
-      } else if (k == "--output-c-dir") {
+      } else if (k == long("Transpiler.slangOutputCDir")) {
         ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
-      } else if (k == "-e" || k == "--exclude-component-impl") {
+      } else if (k == short("Transpiler.excludeComponentImpl") || k == long("Transpiler.excludeComponentImpl")) {
         ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
-      } else if (k == "-b" || k == "--bit-width") {
+      } else if (k == short("Transpiler.bitWidth") || k == long("Transpiler.bitWidth")) {
         ret = ret(bitWidth = fileOptions.bitWidth)
-      } else if (k == "-s" || k == "--max-string-size") {
+      } else if (k == short("Transpiler.maxStringSize") || k == long("Transpiler.maxStringSize")) {
         ret = ret(maxStringSize = fileOptions.maxStringSize)
-      } else if (k == "-a" || k == "--max-array-size") {
+      } else if (k == short("Transpiler.maxArraySize") || k == long("Transpiler.maxArraySize")) {
         ret = ret(maxArraySize = fileOptions.maxArraySize)
-      } else if (k == "-t" || k == "--run-transpiler") {
+      } else if (k == short("Transpiler.runTranspiler") || k == "Transpiler.runTranspiler") {
         ret = ret(runTranspiler = fileOptions.runTranspiler)
-      } else if (k == "--camkes-output-dir") {
+      }
+      //
+      else if (k == long("CAmkES.camkesOutputDir")) {
         ret = ret(camkesOutputDir = fileOptions.camkesOutputDir)
-      } else if (k == "--camkes-aux-code-dirs") {
+      } else if (k == long("CAmkES.camkesAuxCodeDirs")) {
         ret = ret(camkesAuxCodeDirs = fileOptions.camkesAuxCodeDirs)
-      } else if (k == "-r" || k == "--aadl-root-dir") {
-        ret = ret(aadlRootDir = fileOptions.aadlRootDir)
-      } else if (k == "-x" || k == "--experimental-options") {
+      } else if (k == short("CAmkES.workspaceRootDir") || k == long("CAmkES.workspaceRootDir")) {
+        ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
+      }
+      //
+      else if (k == short("Experimental.experimentalOptions") || k == long("Experimental.experimentalOptions")) {
         ret = ret(experimentalOptions = fileOptions.experimentalOptions)
       } else {
         eprintln(s"'$k' is not a valid option key")

@@ -70,7 +70,7 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
       assert(json.size == 1, s"Expecting a single AIR/JSON file but found ${json.size}")
 
       oldOut.println("Running codegen which invokes SlangCheck via a callback ...")
-      val hcmd = ISZ[String]("hamr", "codegen", "--no-proyek-ive", "--package-name", packageName, "--output-dir", proyekRootDir.value, json(0).value)
+      val hcmd = ISZ[String]("hamr", "codegen", "--no-proyek-ive", "--package-name", packageName, "--slang-output-dir", proyekRootDir.value, json(0).value)
       val hresult = Sireum.run(hcmd, reporter)
 
       check("Codegen + SlangCheck", hresult)
