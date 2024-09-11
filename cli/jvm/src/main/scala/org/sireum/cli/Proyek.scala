@@ -328,7 +328,7 @@ object Proyek {
             |  echo "Please set SIREUM_HOME env var"             #
             |  exit -1                                           #
             |fi                                                  #
-            |exec $${SIREUM_HOME}/bin/sireum slang run "$$0" "$$@"  #
+            |exec "$${SIREUM_HOME}/bin/sireum" slang run "$$0" "$$@"  #
             |:BOF
             |setlocal
             |if not defined SIREUM_HOME (
