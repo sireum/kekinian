@@ -1,6 +1,6 @@
 ::/*#! 2> /dev/null                                                                                         #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
-export SIREUM_HOME=$(cd -P $(dirname "$0")/.. && pwd -P)                                                    #
+export SIREUM_HOME=$(cd -P "$(dirname "$0")/.." && pwd -P)                                                  #
 if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                                                #
   SIREUM_PROVIDED_JAVA=true                                                                                 #
 fi                                                                                                          #
@@ -43,7 +43,7 @@ del "%~dpnx0.com" > nul 2>&1
 "%~dp0sireum.bat" slang run "%0" %*
 exit /B %errorlevel%
 :native
-%~dpnx0.com %*
+"%~dpnx0.com" %*
 exit /B %errorlevel%
 ::!#*/
 // #Sireum
