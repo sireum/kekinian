@@ -153,7 +153,6 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val parseableMessages: B,
-    val properties: Option[String],
     val target: SireumHamrSysmlConfigPlatform.Type
   ) extends SireumTopOption
 
@@ -1766,13 +1765,11 @@ import Cli._
           |
           |Available Options:
           |    --parseable-messages Print parseable file messages
-          |-p, --properties         Options .properties file (expects a path)
           |-t, --target             Target platform (expects one of { JVM, macOS, Linux,
           |                           Cygwin, seL4, seL4_Only, seL4_TB }; default: JVM)
           |-h, --help               Display this information""".render
 
     var parseableMessages: B = false
-    var properties: Option[String] = None[String]()
     var target: SireumHamrSysmlConfigPlatform.Type = SireumHamrSysmlConfigPlatform.JVM
     var j = i
     var isOption = T
@@ -1786,12 +1783,6 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
            o match {
              case Some(v) => parseableMessages = v
-             case _ => return None()
-           }
-         } else if (arg == "-p" || arg == "--properties") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => properties = v
              case _ => return None()
            }
          } else if (arg == "-t" || arg == "--target") {
@@ -1809,7 +1800,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), parseableMessages, properties, target))
+    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), parseableMessages, target))
   }
 
   def parseSireumHamrSysmlLogikaFPRoundingModeH(arg: String): Option[SireumHamrSysmlLogikaFPRoundingMode.Type] = {
