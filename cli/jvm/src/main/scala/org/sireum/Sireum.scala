@@ -439,7 +439,7 @@ object Sireum {
           init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
         println()
         println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = F, isServer = F)}")
-        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home))}")
+        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
         return 0
       case ISZ(string"--setup-server") =>
         init.deps()
@@ -452,7 +452,7 @@ object Sireum {
           init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
         println()
         println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = F, isServer = T)}")
-        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home))}")
+        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
         return 0
       case ISZ(string"--setup-ultimate") =>
         init.deps()
@@ -465,7 +465,7 @@ object Sireum {
           init.ideaConfig(T, F, T, None()), init.ideaSandbox(F))
         println()
         println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = T, isServer = F)}")
-        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home))}")
+        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
         return 0
       case ISZ(string"--sha") =>
         println(commitSha)
