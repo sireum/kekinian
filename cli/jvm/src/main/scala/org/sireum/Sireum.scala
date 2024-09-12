@@ -561,6 +561,7 @@ object Sireum {
                   }
                   override def query(pos: Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: Smt2Query.Result): Unit = {
                     super.query(pos, title, isSat, time, forceReport, detailElided, r)
+                    println(s"query: $pos")
                     feedbackDirOpt match {
                       case Some(d) =>
                         val content = server.protocol.JSON.fromLogikaVerifySmt2Query(
@@ -571,6 +572,7 @@ object Sireum {
                     }
                   }
                   override def coverage(setCache: B, cached: U64, pos: Position): Unit = {
+                    println(s"coverage: $pos")
                     feedbackDirOpt match {
                       case Some(d) =>
                         val content = server.protocol.JSON.fromAnalysisCoverage(
@@ -581,6 +583,7 @@ object Sireum {
                   }
                   override def inform(pos: Position, kind: Kind.Type, message: String): Unit = {
                     super.inform(pos, kind, message)
+                    println(s"inform: $pos")
                     feedbackDirOpt match {
                       case Some(d) =>
                         val k: server.protocol.Logika.Verify.Info.Kind.Type = kind match {
