@@ -95,10 +95,11 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Oracle GraalVM](https://www.oracle.com/java/graalvm/) | [GFTC](https://www.oracle.com/downloads/licenses/graal-free-license.html) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
 | [Rust](https://www.rust-lang.org/) | [MIT](https://www.rust-lang.org/policies/licenses) |
+| [RustRover](https://www.jetbrains.com/rust/) | Non-Commercial |
 | [VSCodium](https://vscodium.com/) | [MIT](https://github.com/VSCodium/vscodium/blob/master/LICENSE) |
 
 
-| IntelliJ/CLion Plugin | License |
+| IntelliJ/CLion/RustRover Plugin | License |
 |  :---  | :---: |
 | [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [ASM](https://github.com/sireum/intellij-asm) | [Apache 2.0](https://github.com/sireum/intellij-asm/blob/master/LICENSE) |
@@ -107,7 +108,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [PDF Viewer](https://plugins.jetbrains.com/plugin/14494-pdf-viewer) | [MIT](https://github.com/FirstTimeInForever/intellij-pdf-viewer/blob/master/LICENSE) |
 | [PlantUML Integration](https://plugins.jetbrains.com/plugin/7017-plantuml-integration) | [Apache 2.0](https://github.com/esteinberg/plantuml4idea/blob/master/LICENSE.txt) |
-| [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | Commercial (Ultimate only) |
+| [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | Ultimate/Commercial/Non-Commercial |
 | [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
 | [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
