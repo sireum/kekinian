@@ -49,6 +49,16 @@ object Cli {
     'Ros2
   }
 
+  @enum object SireumHamrCodegenNodesCodeLanguage {
+    'Python
+    'Cpp
+  }
+
+  @enum object SireumHamrCodegenLaunchCodeLanguage {
+    'Python
+    'Xml
+  }
+
   @datatype class SireumHamrCodegenOption(
     val help: String,
     val args: ISZ[String],
@@ -73,6 +83,11 @@ object Cli {
     val camkesOutputDir: Option[String],
     val camkesAuxCodeDirs: ISZ[String],
     val workspaceRootDir: Option[String],
+    val strictAadlMode: B,
+    val ros2OutputWorkspaceDir: Option[String],
+    val ros2Dir: Option[String],
+    val ros2NodesLanguage: SireumHamrCodegenNodesCodeLanguage.Type,
+    val ros2LaunchLanguage: SireumHamrCodegenLaunchCodeLanguage.Type,
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -110,6 +125,16 @@ object Cli {
     'Ros2
   }
 
+  @enum object SireumHamrSysmlCodegenNodesCodeLanguage {
+    'Python
+    'Cpp
+  }
+
+  @enum object SireumHamrSysmlCodegenLaunchCodeLanguage {
+    'Python
+    'Xml
+  }
+
   @datatype class SireumHamrSysmlCodegenOption(
     val help: String,
     val args: ISZ[String],
@@ -136,6 +161,11 @@ object Cli {
     val camkesOutputDir: Option[String],
     val camkesAuxCodeDirs: ISZ[String],
     val workspaceRootDir: Option[String],
+    val strictAadlMode: B,
+    val ros2OutputWorkspaceDir: Option[String],
+    val ros2Dir: Option[String],
+    val ros2NodesLanguage: SireumHamrSysmlCodegenNodesCodeLanguage.Type,
+    val ros2LaunchLanguage: SireumHamrSysmlCodegenLaunchCodeLanguage.Type,
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -1057,6 +1087,44 @@ import Cli._
     return r
   }
 
+  def parseSireumHamrCodegenNodesCodeLanguageH(arg: String): Option[SireumHamrCodegenNodesCodeLanguage.Type] = {
+    arg.native match {
+      case "Python" => return Some(SireumHamrCodegenNodesCodeLanguage.Python)
+      case "Cpp" => return Some(SireumHamrCodegenNodesCodeLanguage.Cpp)
+      case s =>
+        eprintln(s"Expecting one of the following: { Python, Cpp }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrCodegenNodesCodeLanguage(args: ISZ[String], i: Z): Option[SireumHamrCodegenNodesCodeLanguage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { Python, Cpp }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrCodegenNodesCodeLanguageH(args(i))
+    return r
+  }
+
+  def parseSireumHamrCodegenLaunchCodeLanguageH(arg: String): Option[SireumHamrCodegenLaunchCodeLanguage.Type] = {
+    arg.native match {
+      case "Python" => return Some(SireumHamrCodegenLaunchCodeLanguage.Python)
+      case "Xml" => return Some(SireumHamrCodegenLaunchCodeLanguage.Xml)
+      case s =>
+        eprintln(s"Expecting one of the following: { Python, Xml }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrCodegenLaunchCodeLanguage(args: ISZ[String], i: Z): Option[SireumHamrCodegenLaunchCodeLanguage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { Python, Xml }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrCodegenLaunchCodeLanguageH(args(i))
+    return r
+  }
+
   def parseSireumHamrCodegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Generate code from AADL IR (AIR)
@@ -1112,6 +1180,21 @@ import Cli._
           |                          Root directory containing the architectural model
           |                           project (expects a path)
           |
+          |ROS2 Options:
+          |    --strict-aadl-mode   Whether to generate strictly AADL-compliant code or
+          |                           not (will probably become obsolete soon)
+          |    --ros2-output-workspace-dir
+          |                          The path to the ROS2 workspace to generate the
+          |                           packages into (expects a path)
+          |-r, --ros2-dir           The path to your ROS2 installation, including the
+          |                           version (../ros/humble) (expects a path)
+          |-p, --ros2-nodes-language    
+          |                          The programming language for the generated node files
+          |                           (expects one of { Python, Cpp }; default: Python)
+          |-p, --ros2-launch-language    
+          |                          The programming language for the launch file (expects
+          |                           one of { Python, Xml }; default: Python)
+          |
           |Experimental Options:
           |-x, --experimental-options    
           |                           (expects a string separated by ";")""".render
@@ -1137,6 +1220,11 @@ import Cli._
     var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var workspaceRootDir: Option[String] = None[String]()
+    var strictAadlMode: B = false
+    var ros2OutputWorkspaceDir: Option[String] = None[String]()
+    var ros2Dir: Option[String] = None[String]()
+    var ros2NodesLanguage: SireumHamrCodegenNodesCodeLanguage.Type = SireumHamrCodegenNodesCodeLanguage.Python
+    var ros2LaunchLanguage: SireumHamrCodegenLaunchCodeLanguage.Type = SireumHamrCodegenLaunchCodeLanguage.Python
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1272,6 +1360,36 @@ import Cli._
              case Some(v) => workspaceRootDir = v
              case _ => return None()
            }
+         } else if (arg == "--strict-aadl-mode") {
+           val o: Option[B] = { j = j - 1; Some(!strictAadlMode) }
+           o match {
+             case Some(v) => strictAadlMode = v
+             case _ => return None()
+           }
+         } else if (arg == "--ros2-output-workspace-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => ros2OutputWorkspaceDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--ros2-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => ros2Dir = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--ros2-nodes-language") {
+           val o: Option[SireumHamrCodegenNodesCodeLanguage.Type] = parseSireumHamrCodegenNodesCodeLanguage(args, j + 1)
+           o match {
+             case Some(v) => ros2NodesLanguage = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--ros2-launch-language") {
+           val o: Option[SireumHamrCodegenLaunchCodeLanguage.Type] = parseSireumHamrCodegenLaunchCodeLanguage(args, j + 1)
+           o match {
+             case Some(v) => ros2LaunchLanguage = v
+             case _ => return None()
+           }
          } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
@@ -1287,7 +1405,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1506,6 +1624,44 @@ import Cli._
     return r
   }
 
+  def parseSireumHamrSysmlCodegenNodesCodeLanguageH(arg: String): Option[SireumHamrSysmlCodegenNodesCodeLanguage.Type] = {
+    arg.native match {
+      case "Python" => return Some(SireumHamrSysmlCodegenNodesCodeLanguage.Python)
+      case "Cpp" => return Some(SireumHamrSysmlCodegenNodesCodeLanguage.Cpp)
+      case s =>
+        eprintln(s"Expecting one of the following: { Python, Cpp }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlCodegenNodesCodeLanguage(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenNodesCodeLanguage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { Python, Cpp }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlCodegenNodesCodeLanguageH(args(i))
+    return r
+  }
+
+  def parseSireumHamrSysmlCodegenLaunchCodeLanguageH(arg: String): Option[SireumHamrSysmlCodegenLaunchCodeLanguage.Type] = {
+    arg.native match {
+      case "Python" => return Some(SireumHamrSysmlCodegenLaunchCodeLanguage.Python)
+      case "Xml" => return Some(SireumHamrSysmlCodegenLaunchCodeLanguage.Xml)
+      case s =>
+        eprintln(s"Expecting one of the following: { Python, Xml }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlCodegenLaunchCodeLanguage(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenLaunchCodeLanguage.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { Python, Xml }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlCodegenLaunchCodeLanguageH(args(i))
+    return r
+  }
+
   def parseSireumHamrSysmlCodegen(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum HAMR SysML v2 Code Generator
@@ -1566,6 +1722,21 @@ import Cli._
           |                          Root directory containing the architectural model
           |                           project (expects a path)
           |
+          |ROS2 Options:
+          |    --strict-aadl-mode   Whether to generate strictly AADL-compliant code or
+          |                           not (will probably become obsolete soon)
+          |    --ros2-output-workspace-dir
+          |                          The path to the ROS2 workspace to generate the
+          |                           packages into (expects a path)
+          |-r, --ros2-dir           The path to your ROS2 installation, including the
+          |                           version (../ros/humble) (expects a path)
+          |-p, --ros2-nodes-language    
+          |                          The programming language for the generated node files
+          |                           (expects one of { Python, Cpp }; default: Python)
+          |-p, --ros2-launch-language    
+          |                          The programming language for the launch file (expects
+          |                           one of { Python, Xml }; default: Python)
+          |
           |Experimental Options:
           |-x, --experimental-options    
           |                           (expects a string separated by ";")""".render
@@ -1593,6 +1764,11 @@ import Cli._
     var camkesOutputDir: Option[String] = None[String]()
     var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
     var workspaceRootDir: Option[String] = None[String]()
+    var strictAadlMode: B = false
+    var ros2OutputWorkspaceDir: Option[String] = None[String]()
+    var ros2Dir: Option[String] = None[String]()
+    var ros2NodesLanguage: SireumHamrSysmlCodegenNodesCodeLanguage.Type = SireumHamrSysmlCodegenNodesCodeLanguage.Python
+    var ros2LaunchLanguage: SireumHamrSysmlCodegenLaunchCodeLanguage.Type = SireumHamrSysmlCodegenLaunchCodeLanguage.Python
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1740,6 +1916,36 @@ import Cli._
              case Some(v) => workspaceRootDir = v
              case _ => return None()
            }
+         } else if (arg == "--strict-aadl-mode") {
+           val o: Option[B] = { j = j - 1; Some(!strictAadlMode) }
+           o match {
+             case Some(v) => strictAadlMode = v
+             case _ => return None()
+           }
+         } else if (arg == "--ros2-output-workspace-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => ros2OutputWorkspaceDir = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--ros2-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => ros2Dir = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--ros2-nodes-language") {
+           val o: Option[SireumHamrSysmlCodegenNodesCodeLanguage.Type] = parseSireumHamrSysmlCodegenNodesCodeLanguage(args, j + 1)
+           o match {
+             case Some(v) => ros2NodesLanguage = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--ros2-launch-language") {
+           val o: Option[SireumHamrSysmlCodegenLaunchCodeLanguage.Type] = parseSireumHamrSysmlCodegenLaunchCodeLanguage(args, j + 1)
+           o match {
+             case Some(v) => ros2LaunchLanguage = v
+             case _ => return None()
+           }
          } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
@@ -1755,7 +1961,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigPlatformH(arg: String): Option[SireumHamrSysmlConfigPlatform.Type] = {

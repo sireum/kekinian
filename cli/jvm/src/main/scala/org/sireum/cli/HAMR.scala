@@ -204,14 +204,18 @@ object HAMR {
   }
 
   // JAVA/OSATE interface
+  /*
+   * @deprecated this will be deleted at some point, but leaving it as old versions of the OSATE plugin
+   * call this
+   */
   def codeGenR(model: Aadl,
                //
                verbose: B,
                runtimeMonitoring: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
+               //
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
-               //
                noProyekIve: B,
                noEmbedArt: B,
                devicesAsThreads: B,
@@ -239,12 +243,14 @@ object HAMR {
       verbose = verbose,
       runtimeMonitoring = runtimeMonitoring,
       platform = platform,
+      //
       slangOutputDir = slangOutputDir,
       slangPackageName = slangPackageName,
       noProyekIve = noProyekIve,
       noEmbedArt = noEmbedArt,
       devicesAsThreads = devicesAsThreads,
       genSbtMill = genSbtMill,
+      //
       slangAuxCodeDir = slangAuxCodeDir,
       slangOutputCDirectory = slangOutputCDirectory,
       excludeComponentImpl = excludeComponentImpl,
@@ -252,9 +258,11 @@ object HAMR {
       maxStringSize = maxStringSize,
       maxArraySize = maxArraySize,
       runTranspiler = runTranspiler,
+      //
       camkesOutputDirectory = camkesOutputDirectory,
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       workspaceRootDir = workspaceRootDir,
+      //
       experimentalOptions = experimentalOptions,
       plugins = ArsitPlugin.gumboEnhancedPlugins,
       reporter = reporter)
@@ -272,15 +280,18 @@ object HAMR {
     *          - (preferred) fetch/use the version from the new sequence
     *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
     *            its $owned method always return false
+    *
+    * @deprecated this will be deleted at some point, but leaving it as old versions of the OSATE plugin
+    * call this
     */
   def codeGenP(model: Aadl,
                //
                verbose: B,
                runtimeMonitoring: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
+               //
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
-               //
                noProyekIve: B,
                noEmbedArt: B,
                devicesAsThreads: B,
@@ -313,6 +324,7 @@ object HAMR {
       verbose = verbose,
       runtimeMonitoring = runtimeMonitoring,
       platform = platform,
+      parseableMessages = F,
       //
       slangOutputDir = slangOutputDir,
       packageName = slangPackageName,
@@ -333,8 +345,13 @@ object HAMR {
       camkesAuxCodeDirs = camkesAuxCodeDirs,
       workspaceRootDir = workspaceRootDir,
       //
-      experimentalOptions = experimentalOptions,
-      parseableMessages = F
+      strictAadlMode = F,
+      ros2OutputWorkspaceDir = None(),
+      ros2Dir = None(),
+      ros2NodesLanguage = Cli.SireumHamrCodegenNodesCodeLanguage.Cpp,
+      ros2LaunchLanguage = Cli.SireumHamrCodegenLaunchCodeLanguage.Xml,
+      //
+      experimentalOptions = experimentalOptions
     )
 
     codeGenReporterP(model, o, plugins, reporter)
@@ -762,6 +779,7 @@ object HAMR {
       noEmbedArt = o.noEmbedArt,
       devicesAsThreads = o.devicesAsThreads,
       genSbtMill = o.genSbtMill,
+      //
       slangAuxCodeDirs = o.slangAuxCodeDirs,
       slangOutputCDir = o.slangOutputCDir,
       excludeComponentImpl = o.excludeComponentImpl,
@@ -769,9 +787,17 @@ object HAMR {
       maxStringSize = o.maxStringSize,
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
+      //
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
       workspaceRootDir = o.workspaceRootDir,
+      //
+      strictAadlMode = o.strictAadlMode,
+      ros2OutputWorkspaceDir = o.ros2OutputWorkspaceDir,
+      ros2Dir = o.ros2Dir,
+      ros2NodesLanguage = Cli.SireumHamrCodegenNodesCodeLanguage.byName(o.ros2NodesLanguage.name).get,
+      ros2LaunchLanguage = Cli.SireumHamrCodegenLaunchCodeLanguage.byName(o.ros2LaunchLanguage.name).get,
+      //
       experimentalOptions = o.experimentalOptions)
   }
 
@@ -802,6 +828,12 @@ object HAMR {
       camkesOutputDir = o.camkesOutputDir,
       camkesAuxCodeDirs = o.camkesAuxCodeDirs,
       workspaceRootDir = o.workspaceRootDir,
+      //
+      strictAadlMode = o.strictAadlMode,
+      ros2OutputWorkspaceDir = o.ros2OutputWorkspaceDir,
+      ros2Dir = o.ros2Dir,
+      ros2NodesLanguage = CodegenNodesCodeLanguage.byName(o.ros2NodesLanguage.name).get,
+      ros2LaunchLanguage = CodegenLaunchCodeLanguage.byName(o.ros2LaunchLanguage.name).get,
       //
       experimentalOptions = o.experimentalOptions
     )
