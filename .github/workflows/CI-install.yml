@@ -42,11 +42,6 @@ jobs:
       - name: Sleep for 15 minutes
         run: sleep 900s
         shell: bash
-
-  ci-linux-install:
-    needs: ci-jitpack
-    runs-on: linux-latest
-    steps:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE
