@@ -92,6 +92,7 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | [GraalVM (OpenJDK)](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
 | [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [Isabelle](https://isabelle.in.tum.de/) | [BSD3](https://isabelle-dev.sketis.net/source/isabelle/browse/default/COPYRIGHT) |
+| [Mill](https://mill-build.org) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
 | [Oracle GraalVM](https://www.oracle.com/java/graalvm/) | [GFTC](https://www.oracle.com/downloads/licenses/graal-free-license.html) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
 | [Rust](https://www.rust-lang.org/) | [MIT](https://www.rust-lang.org/policies/licenses) |

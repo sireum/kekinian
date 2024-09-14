@@ -26,6 +26,7 @@
 package org.sireum.cli
 
 import org.sireum._
+import org.sireum.U8._
 import org.sireum.lang.tipe.TypeHierarchy
 import org.sireum.logika.Config.StrictPureMode
 import org.sireum.logika.{Config, Smt2, Smt2Formatter, Smt2Invoke}
@@ -310,6 +311,8 @@ object Proyek {
   }
 
   def exprt(o: Cli.SireumProyekExportOption): Z = {
+    Init(SireumApi.homeOpt.get, Os.kind, SireumApi.versions).installMill()
+
     val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -419,35 +422,6 @@ object Proyek {
         }
         works = HashSSet ++ next
       }
-      val millwVersion = SireumApi.versions.get("org.sireum.version.millw").get
-      val ver = root / "bin" / "millw.ver"
-      if (!ver.exists || ver.read != millwVersion) {
-        if (Os.isWin) {
-          val mill = (root / "bin" / "mill.bat").canon
-          mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw.bat")
-          mill.writeOver(
-            ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("set MILL_FIRST_ARG=", "set MILL_FIRST_ARG=-i")).
-              replaceAllLiterally("set \"DEFAULT_MILL_VERSION=0.11.4\"",
-                s"set \"DEFAULT_MILL_VERSION=${SireumApi.versions.get("org.sireum.version.mill").get}\""))
-          if (genMill) {
-            println(s"Wrote $mill")
-          }
-        } else {
-          val mill = (root / "bin" / "mill").canon
-          mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw")
-          var content = ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("MILL_FIRST_ARG=\"\"", "MILL_FIRST_ARG=\"-i\"")).
-            replaceAllLiterally("DEFAULT_MILL_VERSION=\"0.11.4\"",
-              s"DEFAULT_MILL_VERSION=\"${SireumApi.versions.get("org.sireum.version.mill").get}\"")
-          content = ops.StringOps(content).replaceAllLiterally("echo \"No mill", "#echo \"No mill")
-          content = ops.StringOps(content).replaceAllLiterally("echo \"You should", "#echo \"You should")
-          mill.writeOver(content)
-          mill.chmod("+x")
-          if (genMill) {
-            println(s"Wrote $mill")
-          }
-        }
-        ver.writeOver(millwVersion)
-      }
       val build = (root / "build.sc").canon
       val javaST =
         st"""def javacOptions = javacOpts
@@ -507,6 +481,7 @@ object Proyek {
             |object $top extends ScalaModule {
             |  def millSourcePath = super.millSourcePath / os.up
             |  def sources = T.sources { Seq(PathRef(millSourcePath / "src")) }
+            |  def resources = T.sources { Seq() }
             |  def unmanagedClasspath = T {
             |    val sireumHome = Option(System.getenv("SIREUM_HOME")) match {
             |      case Some(p) => os.Path(p)
@@ -526,11 +501,11 @@ object Proyek {
     def bloopGen(): Unit = {
       millGen()
       val pr: OsProto.Proc = if (Os.isWin) {
-        proc"cmd /C bin\\mill.bat --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
+        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
       } else {
-        Os.proc(ISZ("bash", "-c", "bin/mill --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
+        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
       }
-      pr.console.at(root).runCheck()
+      pr.console.at(root).env(ISZ("JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string)).runCheck()
       if (!genMill) {
         (root / "build.sc").removeAll()
       }
