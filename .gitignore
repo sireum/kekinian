@@ -17,6 +17,7 @@
 /bin/VER
 /bin/*.sc
 /bsp.log
+/build.sc
 /distro/config.txt
 /distro/setup.bat
 /distro/setup
@@ -24,7 +25,6 @@
 /distro/*.exe
 /lib
 /log
-/mill
 /project.dot
 /resources/rh
 /resources/vagrant/.vagrant

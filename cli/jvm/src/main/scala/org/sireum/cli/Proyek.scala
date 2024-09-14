@@ -309,6 +309,210 @@ object Proyek {
     return 0
   }
 
+  def exprt(o: Cli.SireumProyekExportOption): Z = {
+    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    println()
+
+    var genMill = F
+    var genBloop = F
+
+    val root = Os.path(o.args(0))
+
+    var millGenerated = F
+
+    def millGen(): Unit = {
+      if (millGenerated) {
+        return
+      }
+      millGenerated = T
+      @pure def module(m: project.Module): ST = {
+        var supers = ISZ[String]()
+        val hasJs = ops.ISZOps(m.targets).exists((t: project.Target.Type) => t == project.Target.Js)
+        var hasScala = F
+        var base = root.relativize(Os.path(m.basePath))
+        m.subPathOpt match {
+          case Some(sub) => base = base / sub
+          case _ =>
+        }
+        for (src <- m.sources ++ m.testSources; _ <- Os.Path.walk(root / base.string / src, F, F, (p: Os.Path) => p.ext == "scala")) {
+          hasScala = T
+        }
+        supers = supers :+ (if (hasJs) "ScalaJSModule" else if (hasScala) "ScalaModule" else "JavaModule")
+        val fileSep: C = if (Os.isWin) '\\' else '/'
+        val keywords = HashSet ++ ISZ[String]("abstract", "case", "catch", "class", "def", "do", "else", "extends",
+          "false", "final", "finally", "for", "forSome", "if", "implicit", "import", "lazy", "match", "new", "null",
+          "object", "override", "package", "private", "protected", "return", "sealed", "super", "this", "throw",
+          "trait", "try", "true", "type", "val", "var", "while", "with", "yield", "export", "given", "as", "derives",
+          "end", "extension", "infix", "inline", "opaque", "open", "transparent", "using")
+        @pure def quote(name: String): String = {
+          if (keywords.contains(name) || !ops.StringOps(name).isJavaId) {
+            return s"`$name`"
+          } else if (name == "test") {
+            return "_test"
+          } else {
+            return name
+          }
+        }
+        @strictpure def split(s: String): ISZ[String] = for (p <- ops.StringOps(s).split((c: C) => c == fileSep)) yield s"\"$p\""
+        val bases = split(base.string)
+        val testsOpt: Option[ST] = if (m.testSources.isEmpty) None() else Some(
+          st"""object tests extends TestSuite {
+              |  def millSourcePath = super.millSourcePath / os.up / os.up / ${(bases, " / ")}
+              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"${quote(parent)}.tests", ", ")})
+              |  def sources = T.sources {
+              |    Seq(${(for (src <- m.testSources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
+              |  }
+              |  def resources = T.sources {
+              |    Seq(${(for (src <- m.testResources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
+              |  }
+              |}"""
+        )
+        val ivyDepOpt: Option[ST] = if (prj.poset.parentsOf(m.id).isEmpty) Some(st"ivy\"org.scala-lang:scala-reflect:${SireumApi.scalaVer}\",") else None()
+        val r =
+          st"""object ${quote(m.id)} extends ${(supers, " with ")} {
+              |  def millSourcePath = super.millSourcePath / os.up / ${(bases, " / ")}
+              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"${quote(parent)}", ", ")})
+              |  def sources = T.sources {
+              |    Seq(${(for (src <- m.sources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
+              |  }
+              |  def resources = T.sources {
+              |    Seq(${(for (src <- m.resources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
+              |  }
+              |  def ivyDeps = T {
+              |    Agg(
+              |      $ivyDepOpt
+              |      ${(for (d <- m.ivyDeps) yield st"""ivy"$d${versions.get(d).get}"""", ",\n")}
+              |    )
+              |  }
+              |  $testsOpt
+              |}"""
+        return r
+      }
+      var modules = ISZ[ST]()
+      var seen = HashSet.empty[String]
+      var works = HashSSet ++ prj.poset.rootNodes
+      while (works.nonEmpty) {
+        var next = ISZ[String]()
+        for (mid <- works.elements) {
+          modules = modules :+ module(prj.modules.get(mid).get)
+          seen = seen + mid
+          for (child <- prj.poset.childrenOf(mid).elements) {
+            if (ops.ISZOps(prj.poset.parentsOf(child).elements).forall((p: String) => seen.contains(p))) {
+              next = next :+ child
+            }
+          }
+        }
+        works = HashSSet ++ next
+      }
+      val millwVersion = SireumApi.versions.get("org.sireum.version.millw").get
+      if (Os.isWin) {
+        val mill = (root / "bin" / "mill.bat").canon
+        mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw.bat")
+        mill.writeOver(
+          ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("set MILL_FIRST_ARG=", "set MILL_FIRST_ARG=-i")).
+            replaceAllLiterally("set \"DEFAULT_MILL_VERSION=0.11.4\"",
+              s"set \"DEFAULT_MILL_VERSION=${SireumApi.versions.get("org.sireum.version.mill").get}\""))
+        if (genMill) {
+          println(s"Wrote $mill")
+        }
+      } else {
+        val mill = (root / "bin" / "mill").canon
+        mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw")
+        mill.writeOver(
+          ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("MILL_FIRST_ARG=\"\"", "MILL_FIRST_ARG=\"-i\"")).
+            replaceAllLiterally("DEFAULT_MILL_VERSION=\"0.11.4\"",
+              s"DEFAULT_MILL_VERSION=\"${SireumApi.versions.get("org.sireum.version.mill").get}\""))
+        mill.chmod("+x")
+        if (genMill) {
+          println(s"Wrote $mill")
+        }
+      }
+      val build = (root / "build.sc").canon
+      build.writeOver(
+        st"""// Auto-generated by Sireum Proyek Exporter
+            |import mill._, scalalib._
+            |
+            |val repos = Seq(
+            |  coursier.maven.MavenRepository("${(Os.home / ".m2" / "repository").toUri}"),
+            |  coursier.maven.MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
+            |  coursier.maven.MavenRepository("https://jitpack.io")
+            |)
+            |
+            |trait JavaModule extends javalib.JavaModule {
+            |  def repositoriesTask = T.task { super.repositoriesTask() ++ repos }
+            |  trait TestSuite extends JavaTests with scalalib.TestModule.ScalaTest {
+            |    def ivyDeps = Agg(ivy"org.scalatest::scalatest::${SireumApi.versions.get("org.scalatest::scalatest::").get}")
+            |  }
+            |}
+            |
+            |trait ScalaModule extends scalalib.ScalaModule {
+            |  def scalaVersion = "${SireumApi.scalaVer}"
+            |  def scalacOptions = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
+            |  def javacOptions = Seq(${(for (opt <- o.javac) yield s"\"$opt\"", ", ")})
+            |  def scalacPluginIvyDeps = Agg(ivy"org.sireum::scalac-plugin:${SireumApi.versions.get("org.sireum::scalac-plugin:").get}")
+            |  def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
+            |  def repositoriesTask = T.task { super.repositoriesTask() ++ repos }
+            |  trait TestSuite extends ScalaTests with scalalib.TestModule.ScalaTest {
+            |    def ivyDeps = Agg(ivy"org.scalatest::scalatest::${SireumApi.versions.get("org.scalatest::scalatest::").get}")
+            |  }
+            |}
+            |
+            |trait ScalaJSModule extends scalajslib.ScalaJSModule {
+            |  def scalaVersion = "${SireumApi.scalaVer}"
+            |  def scalacOptions = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
+            |  def javacOptions = Seq(${(for (opt <- o.javac) yield s"\"$opt\"", ", ")})
+            |  def scalacPluginIvyDeps = Agg(ivy"org.sireum::scalac-plugin:${SireumApi.versions.get("org.sireum::scalac-plugin:").get}")
+            |  def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
+            |  def scalaJSVersion = "${SireumApi.versions.get("org.scala-js:::scalajs-compiler:")}"
+            |  def repositoriesTask = T.task { super.repositoriesTask() ++ repos }
+            |  trait TestSuite extends ScalaJSTests with scalalib.TestModule.ScalaTest {
+            |    def ivyDeps = Agg(ivy"org.scalatest::scalatest::${SireumApi.versions.get("org.scalatest::scalatest::").get}")
+            |  }
+            |}
+            |
+            |${(modules, "\n\n")}""".render
+      )
+      if (genMill) {
+        println(s"Wrote $build")
+      }
+    }
+
+    def bloopGen(): Unit = {
+      millGen()
+      val pr: OsProto.Proc = if (Os.isWin) {
+        proc"cmd /C bin\\mill.bat --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
+      } else {
+        Os.proc(ISZ("bash", "-c", "bin/mill --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
+      }
+      pr.console.at(root).runCheck()
+      if (!genMill) {
+        (root / "bin" / (if (Os.isWin) "mill.bat" else "mill")).removeAll()
+        (root / "build.sc").removeAll()
+      }
+      println(s"Generated ${(root / ".bloop").canon}")
+    }
+
+    for (t <- o.target) {
+      t match {
+        case Cli.SireumProyekExportBuildTool.Mill => genMill = T
+        case Cli.SireumProyekExportBuildTool.Bloop => genBloop = T
+      }
+    }
+    if (genBloop) {
+      bloopGen()
+    } else if (genMill) {
+      millGen()
+    }
+    return 0
+  }
+
   def ive(o: Cli.SireumProyekIveOption): Z = {
     if (o.empty) {
       val p: Os.Path = o.project match {

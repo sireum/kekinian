@@ -644,6 +644,9 @@ object Sireum {
               eprintln("The tool is not available in native mode")
             }
             return r
+          case Some(o: Cli.SireumProyekExportOption) =>
+            init.basicDeps()
+            return cli.Proyek.exprt(o)
           case Some(o: Cli.SireumProyekDepOption) =>
             init.basicDeps()
             init.proyekCompileDeps()

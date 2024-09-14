@@ -400,6 +400,31 @@ object Cli {
     val repositories: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumProyekExportBuildTool {
+    'Bloop
+    'Mill
+  }
+
+  @datatype class SireumProyekExportOption(
+    val help: String,
+    val args: ISZ[String],
+    val javac: ISZ[String],
+    val fresh: B,
+    val par: Option[Z],
+    val recompile: ISZ[String],
+    val scalac: ISZ[String],
+    val sha3: B,
+    val target: ISZ[SireumProyekExportBuildTool.Type],
+    val ignoreRuntime: B,
+    val json: Option[String],
+    val name: Option[String],
+    val outputDirName: Option[String],
+    val project: Option[String],
+    val slice: ISZ[String],
+    val symlink: B,
+    val versions: ISZ[String]
+  ) extends SireumTopOption
+
   @enum object SireumProyekIveEdition {
     'Community
     'Ultimate
@@ -3119,6 +3144,7 @@ import Cli._
             |assemble                 Proyek jar assembler
             |compile                  Proyek compiler
             |dep                      Sireum proyek Ivy dependency visualizer
+            |export                   Sireum proyek exporter
             |ive                      Sireum IVE proyek generator
             |logika                   Sireum Logika for Proyek
             |publish                  Proyek publisher
@@ -3130,11 +3156,12 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("proyek", args, i, ISZ("assemble", "compile", "dep", "ive", "logika", "publish", "run", "slangcheck", "stats", "test", "tipe"))
+    val opt = select("proyek", args, i, ISZ("assemble", "compile", "dep", "export", "ive", "logika", "publish", "run", "slangcheck", "stats", "test", "tipe"))
     opt match {
       case Some(string"assemble") => return parseSireumProyekAssemble(args, i + 1)
       case Some(string"compile") => return parseSireumProyekCompile(args, i + 1)
       case Some(string"dep") => return parseSireumProyekDep(args, i + 1)
+      case Some(string"export") => return parseSireumProyekExport(args, i + 1)
       case Some(string"ive") => return parseSireumProyekIve(args, i + 1)
       case Some(string"logika") => return parseSireumProyekLogika(args, i + 1)
       case Some(string"publish") => return parseSireumProyekPublish(args, i + 1)
@@ -3794,6 +3821,220 @@ import Cli._
       }
     }
     return Some(SireumProyekDepOption(help, parseArguments(args, j), js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+  }
+
+  def parseSireumProyekExportBuildToolH(arg: String): Option[SireumProyekExportBuildTool.Type] = {
+    arg.native match {
+      case "bloop" => return Some(SireumProyekExportBuildTool.Bloop)
+      case "mill" => return Some(SireumProyekExportBuildTool.Mill)
+      case s =>
+        eprintln(s"Expecting one of the following: { bloop, mill }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumProyekExportBuildTool(args: ISZ[String], i: Z): Option[SireumProyekExportBuildTool.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { bloop, mill }, but none found.")
+      return None()
+    }
+    val r = parseSireumProyekExportBuildToolH(args(i))
+    return r
+  }
+
+  def parseSireumProyekExportBuildTools(args: ISZ[String], i: Z): Option[ISZ[SireumProyekExportBuildTool.Type]] = {
+    val tokensOpt = tokenize(args, i, "SireumProyekExportBuildTool", ',', T)
+    if (tokensOpt.isEmpty) {
+      return None()
+    }
+    var r = ISZ[SireumProyekExportBuildTool.Type]()
+    for (token <- tokensOpt.get) {
+      val e = parseSireumProyekExportBuildToolH(token)
+      e match {
+        case Some(v) => r = r :+ v
+        case _ => return None()
+      }
+    }
+    return Some(r)
+  }
+
+  def parseSireumProyekExport(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Proyek Exporter
+          |
+          |Usage: <options>* <dir>
+          |
+          |Available Options:
+          |    --javac              Javac options (expects a string separated by ",";
+          |                           default is "-source, 17, -target, 17, -encoding,
+          |                           utf8, -XDignore.symbol.file, -Xlint:-options,
+          |                           -Xlint:deprecation, -proc:none")
+          |-f, --fresh              Fresh compilation from a clean slate
+          |-p, --par                Enable parallelization (with CPU cores percentage to
+          |                           use) (accepts an optional integer; min is 1; max is
+          |                           100; default is 100)
+          |    --recompile          Module IDs to force recompilation on (expects a string
+          |                           separated by ",")
+          |    --scalac             Scalac options (expects a string separated by ",";
+          |                           default is "-release, 17, -deprecation, -Yrangepos,
+          |                           -Ydelambdafy:method, -feature, -unchecked,
+          |                           -Xfatal-warnings, -language:postfixOps")
+          |    --sha3               Use SHA3 instead of time stamp for detecting file
+          |                           changes
+          |    --target             Build tool target (expects one or more of { bloop,
+          |                           mill }; default: bloop)
+          |-h, --help               Display this information
+          |
+          |Project Options:
+          |    --ignore-runtime     Ignore runtime library dependency version when
+          |                           detecting changes
+          |    --json               The JSON file to load project definitions from
+          |                           (mutually exclusive with the 'project' option)
+          |                           (expects a path)
+          |-n, --name               Project name (defaults to the directory name of <dir>)
+          |                           (expects a string)
+          |-o, --out                Output directory name under <dir> (expects a string;
+          |                           default is "out")
+          |    --project            The project.cmd file accepting the 'json' argument
+          |                           (defaults to
+          |                           <dir>${Os.fileSep}bin${Os.fileSep}project-standalone.cmd,
+          |                           or <dir>${Os.fileSep}bin${Os.fileSep}project.cmd;
+          |                           mutually exclusive with the 'json' option) (expects
+          |                           a path)
+          |    --slice              Slice the project starting from the given module IDs
+          |                           and their dependencies (expects a string separated
+          |                           by ",")
+          |    --symlink            Follow symbolic link when searching for files
+          |-v, --versions           The properties file(s) containing version information
+          |                           (defaults to <dir>${Os.fileSep}versions.properties)
+          |                           (expects path strings)""".render
+
+    var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
+    var fresh: B = false
+    var par: Option[Z] = None()
+    var recompile: ISZ[String] = ISZ[String]()
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var sha3: B = false
+    var target: ISZ[SireumProyekExportBuildTool.Type] = ISZ(SireumProyekExportBuildTool.Bloop)
+    var ignoreRuntime: B = false
+    var json: Option[String] = None[String]()
+    var name: Option[String] = None[String]()
+    var outputDirName: Option[String] = Some("out")
+    var project: Option[String] = None[String]()
+    var slice: ISZ[String] = ISZ[String]()
+    var symlink: B = false
+    var versions: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--javac") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => javac = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--fresh") {
+           val o: Option[B] = { j = j - 1; Some(!fresh) }
+           o match {
+             case Some(v) => fresh = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--par") {
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), Some(100)) match {
+             case o@Some(None()) => j = j - 1; Some(Some(100))
+             case o => o
+           }
+           o match {
+             case Some(v) => par = v
+             case _ => return None()
+           }
+         } else if (arg == "--recompile") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => recompile = v
+             case _ => return None()
+           }
+         } else if (arg == "--scalac") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => scalac = v
+             case _ => return None()
+           }
+         } else if (arg == "--sha3") {
+           val o: Option[B] = { j = j - 1; Some(!sha3) }
+           o match {
+             case Some(v) => sha3 = v
+             case _ => return None()
+           }
+         } else if (arg == "--target") {
+           val o: Option[ISZ[SireumProyekExportBuildTool.Type]] = parseSireumProyekExportBuildTools(args, j + 1)
+           o match {
+             case Some(v) => target = v
+             case _ => return None()
+           }
+         } else if (arg == "--ignore-runtime") {
+           val o: Option[B] = { j = j - 1; Some(!ignoreRuntime) }
+           o match {
+             case Some(v) => ignoreRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "--json") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => json = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--out") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => outputDirName = v
+             case _ => return None()
+           }
+         } else if (arg == "--project") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => project = v
+             case _ => return None()
+           }
+         } else if (arg == "--slice") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--symlink") {
+           val o: Option[B] = { j = j - 1; Some(!symlink) }
+           o match {
+             case Some(v) => symlink = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--versions") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => versions = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumProyekExportOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, target, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions))
   }
 
   def parseSireumProyekIveEditionH(arg: String): Option[SireumProyekIveEdition.Type] = {
