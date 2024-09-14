@@ -327,11 +327,26 @@ object Proyek {
 
     var millGenerated = F
 
+    val keywords = HashSet ++ ISZ[String]("abstract", "case", "catch", "class", "def", "do", "else", "extends",
+      "false", "final", "finally", "for", "forSome", "if", "implicit", "import", "lazy", "match", "new", "null",
+      "object", "override", "package", "private", "protected", "return", "sealed", "super", "this", "throw",
+      "trait", "try", "true", "type", "val", "var", "while", "with", "yield", "export", "given", "as", "derives",
+      "end", "extension", "infix", "inline", "opaque", "open", "transparent", "using")
+
+    @pure def quote(name: String): String = {
+      if (keywords.contains(name) || !ops.StringOps(name).isJavaId) {
+        return s"`$name`"
+      } else {
+        return name
+      }
+    }
+
     def millGen(): Unit = {
       if (millGenerated) {
         return
       }
       millGenerated = T
+      val top = quote(root.canon.name)
       @pure def module(m: project.Module): ST = {
         var supers = ISZ[String]()
         val hasJs = ops.ISZOps(m.targets).exists((t: project.Target.Type) => t == project.Target.Js)
@@ -346,26 +361,12 @@ object Proyek {
         }
         supers = supers :+ (if (hasJs) "ScalaJSModule" else if (hasScala) "ScalaModule" else "JavaModule")
         val fileSep: C = if (Os.isWin) '\\' else '/'
-        val keywords = HashSet ++ ISZ[String]("abstract", "case", "catch", "class", "def", "do", "else", "extends",
-          "false", "final", "finally", "for", "forSome", "if", "implicit", "import", "lazy", "match", "new", "null",
-          "object", "override", "package", "private", "protected", "return", "sealed", "super", "this", "throw",
-          "trait", "try", "true", "type", "val", "var", "while", "with", "yield", "export", "given", "as", "derives",
-          "end", "extension", "infix", "inline", "opaque", "open", "transparent", "using")
-        @pure def quote(name: String): String = {
-          if (keywords.contains(name) || !ops.StringOps(name).isJavaId) {
-            return s"`$name`"
-          } else if (name == "test") {
-            return "_test"
-          } else {
-            return name
-          }
-        }
         @strictpure def split(s: String): ISZ[String] = for (p <- ops.StringOps(s).split((c: C) => c == fileSep)) yield s"\"$p\""
         val bases = split(base.string)
         val testsOpt: Option[ST] = if (m.testSources.isEmpty) None() else Some(
           st"""object tests extends TestSuite {
               |  def millSourcePath = super.millSourcePath / os.up / os.up / ${(bases, " / ")}
-              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"${quote(parent)}.tests", ", ")})
+              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"`m-$parent`.tests", ", ")})
               |  def sources = T.sources {
               |    Seq(${(for (src <- m.testSources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
@@ -374,34 +375,41 @@ object Proyek {
               |  }
               |}"""
         )
-        val ivyDepOpt: Option[ST] = if (prj.poset.parentsOf(m.id).isEmpty) Some(st"ivy\"org.scala-lang:scala-reflect:${SireumApi.scalaVer}\",") else None()
+        val ivyDepOpt: Option[ST] = if (prj.poset.parentsOf(m.id).isEmpty) Some(st"ivy\"org.scala-lang:scala-reflect:$$scalaVer\",") else None()
+        val ivyDeps: ST = if (ivyDepOpt.isEmpty && m.ivyDeps.isEmpty) st"def ivyDeps = T { Agg.empty }" else
+          st"""def ivyDeps = T { Agg(
+              |  $ivyDepOpt
+              |  ${(for (d <- m.ivyDeps) yield st"""ivy"$d$${`$d`}"""", ",\n")}
+              |)}"""
         val r =
           st"""object ${quote(m.id)} extends ${(supers, " with ")} {
               |  def millSourcePath = super.millSourcePath / os.up / ${(bases, " / ")}
-              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"${quote(parent)}", ", ")})
+              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"`m-$parent`", ", ")})
               |  def sources = T.sources {
               |    Seq(${(for (src <- m.sources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
               |  def resources = T.sources {
               |    Seq(${(for (src <- m.resources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
-              |  def ivyDeps = T {
-              |    Agg(
-              |      $ivyDepOpt
-              |      ${(for (d <- m.ivyDeps) yield st"""ivy"$d${versions.get(d).get}"""", ",\n")}
-              |    )
-              |  }
+              |  $ivyDeps
               |  $testsOpt
               |}"""
         return r
       }
       var modules = ISZ[ST]()
+      var depVersions = HashSMap.empty[String, String]
+      var modDefs = ISZ[ST]()
       var seen = HashSet.empty[String]
       var works = HashSSet ++ prj.poset.rootNodes
       while (works.nonEmpty) {
         var next = ISZ[String]()
         for (mid <- works.elements) {
-          modules = modules :+ module(prj.modules.get(mid).get)
+          val m = prj.modules.get(mid).get
+          for (ivyDep <- m.ivyDeps) {
+            depVersions = depVersions + ivyDep ~> versions.get(ivyDep).get
+          }
+          modDefs = modDefs :+ st"def `m-${m.id}` = ${quote(m.id)}"
+          modules = modules :+ module(m)
           seen = seen + mid
           for (child <- prj.poset.childrenOf(mid).elements) {
             if (ops.ISZOps(prj.poset.parentsOf(child).elements).forall((p: String) => seen.contains(p))) {
@@ -412,68 +420,99 @@ object Proyek {
         works = HashSSet ++ next
       }
       val millwVersion = SireumApi.versions.get("org.sireum.version.millw").get
-      if (Os.isWin) {
-        val mill = (root / "bin" / "mill.bat").canon
-        mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw.bat")
-        mill.writeOver(
-          ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("set MILL_FIRST_ARG=", "set MILL_FIRST_ARG=-i")).
-            replaceAllLiterally("set \"DEFAULT_MILL_VERSION=0.11.4\"",
-              s"set \"DEFAULT_MILL_VERSION=${SireumApi.versions.get("org.sireum.version.mill").get}\""))
-        if (genMill) {
-          println(s"Wrote $mill")
-        }
-      } else {
-        val mill = (root / "bin" / "mill").canon
-        mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw")
-        mill.writeOver(
-          ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("MILL_FIRST_ARG=\"\"", "MILL_FIRST_ARG=\"-i\"")).
+      val ver = root / "bin" / "millw.ver"
+      if (!ver.exists || ver.read != millwVersion) {
+        if (Os.isWin) {
+          val mill = (root / "bin" / "mill.bat").canon
+          mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw.bat")
+          mill.writeOver(
+            ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("set MILL_FIRST_ARG=", "set MILL_FIRST_ARG=-i")).
+              replaceAllLiterally("set \"DEFAULT_MILL_VERSION=0.11.4\"",
+                s"set \"DEFAULT_MILL_VERSION=${SireumApi.versions.get("org.sireum.version.mill").get}\""))
+          if (genMill) {
+            println(s"Wrote $mill")
+          }
+        } else {
+          val mill = (root / "bin" / "mill").canon
+          mill.downloadFrom(s"https://raw.githubusercontent.com/lefou/millw/$millwVersion/millw")
+          var content = ops.StringOps(ops.StringOps(mill.read).replaceAllLiterally("MILL_FIRST_ARG=\"\"", "MILL_FIRST_ARG=\"-i\"")).
             replaceAllLiterally("DEFAULT_MILL_VERSION=\"0.11.4\"",
-              s"DEFAULT_MILL_VERSION=\"${SireumApi.versions.get("org.sireum.version.mill").get}\""))
-        mill.chmod("+x")
-        if (genMill) {
-          println(s"Wrote $mill")
+              s"DEFAULT_MILL_VERSION=\"${SireumApi.versions.get("org.sireum.version.mill").get}\"")
+          content = ops.StringOps(content).replaceAllLiterally("echo \"No mill", "#echo \"No mill")
+          content = ops.StringOps(content).replaceAllLiterally("echo \"You should", "#echo \"You should")
+          mill.writeOver(content)
+          mill.chmod("+x")
+          if (genMill) {
+            println(s"Wrote $mill")
+          }
         }
+        ver.writeOver(millwVersion)
       }
       val build = (root / "build.sc").canon
+      val javaST =
+        st"""def javacOptions = javacOpts
+            |def repositoriesTask = T.task { super.repositoriesTask() ++ repos }"""
+      val scalaST =
+        st"""def scalaVersion = scalaVer
+            |def scalacOptions = scalacOpts
+            |def scalacPluginIvyDeps = Agg(ivy"org.sireum::scalac-plugin:$$scalacPluginVer")
+            |def scalaDocOptions = scalaDocOpts
+            |$javaST"""
+      @strictpure def testsST(id: String): ST =
+        st"""trait TestSuite extends ${id}Tests with scalalib.TestModule.ScalaTest {
+            |  def ivyDeps = Agg(ivy"org.scalatest::scalatest::$$scalaTestVer")
+            |}"""
       build.writeOver(
         st"""// Auto-generated by Sireum Proyek Exporter
             |import mill._, scalalib._
             |
+            |val scalaVer = "${SireumApi.scalaVer}"
+            |val scalaJSVer = "${SireumApi.versions.get("org.scala-js:::scalajs-compiler:")}"
+            |val scalaTestVer = "${SireumApi.versions.get("org.scalatest::scalatest::").get}"
+            |val scalacPluginVer = "${SireumApi.versions.get("org.sireum::scalac-plugin:").get}"
+            |
+            |val scalacOpts = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
+            |
+            |val scalaDocOpts = Seq("-siteroot", "mydocs", "-no-link-warnings")
+            |
+            |val javacOpts = Seq(${(for (opt <- o.javac) yield s"\"$opt\"", ", ")})
+            |
             |val repos = Seq(
-            |  coursier.maven.MavenRepository("${(Os.home / ".m2" / "repository").toUri}"),
+            |  coursier.maven.MavenRepository((os.home / ".m2" / "repository").toIO.toURI.toASCIIString),
             |  coursier.maven.MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
             |  coursier.maven.MavenRepository("https://jitpack.io")
             |)
             |
+            |${(for (d <- depVersions.entries) yield st"""val `${d._1}` = "${d._2}"""", "\n")}
+            |
+            |${(modDefs, "\n")}
+            |
+            |
             |trait JavaModule extends javalib.JavaModule {
-            |  def repositoriesTask = T.task { super.repositoriesTask() ++ repos }
-            |  trait TestSuite extends JavaTests with scalalib.TestModule.ScalaTest {
-            |    def ivyDeps = Agg(ivy"org.scalatest::scalatest::${SireumApi.versions.get("org.scalatest::scalatest::").get}")
-            |  }
+            |  $javaST
+            |  ${testsST("Java")}
             |}
             |
             |trait ScalaModule extends scalalib.ScalaModule {
-            |  def scalaVersion = "${SireumApi.scalaVer}"
-            |  def scalacOptions = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
-            |  def javacOptions = Seq(${(for (opt <- o.javac) yield s"\"$opt\"", ", ")})
-            |  def scalacPluginIvyDeps = Agg(ivy"org.sireum::scalac-plugin:${SireumApi.versions.get("org.sireum::scalac-plugin:").get}")
-            |  def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
-            |  def repositoriesTask = T.task { super.repositoriesTask() ++ repos }
-            |  trait TestSuite extends ScalaTests with scalalib.TestModule.ScalaTest {
-            |    def ivyDeps = Agg(ivy"org.scalatest::scalatest::${SireumApi.versions.get("org.scalatest::scalatest::").get}")
-            |  }
+            |  $scalaST
+            |  ${testsST("Scala")}
             |}
             |
             |trait ScalaJSModule extends scalajslib.ScalaJSModule {
-            |  def scalaVersion = "${SireumApi.scalaVer}"
-            |  def scalacOptions = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
-            |  def javacOptions = Seq(${(for (opt <- o.javac) yield s"\"$opt\"", ", ")})
-            |  def scalacPluginIvyDeps = Agg(ivy"org.sireum::scalac-plugin:${SireumApi.versions.get("org.sireum::scalac-plugin:").get}")
-            |  def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
-            |  def scalaJSVersion = "${SireumApi.versions.get("org.scala-js:::scalajs-compiler:")}"
-            |  def repositoriesTask = T.task { super.repositoriesTask() ++ repos }
-            |  trait TestSuite extends ScalaJSTests with scalalib.TestModule.ScalaTest {
-            |    def ivyDeps = Agg(ivy"org.scalatest::scalatest::${SireumApi.versions.get("org.scalatest::scalatest::").get}")
+            |  $scalaST
+            |  def scalaJSVersion = scalaJSVer
+            |  ${testsST("ScalaJS")}
+            |}
+            |
+            |object $top extends ScalaModule {
+            |  def millSourcePath = super.millSourcePath / os.up
+            |  def sources = T.sources { Seq(PathRef(millSourcePath / "src")) }
+            |  def unmanagedClasspath = T {
+            |    val sireumHome = Option(System.getenv("SIREUM_HOME")) match {
+            |      case Some(p) => os.Path(p)
+            |      case _ => os.Path("${SireumApi.homeOpt.get.string}")
+            |    }
+            |    Agg(PathRef(sireumHome / "lib" / "sireum.jar"))
             |  }
             |}
             |
@@ -493,7 +532,6 @@ object Proyek {
       }
       pr.console.at(root).runCheck()
       if (!genMill) {
-        (root / "bin" / (if (Os.isWin) "mill.bat" else "mill")).removeAll()
         (root / "build.sc").removeAll()
       }
       println(s"Generated ${(root / ".bloop").canon}")
@@ -526,12 +564,12 @@ object Proyek {
       }
       val bs = "\\"
       p.writeOver(
-        st"""::#! 2> /dev/null                                   #
-            |@ 2>/dev/null # 2>nul & echo off & goto BOF         #
-            |if [ -z "$${SIREUM_HOME}" ]; then                    #
-            |  echo "Please set SIREUM_HOME env var"             #
-            |  exit -1                                           #
-            |fi                                                  #
+        st"""::#! 2> /dev/null                                     #
+            |@ 2>/dev/null # 2>nul & echo off & goto BOF           #
+            |if [ -z "$${SIREUM_HOME}" ]; then                      #
+            |  echo "Please set SIREUM_HOME env var"               #
+            |  exit -1                                             #
+            |fi                                                    #
             |exec "$${SIREUM_HOME}/bin/sireum" slang run "$$0" "$$@"  #
             |:BOF
             |setlocal
