@@ -311,8 +311,6 @@ object Proyek {
   }
 
   def exprt(o: Cli.SireumProyekExportOption): Z = {
-    Init(SireumApi.homeOpt.get, Os.kind, SireumApi.versions).installMill()
-
     val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -325,6 +323,8 @@ object Proyek {
 
     var genMill = F
     var genBloop = F
+
+    Init(SireumApi.homeOpt.get, Os.kind, SireumApi.versions).installMill(genMill)
 
     val root = Os.path(o.args(0))
 
@@ -501,9 +501,9 @@ object Proyek {
     def bloopGen(): Unit = {
       millGen()
       val pr: OsProto.Proc = if (Os.isWin) {
-        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
+        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --disable-ticker --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
       } else {
-        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
+        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --disable-ticker --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
       }
       pr.console.at(root).env(ISZ("JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string)).runCheck()
       if (!genMill) {
