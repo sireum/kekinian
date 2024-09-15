@@ -39,14 +39,14 @@ object Cli {
   @datatype class HelpOption extends SireumTopOption
 
   @enum object SireumHamrCodegenHamrPlatform {
-    'JVM
-    'Linux
-    'Cygwin
-    'MacOS
-    'SeL4
-    'SeL4_Only
-    'SeL4_TB
-    'Ros2
+    "JVM"
+    "Linux"
+    "Cygwin"
+    "MacOS"
+    "SeL4"
+    "SeL4_Only"
+    "SeL4_TB"
+    "Ros2"
   }
 
   @enum object SireumHamrCodegenNodesCodeLanguage {
@@ -92,9 +92,9 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumHamrPhantomPhantomMode {
-    'Json
-    'Json_compact
-    'Msgpack
+    "Json"
+    "Json_compact"
+    "Msgpack"
   }
 
   @datatype class SireumHamrPhantomOption(
@@ -115,14 +115,14 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlCodegenHamrPlatform {
-    'JVM
-    'Linux
-    'Cygwin
-    'MacOS
-    'SeL4
-    'SeL4_Only
-    'SeL4_TB
-    'Ros2
+    "JVM"
+    "Linux"
+    "Cygwin"
+    "MacOS"
+    "SeL4"
+    "SeL4_Only"
+    "SeL4_TB"
+    "Ros2"
   }
 
   @enum object SireumHamrSysmlCodegenNodesCodeLanguage {
@@ -170,13 +170,13 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlConfigPlatform {
-    'JVM
-    'MacOS
-    'Linux
-    'Cygwin
-    'SeL4
-    'SeL4_Only
-    'SeL4_TB
+    "JVM"
+    "MacOS"
+    "Linux"
+    "Cygwin"
+    "SeL4"
+    "SeL4_Only"
+    "SeL4_TB"
   }
 
   @datatype class SireumHamrSysmlConfigOption(
@@ -187,17 +187,17 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
-    'NearestTiesToEven
-    'NearestTiesToAway
-    'TowardPositive
-    'TowardNegative
-    'TowardZero
+    "NearestTiesToEven"
+    "NearestTiesToAway"
+    "TowardPositive"
+    "TowardNegative"
+    "TowardZero"
   }
 
   @enum object SireumHamrSysmlLogikaStrictPureMode {
-    'Default
-    'Flip
-    'Uninterpreted
+    "Default"
+    "Flip"
+    "Uninterpreted"
   }
 
   @datatype class SireumHamrSysmlLogikaOption(
@@ -272,17 +272,17 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumLogikaVerifierFPRoundingMode {
-    'NearestTiesToEven
-    'NearestTiesToAway
-    'TowardPositive
-    'TowardNegative
-    'TowardZero
+    "NearestTiesToEven"
+    "NearestTiesToAway"
+    "TowardPositive"
+    "TowardNegative"
+    "TowardZero"
   }
 
   @enum object SireumLogikaVerifierStrictPureMode {
-    'Default
-    'Flip
-    'Uninterpreted
+    "Default"
+    "Flip"
+    "Uninterpreted"
   }
 
   @datatype class SireumLogikaVerifierOption(
@@ -340,8 +340,8 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumParserGenParserGenMode {
-    'Slang
-    'Antlr3
+    "Slang"
+    "Antlr3"
   }
 
   @datatype class SireumParserGenOption(
@@ -365,6 +365,7 @@ object Cli {
     val jar: Option[String],
     val noDeps: B,
     val mainClass: Option[String],
+    val meta: B,
     val isNative: B,
     val uber: B,
     val ignoreRuntime: B,
@@ -398,6 +399,7 @@ object Cli {
     val scalac: ISZ[String],
     val sha3: B,
     val js: B,
+    val meta: B,
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -431,8 +433,8 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumProyekExportBuildTool {
-    'Bloop
-    'Mill
+    "Bloop"
+    "Mill"
   }
 
   @datatype class SireumProyekExportOption(
@@ -456,9 +458,9 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumProyekIveEdition {
-    'Community
-    'Ultimate
-    'Server
+    "Community"
+    "Ultimate"
+    "Server"
   }
 
   @datatype class SireumProyekIveOption(
@@ -485,17 +487,17 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumProyekLogikaFPRoundingMode {
-    'NearestTiesToEven
-    'NearestTiesToAway
-    'TowardPositive
-    'TowardNegative
-    'TowardZero
+    "NearestTiesToEven"
+    "NearestTiesToAway"
+    "TowardPositive"
+    "TowardNegative"
+    "TowardZero"
   }
 
   @enum object SireumProyekLogikaStrictPureMode {
-    'Default
-    'Flip
-    'Uninterpreted
+    "Default"
+    "Flip"
+    "Uninterpreted"
   }
 
   @datatype class SireumProyekLogikaOption(
@@ -565,9 +567,9 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumProyekPublishTarget {
-    'All
-    'Jvm
-    'Js
+    "All"
+    "Jvm"
+    "Js"
   }
 
   @datatype class SireumProyekPublishOption(
@@ -766,19 +768,19 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumPresentasiGenOutputFormat {
-    'Mp3
-    'Wav
+    "Mp3"
+    "Wav"
   }
 
   @enum object SireumPresentasiGenService {
-    'Mary
-    'Aws
-    'Azure
+    "Mary"
+    "Aws"
+    "Azure"
   }
 
   @enum object SireumPresentasiGenEngine {
-    'Neural
-    'Standard
+    "Neural"
+    "Standard"
   }
 
   @datatype class SireumPresentasiGenOption(
@@ -798,21 +800,21 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumPresentasiText2speechOutputFormat {
-    'Mp3
-    'Webm
-    'Ogg
-    'Wav
+    "Mp3"
+    "Webm"
+    "Ogg"
+    "Wav"
   }
 
   @enum object SireumPresentasiText2speechService {
-    'Mary
-    'Aws
-    'Azure
+    "Mary"
+    "Aws"
+    "Azure"
   }
 
   @enum object SireumPresentasiText2speechEngine {
-    'Neural
-    'Standard
+    "Neural"
+    "Standard"
   }
 
   @datatype class SireumPresentasiText2speechOption(
@@ -833,8 +835,8 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumServerServerMessage {
-    'Json
-    'Msgpack
+    "Json"
+    "Msgpack"
   }
 
   @datatype class SireumServerOption(
@@ -849,10 +851,10 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumToolsBcgenBitCodecMode {
-    'Program
-    'Script
-    'Json
-    'Dot
+    "Program"
+    "Script"
+    "Json"
+    "Dot"
   }
 
   @datatype class SireumToolsBcgenOption(
@@ -869,34 +871,34 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumToolsCheckstackCheckStackMode {
-    'Dotsu
-    'Bin
+    "Dotsu"
+    "Bin"
   }
 
   @enum object SireumToolsCheckstackCheckStackArch {
-    'Amd64
-    'X86
-    'Aarch64
-    'Arm
-    'Powerpc
-    'Openrisc
-    'Mips
-    'Mips64
-    'M68k
-    'Ia64
-    'Nios2
-    'Parisc
-    'S390x
-    'Sh64
-    'Sparc
+    "Amd64"
+    "X86"
+    "Aarch64"
+    "Arm"
+    "Powerpc"
+    "Openrisc"
+    "Mips"
+    "Mips64"
+    "M68k"
+    "Ia64"
+    "Nios2"
+    "Parisc"
+    "S390x"
+    "Sh64"
+    "Sparc"
   }
 
   @enum object SireumToolsCheckstackCheckStackFormat {
-    'Plain
-    'Csv
-    'Html
-    'Md
-    'Rst
+    "Plain"
+    "Csv"
+    "Html"
+    "Md"
+    "Rst"
   }
 
   @datatype class SireumToolsCheckstackOption(
@@ -939,8 +941,8 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumToolsSergenSerializerMode {
-    'Json
-    'Msgpack
+    "Json"
+    "Msgpack"
   }
 
   @datatype class SireumToolsSergenOption(
@@ -986,10 +988,10 @@ object Cli {
   ) extends SireumTopOption
 
   @enum object SireumToolsTrafoTransformerMode {
-    'Immutable
-    'Mutable
-    'Rimmutable
-    'Rmutable
+    "Immutable"
+    "Mutable"
+    "Rimmutable"
+    "Rmutable"
   }
 
   @datatype class SireumToolsTrafoOption(
@@ -3393,6 +3395,7 @@ import Cli._
           |                           name) (expects a string)
           |    --no-deps            Exclude library dependencies
           |-m, --main               The main class fully qualified name (expects a string)
+          |    --meta               Generate Scalameta semanticsdb
           |    --native             Generates native image
           |    --uber               Generates uber jar
           |-h, --help               Display this information
@@ -3435,7 +3438,8 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3456,6 +3460,7 @@ import Cli._
     var jar: Option[String] = None[String]()
     var noDeps: B = false
     var mainClass: Option[String] = None[String]()
+    var meta: B = false
     var isNative: B = false
     var uber: B = false
     var ignoreRuntime: B = false
@@ -3470,7 +3475,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -3513,6 +3518,12 @@ import Cli._
            val o: Option[Option[String]] = parseString(args, j + 1)
            o match {
              case Some(v) => mainClass = v
+             case _ => return None()
+           }
+         } else if (arg == "--meta") {
+           val o: Option[B] = { j = j - 1; Some(!meta) }
+           o match {
+             case Some(v) => meta = v
              case _ => return None()
            }
          } else if (arg == "--native") {
@@ -3653,7 +3664,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, noDeps, mainClass, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3676,10 +3687,12 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --js                 Compile using Scala.js
+          |    --meta               Generate Scalameta semanticsdb
           |-h, --help               Display this information
           |
           |Project Options:
@@ -3721,9 +3734,10 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var sha3: B = false
     var js: B = false
+    var meta: B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -3787,6 +3801,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!js) }
            o match {
              case Some(v) => js = v
+             case _ => return None()
+           }
+         } else if (arg == "--meta") {
+           val o: Option[B] = { j = j - 1; Some(!meta) }
+           o match {
+             case Some(v) => meta = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -3870,7 +3890,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, meta, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
   }
 
   def parseSireumProyekDep(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -4084,7 +4104,8 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --target             Build tool target (expects one or more of { bloop,
@@ -4119,7 +4140,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var sha3: B = false
     var target: ISZ[SireumProyekExportBuildTool.Type] = ISZ(SireumProyekExportBuildTool.Bloop)
     var ignoreRuntime: B = false
@@ -4284,7 +4305,8 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |-h, --help               Display this information
           |
           |Project Options:
@@ -4327,7 +4349,7 @@ import Cli._
     var force: B = false
     var rebuildIve: B = false
     var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -5193,7 +5215,8 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -5224,7 +5247,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -5436,7 +5459,8 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -5466,7 +5490,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -6038,7 +6062,8 @@ import Cli._
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
           |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps")
+          |                           -Xfatal-warnings, -language:postfixOps,
+          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -6071,7 +6096,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
