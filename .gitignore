@@ -4,6 +4,7 @@
 /.idea_modules
 /.metadata
 /.metals
+/.scala-build
 /.vscode
 /bin/antlrworks.jar
 /bin/.antlrworks.jar.ver

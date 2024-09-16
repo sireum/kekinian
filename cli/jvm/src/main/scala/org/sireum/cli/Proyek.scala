@@ -336,6 +336,7 @@ object Proyek {
     Init(SireumApi.homeOpt.get, Os.kind, SireumApi.versions).installMill(genMill)
 
     val root = Os.path(o.args(0))
+    val rootName = root.canon.name
 
     var millGenerated = F
 
@@ -408,16 +409,16 @@ object Proyek {
         return r
       }
       var modules = ISZ[ST](
-        st"""object ${quote(root.canon.name)} extends ScalaModule {
+        st"""object ${quote(rootName)} extends ScalaModule {
             |  def millSourcePath = super.millSourcePath / os.up
-            |  def sources = T.sources { Seq(PathRef(millSourcePath / "${if (prj.modules.size > 1) "src" else "bin"}")) }
+            |  def sources = T.sources { Seq(${if (genBloop) "PathRef(millSourcePath / \".BIN\")" else "" }) }
             |  def resources = T.sources { Seq() }
             |  def unmanagedClasspath = T {
             |    val sireumHome = Option(System.getenv("SIREUM_HOME")) match {
             |      case Some(p) => os.Path(p)
             |      case _ => os.Path("${SireumApi.homeOpt.get.string}")
             |    }
-            |    Agg(PathRef(sireumHome / "lib" / "sireum.jar"))
+            |    Agg(PathRef(sireumHome / "bin" / "sireum.jar"))
             |  }
             |}"""
       )
@@ -514,7 +515,13 @@ object Proyek {
       } else {
         Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --disable-ticker --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
       }
-      pr.console.at(root).env(ISZ("JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string)).runCheck()
+      pr.console.at(root).env(ISZ(
+        "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
+        "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
+      )).runCheck()
+      val top = root / ".bloop" / s"$rootName.json"
+      top.writeOver(ops.StringOps(top.read).replaceAllLiterally(s".BIN\"", s"bin\""))
+      (root / ".bloop" / "mill-build-.json").removeAll()
       if (!genMill) {
         (root / "build.sc").removeAll()
       }
