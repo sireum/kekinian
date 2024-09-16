@@ -459,6 +459,11 @@ object Proyek {
             |  def ivyDeps = Agg(ivy"org.scalatest::scalatest::$$scalaTestVer")
             |}"""
 
+      @pure def filterOptions(opts: ISZ[String]): ISZ[String] = {
+        val ignoreOptions = HashSet ++ ISZ[String]("-Xfatal-warnings", "-Werror")
+        return for (opt <- opts if !ignoreOptions.contains(opt)) yield opt
+      }
+
       build.writeOver(
         st"""// Auto-generated
             |import mill._, scalalib._
@@ -468,7 +473,7 @@ object Proyek {
             |val scalaTestVer = "${SireumApi.versions.get("org.scalatest::scalatest::").get}"
             |val scalacPluginVer = "${SireumApi.versions.get("org.sireum::scalac-plugin:").get}"
             |
-            |val scalacOpts = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
+            |val scalacOpts = Seq(${(for (opt <- filterOptions(o.scalac)) yield s"\"$opt\"", ", ")})
             |
             |val scalaDocOpts = Seq("-siteroot", "mydocs", "-no-link-warnings")
             |
@@ -505,6 +510,15 @@ object Proyek {
       )
       if (genMill) {
         println(s"Wrote $build")
+        val pr: OsProto.Proc = if (Os.isWin) {
+          proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --disable-ticker mill.bsp.BSP/install"
+        } else {
+          Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --disable-ticker mill.bsp.BSP/install"))
+        }
+        pr.console.at(root).env(ISZ(
+          "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
+          "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
+        )).runCheck()
       }
     }
 
