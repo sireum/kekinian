@@ -468,7 +468,7 @@ object Proyek {
             |val scalaTestVer = "${SireumApi.versions.get("org.scalatest::scalatest::").get}"
             |val scalacPluginVer = "${SireumApi.versions.get("org.sireum::scalac-plugin:").get}"
             |
-            |val scalacOpts = Seq(${(for (opt <- proyek.Compile.filterOptionsForMeta(o.scalac)) yield s"\"$opt\"", ", ")})
+            |val scalacOpts = Seq(${(for (opt <- o.scalac) yield s"\"$opt\"", ", ")})
             |
             |val scalaDocOpts = Seq("-siteroot", "mydocs", "-no-link-warnings")
             |

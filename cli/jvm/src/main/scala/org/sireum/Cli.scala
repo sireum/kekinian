@@ -50,13 +50,13 @@ object Cli {
   }
 
   @enum object SireumHamrCodegenNodesCodeLanguage {
-    'Python
-    'Cpp
+    "Python"
+    "Cpp"
   }
 
   @enum object SireumHamrCodegenLaunchCodeLanguage {
-    'Python
-    'Xml
+    "Python"
+    "Xml"
   }
 
   @datatype class SireumHamrCodegenOption(
@@ -126,13 +126,13 @@ object Cli {
   }
 
   @enum object SireumHamrSysmlCodegenNodesCodeLanguage {
-    'Python
-    'Cpp
+    "Python"
+    "Cpp"
   }
 
   @enum object SireumHamrSysmlCodegenLaunchCodeLanguage {
-    'Python
-    'Xml
+    "Python"
+    "Xml"
   }
 
   @datatype class SireumHamrSysmlCodegenOption(
@@ -3395,7 +3395,7 @@ import Cli._
           |                           name) (expects a string)
           |    --no-deps            Exclude library dependencies
           |-m, --main               The main class fully qualified name (expects a string)
-          |    --meta               Generate Scalameta semanticsdb
+          |    --meta               Generate Scalameta semanticdb
           |    --native             Generates native image
           |    --uber               Generates uber jar
           |-h, --help               Display this information
@@ -3437,9 +3437,8 @@ import Cli._
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -3475,7 +3474,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -3686,13 +3685,12 @@ import Cli._
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --js                 Compile using Scala.js
-          |    --meta               Generate Scalameta semanticsdb
+          |    --meta               Generate Scalameta semanticdb
           |-h, --help               Display this information
           |
           |Project Options:
@@ -3734,7 +3732,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var sha3: B = false
     var js: B = false
     var meta: B = false
@@ -4103,9 +4101,8 @@ import Cli._
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --target             Build tool target (expects one or more of { bloop,
@@ -4140,7 +4137,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var sha3: B = false
     var target: ISZ[SireumProyekExportBuildTool.Type] = ISZ(SireumProyekExportBuildTool.Bloop)
     var ignoreRuntime: B = false
@@ -4304,9 +4301,8 @@ import Cli._
           |                           -Xlint:deprecation, -proc:none")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |-h, --help               Display this information
           |
           |Project Options:
@@ -4349,7 +4345,7 @@ import Cli._
     var force: B = false
     var rebuildIve: B = false
     var javac: ISZ[String] = ISZ("-source", "17", "-target", "17", "-encoding", "utf8", "-XDignore.symbol.file", "-Xlint:-options", "-Xlint:deprecation", "-proc:none")
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -5214,9 +5210,8 @@ import Cli._
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -5247,7 +5242,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -5458,9 +5453,8 @@ import Cli._
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -5490,7 +5484,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
@@ -6061,9 +6055,8 @@ import Cli._
           |                           separated by ",")
           |    --scalac             Scalac options (expects a string separated by ",";
           |                           default is "-release, 17, -deprecation, -Yrangepos,
-          |                           -Ydelambdafy:method, -feature, -unchecked,
-          |                           -Xfatal-warnings, -language:postfixOps,
-          |                           -Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+          |                           -Ydelambdafy:method, -feature, -unchecked, -Werror,
+          |                           -language:postfixOps")
           |    --sha3               Use SHA3 instead of time stamp for detecting file
           |                           changes
           |    --skip-compile       Skip compilation
@@ -6096,7 +6089,7 @@ import Cli._
     var fresh: B = false
     var par: Option[Z] = None()
     var recompile: ISZ[String] = ISZ[String]()
-    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Xfatal-warnings", "-language:postfixOps", "-Wconf:cat=scala3-migration&msg=legacy-binding^msg=symbol^msg=outer:s")
+    var scalac: ISZ[String] = ISZ("-release", "17", "-deprecation", "-Yrangepos", "-Ydelambdafy:method", "-feature", "-unchecked", "-Werror", "-language:postfixOps")
     var sha3: B = false
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
