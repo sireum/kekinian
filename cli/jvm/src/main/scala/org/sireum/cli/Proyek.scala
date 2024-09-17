@@ -314,7 +314,7 @@ object Proyek {
 
   @datatype class Files {
     @memoize def hasFiles(paths: ISZ[Os.Path]): B = {
-      for (path <- paths; _ <- Os.Path.walk(path, F, F, (p: Os.Path) => p.ext == "scala")) {
+      for (path <- paths; _ <- Os.Path.walk(path, F, F, (p: Os.Path) => p.ext == "scala" || p.ext == "java")) {
         return T
       }
       return F
