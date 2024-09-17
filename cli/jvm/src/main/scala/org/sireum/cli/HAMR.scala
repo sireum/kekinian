@@ -27,11 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.sireum.cli
 
 import org.sireum._
-import org.sireum.LibUtil.{FileOptionMap, mineOptions}
 import org.sireum.Os.Path
 import org.sireum.hamr.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
+import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption}
 import org.sireum.hamr.codegen.common.util._
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.FrontEnd
@@ -359,7 +359,7 @@ object HAMR {
     return if (reporter.hasError) 1 else 0
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodegenResults = {
     return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins, reporter)
   }
 
@@ -375,7 +375,7 @@ object HAMR {
     *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
     *            its $owned method always return false
     */
-  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodeGenResults = {
+  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodegenResults = {
 
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as
@@ -472,7 +472,7 @@ object HAMR {
 
     val cgops = toCodeGenOptions(o)
 
-    return SireumApi.hamrCodeGen(model, cgops, plugins, reporter,
+    return SireumApi.hamrCodeGen(model, T, cgops, plugins, reporter,
       transpile _, proyekIve _, sergen _, slangCheck _)
   }
 
@@ -801,14 +801,15 @@ object HAMR {
       experimentalOptions = o.experimentalOptions)
   }
 
-  def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodeGenConfig = {
-    return CodeGenConfig(
-      writeOutResources = T,
-      ipc = CodeGenIpcMechanism.SharedMemory,
-      //
+  def toCodeGenOptions(o: Cli.SireumHamrCodegenOption): CodegenOption = {
+    return CodegenOption(
+      help = o.help,
+      args = o.args,
+      msgpack = o.msgpack,
       verbose = o.verbose,
       runtimeMonitoring = o.runtimeMonitoring,
-      platform = CodeGenPlatform.byName(o.platform.name).get,
+      platform = CodegenHamrPlatform.byName(o.platform.name).get,
+      parseableMessages = o.parseableMessages,
       //
       slangOutputDir = o.slangOutputDir,
       packageName = o.packageName,

@@ -266,14 +266,15 @@ object Sireum {
   def bitcodecPrint(spec: bitcodec.Spec): ST = org.sireum.bitcodec.JSON.Printer.printSpec(spec)
 
   def hamrCodeGen(model: hamr.ir.Aadl,
-                  options: hamr.codegen.common.util.CodeGenConfig,
+                  shouldWriteOutResources: B,
+                  options: hamr.codegen.common.util.HamrCli.CodegenOption,
                   plugins: MSZ[hamr.codegen.common.plugin.Plugin],
                   reporter: message.Reporter,
                   transpilerCallback: (hamr.codegen.common.containers.SireumSlangTranspilersCOption, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.SireumProyekIveOption => Z,
                   sergenCallback: (hamr.codegen.common.containers.SireumToolsSergenOption, message.Reporter) => Z,
-                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodeGenResults =
-    hamr.codegen.CodeGen.codeGen(model, options, plugins, reporter, transpilerCallback, proyekIveCallback, sergenCallback, slangCheckCallback)
+                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodegenResults =
+    hamr.codegen.CodeGen.codeGen(model, shouldWriteOutResources, options, plugins, reporter, transpilerCallback, proyekIveCallback, sergenCallback, slangCheckCallback)
 
   implicit class GZIS(val gzis: _root_.java.util.zip.GZIPInputStream) extends AnyVal {
 

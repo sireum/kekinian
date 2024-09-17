@@ -43,6 +43,7 @@ object Cli {
     "Linux"
     "Cygwin"
     "MacOS"
+    "Microkit"
     "SeL4"
     "SeL4_Only"
     "SeL4_TB"
@@ -119,6 +120,7 @@ object Cli {
     "Linux"
     "Cygwin"
     "MacOS"
+    "Microkit"
     "SeL4"
     "SeL4_Only"
     "SeL4_TB"
@@ -1070,19 +1072,20 @@ import Cli._
       case "Linux" => return Some(SireumHamrCodegenHamrPlatform.Linux)
       case "Cygwin" => return Some(SireumHamrCodegenHamrPlatform.Cygwin)
       case "MacOS" => return Some(SireumHamrCodegenHamrPlatform.MacOS)
+      case "Microkit" => return Some(SireumHamrCodegenHamrPlatform.Microkit)
       case "seL4" => return Some(SireumHamrCodegenHamrPlatform.SeL4)
       case "seL4_Only" => return Some(SireumHamrCodegenHamrPlatform.SeL4_Only)
       case "seL4_TB" => return Some(SireumHamrCodegenHamrPlatform.SeL4_TB)
       case "ros2" => return Some(SireumHamrCodegenHamrPlatform.Ros2)
       case s =>
-        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, Microkit, seL4, seL4_Only, seL4_TB, ros2 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumHamrCodegenHamrPlatform(args: ISZ[String], i: Z): Option[SireumHamrCodegenHamrPlatform.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but none found.")
+      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, Microkit, seL4, seL4_Only, seL4_TB, ros2 }, but none found.")
       return None()
     }
     val r = parseSireumHamrCodegenHamrPlatformH(args(i))
@@ -1140,8 +1143,8 @@ import Cli._
           |-m, --runtime-monitoring    
           |                          Enable runtime monitoring
           |-p, --platform           Target platform (expects one of { JVM, Linux, Cygwin,
-          |                           MacOS, seL4, seL4_Only, seL4_TB, ros2 }; default:
-          |                           JVM)
+          |                           MacOS, Microkit, seL4, seL4_Only, seL4_TB, ros2 };
+          |                           default: JVM)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
           |
@@ -1607,19 +1610,20 @@ import Cli._
       case "Linux" => return Some(SireumHamrSysmlCodegenHamrPlatform.Linux)
       case "Cygwin" => return Some(SireumHamrSysmlCodegenHamrPlatform.Cygwin)
       case "MacOS" => return Some(SireumHamrSysmlCodegenHamrPlatform.MacOS)
+      case "Microkit" => return Some(SireumHamrSysmlCodegenHamrPlatform.Microkit)
       case "seL4" => return Some(SireumHamrSysmlCodegenHamrPlatform.SeL4)
       case "seL4_Only" => return Some(SireumHamrSysmlCodegenHamrPlatform.SeL4_Only)
       case "seL4_TB" => return Some(SireumHamrSysmlCodegenHamrPlatform.SeL4_TB)
       case "ros2" => return Some(SireumHamrSysmlCodegenHamrPlatform.Ros2)
       case s =>
-        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { JVM, Linux, Cygwin, MacOS, Microkit, seL4, seL4_Only, seL4_TB, ros2 }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumHamrSysmlCodegenHamrPlatform(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenHamrPlatform.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, seL4, seL4_Only, seL4_TB, ros2 }, but none found.")
+      eprintln("Expecting one of the following: { JVM, Linux, Cygwin, MacOS, Microkit, seL4, seL4_Only, seL4_TB, ros2 }, but none found.")
       return None()
     }
     val r = parseSireumHamrSysmlCodegenHamrPlatformH(args(i))
@@ -1682,8 +1686,8 @@ import Cli._
           |-m, --runtime-monitoring    
           |                          Enable runtime monitoring
           |-p, --platform           Target platform (expects one of { JVM, Linux, Cygwin,
-          |                           MacOS, seL4, seL4_Only, seL4_TB, ros2 }; default:
-          |                           JVM)
+          |                           MacOS, Microkit, seL4, seL4_Only, seL4_TB, ros2 };
+          |                           default: JVM)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
           |
