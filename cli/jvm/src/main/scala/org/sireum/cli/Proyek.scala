@@ -312,6 +312,15 @@ object Proyek {
     return 0
   }
 
+  @datatype class Files {
+    @memoize def hasFiles(paths: ISZ[Os.Path]): B = {
+      for (path <- paths; _ <- Os.Path.walk(path, F, F, (p: Os.Path) => p.ext == "scala")) {
+        return T
+      }
+      return F
+    }
+  }
+
   def exprt(o: Cli.SireumProyekExportOption): Z = {
     val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
     if (help) {
@@ -325,6 +334,7 @@ object Proyek {
 
     var genMill = F
     var genBloop = F
+    val files = Files()
 
     for (t <- o.target) {
       t match {
@@ -362,6 +372,7 @@ object Proyek {
       @pure def module(m: project.Module): ST = {
         var supers = ISZ[String]()
         val hasJs = ops.ISZOps(m.targets).exists((t: project.Target.Type) => t == project.Target.Js)
+        val hasJvm = ops.ISZOps(m.targets).exists((t: project.Target.Type) => t == project.Target.Js)
         var hasScala = F
         var base = root.relativize(Os.path(m.basePath))
         m.subPathOpt match {
@@ -372,17 +383,18 @@ object Proyek {
           hasScala = T
         }
         supers = supers :+ (
-          if (hasJs /* Workaround: broken Bloop Scala.js support */ && !genBloop ) "ScalaJSModule"
+          if (hasJs && !hasJvm /* Workaround: broken Bloop Scala.js support */ && !genBloop ) "ScalaJSModule"
           else if (hasScala) "ScalaModule"
           else "JavaModule"
         )
         val fileSep: C = if (Os.isWin) '\\' else '/'
         @strictpure def split(s: String): ISZ[String] = for (p <- ops.StringOps(s).split((c: C) => c == fileSep)) yield s"\"$p\""
         val bases = split(base.string)
-        val testsOpt: Option[ST] = if (m.testSources.isEmpty) None() else Some(
+        val mid = quote(s"m-${m.id}")
+        val testsOpt: Option[ST] = if (!files.hasFiles(project.ProjectUtil.moduleTestSources(m))) None() else Some(
           st"""object tests extends TestSuite {
-              |  def millSourcePath = super.millSourcePath / os.up / os.up / ${(bases, " / ")}
-              |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"`m-$parent`.tests", ", ")})
+              |  def millSourcePath = $mid.millSourcePath
+              |  def moduleDeps = Seq($mid${(for (parent <- prj.poset.ancestorsOf(m.id).elements if files.hasFiles(project.ProjectUtil.moduleTestSources(prj.modules.get(parent).get))) yield s", `m-$parent`.tests", "")})
               |  def sources = T.sources {
               |    Seq(${(for (src <- m.testSources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
