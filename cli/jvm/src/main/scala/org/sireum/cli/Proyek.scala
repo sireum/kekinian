@@ -371,7 +371,11 @@ object Proyek {
         for (src <- m.sources ++ m.testSources; _ <- Os.Path.walk(root / base.string / src, F, F, (p: Os.Path) => p.ext == "scala")) {
           hasScala = T
         }
-        supers = supers :+ (if (hasJs) "ScalaJSModule" else if (hasScala) "ScalaModule" else "JavaModule")
+        supers = supers :+ (
+          if (hasJs /* Workaround: broken Bloop Scala.js support */ && !genBloop ) "ScalaJSModule"
+          else if (hasScala) "ScalaModule"
+          else "JavaModule"
+        )
         val fileSep: C = if (Os.isWin) '\\' else '/'
         @strictpure def split(s: String): ISZ[String] = for (p <- ops.StringOps(s).split((c: C) => c == fileSep)) yield s"\"$p\""
         val bases = split(base.string)
