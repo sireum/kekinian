@@ -875,83 +875,116 @@ object HAMR {
 
     // TODO: for now the file options (if set) takes precedence over any cli options (expect line and system-name)
     var ret = o
-    for (k <- fileOpts if (ops.StringOps(k).startsWith("--") && LongKeys.allKeys.contains(k)) ||
-      (ops.StringOps(k).startsWith("-") && ShortKeys.allKeys.contains(k))) {
-      // ros2 tool options
-      if (k == LongKeys.sourcepath) {
-        ret = ret(sourcepath = fileOptions.sourcepath)
-      } else if (k == LongKeys.line) {
-        eprintln("Cannot set 'line' in file options")
-        return None()
-      } else if (k == LongKeys.system) {
-        eprintln("Cannot set 'system-name' in file options")
-        return None()
-      }
-      // common tool options
-      else if (k == ShortKeys.verbose || k == LongKeys.verbose) {
-        ret = ret(verbose = fileOptions.verbose)
-      } else if (k == ShortKeys.runtimeMonitoring || k == LongKeys.runtimeMonitoring) {
-        ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
-      } else if (k == ShortKeys.platform || k == LongKeys.platform) {
-        ret = ret(platform = fileOptions.platform)
-      } else if (k == LongKeys.parseableMessages) {
-        ret = ret(parseableMessages = fileOptions.parseableMessages)
-      }
-      // slang group options
-      else if (k == ShortKeys.Slang_slangOutputDir || k == LongKeys.Slang_slangOutputDir) {
-        ret = ret(slangOutputDir = fileOptions.slangOutputDir)
-      } else if (k == ShortKeys.Slang_packageName || k == LongKeys.Slang_packageName) {
-        ret = ret(packageName = fileOptions.packageName)
-      } else if (k == LongKeys.Slang_noProyekIve) {
-        ret = ret(noProyekIve = fileOptions.noProyekIve)
-      } else if (k == LongKeys.Slang_noEmbedArt) {
-        ret = ret(noEmbedArt = fileOptions.noEmbedArt)
-      } else if (k == LongKeys.Slang_devicesAsThreads) {
-        ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
-      } else if (k == LongKeys.Slang_genSbtMill) {
-        ret = ret(genSbtMill = fileOptions.genSbtMill)
-      }
-      // transpiler group options
-      else if (k == LongKeys.Transpiler_slangAuxCodeDirs) {
-        ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
-      } else if (k == LongKeys.Transpiler_slangOutputCDir) {
-        ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
-      } else if (k == ShortKeys.Transpiler_excludeComponentImpl || k == LongKeys.Transpiler_excludeComponentImpl) {
-        ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
-      } else if (k == ShortKeys.Transpiler_bitWidth || k == LongKeys.Transpiler_bitWidth) {
-        ret = ret(bitWidth = fileOptions.bitWidth)
-      } else if (k == ShortKeys.Transpiler_maxStringSize || k == LongKeys.Transpiler_maxStringSize) {
-        ret = ret(maxStringSize = fileOptions.maxStringSize)
-      } else if (k == ShortKeys.Transpiler_maxArraySize || k == LongKeys.Transpiler_maxArraySize) {
-        ret = ret(maxArraySize = fileOptions.maxArraySize)
-      } else if (k == ShortKeys.Transpiler_runTranspiler || k == LongKeys.Transpiler_runTranspiler) {
-        ret = ret(runTranspiler = fileOptions.runTranspiler)
-      }
-      // camkes group options
-      else if (k == LongKeys.CAmkES_camkesOutputDir) {
-        ret = ret(camkesOutputDir = fileOptions.camkesOutputDir)
-      } else if (k == LongKeys.CAmkES_camkesAuxCodeDirs) {
-        ret = ret(camkesAuxCodeDirs = fileOptions.camkesAuxCodeDirs)
-      } else if (k == ShortKeys.CAmkES_workspaceRootDir || k == LongKeys.CAmkES_workspaceRootDir) {
-        ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
-      }
-      // ros2 group options
-      else if (k == LongKeys.ROS2_strictAadlMode) {
-        ret = ret(strictAadlMode = fileOptions.strictAadlMode)
-      } else if (k == LongKeys.ROS2_ros2OutputWorkspaceDir) {
-        ret = ret(ros2OutputWorkspaceDir = fileOptions.ros2OutputWorkspaceDir)
-      } else if (k == LongKeys.ROS2_ros2Dir) {
-        ret = ret(ros2Dir = fileOptions.ros2Dir)
-      } else if (k == LongKeys.ROS2_ros2NodesLanguage) {
-        ret = ret(ros2NodesLanguage = fileOptions.ros2NodesLanguage)
-      } else if (k == LongKeys.ROS2_ros2LaunchLanguage) {
-        ret = ret(ros2LaunchLanguage = fileOptions.ros2LaunchLanguage)
-      }
-      // experimental group options
-      else if (k == ShortKeys.Experimental_experimentalOptions || k == LongKeys.Experimental_experimentalOptions) {
-        ret = ret(experimentalOptions = fileOptions.experimentalOptions)
+    var i = 0
+    while (i < fileOpts.size) {
+      val k = fileOpts(i)
+      if ((ops.StringOps(k).startsWith("--") && LongKeys.allKeys.contains(k)) ||
+        (ops.StringOps(k).startsWith("-") && ShortKeys.allKeys.contains(k))) {
+        if (k == LongKeys.sourcepath) {
+          ret = ret(sourcepath = fileOptions.sourcepath)
+          i = i + 2
+        } else if (k == LongKeys.line) {
+          eprintln("Cannot set 'line' in file options")
+          return None()
+        } else if (k == LongKeys.system) {
+          eprintln("Cannot set 'system-name' in file options")
+          return None()
+        }
+        // common tool options
+        else if (k == ShortKeys.verbose || k == LongKeys.verbose) {
+          ret = ret(verbose = fileOptions.verbose)
+          i = i + 1
+        } else if (k == ShortKeys.runtimeMonitoring || k == LongKeys.runtimeMonitoring) {
+          ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
+          i = i + 1
+        } else if (k == ShortKeys.platform || k == LongKeys.platform) {
+          ret = ret(platform = fileOptions.platform)
+          i = i + 2
+        } else if (k == LongKeys.parseableMessages) {
+          ret = ret(parseableMessages = fileOptions.parseableMessages)
+          i = i + 1
+        }
+        // slang group options
+        else if (k == ShortKeys.Slang_slangOutputDir || k == LongKeys.Slang_slangOutputDir) {
+          ret = ret(slangOutputDir = fileOptions.slangOutputDir)
+          i = i + 2
+        } else if (k == ShortKeys.Slang_packageName || k == LongKeys.Slang_packageName) {
+          ret = ret(packageName = fileOptions.packageName)
+          i = i + 2
+        } else if (k == LongKeys.Slang_noProyekIve) {
+          ret = ret(noProyekIve = fileOptions.noProyekIve)
+          i = i + 1
+        } else if (k == LongKeys.Slang_noEmbedArt) {
+          ret = ret(noEmbedArt = fileOptions.noEmbedArt)
+          i = i + 1
+        } else if (k == LongKeys.Slang_devicesAsThreads) {
+          ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
+          i = i + 1
+        } else if (k == LongKeys.Slang_genSbtMill) {
+          ret = ret(genSbtMill = fileOptions.genSbtMill)
+          i = i + 1
+        }
+        // transpiler group options
+        else if (k == LongKeys.Transpiler_slangAuxCodeDirs) {
+          ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
+          i = i + 2
+        } else if (k == LongKeys.Transpiler_slangOutputCDir) {
+          ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_excludeComponentImpl || k == LongKeys.Transpiler_excludeComponentImpl) {
+          ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
+          i = i + 1
+        } else if (k == ShortKeys.Transpiler_bitWidth || k == LongKeys.Transpiler_bitWidth) {
+          ret = ret(bitWidth = fileOptions.bitWidth)
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_maxStringSize || k == LongKeys.Transpiler_maxStringSize) {
+          ret = ret(maxStringSize = fileOptions.maxStringSize)
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_maxArraySize || k == LongKeys.Transpiler_maxArraySize) {
+          ret = ret(maxArraySize = fileOptions.maxArraySize)
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_runTranspiler || k == LongKeys.Transpiler_runTranspiler) {
+          ret = ret(runTranspiler = fileOptions.runTranspiler)
+          i = i + 1
+        }
+        // camkes group options
+        else if (k == LongKeys.CAmkES_camkesOutputDir) {
+          ret = ret(camkesOutputDir = fileOptions.camkesOutputDir)
+          i = i + 2
+        } else if (k == LongKeys.CAmkES_camkesAuxCodeDirs) {
+          ret = ret(camkesAuxCodeDirs = fileOptions.camkesAuxCodeDirs)
+          i = i + 2
+        } else if (k == ShortKeys.CAmkES_workspaceRootDir || k == LongKeys.CAmkES_workspaceRootDir) {
+          ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
+          i = i + 2
+        }
+        // ros2 group options
+        else if (k == LongKeys.ROS2_strictAadlMode) {
+          ret = ret(strictAadlMode = fileOptions.strictAadlMode)
+          i = i + 1
+        } else if (k == LongKeys.ROS2_ros2OutputWorkspaceDir) {
+          ret = ret(ros2OutputWorkspaceDir = fileOptions.ros2OutputWorkspaceDir)
+          i = i + 2
+        } else if (k == LongKeys.ROS2_ros2Dir) {
+          ret = ret(ros2Dir = fileOptions.ros2Dir)
+          i = i + 2
+        } else if (k == LongKeys.ROS2_ros2NodesLanguage) {
+          ret = ret(ros2NodesLanguage = fileOptions.ros2NodesLanguage)
+          i = i + 2
+        } else if (k == LongKeys.ROS2_ros2LaunchLanguage) {
+          ret = ret(ros2LaunchLanguage = fileOptions.ros2LaunchLanguage)
+          i = i + 2
+        }
+        // experimental group options
+        else if (k == ShortKeys.Experimental_experimentalOptions || k == LongKeys.Experimental_experimentalOptions) {
+          ret = ret(experimentalOptions = fileOptions.experimentalOptions)
+          i = i + 2
+        } else {
+          eprintln(s"'$k' is not a valid option key")
+          return None()
+        }
       } else {
-        eprintln(s"'$k' is not a valid option key")
+        eprintln(s"Invalid option '${fileOpts(i)}'. File options can only set codegen options, not arguments")
         return None()
       }
     }
