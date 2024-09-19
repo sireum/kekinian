@@ -190,6 +190,9 @@ object HAMR {
             val airOut = Os.path(o.slangOutputDir.get) / "air.json"
             airOut.writeOver(org.sireum.hamr.ir.JSON.fromAadl(modelElement.model, F))
             println(s"Wrote: ${airOut}")
+            reporter.info(None(), "codegen", "Code generation successful!")
+          } else {
+            reporter.info(None(), "codegen", "Code generation failed")
           }
 
         case Either.Right(msg) => return msg
