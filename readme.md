@@ -60,11 +60,12 @@ In addition, Sireum includes adaptations of the following artifacts:
 
 | Application | License |
 | :--- | :---: |
-| [Liberica JDK (Full)](https://bell-sw.com/libericajdk/) | [GPL v2 with "Classpath" exception](https://github.com/bell-sw/Liberica/blob/master/LICENSE) |
+| [Liberica NIK/JDK (Full)](https://bell-sw.com/) | [GPL v2 with "Classpath" exception](https://github.com/bell-sw/Liberica/blob/master/LICENSE) |
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Coursier](https://github.com/coursier/coursier) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [JaCoCo](https://github.com/jacoco/jacoco) | [EPL 2.0](https://github.com/jacoco/jacoco/blob/master/LICENSE.md) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
+
 
 
 Sireum stores small, pre-built binary executables in its submodule repositories for

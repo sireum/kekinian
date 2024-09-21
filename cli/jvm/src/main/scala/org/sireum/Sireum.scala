@@ -632,7 +632,7 @@ object Sireum {
           case Some(o: Cli.SireumParserGenOption) =>
             return cli.Parser.gen(o, reporter)
           case Some(o: Cli.SireumPresentasiText2speechOption) =>
-            init.installJava()
+            init.basicDeps()
             return cli.Presentasi.text2speech(o)
           case Some(o: Cli.SireumPresentasiGenOption) =>
             init.basicDeps()
