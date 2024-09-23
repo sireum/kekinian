@@ -437,7 +437,13 @@ object HAMR {
         sources = po.sources,
         repositories = po.repositories,
         empty = F,
-        rebuildIve = F
+        rebuildIve = F,
+        proxyHost = None(),
+        proxyProtocol = None(),
+        proxyPort = None(),
+        proxyUser = None(),
+        proxyPassword = None(),
+        proxyNonHosts = None()
       )
       return Proyek.ive(spivo)
     }

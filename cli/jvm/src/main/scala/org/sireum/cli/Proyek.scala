@@ -186,7 +186,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = sireumHome,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     var r: Z = 0
@@ -255,7 +257,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     val r = proyek.Compile.run(
@@ -299,7 +303,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     var deps = ISZ[String]()
@@ -307,7 +313,7 @@ object Proyek {
       deps = deps ++ dm.computeTransitiveIvyDeps(m)
     }
 
-    Coursier.resolve(dm.scalaVersion, dm.cacheOpt, o.repositories, deps, T)
+    Coursier.resolve(dm.scalaVersion, dm.cacheOpt, o.repositories, deps, T, Coursier.Proxy.empty)
 
     return 0
   }
@@ -665,7 +671,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     val configPath: Os.Path = o.edition match {
@@ -720,7 +728,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     val config = org.sireum.logika.Config(
@@ -935,7 +945,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     val libV = ops.StringOps(SireumApi.commitHash).substring(0, 10)
@@ -1115,7 +1127,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     var r: Z = 0
@@ -1185,7 +1199,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     var r: Z = 0
@@ -1255,7 +1271,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     val output: Os.Path = o.args match {
@@ -1302,7 +1320,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     var r: Z = 0
@@ -1371,7 +1391,9 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p))
+      cacheOpt = o.cache.map((p: String) => Os.path(p)),
+      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
+        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
     )
 
     val config = org.sireum.logika.Config(

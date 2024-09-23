@@ -387,6 +387,12 @@ object Cli {
     val skipCompile: B,
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -412,6 +418,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -430,6 +442,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -484,6 +502,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -518,6 +542,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String],
     val infoFlow: B,
@@ -597,6 +627,12 @@ object Cli {
     val skipCompile: B,
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -623,6 +659,12 @@ object Cli {
     val skipCompile: B,
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -647,6 +689,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -664,6 +712,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -693,6 +747,12 @@ object Cli {
     val skipCompile: B,
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -713,6 +773,12 @@ object Cli {
     val versions: ISZ[String],
     val cache: Option[String],
     val docs: B,
+    val proxyHost: Option[String],
+    val proxyNonHosts: Option[String],
+    val proxyPort: Option[String],
+    val proxyProtocol: Option[String],
+    val proxyUser: Option[String],
+    val proxyPassword: Option[String],
     val sources: B,
     val repositories: ISZ[String]
   ) extends SireumTopOption
@@ -3452,6 +3518,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -3483,6 +3557,12 @@ import Cli._
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -3646,6 +3726,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -3667,7 +3783,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3726,6 +3842,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -3750,6 +3874,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -3871,6 +4001,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -3892,7 +4058,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, meta, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekCompileOption(help, parseArguments(args, j), javac, fresh, par, recompile, scalac, sha3, js, meta, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekDep(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3934,6 +4100,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -3951,6 +4125,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -4027,6 +4207,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -4048,7 +4264,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekDepOption(help, parseArguments(args, j), js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekDepOption(help, parseArguments(args, j), js, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekExportBuildToolH(arg: String): Option[SireumProyekExportBuildTool.Type] = {
@@ -4338,6 +4554,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -4360,6 +4584,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -4466,6 +4696,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -4487,7 +4753,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, edition, force, rebuildIve, javac, scalac, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekIveOption(help, parseArguments(args, j), empty, edition, force, rebuildIve, javac, scalac, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekLogikaFPRoundingModeH(arg: String): Option[SireumProyekLogikaFPRoundingMode.Type] = {
@@ -4573,6 +4839,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -4689,6 +4963,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var infoFlow: B = false
@@ -4821,6 +5101,42 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!docs) }
            o match {
              case Some(v) => docs = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
              case _ => return None()
            }
          } else if (arg == "--no-sources") {
@@ -5123,7 +5439,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
@@ -5225,6 +5541,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -5251,6 +5575,12 @@ import Cli._
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -5384,6 +5714,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -5405,7 +5771,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekPublishOption(help, parseArguments(args, j), m2, target, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekPublishOption(help, parseArguments(args, j), m2, target, version, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -5468,6 +5834,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -5493,6 +5867,12 @@ import Cli._
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -5620,6 +6000,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -5641,7 +6057,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekRunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekRunOption(help, parseArguments(args, j), dir, java, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekSlangcheck(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -5694,6 +6110,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -5717,6 +6141,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -5832,6 +6262,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -5853,7 +6319,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekSlangcheckOption(help, parseArguments(args, j), license, packageName, outputDir, testDir, par, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekSlangcheckOption(help, parseArguments(args, j), license, packageName, outputDir, testDir, par, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekStats(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -5894,6 +6360,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -5910,6 +6384,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -5980,6 +6460,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -6001,7 +6517,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekStatsOption(help, parseArguments(args, j), ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekStatsOption(help, parseArguments(args, j), ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekTest(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -6070,6 +6586,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -6098,6 +6622,12 @@ import Cli._
     var skipCompile: B = false
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -6243,6 +6773,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -6264,7 +6830,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, repositories))
+    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumProyekTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -6310,6 +6876,14 @@ import Cli._
           |                           cache directory) (expects a path)
           |    --no-docs            Disable retrieval of javadoc files from Ivy
           |                           dependencies
+          |    --proxy-host         Proxy host for ivy resolution (expects a string)
+          |    --proxy-hosts        Proxy non-hosts for ivy resolution (expects a string)
+          |    --proxy-port         Proxy port for ivy resolution (expects a string)
+          |    --proxy-protocol     Proxy protocol for ivy resolution (expects a string)
+          |    --proxy-user-env     Proxy user environment variable for ivy resolution
+          |                           (expects a string)
+          |    --proxy-passwd-env   Proxy password environment variable for ivy resolution
+          |                           (expects a string)
           |    --no-sources         Disable retrieval of source files from Ivy
           |                           dependencies
           |-r, --repositories       Additional repository URLs to retrieve Ivy
@@ -6329,6 +6903,12 @@ import Cli._
     var versions: ISZ[String] = ISZ[String]()
     var cache: Option[String] = None[String]()
     var docs: B = true
+    var proxyHost: Option[String] = None[String]()
+    var proxyNonHosts: Option[String] = None[String]()
+    var proxyPort: Option[String] = None[String]()
+    var proxyProtocol: Option[String] = None[String]()
+    var proxyUser: Option[String] = None[String]()
+    var proxyPassword: Option[String] = None[String]()
     var sources: B = true
     var repositories: ISZ[String] = ISZ[String]()
     var j = i
@@ -6420,6 +7000,42 @@ import Cli._
              case Some(v) => docs = v
              case _ => return None()
            }
+         } else if (arg == "--proxy-host") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyHost = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-hosts") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyNonHosts = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-port") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPort = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-protocol") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyProtocol = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-user-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyUser = v
+             case _ => return None()
+           }
+         } else if (arg == "--proxy-passwd-env") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => proxyPassword = v
+             case _ => return None()
+           }
          } else if (arg == "--no-sources") {
            val o: Option[B] = { j = j - 1; Some(!sources) }
            o match {
@@ -6441,7 +7057,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTipeOption(help, parseArguments(args, j), par, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, repositories))
+    return Some(SireumProyekTipeOption(help, parseArguments(args, j), par, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, sources, repositories))
   }
 
   def parseSireumSlang(args: ISZ[String], i: Z): Option[SireumTopOption] = {
