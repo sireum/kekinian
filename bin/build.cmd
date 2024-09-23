@@ -32,7 +32,7 @@ else                                                                            
 fi                                                                                                          #
 :BOF
 setlocal
-set SIREUM_HOME=%~dp0../
+set SIREUM_HOME=%~dp0..
 call "%~dp0init.bat" || exit /B %errorlevel%
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
