@@ -1,6 +1,11 @@
 name: macOS-CompCert
 
-on: [push]
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "!**"
 
 jobs:
 

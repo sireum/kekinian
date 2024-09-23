@@ -1,47 +1,18 @@
 name: Install
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
 
 jobs:
 
-  ci-jitpack:
+  ci-install-linux-amd64:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Cache Java
-        id: cache-java
-        uses: actions/cache@v3
-        with:
-          path: bin/linux/java
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
-      - name: Cache Scala
-        id: cache-scala
-        uses: actions/cache@v3
-        with:
-          path: bin/scala
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
-      - name: Cache Coursier
-        id: cache-coursier
-        uses: actions/cache@v3
-        with:
-          path: cache/coursier
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
-      - name: Init
-        run: |
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
-          cd $GITHUB_WORKSPACE
-          bin/init.sh
-      - name: Trigger jitpack
-        run: |
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
-          cd $GITHUB_WORKSPACE
-          timeout 90s bin/build.cmd jitpack || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-      - name: Sleep for 15 minutes
-        run: sleep 900s
-        shell: bash
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE
@@ -53,9 +24,23 @@ jobs:
           git clone https://github.com/sireum/logika-examples.git "logika examples"
           "$SIREUM_HOME/bin/sireum" proyek ive "logika examples"
           "logika examples/bin/verify.cmd"
+      - name: Native
+        run: |
+          cd $GITHUB_WORKSPACE
+          export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
+          "$SIREUM_HOME/bin/sireum" --native
+          mv "$SIREUM_HOME/bin/linux/sireum" sireum-linux-amd64
+      - name: Upload
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-linux-amd64
+          asset_name: sireum-linux-amd64
+          tag: ${{ github.ref }}
+          overwrite: true
 
-  ci-macos-install:
-    needs: ci-jitpack
+  ci-install-macos-arm64:
     runs-on: macOS-latest
     steps:
       - name: Test
@@ -69,9 +54,53 @@ jobs:
           git clone https://github.com/sireum/logika-examples.git "logika examples"
           "$SIREUM_HOME/bin/sireum" proyek ive "logika examples"
           "logika examples/bin/verify.cmd"
+      - name: Native
+        run: |
+          cd $GITHUB_WORKSPACE
+          export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
+          "$SIREUM_HOME/bin/sireum" --native
+          mv "$SIREUM_HOME/bin/mac/sireum" sireum-mac-arm64
+      - name: Upload
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-mac-arm64
+          asset_name: sireum-mac-arm64
+          tag: ${{ github.ref }}
+          overwrite: true
 
-  ci-windows-install:
-    needs: ci-jitpack
+  ci-install-macos-amd64:
+    runs-on: macOS-13
+    steps:
+      - name: Test
+        run: |
+          cd $GITHUB_WORKSPACE
+          mkdir "foo bar"
+          cd "foo bar"
+          (DIR=Sireum && export SIREUM_V=master && rm -fR $DIR && mkdir -p $DIR/bin && cd $DIR/bin && curl -JLso init.sh https://raw.githubusercontent.com/sireum/kekinian/$SIREUM_V/bin/init.sh && bash init.sh)
+          export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
+          cd ..
+          git clone https://github.com/sireum/logika-examples.git "logika examples"
+          "$SIREUM_HOME/bin/sireum" proyek ive "logika examples"
+          "logika examples/bin/verify.cmd"
+      - name: Native
+        run: |
+          cd $GITHUB_WORKSPACE
+          export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
+          "$SIREUM_HOME/bin/sireum" --native
+          mv "$SIREUM_HOME/bin/mac/sireum" sireum-mac-amd64
+      - name: Upload
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-mac-amd64
+          asset_name: sireum-mac-amd64
+          tag: ${{ github.ref }}
+          overwrite: true
+
+  ci-install-windows-amd64:
     runs-on: windows-latest
     steps:
       - name: Test
@@ -86,3 +115,26 @@ jobs:
           git clone https://github.com/sireum/logika-examples.git "logika examples"
           "%SIREUM_HOME%\bin\sireum.bat" proyek ive "logika examples"
           "logika examples\bin\verify.cmd"
+      - name: Configure Pagefile
+        if: github.ref_type == 'tag'
+        uses: al-cheb/configure-pagefile-action@v1.4
+        with:
+          minimum-size: 8GB
+          maximum-size: 16GB
+          disk-root: "C:"
+      - name: Native
+        shell: cmd
+        run: |
+          set SIREUM_HOME=%GITHUB_WORKSPACE%\foo bar\Sireum
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          "%SIREUM_HOME%\bin\sireum.bat" --native
+          move "%SIREUM_HOME%\bin\sireum.exe" "%GITHUB_WORKSPACE%\sireum-win-amd64.exe"
+      - name: Upload
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-win-amd64.exe
+          asset_name: sireum-win-amd64.exe
+          tag: ${{ github.ref }}
+          overwrite: true
