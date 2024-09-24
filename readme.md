@@ -18,7 +18,8 @@ https://sireum.org ([Download/Getting Started](https://sireum.org/getting-starte
 ## Dependencies
 
 Sireum depends on open source software libraries and applications
-(the specific versions are listed in [versions.properties](versions.properties)).
+(the specific versions are listed in [versions.properties](versions.properties) and
+in [bin/install](https://github.com/sireum/bin-install/) scripts).
 
 ### Library Dependencies
 
