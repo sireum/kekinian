@@ -99,7 +99,7 @@ import org.sireum.message.Reporter
                   transpilerCallback: (hamr.codegen.common.containers.SireumSlangTranspilersCOption, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.SireumProyekIveOption => Z,
                   sergenCallback: (hamr.codegen.common.containers.SireumToolsSergenOption, message.Reporter) => Z,
-                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodegenResults = $
+                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodeGenResults = $
 
   def run(args: ISZ[String]): Z = $
 

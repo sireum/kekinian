@@ -362,7 +362,7 @@ object HAMR {
     return if (reporter.hasError) 1 else 0
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodegenResults = {
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
     return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins, reporter)
   }
 
@@ -378,7 +378,7 @@ object HAMR {
     *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
     *            its $owned method always return false
     */
-  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodegenResults = {
+  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodeGenResults = {
 
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as

@@ -274,7 +274,7 @@ object Sireum {
                   transpilerCallback: (hamr.codegen.common.containers.SireumSlangTranspilersCOption, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.SireumProyekIveOption => Z,
                   sergenCallback: (hamr.codegen.common.containers.SireumToolsSergenOption, message.Reporter) => Z,
-                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodegenResults =
+                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodeGenResults =
     hamr.codegen.CodeGen.codeGen(model, shouldWriteOutResources, options, plugins, reporter, transpilerCallback, proyekIveCallback, sergenCallback, slangCheckCallback)
 
   implicit class GZIS(val gzis: _root_.java.util.zip.GZIPInputStream) extends AnyVal {
