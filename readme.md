@@ -8,8 +8,7 @@
 [![Actions Status](https://github.com/sireum/kekinian/workflows/Linux-CompCert/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-linux-compcert.yml)
 [![Actions Status](https://github.com/sireum/kekinian/workflows/Install/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-install.yml)
 [![Actions Status](https://github.com/sireum/kekinian/workflows/Distro/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-distro.yml)
-[![Actions Status](https://github.com/sireum/kekinian/workflows/Jitpack/badge.svg)](https://github.com/sireum/kekinian/actions/workflows/CI-jitpack.yml)
-[![Packages](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
+[![Actions Status](https://jitpack.io/v/org.sireum/kekinian.svg)](https://jitpack.io/#org.sireum/kekinian)
 
 
 Sireum Kekinian is the most recent evolution of the Sireum platform.
