@@ -16,35 +16,50 @@ jobs:
         with:
           path: kekinian
           submodules: recursive
-      - name: Native
+      - name: Build
         run: |
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --sfx
+          cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
           mv "$SIREUM_HOME/distro/linux.sfx" sireum-ive-linux-amd64.7z.sfx
-      - name: Upload CLI Artifact
+      - name: Upload Jar dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-cli-linux-amd64
-          path: sireum-cli-linux-amd64
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 9
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum.jar
+          asset_name: sireum.jar
+          tag: dev
           overwrite: true
-          include-hidden-files: false
-      - name: Upload IVE Artifact
+      - name: Upload CLI dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-ive-linux-amd64.7z.sfx
-          path: sireum-ive-linux-amd64.7z.sfx
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 0
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-cli-linux-amd64
+          asset_name: sireum-cli-linux-amd64
+          tag: dev
           overwrite: true
-          include-hidden-files: false
+      - name: Upload IVE dev
+        if: github.ref_type != 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-ive-linux-amd64.7z.sfx
+          asset_name: sireum-ive-linux-amd64.7z.sfx
+          tag: dev
+          overwrite: true
+      - name: Upload Jar Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum.jar
+          asset_name: sireum.jar
+          tag: ${{ github.ref }}
+          overwrite: true
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -54,7 +69,7 @@ jobs:
           asset_name: sireum-cli-linux-amd64
           tag: ${{ github.ref }}
           overwrite: true
-      - name: Upload CLI Release
+      - name: Upload IVE Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -72,35 +87,31 @@ jobs:
         with:
           path: kekinian
           submodules: recursive
-      - name: Native
+      - name: Build
         run: |
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-arm64.7z.sfx
-      - name: Upload CLI Artifact
+      - name: Upload CLI dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-cli-mac-arm64
-          path: sireum-cli-mac-arm64
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 9
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-cli-mac-arm64
+          asset_name: sireum-cli-mac-arm64
+          tag: dev
           overwrite: true
-          include-hidden-files: false
-      - name: Upload IVE Artifact
+      - name: Upload IVE dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-ive-mac-arm64.7z.sfx
-          path: sireum-ive-mac-arm64.7z.sfx
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 0
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-ive-mac-arm64.7z.sfx
+          asset_name: sireum-ive-mac-arm64.7z.sfx
+          tag: dev
           overwrite: true
-          include-hidden-files: false
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -128,35 +139,31 @@ jobs:
         with:
           path: kekinian
           submodules: recursive
-      - name: Native
+      - name: Build
         run: |
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-amd64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-amd64.7z.sfx
-      - name: Upload CLI Artifact
+      - name: Upload CLI dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-cli-mac-amd64
-          path: sireum-cli-mac-amd64
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 9
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-cli-mac-amd64
+          asset_name: sireum-cli-mac-amd64
+          tag: dev
           overwrite: true
-          include-hidden-files: false
-      - name: Upload IVE Artifact
+      - name: Upload IVE dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-ive-mac-amd64.7z.sfx
-          path: sireum-ive-mac-amd64.7z.sfx
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 0
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-ive-mac-amd64.7z.sfx
+          asset_name: sireum-ive-mac-amd64.7z.sfx
+          tag: dev
           overwrite: true
-          include-hidden-files: false
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -192,7 +199,7 @@ jobs:
           minimum-size: 8GB
           maximum-size: 16GB
           disk-root: "C:"
-      - name: Native
+      - name: Build
         shell: cmd
         run: |
           set SIREUM_HOME=%GITHUB_WORKSPACE%\kekinian
@@ -200,28 +207,24 @@ jobs:
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --sfx
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.exe" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z.exe"
-      - name: Upload CLI Artifact
+      - name: Upload CLI dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-cli-win-amd64.exe
-          path: sireum-cli-win-amd64.exe
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 9
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-cli-win-amd64.exe
+          asset_name: sireum-cli-win-amd64.exe
+          tag: dev
           overwrite: true
-          include-hidden-files: false
-      - name: Upload IVE Artifact
+      - name: Upload IVE dev
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: sireum-ive-win-amd64.7z.exe
-          path: sireum-ive-win-amd64.7z.exe
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 0
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-ive-win-amd64.7z.exe
+          asset_name: sireum-ive-win-amd64.7z.exe
+          tag: dev
           overwrite: true
-          include-hidden-files: false
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
