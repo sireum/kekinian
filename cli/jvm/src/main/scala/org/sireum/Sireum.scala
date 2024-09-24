@@ -654,6 +654,7 @@ object Sireum {
             val isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate
             val isServer = o.edition == Cli.SireumProyekIveEdition.Server
             if (o.rebuildIve || !init.ideaDirPath(isUltimate, isServer).exists) {
+              init.deps()
               init.distro(isDev = F, buildSfx = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
                 isServer = o.edition == Cli.SireumProyekIveEdition.Server)
             }
