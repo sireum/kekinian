@@ -16,9 +16,15 @@ jobs:
         with:
           path: kekinian
           submodules: recursive
+      - name: Update dev tag
+        if: github.ref_type != 'tag'
+        run: |
+          cd "$GITHUB_WORKSPACE/kekinian"
+          git push --force origin HEAD:refs/tags/dev
+          git fetch --tags
       - name: Build
         run: |
-          cd $GITHUB_WORKSPACE
+          cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --sfx
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
