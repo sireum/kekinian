@@ -127,7 +127,7 @@ jobs:
         run: |
           set SIREUM_HOME=%GITHUB_WORKSPACE%\foo bar\Sireum
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          "%SIREUM_HOME%\bin\sireum.bat" --native
+          call "%SIREUM_HOME%\bin\sireum.bat" --native
           move "%SIREUM_HOME%\bin\sireum.exe" "%GITHUB_WORKSPACE%\sireum-win-amd64.exe"
       - name: Upload
         if: github.ref_type == 'tag'
