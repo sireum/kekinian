@@ -13,23 +13,9 @@ jobs:
   ci-install-linux-amd64:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: kekinian
-          submodules: recursive
-      - name: Trigger jitpack
-        run: |
-          cd $GITHUB_WORKSPACE
-          mkdir coursier
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/coursier
-          kekinian/bin/init.sh
-          timeout 90s kekinian/bin/build.cmd jitpack || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-          rm -fR kekinian
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/coursier
           mkdir "foo bar"
           cd "foo bar"
           (DIR=Sireum && export SIREUM_V=master && rm -fR $DIR && mkdir -p $DIR/bin && cd $DIR/bin && curl -JLso init.sh https://raw.githubusercontent.com/sireum/kekinian/$SIREUM_V/bin/init.sh && bash init.sh)
@@ -41,7 +27,6 @@ jobs:
 
   ci-install-macos-arm64:
     runs-on: macOS-latest
-    needs: ci-install-linux-amd64
     steps:
       - name: Test
         run: |
@@ -57,7 +42,6 @@ jobs:
 
   ci-install-macos-amd64:
     runs-on: macOS-13
-    needs: ci-install-linux-amd64
     steps:
       - name: Test
         run: |
@@ -72,7 +56,6 @@ jobs:
           "logika examples/bin/verify.cmd"
 
   ci-install-windows-amd64:
-    needs: ci-install-linux-amd64
     runs-on: windows-latest
     steps:
       - name: Test
