@@ -439,7 +439,7 @@ def jitpack(): Unit = {
   val sc = Os.tempFix("", ".sc")
   sc.writeOver(
     st"""import org.sireum._
-        |for (cif <- Coursier.fetch("${Sireum.scalaVer}", ISZ(s"org.sireum.kekinian::cli:$ver"))) {
+        |for (cif <- Coursier.fetch("${Sireum.scalaVer}", ISZ(s"org.sireum.kekinian::cli:$ver"), Coursier.Proxy.empty)) {
         |  println(cif.path)
         |}""".render
   )
