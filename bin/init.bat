@@ -42,7 +42,7 @@ if ($Env:SIREUM_INIT_V) {
   $init_v = "$Env:SIREUM_INIT_V"
 } else {
   if ($sireum_v -eq "master") {
-    $init_v = "latest"
+    $init_v = "dev"
   } else {
     if ($sireum_v.StartsWith('4.')) {
       $init_v = "$sireum_v"
@@ -68,7 +68,7 @@ $versions_properties = "$sireum_home\versions.properties"
 
 if (!(Test-Path $sireum_jar)) {
   "Please wait while downloading Sireum ..."
-  Invoke-WebRequest -Uri "https://github.com/sireum/init/releases/download/$init_v/sireum.jar" -OutFile "$sireum_jar"
+  Invoke-WebRequest -Uri "https://github.com/sireum/kekinian/releases/download/$init_v/sireum.jar" -OutFile "$sireum_jar"
   ""
 }
 if (!(Test-Path $sireum_bat)) {

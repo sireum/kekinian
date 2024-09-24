@@ -26,7 +26,7 @@
 
 : ${SIREUM_V:=master}
 if [[ "${SIREUM_V}" == "master" ]]; then
-  : ${SIREUM_INIT_V:=latest}
+  : ${SIREUM_INIT_V:=dev}
 else
   if [[ -z "${SIREUM_INIT_V}" ]]; then
     if [[ ${SIREUM_V} == 4.* ]]; then
@@ -115,7 +115,7 @@ SIREUM_HOME=$( cd "$( dirname "$0" )"/.. &> /dev/null && pwd )
 cd "${SIREUM_HOME}"
 if [[ ! -f bin/sireum.jar ]]; then
   echo "Please wait while downloading Sireum ..."
-  download bin/sireum.jar https://github.com/sireum/init/releases/download/${SIREUM_INIT_V}/sireum.jar
+  download bin/sireum.jar https://github.com/sireum/kekinian/releases/download/${SIREUM_INIT_V}/sireum.jar
   chmod +x bin/sireum.jar
   echo
 fi
