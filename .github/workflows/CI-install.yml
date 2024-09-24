@@ -30,7 +30,7 @@ jobs:
           export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
           "$SIREUM_HOME/bin/sireum" --native
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-linux-amd64
-      - name: Upload
+      - name: Upload Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -39,6 +39,16 @@ jobs:
           asset_name: sireum-linux-amd64
           tag: ${{ github.ref }}
           overwrite: true
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sireum-linux-amd64
+          path: sireum-linux-amd64
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 9
+          overwrite: true
+          include-hidden-files: false
 
   ci-install-macos-arm64:
     runs-on: macOS-latest
@@ -60,7 +70,17 @@ jobs:
           export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
           "$SIREUM_HOME/bin/sireum" --native
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-mac-arm64
-      - name: Upload
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sireum-mac-arm64
+          path: sireum-mac-arm64
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 9
+          overwrite: true
+          include-hidden-files: false
+      - name: Upload Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -90,7 +110,17 @@ jobs:
           export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
           "$SIREUM_HOME/bin/sireum" --native
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-mac-amd64
-      - name: Upload
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sireum-mac-amd64
+          path: sireum-mac-amd64
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 9
+          overwrite: true
+          include-hidden-files: false
+      - name: Upload Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -129,7 +159,17 @@ jobs:
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call "%SIREUM_HOME%\bin\sireum.bat" --native
           move "%SIREUM_HOME%\bin\sireum.exe" "%GITHUB_WORKSPACE%\sireum-win-amd64.exe"
-      - name: Upload
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sireum-win-amd64.exe
+          path: sireum-win-amd64.exe
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 9
+          overwrite: true
+          include-hidden-files: false
+      - name: Upload Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
