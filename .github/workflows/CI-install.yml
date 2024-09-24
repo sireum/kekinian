@@ -30,16 +30,8 @@ jobs:
           export SIREUM_HOME="$GITHUB_WORKSPACE/foo bar/Sireum"
           "$SIREUM_HOME/bin/sireum" --native
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-linux-amd64
-      - name: Upload Release
-        if: github.ref_type == 'tag'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-linux-amd64
-          asset_name: sireum-linux-amd64
-          tag: ${{ github.ref }}
-          overwrite: true
       - name: Upload Artifact
+        if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v4
         with:
           name: sireum-linux-amd64
@@ -49,6 +41,15 @@ jobs:
           compression-level: 9
           overwrite: true
           include-hidden-files: false
+      - name: Upload Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-linux-amd64
+          asset_name: sireum-linux-amd64
+          tag: ${{ github.ref }}
+          overwrite: true
 
   ci-install-macos-arm64:
     runs-on: macOS-latest
@@ -71,6 +72,7 @@ jobs:
           "$SIREUM_HOME/bin/sireum" --native
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-mac-arm64
       - name: Upload Artifact
+        if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v4
         with:
           name: sireum-mac-arm64
@@ -111,6 +113,7 @@ jobs:
           "$SIREUM_HOME/bin/sireum" --native
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-mac-amd64
       - name: Upload Artifact
+        if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v4
         with:
           name: sireum-mac-amd64
@@ -157,8 +160,9 @@ jobs:
           set SIREUM_HOME=%GITHUB_WORKSPACE%\foo bar\Sireum
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call "%SIREUM_HOME%\bin\sireum.bat" --native
-          move "%SIREUM_HOME%\bin\sireum.exe" "%GITHUB_WORKSPACE%\sireum-win-amd64.exe"
+          move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-win-amd64.exe"
       - name: Upload Artifact
+        if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v4
         with:
           name: sireum-win-amd64.exe
