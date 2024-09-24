@@ -171,21 +171,10 @@ object Cli {
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
-  @enum object SireumHamrSysmlConfigPlatform {
-    "JVM"
-    "MacOS"
-    "Linux"
-    "Cygwin"
-    "SeL4"
-    "SeL4_Only"
-    "SeL4_TB"
-  }
-
   @datatype class SireumHamrSysmlConfigOption(
     val help: String,
     val args: ISZ[String],
-    val parseableMessages: B,
-    val target: SireumHamrSysmlConfigPlatform.Type
+    val parseableMessages: B
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
@@ -2036,30 +2025,6 @@ import Cli._
     return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
   }
 
-  def parseSireumHamrSysmlConfigPlatformH(arg: String): Option[SireumHamrSysmlConfigPlatform.Type] = {
-    arg.native match {
-      case "JVM" => return Some(SireumHamrSysmlConfigPlatform.JVM)
-      case "macOS" => return Some(SireumHamrSysmlConfigPlatform.MacOS)
-      case "Linux" => return Some(SireumHamrSysmlConfigPlatform.Linux)
-      case "Cygwin" => return Some(SireumHamrSysmlConfigPlatform.Cygwin)
-      case "seL4" => return Some(SireumHamrSysmlConfigPlatform.SeL4)
-      case "seL4_Only" => return Some(SireumHamrSysmlConfigPlatform.SeL4_Only)
-      case "seL4_TB" => return Some(SireumHamrSysmlConfigPlatform.SeL4_TB)
-      case s =>
-        eprintln(s"Expecting one of the following: { JVM, macOS, Linux, Cygwin, seL4, seL4_Only, seL4_TB }, but found '$s'.")
-        return None()
-    }
-  }
-
-  def parseSireumHamrSysmlConfigPlatform(args: ISZ[String], i: Z): Option[SireumHamrSysmlConfigPlatform.Type] = {
-    if (i >= args.size) {
-      eprintln("Expecting one of the following: { JVM, macOS, Linux, Cygwin, seL4, seL4_Only, seL4_TB }, but none found.")
-      return None()
-    }
-    val r = parseSireumHamrSysmlConfigPlatformH(args(i))
-    return r
-  }
-
   def parseSireumHamrSysmlConfig(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum HAMR SysML v2 CodeGen Config
@@ -2068,12 +2033,9 @@ import Cli._
           |
           |Available Options:
           |    --parseable-messages Print parseable file messages
-          |-t, --target             Target platform (expects one of { JVM, macOS, Linux,
-          |                           Cygwin, seL4, seL4_Only, seL4_TB }; default: JVM)
           |-h, --help               Display this information""".render
 
     var parseableMessages: B = false
-    var target: SireumHamrSysmlConfigPlatform.Type = SireumHamrSysmlConfigPlatform.JVM
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -2088,12 +2050,6 @@ import Cli._
              case Some(v) => parseableMessages = v
              case _ => return None()
            }
-         } else if (arg == "-t" || arg == "--target") {
-           val o: Option[SireumHamrSysmlConfigPlatform.Type] = parseSireumHamrSysmlConfigPlatform(args, j + 1)
-           o match {
-             case Some(v) => target = v
-             case _ => return None()
-           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -2103,7 +2059,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), parseableMessages, target))
+    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), parseableMessages))
   }
 
   def parseSireumHamrSysmlLogikaFPRoundingModeH(arg: String): Option[SireumHamrSysmlLogikaFPRoundingMode.Type] = {
