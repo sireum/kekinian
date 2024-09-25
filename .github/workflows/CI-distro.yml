@@ -27,6 +27,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --sfx
+          "$SIREUM_HOME/bin/install/vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
           mv "$SIREUM_HOME/distro/linux.sfx" sireum-ive-linux-amd64.7z.sfx
@@ -98,6 +99,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx
+          "$SIREUM_HOME/bin/install/vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-arm64.7z.sfx
       - name: Upload CLI dev
@@ -150,6 +152,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx
+          "$SIREUM_HOME/bin/install/vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-amd64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-amd64.7z.sfx
       - name: Upload CLI dev
@@ -211,6 +214,7 @@ jobs:
           set SIREUM_HOME=%GITHUB_WORKSPACE%\kekinian
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --sfx
+          call "$SIREUM_HOME\bin/install\vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.exe" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z.exe"
       - name: Upload CLI dev
