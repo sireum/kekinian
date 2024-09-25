@@ -217,7 +217,7 @@ jobs:
           set SIREUM_HOME=%GITHUB_WORKSPACE%\kekinian
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call "%SIREUM_HOME%\bin\init.bat"
-          call "$SIREUM_HOME\bin/install\vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
+          call "$SIREUM_HOME\bin\install\vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --sfx
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.exe" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z.exe"
