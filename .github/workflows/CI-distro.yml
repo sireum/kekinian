@@ -38,14 +38,6 @@ jobs:
           asset_name: sireum.jar
           tag: dev
           overwrite: true
-      - name: Build
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
-          "$SIREUM_HOME/bin/install/vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
-          "$SIREUM_HOME/bin/build.cmd" native distro --linux --sfx
-          mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
-          mv "$SIREUM_HOME/distro/linux.sfx" sireum-ive-linux-amd64.7z.sfx
       - name: Upload Jar Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -55,6 +47,14 @@ jobs:
           asset_name: sireum.jar
           tag: ${{ github.ref }}
           overwrite: true
+      - name: Build
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
+          "$SIREUM_HOME/bin/install/vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/build.cmd" native distro --linux --sfx
+          mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
+          mv "$SIREUM_HOME/distro/linux.sfx" sireum-ive-linux-amd64.7z.sfx
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
