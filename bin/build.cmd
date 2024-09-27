@@ -1,53 +1,16 @@
-::/*#! 2> /dev/null                                                                                         #
-@ 2>/dev/null # 2>nul & echo off & goto BOF                                                                 #
-export SIREUM_HOME=$(cd -P "$(dirname "$0")/.." && pwd -P)                                                  #
-if [ ! -z ${SIREUM_PROVIDED_SCALA++} ]; then                                                                #
-  SIREUM_PROVIDED_JAVA=true                                                                                 #
-fi                                                                                                          #
-"${SIREUM_HOME}/bin/init.sh" || exit $?                                                                     #
-if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                                                 #
-  export SIREUM_HOME=$(cygpath -C OEM -w -a ${SIREUM_HOME})                                                 #
-  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
-    export PATH="${SIREUM_HOME}/bin/win/java":"${SIREUM_HOME}/bin/win/z3":"$PATH"                           #
-    export PATH="$(cygpath -C OEM -w -a ${JAVA_HOME}/bin)":"$(cygpath -C OEM -w -a ${Z3_HOME}/bin)":"$PATH" #
-  fi                                                                                                        #
-elif [ "$(uname)" = "Darwin" ]; then                                                                        #
-  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
-    export PATH="${SIREUM_HOME}/bin/mac/java/bin":"${SIREUM_HOME}/bin/mac/z3/bin":"$PATH"                   #
-  fi                                                                                                        #
-elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                                                   #
-  if [ -z ${SIREUM_PROVIDED_JAVA++} ]; then                                                                 #
-    if [ "$(uname -m)" = "aarch64" ]; then                                                                  #
-      export PATH="${SIREUM_HOME}/bin/linux/arm/java/bin":"$PATH"                                           #
-    else                                                                                                    #
-      export PATH="${SIREUM_HOME}/bin/linux/java/bin":"${SIREUM_HOME}/bin/linux/z3/bin":"$PATH"             #
-    fi                                                                                                      #
-  fi                                                                                                        #
-fi                                                                                                          #
-if [ -f "$0.com" ] && [ "$0.com" -nt "$0" ]; then                                                           #
-  exec "$0.com" "$@"                                                                                        #
-else                                                                                                        #
-  rm -fR "$0.com"                                                                                           #
-  exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"                                                      #
-fi                                                                                                          #
+::/*#! 2> /dev/null                                            #
+@ 2>/dev/null # 2>nul & echo off & goto BOF                    #
+export SIREUM_HOME=$(cd -P "$(dirname "$0")/.." && pwd -P)     #
+"${SIREUM_HOME}/bin/init.sh" || exit $?                        #
+exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"           #
 :BOF
 setlocal
 set SIREUM_HOME=%~dp0..
 call "%~dp0init.bat" || exit /B %errorlevel%
-if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
-if not defined SIREUM_PROVIDED_JAVA set PATH=%~dp0win\java\bin;%~dp0win\z3\bin;%PATH%
-set NEWER=False
-if exist %~dpnx0.com for /f %%i in ('powershell -noprofile -executionpolicy bypass -command "(Get-Item %~dpnx0.com).LastWriteTime -gt (Get-Item %~dpnx0).LastWriteTime"') do @set NEWER=%%i
-if "%NEWER%" == "True" goto native
-del "%~dpnx0.com" > nul 2>&1
-"%~dp0sireum.bat" slang run %0 %*
-exit /B %errorlevel%
-:native
-"%~dpnx0.com" %*
+call "%SIREUM_HOME%\bin\sireum.bat" slang run %0 %*
 exit /B %errorlevel%
 ::!#*/
 // #Sireum
-
 import org.sireum._
 import org.sireum.project.DependencyManager
 
@@ -74,20 +37,40 @@ def usage(): Unit = {
 val proyekName: String = "sireum-proyek"
 val jarName: String = "sireum"
 
-object Versions {
+val homeBin: Os.Path = Os.slashDir
+val home: Os.Path = homeBin.up.canon
 
-  val homeBin: Os.Path = Os.slashDir
-  val home: Os.Path = homeBin.up.canon
-
-  @memoize def versions: Map[String, String] = {
-    return (home / "versions.properties").properties
-  }
-}
-
-import Versions._
+val versions: Map[String, String] = (home / "versions.properties").properties
 
 val sireumJar = homeBin / s"$jarName.jar"
 val sireum = homeBin / (if (Os.isWin) "sireum.bat" else "sireum")
+
+var proxyOpt: String = ""
+
+Os.env("PROXY_HOST") match {
+  case Some(v) => proxyOpt = s" --proxy-host $v$proxyOpt"
+  case _ =>
+}
+Os.env("PROXY_NON_HOSTS") match {
+  case Some(v) => proxyOpt = s" --proxy-non-hosts $v$proxyOpt"
+  case _ =>
+}
+Os.env("PROXY_PORT") match {
+  case Some(v) => proxyOpt = s" --proxy-port $v$proxyOpt"
+  case _ =>
+}
+Os.env("PROXY_PROTOCOL") match {
+  case Some(v) => proxyOpt = s" --proxy-protocol $v$proxyOpt"
+  case _ =>
+}
+Os.env("PROXY_USER") match {
+  case Some(_) => proxyOpt = s" --proxy-user-env PROXY_USER$proxyOpt"
+  case _ =>
+}
+Os.env("PROXY_PASSWD") match {
+  case Some(_) => proxyOpt = s" --proxy-passwd-env PROXY_PASSWD$proxyOpt"
+  case _ =>
+}
 
 def platformKind(kind: Os.Kind.Type): String = {
   kind match {
@@ -170,7 +153,7 @@ def build(fresh: B, isNative: B, isUber: B): Unit = {
   val uber: String = if (isUber) " --uber" else ""
 
   val includeSources: String = if (Os.env("INCLUDE_SOURCES").nonEmpty) "--include-sources " else ""
-  val r = Sireum.proc(proc"$sireum proyek assemble -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime ${includeSources}--include-tests$recompile$nativ$uber $home".console,
+  val r = Sireum.proc(proc"$sireum proyek assemble$proxyOpt -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime ${includeSources}--include-tests$recompile$nativ$uber $home".console,
     message.Reporter.create)
   if (r.exitCode == 0) {
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
@@ -205,7 +188,7 @@ def tipe(): Unit = {
 def compile(isJs: B): Unit = {
   tipe()
   println("Compiling ...")
-  proc"$sireum proyek compile -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} $home".console.runCheck()
+  proc"$sireum proyek compile$proxyOpt -n $proyekName --par --sha3 --ignore-runtime${if (isJs) " --js" else ""} $home".console.runCheck()
   println()
 }
 
@@ -226,7 +209,7 @@ def test(): Unit = {
     "org.sireum.hamr.codegen.test.expensive",
     "org.sireum.hamr.sysml"
   )
-  proc"$sireum proyek test --java -Xss2M -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
+  proc"$sireum proyek test$proxyOpt --java -Xss2M -n $proyekName --par --sha3 --ignore-runtime --packages ${st"${(packageNames, ",")}".render} $home ${st"${(names, " ")}".render}".
     console.echo.runCheck()
   println()
 }
@@ -245,7 +228,7 @@ def verifyLogikaExamples(): Unit = {
 }
 
 def verifyRuntime(): Unit = {
-  proc"$sireum proyek logika --all --par --par-branch --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
+  proc"$sireum proyek logika$proxyOpt --all --par --par-branch --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
   println()
 }
 
@@ -406,7 +389,7 @@ def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  Sireum.procCheck(proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} $home org.sireum.kekinian".console,
+  Sireum.procCheck(proc"$sireum proyek publish$proxyOpt -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} $home org.sireum.kekinian".console,
     message.Reporter.create)
   return kekinianRepo
 }
@@ -427,7 +410,7 @@ def m2Lib(isJs: B): Unit = {
   }
 
   val target: String = if (isJs) "--target js" else "--target jvm"
-  Sireum.procCheck(proc"$sireum proyek publish -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version $home org.sireum.kekinian".console,
+  Sireum.procCheck(proc"$sireum proyek publish$proxyOpt -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version $home org.sireum.kekinian".console,
     message.Reporter.create)
 }
 
@@ -505,71 +488,68 @@ def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
     build(F, F, F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
+  proc"$sireum proyek ive$proxyOpt --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
 }
 
 def ram(): Unit = {
-  def mac(): Unit = {
-    val ramdisk = Os.path("/Volumes") / "RAM"
-    val ramdiskHome = ramdisk / home.name
-    if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
-      setup(F, F, F)
-    }
-    if (ramdisk.exists) {
-      proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
-      proc"rsync -a --exclude .idea --exclude project.json --exclude out --exclude '*.cmd.com' $ramdiskHome ${home.up.canon}".echo.console.runCheck()
-      proc"hdiutil eject $ramdisk".echo.console.runCheck()
-    } else {
-      val disk = ops.StringOps(proc"hdiutil attach -nomount ram://${8 * 1024 * 2048}".echo.console.runCheck().out).trim
-      proc"diskutil erasevolume HFS+ ${ramdisk.name} $disk".echo.console.runCheck()
-      proc"rsync -a --exclude .idea --exclude project.json --exclude out --exclude '*.cmd.com' $home $ramdisk".echo.console.runCheck()
-      val plist = ramdisk / "rsync.plist"
-      plist.writeOver(
-        st"""<?xml version="1.0" encoding="UTF-8"?>
-            |<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            |<plist version="1.0">
-            |<dict>
-            |  <key>Label</key>
-            |  <string>org.sireum.ram.rsync</string>
-            |  <key>ProgramArguments</key>
-            |  <array>
-            |    <string>/usr/bin/rsync</string>
-            |    <string>-av</string>
-            |    <string>--exclude</string>
-            |    <string>project.json</string>
-            |    <string>--exclude</string>
-            |    <string>.idea</string>
-            |    <string>--exclude</string>
-            |    <string>out</string>
-            |    <string>--exclude</string>
-            |    <string>*.cmd.com</string>
-            |    <string>$ramdiskHome</string>
-            |    <string>${home.up.canon}</string>
-            |  </array>
-            |  <key>Nice</key>
-            |  <integer>1</integer>
-            |  <key>StartInterval</key>
-            |  <integer>150</integer>
-            |  <key>RunAtLoad</key>
-            |  <true/>
-            |  <key>StandardErrorPath</key>
-            |  <string>${plist.up.canon / s"${plist.name}.err.txt"}</string>
-            |  <key>StandardOutPath</key>
-            |  <string>${plist.up.canon / s"${plist.name}.out.txt"}</string>
-            |</dict>
-            |</plist>
-            | """.render)
-      println(s"""Wrote $plist""")
-      proc"launchctl load $plist".echo.console.runCheck()
-      println()
-      val ive = ramdiskHome / "bin" / "mac" / "idea" / "IVE.app"
-      proc"${ramdiskHome / "bin" / "build.cmd"} project".echo.console.runCheck()
-      proc"open --env SIREUM_HOME=$ramdiskHome $ive".echo.console.runCheck()
-    }
-  }
-
   Os.kind match {
-    case Os.Kind.Mac => mac()
+    case Os.Kind.Mac =>
+      val ramdisk = Os.path("/Volumes") / "RAM"
+      val ramdiskHome = ramdisk / home.name
+      if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
+        setup(F, F, F)
+      }
+      if (ramdisk.exists) {
+        proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
+        proc"rsync -a --exclude .idea --exclude project.json --exclude out --exclude '*.cmd.com' $ramdiskHome ${home.up.canon}".echo.console.runCheck()
+        proc"hdiutil eject $ramdisk".echo.console.runCheck()
+      } else {
+        val disk = ops.StringOps(proc"hdiutil attach -nomount ram://${8 * 1024 * 2048}".echo.console.runCheck().out).trim
+        proc"diskutil erasevolume HFS+ ${ramdisk.name} $disk".echo.console.runCheck()
+        proc"rsync -a --exclude .idea --exclude project.json --exclude out --exclude '*.cmd.com' $home $ramdisk".echo.console.runCheck()
+        val plist = ramdisk / "rsync.plist"
+        plist.writeOver(
+          st"""<?xml version="1.0" encoding="UTF-8"?>
+              |<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+              |<plist version="1.0">
+              |<dict>
+              |  <key>Label</key>
+              |  <string>org.sireum.ram.rsync</string>
+              |  <key>ProgramArguments</key>
+              |  <array>
+              |    <string>/usr/bin/rsync</string>
+              |    <string>-av</string>
+              |    <string>--exclude</string>
+              |    <string>project.json</string>
+              |    <string>--exclude</string>
+              |    <string>.idea</string>
+              |    <string>--exclude</string>
+              |    <string>out</string>
+              |    <string>--exclude</string>
+              |    <string>*.cmd.com</string>
+              |    <string>$ramdiskHome</string>
+              |    <string>${home.up.canon}</string>
+              |  </array>
+              |  <key>Nice</key>
+              |  <integer>1</integer>
+              |  <key>StartInterval</key>
+              |  <integer>150</integer>
+              |  <key>RunAtLoad</key>
+              |  <true/>
+              |  <key>StandardErrorPath</key>
+              |  <string>${plist.up.canon / s"${plist.name}.err.txt"}</string>
+              |  <key>StandardOutPath</key>
+              |  <string>${plist.up.canon / s"${plist.name}.out.txt"}</string>
+              |</dict>
+              |</plist>
+              | """.render)
+        println(s"""Wrote $plist""")
+        proc"launchctl load $plist".echo.console.runCheck()
+        println()
+        val ive = ramdiskHome / "bin" / "mac" / "idea" / "IVE.app"
+        proc"${ramdiskHome / "bin" / "build.cmd"} project".echo.console.runCheck()
+        proc"open --env SIREUM_HOME=$ramdiskHome $ive".echo.console.runCheck()
+      }
     case _ =>
       eprintln("This utility is only available in macOS")
       Os.exit(-1)
