@@ -32,6 +32,7 @@ in [bin/install](https://github.com/sireum/bin-install/) scripts).
 | [Apache Common Compress](https://github.com/apache/commons-compress) | [(link)](https://central.sonatype.com/artifact/org.apache.commons/commons-compress) | [Apache 2.0](https://gitbox.apache.org/repos/asf?p=commons-compress.git;a=blob_plain;f=LICENSE.txt;hb=HEAD) |
 | [ASM](https://gitlab.ow2.org/asm/asm) | [(link)](https://central.sonatype.com/artifact/org.ow2.asm/asm) | [BSD3](https://gitlab.ow2.org/asm/asm/-/blob/master/LICENSE.txt) |
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
+| [fastutil](https://fastutil.di.unimi.it/) | [(link)](https://central.sonatype.com/artifact/it.unimi.dsi/fastutil) | [Apache 2.0](https://github.com/vigna/fastutil/blob/master/LICENSE-2.0) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://central.sonatype.com/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://central.sonatype.com/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://central.sonatype.com/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
