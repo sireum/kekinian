@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
 
-  private lazy val commitSha: String = {
+  lazy val commitSha: String = {
     val commitHashOps = ops.StringOps(commitHash)
     if (commitHashOps.endsWith("*")) commitHashOps.substring(0, commitHashOps.size - 1) else commitHashOps.s
   }
@@ -707,10 +707,20 @@ object Sireum {
           case Some(o: Cli.SireumProyekTipeOption) =>
             init.basicDeps()
             reporter match {
-              case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, reporter)
+              case reporter: logika.Logika.Reporter => return cli.Proyek.tipe(o, MBox2(HashMap.empty, HashMap.empty), reporter)
               case _ =>
                 val rep = logika.ReporterImpl.create(F, F, F, F)
-                val exitCode = cli.Proyek.tipe(o, rep)
+                val exitCode = cli.Proyek.tipe(o, MBox2(HashMap.empty, HashMap.empty), rep)
+                reporter.reports(rep.messages)
+                return exitCode
+            }
+          case Some(o: Cli.SireumProyekReflectOption) =>
+            init.basicDeps()
+            reporter match {
+              case reporter: logika.Logika.Reporter => return cli.Proyek.reflectGen(o, reporter)
+              case _ =>
+                val rep = logika.ReporterImpl.create(F, F, F, F)
+                val exitCode = cli.Proyek.reflectGen(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
             }

@@ -32,6 +32,10 @@ import org.sireum.SireumApi._
 
 object SlangRunner {
 
+  @ext("SlangRunner_Ext") object Ext {
+    @strictpure def create: Reflection = $
+  }
+
   val HomeNotFound: Z = -1
   val NativeUnavailable: Z = -2
   val InvalidOutput: Z = -3

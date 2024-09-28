@@ -27,6 +27,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.U8._
+import org.sireum.lang.symbol.Resolver.{NameMap, TypeMap}
 import org.sireum.lang.tipe.TypeHierarchy
 import org.sireum.logika.Config.StrictPureMode
 import org.sireum.logika.{Config, Smt2, Smt2Formatter, Smt2Invoke}
@@ -49,6 +50,7 @@ object Proyek {
   val INVALID_CHAR_WIDTH: Z = -12
   val INVALID_INT_WIDTH: Z = -13
   val ILL_FORMED_PROGRAMS: Z = -14
+  val FAILED_REFLECT_GEN: Z = -15
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -1179,6 +1181,64 @@ object Proyek {
     return r
   }
 
+  def reflectGen(o: Cli.SireumProyekReflectOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    val mbox2 = MBox2(HashMap.empty[String, HashMap[String, lang.FrontEnd.Input]], HashMap.empty[String, TypeHierarchy])
+    val exitCode = tipeH(Cli.SireumProyekTipeOption(
+     help = o.help,
+     args = o.args,
+     par = o.par,
+     strictAliasing = o.strictAliasing,
+     verbose = F,
+     ignoreRuntime = o.ignoreRuntime,
+     json = None(),
+     name = None(),
+     outputDirName = None(),
+     project = o.project,
+     slice = o.slice,
+     symlink = o.symlink,
+     versions = o.versions), path, prj, versions, mbox2, reporter)
+    if (exitCode != 0) {
+      return exitCode
+    }
+
+    println()
+    
+    val mth = mbox2.value2
+    var nameMap: NameMap = HashSMap.empty
+    var typeMap: TypeMap = HashSMap.empty
+    for (m <- prj.modules.values if prj.poset.childrenOf(m.id).isEmpty) {
+      val th = mth.get(m.id).get
+      if (nameMap.isEmpty) {
+        nameMap = th.nameMap
+      } else {
+        nameMap = nameMap ++ th.nameMap.entries
+      }
+      if (typeMap.isEmpty) {
+        typeMap = th.typeMap
+      } else {
+        typeMap = typeMap ++ th.typeMap.entries
+      }
+    }
+
+    proyek.Reflect.gen(o.packageName, o.className.get, o.output.map((p: String) => Os.path(p)), nameMap, typeMap,
+      HashSet ++ (for (p <- o.includePackages) yield ops.StringOps(p).split((c: C) => c == '.')),
+      HashSet ++ (for (p <- o.excludePackages) yield ops.StringOps(p).split((c: C) => c == '.')),
+      HashSet ++ (for (p <- o.include) yield ops.StringOps(p).split((c: C) => c == '.')),
+      HashSet ++ (for (p <- o.exclude) yield ops.StringOps(p).split((c: C) => c == '.')),
+      o.license.map((l: String) => Os.path(l).read))
+    reporter.printMessages()
+
+    return if (reporter.hasError) FAILED_REFLECT_GEN else 0
+  }
+
   def run(o: Cli.SireumProyekRunOption): Z = {
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(2), None(), o.args, o.versions, o.slice)
     if (help) {
@@ -1368,20 +1428,9 @@ object Proyek {
     return r
   }
 
-  def tipe(o: Cli.SireumProyekTipeOption, reporter: org.sireum.logika.Logika.Reporter): Z = {
-    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
-    if (help) {
-      println(o.help)
-      return code
-    } else if (code != 0) {
-      return code
-    }
-
-    if (o.args.size > 1) {
-      eprintln(st"Unexpected command line arguments: ${(ops.ISZOps(o.args).drop(1), " ")}".render)
-      return INVALID_ARGS
-    }
-
+  def tipeH(o: Cli.SireumProyekTipeOption, path: Os.Path, prj: project.Project, versions: HashSMap[String, String],
+            mapBox: MBox2[HashMap[String, HashMap[String, lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]],
+            reporter: org.sireum.logika.Logika.Reporter): Z = {
     val dm = project.DependencyManager(
       project = prj,
       versions = versions,
@@ -1391,9 +1440,8 @@ object Proyek {
       javaHome = SireumApi.javaHomeOpt.get,
       scalaHome = SireumApi.scalaHomeOpt.get,
       sireumHome = SireumApi.homeOpt.get,
-      cacheOpt = o.cache.map((p: String) => Os.path(p)),
-      proxy = Coursier.Proxy(hostOpt = o.proxyHost, nonHostsOpt = o.proxyNonHosts, portOpt = o.proxyPort,
-        protocolOpt = o.proxyProtocol, protocolUserEnvKeyOpt = o.proxyUser, protocolPasswordEnvKeyOpt = o.proxyPassword)
+      cacheOpt = None(),
+      proxy = Coursier.Proxy.empty
     )
 
     val config = org.sireum.logika.Config(
@@ -1449,7 +1497,7 @@ object Proyek {
       dm = dm,
       cacheInput = F,
       cacheTypeHierarchy = F,
-      mapBox = MBox2(HashMap.empty, HashMap.empty),
+      mapBox = mapBox,
       config = config,
       cache = org.sireum.logika.NoTransitionSmt2Cache.create,
       files = HashSMap.empty,
@@ -1479,6 +1527,26 @@ object Proyek {
     }
 
     return if (lcode === 0) 0 else ILL_FORMED_PROGRAMS
+
+  }
+
+  def tipe(o: Cli.SireumProyekTipeOption,
+           mapBox: MBox2[HashMap[String, HashMap[String, lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]],
+           reporter: org.sireum.logika.Logika.Reporter): Z = {
+    val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    if (o.args.size > 1) {
+      eprintln(st"Unexpected command line arguments: ${(ops.ISZOps(o.args).drop(1), " ")}".render)
+      return INVALID_ARGS
+    }
+
+    return tipeH(o, path, prj, versions, mapBox, reporter)
   }
 
   def getPath(args: ISZ[String]): Option[Os.Path] = {

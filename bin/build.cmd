@@ -26,7 +26,7 @@ def usage(): Unit = {
         |       | regen-slang-ll2  | regen-parser        | regen-parser-antlr3
         |       | regen-server     | regen-cliopt        | regen-cli
         |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
-        |       | regen-slang-tt
+        |       | regen-slang-tt   | regen-reflect
         |       | cvc              | z3                  | m2[-lib[-js]]
         |       | jitpack          | ghpack              | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
@@ -384,6 +384,15 @@ def regenJson(): Unit = {
     message.Reporter.create)
 }
 
+def regenReflect(): Unit = {
+  val cliScalaPath = home / "cli" / "jvm" / "src" / "main" / "scala"
+  val license = home / "license.txt"
+  val xs = ISZ[String]("Json", "MessagePack", "B", "Z", "C", "String", "F32", "F64", "ST", "R", "IS", "MS", "RS", "Reflection")
+  val excluded: String = st"${(for (x <- xs) yield st"org.sireum.$x", ",")}".render
+  Sireum.procCheck(proc"$sireum proyek reflect --license $license --package org.sireum.cli --class SlangRunner_Ext --slice library --include-packages org.sireum --exclude $excluded --output $cliScalaPath $home".console,
+    message.Reporter.create)
+}
+
 
 def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
@@ -653,6 +662,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-vscodium-cli" => regenVSCodiumCli()
       case string"regen-json" => regenJson()
       case string"regen-slang-tt" => regenSlangTTLl1()
+      case string"regen-reflect" => regenReflect()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)
