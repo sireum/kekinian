@@ -308,7 +308,8 @@ def regenLogika(): Unit = {
 def regenAir(): Unit = {
   val airRootPath = home / "hamr" / "air"
   val airPath = airRootPath / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "ir"
-  val airAsts: ISZ[String] = ISZ[String]("AadlAST.scala", "BlessAST.scala", "Emv2AST.scala", "GumboAST.scala", "SmfAST.scala").map((m: String) => (airPath / m).value)
+  val airAsts: ISZ[String] = ISZ[String]("AadlAST.scala", "BlessAST.scala", "Emv2AST.scala", "GumboAST.scala",
+    "SmfAST.scala", "SysmlAst.scala", "SysmlTyped.scala").map((m: String) => (airPath / m).value)
 
   val slangPath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
   val slangAsts = ISZ[String]("AST.scala", "Typed.scala").map((m: String) => (slangPath / m).value)
@@ -386,11 +387,16 @@ def regenJson(): Unit = {
 
 def regenReflect(): Unit = {
   val cliScalaPath = home / "cli" / "jvm" / "src" / "main" / "scala"
+  val libraryScalaPath = home / "runtime" / "library" / "jvm" / "src" / "main" / "scala"
   val license = home / "license.txt"
-  val xs = ISZ[String]("Json", "MessagePack", "B", "Z", "C", "String", "F32", "F64", "ST", "R", "IS", "MS", "RS", "Reflection")
+  val xs = ISZ[String]("MessagePack", "B", "Z", "C", "String", "F32", "F64", "ST", "R", "IS", "MS", "RS", "Reflection", "Sireum")
   val excluded: String = st"${(for (x <- xs) yield st"org.sireum.$x", ",")}".render
-  Sireum.procCheck(proc"$sireum proyek reflect --license $license --package org.sireum.cli --class SlangRunner_Ext --slice library --include-packages org.sireum --exclude $excluded --output $cliScalaPath $home".console,
+  Sireum.procCheck(proc"$sireum proyek reflect --license $license --package org.sireum --class LibJvmUtil_Ext --slice library --include-packages org.sireum --exclude $excluded --output $libraryScalaPath $home".console,
     message.Reporter.create)
+  println()
+  Sireum.procCheck(proc"$sireum proyek reflect --license $license --package org.sireum.cli --class SlangRunner_Ext --slice library-shared --include-packages org.sireum.foo --include org.sireum.Sireum --output $cliScalaPath $home".console,
+    message.Reporter.create)
+  println()
 }
 
 

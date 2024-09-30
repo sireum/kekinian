@@ -53,7 +53,7 @@ object GenTools {
       return -1
     }
     val outTemp = Os.temp()
-    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(src.string), None(),
+    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(src.string), F, None(),
       Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(outTemp.read)
@@ -140,7 +140,7 @@ object GenTools {
       case _ => (z"25", z"55")
     }
     val outTemp = Os.temp()
-    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(src.string), None(),
+    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(src.string), F, None(),
       Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(s"Could not run ${o.args(0)}")

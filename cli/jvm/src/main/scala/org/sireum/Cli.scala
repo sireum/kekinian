@@ -789,6 +789,7 @@ object Cli {
   @datatype class SireumSlangRunOption(
     val help: String,
     val args: ISZ[String],
+    val eval: B,
     val input: Option[String],
     val output: Option[String],
     val transformed: B,
@@ -7179,6 +7180,7 @@ import Cli._
           |Usage: <option>* <slang-file> <arg>*
           |
           |Available Options:
+          |-e, --eval               Use Slang evaluator
           |-i, --input              Input file for stdin (default: <slang-file>.txt, if
           |                           any) (expects a path)
           |-o, --output             Output file for stdin & stderr (expects a path)
@@ -7186,6 +7188,7 @@ import Cli._
           |-n, --native             Generate native executable
           |-h, --help               Display this information""".render
 
+    var eval: B = false
     var input: Option[String] = None[String]()
     var output: Option[String] = None[String]()
     var transformed: B = false
@@ -7198,7 +7201,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-i" || arg == "--input") {
+        } else if (arg == "-e" || arg == "--eval") {
+           val o: Option[B] = { j = j - 1; Some(!eval) }
+           o match {
+             case Some(v) => eval = v
+             case _ => return None()
+           }
+         } else if (arg == "-i" || arg == "--input") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => input = v
@@ -7231,7 +7240,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumSlangRunOption(help, parseArguments(args, j), input, output, transformed, nativ))
+    return Some(SireumSlangRunOption(help, parseArguments(args, j), eval, input, output, transformed, nativ))
   }
 
   def parseSireumSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

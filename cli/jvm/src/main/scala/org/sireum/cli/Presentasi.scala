@@ -463,7 +463,7 @@ object Presentasi {
 
     val outTemp = Os.temp()
     val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(presentasi.string, o.service.string,
-      o.voice.getOrElseEager("default")) ++ ops.ISZOps(o.args).drop(1), None(), Some(outTemp.string), F, F))
+      o.voice.getOrElseEager("default")) ++ ops.ISZOps(o.args).drop(1), F, None(), Some(outTemp.string), F, F))
     if (r != 0) {
       eprintln(outTemp.read)
       return INVALID_SPEC

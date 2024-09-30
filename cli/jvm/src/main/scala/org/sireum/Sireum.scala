@@ -25,16 +25,13 @@
 
 package org.sireum
 
-import org.sireum.logika.Logika.Reporter.Info.Kind
-import org.sireum.logika.{Logika, Smt2Query}
-import org.sireum.message.{Position, Reporter}
-import org.sireum.project.DependencyManager
-
 import java.io.{FileWriter, OutputStream, PrintStream}
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
+
+  val th = if (NativeUtil.isNative) lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy else null
 
   lazy val commitSha: String = {
     val commitHashOps = ops.StringOps(commitHash)
@@ -173,10 +170,10 @@ object Sireum {
       r = r + key.toString.replace('%', ':') ~> p.get(key).toString
     }
     val hash = if (commitHash.size >= 10) commitHash.value.substring(0, 10) else "-SNAPSHOT"
-    r = r + DependencyManager.macrosKey ~> hash
-    r = r + DependencyManager.testKey ~> hash
-    r = r + DependencyManager.librarySharedKey ~> hash
-    r = r + DependencyManager.libraryKey ~> hash
+    r = r + project.DependencyManager.macrosKey ~> hash
+    r = r + project.DependencyManager.testKey ~> hash
+    r = r + project.DependencyManager.librarySharedKey ~> hash
+    r = r + project.DependencyManager.libraryKey ~> hash
     r
   }
 
@@ -292,7 +289,7 @@ object Sireum {
     }
   }
 
-  def procCheck(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = {
+  def procCheck(p: OsProto.Proc, reporter: message.Reporter): OsProto.Proc.Result = {
     val r = proc(p, reporter)
     if (!r.ok) {
       halt(
@@ -302,7 +299,7 @@ object Sireum {
     r
   }
 
-  def proc(p: OsProto.Proc, reporter: Reporter): OsProto.Proc.Result = this.synchronized {
+  def proc(p: OsProto.Proc, reporter: message.Reporter): OsProto.Proc.Result = this.synchronized {
     def firstErr(): ISZ[String] = {
       halt(s"The first path command should be 'sireum${if (Os.isWin) ".bat" else ""}'")
     }
@@ -391,15 +388,15 @@ object Sireum {
     }
   }
 
-  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: Reporter): (Z, String, String) =
+  def runWithInputAndReporter(args: ISZ[String], input: String, reporter: message.Reporter): (Z, String, String) =
     runWithReporter(args, reporter, Some(input))
 
-  def runWithReporter(args: ISZ[String], reporter: Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
+  def runWithReporter(args: ISZ[String], reporter: message.Reporter, inputOpt: Option[String] = None()): (Z, String, String) = {
     val r = proc(Os.proc("sireum" +: args)(in = inputOpt), reporter)
     (r.exitCode, r.out, r.err)
   }
 
-  def run(args: ISZ[String], reporter: Reporter = Reporter.create): Z = {
+  def run(args: ISZ[String], reporter: message.Reporter = message.Reporter.create): Z = {
     def printAdditionalHelp(): Unit = {
       println(
         s"""
@@ -485,13 +482,47 @@ object Sireum {
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
           case Some(o: Cli.SireumSlangTipeOption) =>
-            cli.SlangTipe.run(o, Reporter.create) match {
+            cli.SlangTipe.run(o, message.Reporter.create) match {
               case Either.Right(code) => return code
               case _ => return 0
             }
           case Some(o: Cli.SireumSlangRunOption) =>
-            init.basicDeps()
-            return cli.SlangRunner.run(o)
+            if (!o.eval) {
+              init.basicDeps()
+              return cli.SlangRunner.run(o)
+            } else {
+              if (o.args.isEmpty) {
+                println(o.help)
+                println()
+                return 0
+              }
+              System.setProperty("org.sireum.silenthalt", "true")
+              val paths = paths2files("Slang Runner", o.args, T)
+              val th2 = if (th == null) lang.FrontEnd.libraryReporterPar(100)._1.typeHierarchy else th
+              for (path <- paths) {
+                val reporter = message.Reporter.create
+                lang.parser.Parser.parseTopUnit[lang.ast.TopUnit.Program](path.read, T, F, Some(path.toUri), reporter) match {
+                  case Some(p) =>
+                    if (!reporter.hasError) {
+                      val (th3, program) = lang.FrontEnd.checkWorksheet(100, Some(th2), p, reporter)
+                      if (!reporter.hasError) {
+                        val ev = lang.eval.Evaluator(th3, lang.eval.State.empty(1024), ISZ(LibJvmUtil.Ext.create,
+                          cli.SlangRunner.Ext.create), message.Reporter.create)
+                        try ev.evalWorksheet(program) catch {
+                          case t: Throwable if !t.getMessage.contains("TODO" )=>
+                        }
+                        reporter.reports(ev.reporter.messages)
+                      }
+                    }
+                  case _ =>
+                }
+                if (reporter.hasError) {
+                  reporter.printMessages()
+                  return -1
+                }
+              }
+              return 0
+            }
           case Some(o: Cli.SireumSlangTranspilersCOption) =>
             return cli.CTranspiler.run(o, reporter)
           case Some(o: Cli.SireumToolsBcgenOption) =>
@@ -561,7 +592,7 @@ object Sireum {
                   override def empty: logika.Logika.Reporter = {
                     new Rep()
                   }
-                  override def query(pos: Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: Smt2Query.Result): Unit = {
+                  override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
                     super.query(pos, title, isSat, time, forceReport, detailElided, r)
                     feedbackDirOpt match {
                       case Some(d) =>
@@ -572,7 +603,7 @@ object Sireum {
                       case _ =>
                     }
                   }
-                  override def coverage(setCache: B, cached: U64, pos: Position): Unit = {
+                  override def coverage(setCache: B, cached: U64, pos: message.Position): Unit = {
                     feedbackDirOpt match {
                       case Some(d) =>
                         val content = server.protocol.JSON.fromAnalysisCoverage(
@@ -581,7 +612,7 @@ object Sireum {
                       case _ =>
                     }
                   }
-                  override def inform(pos: Position, kind: Kind.Type, message: String): Unit = {
+                  override def inform(pos: org.sireum.message.Position, kind: logika.Logika.Reporter.Info.Kind.Type, message: String): Unit = {
                     super.inform(pos, kind, message)
                     feedbackDirOpt match {
                       case Some(d) =>
