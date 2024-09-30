@@ -62,5 +62,5 @@ jobs:
           export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
           cd $GITHUB_WORKSPACE
           .ci/build.sh && .ci/build.sh test-verify
-          .ci/mac-native.sh
-          rm bin/mac/sireum
+          #.ci/mac-native.sh # need large runner
+          #rm bin/mac/sireum
