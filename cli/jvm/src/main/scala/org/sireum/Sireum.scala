@@ -507,11 +507,12 @@ object Sireum {
                       val (th3, program) = lang.FrontEnd.checkWorksheet(100, Some(th2), p, reporter)
                       if (!reporter.hasError) {
                         val ev = lang.eval.Evaluator(th3, lang.eval.State.empty(1024), ISZ(LibJvmUtil.Ext.create,
-                          cli.SlangRunner.Ext.create), message.Reporter.create)
+                          cli.SlangRunner.Ext.create))
                         try ev.evalWorksheet(program) catch {
-                          case t: Throwable if !t.getMessage.contains("TODO" )=>
+                          case t: Throwable if !t.getMessage.contains("TODO") =>
+                            eprintln(t.getMessage)
+                            return -1
                         }
-                        reporter.reports(ev.reporter.messages)
                       }
                     }
                   case _ =>
