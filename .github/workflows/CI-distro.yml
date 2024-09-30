@@ -93,7 +93,7 @@ jobs:
           overwrite: true
 
   ci-distro-macos-arm64:
-    runs-on: macOS-latest
+    runs-on: mac-mini-m1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -106,8 +106,18 @@ jobs:
           export SIREUM_HOME="$GITHUB_WORKSPACE/kekinian"
           "$SIREUM_HOME/bin/init.sh"
           "$SIREUM_HOME/bin/install/vscodium.cmd" --extensions "ms-python.python,rust-lang.rust-analyzer"
-          "$SIREUM_HOME/bin/build.cmd" distro --mac --sfx     
+          "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx
+          mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-arm64.7z.sfx
+      - name: Upload CLI dev
+        if: github.ref_type != 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-cli-mac-arm64
+          asset_name: sireum-cli-mac-arm64
+          tag: dev
+          overwrite: true
       - name: Upload IVE dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -116,6 +126,15 @@ jobs:
           file: sireum-ive-mac-arm64.7z.sfx
           asset_name: sireum-ive-mac-arm64.7z.sfx
           tag: dev
+          overwrite: true
+      - name: Upload CLI Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum-cli-mac-arm64
+          asset_name: sireum-cli-mac-arm64
+          tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
         if: github.ref_type == 'tag'
