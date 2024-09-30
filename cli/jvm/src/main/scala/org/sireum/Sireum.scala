@@ -31,7 +31,10 @@ import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
 
-  val th = if (NativeUtil.isNative) lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy else null
+  var (libTypeHierarchy, libReporter) = if (NativeUtil.isNative) {
+    val p = lang.FrontEnd.checkedLibraryReporter
+    (p._1.typeHierarchy, p._2)
+  } else (null, null)
 
   lazy val commitSha: String = {
     val commitHashOps = ops.StringOps(commitHash)
@@ -498,15 +501,16 @@ object Sireum {
               }
               System.setProperty("org.sireum.silenthalt", "true")
               val paths = paths2files("Slang Runner", o.args, T)
-              val th2 = if (th == null) lang.FrontEnd.libraryReporterPar(100)._1.typeHierarchy else th
+              initLib()
               for (path <- paths) {
                 val reporter = message.Reporter.create
                 lang.parser.Parser.parseTopUnit[lang.ast.TopUnit.Program](path.read, T, F, Some(path.toUri), reporter) match {
                   case Some(p) =>
                     if (!reporter.hasError) {
-                      val (th3, program) = lang.FrontEnd.checkWorksheet(100, Some(th2), p, reporter)
+                      val (th, program) = lang.FrontEnd.checkWorksheet(Runtime.getRuntime.availableProcessors,
+                        Some(libTypeHierarchy), p, reporter)
                       if (!reporter.hasError) {
-                        val ev = lang.eval.Evaluator(th3, lang.eval.State.empty(1024), ISZ(LibJvmUtil.Ext.create,
+                        val ev = lang.eval.Evaluator(th, lang.eval.State.empty(512), ISZ(LibJvmUtil.Ext.create,
                           cli.SlangRunner.Ext.create))
                         try ev.evalWorksheet(program) catch {
                           case t: Throwable if !t.getMessage.contains("TODO") =>
@@ -653,12 +657,16 @@ object Sireum {
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             init.basicDeps()
             init.logikaDeps()
+            val thInit = (par: Z) => {
+              initLib(par)
+              (libTypeHierarchy, libReporter)
+            }
             reporter match {
-              case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
+              case reporter: logika.Logika.Reporter => return cli.Logika.run(o, thInit, reporter)
               case _ =>
                 val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo)
                 rep.collectStats = o.stats
-                val exitCode = cli.Logika.run(o, rep)
+                val exitCode = cli.Logika.run(o, thInit, rep)
                 reporter.reports(rep.messages)
                 return exitCode
             }
@@ -844,5 +852,13 @@ object Sireum {
     proyek.Assemble.nativ(homeOpt.get, f)
     (f.up / exePath.name).canon.moveOverTo(exePath)
     d.removeAll()
+  }
+
+  def initLib(par: Z = Runtime.getRuntime.availableProcessors): Unit = {
+    if (libTypeHierarchy == null) {
+      val p = lang.FrontEnd.checkedLibraryReporterPar(par)
+      libTypeHierarchy = p._1.typeHierarchy
+      libReporter = p._2
+    }
   }
 }
