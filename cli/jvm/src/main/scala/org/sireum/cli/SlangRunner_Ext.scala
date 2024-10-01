@@ -26,11 +26,14 @@ import org.sireum._
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
+import Reflection._
+
 object SlangRunner_Ext {
+  val enumInfo: Info = Info(Kind.Enum, ISZ(), ISZ())
   def create: Reflection = new SlangRunner_Ext
 }
 
-import Reflection._
+import SlangRunner_Ext._
 
 class SlangRunner_Ext extends Reflection {
 
