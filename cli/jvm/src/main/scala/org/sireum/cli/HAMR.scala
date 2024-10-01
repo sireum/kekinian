@@ -159,7 +159,9 @@ object HAMR {
                 eprintln(s"File does not exist: ${f.value}")
                 return FILE_DOES_NOT_EXIST
               }
+
               @strictpure def matchingUris(p: Option[Position], uri: String): B = p.nonEmpty && p.get.uriOpt.nonEmpty && p.get.uriOpt.get == uri
+
               @strictpure def matchingLine(p: Option[Position], line: Z): B = p.nonEmpty && p.get.beginLine <= line && line <= p.get.endLine
 
               val mergedOptions: Cli.SireumHamrSysmlCodegenOption = mergeOptionsU(o, f.toUri, fileOptionMap) match {
@@ -415,6 +417,17 @@ object HAMR {
       return CTranspiler.run(sstco, transpileReporter)
     }
 
+    val (proxyHost, proxyProtocol, proxyPort, proxyUser, proxyPassword, proxyNonHosts): (Option[String], Option[String], Option[String], Option[String], Option[String], Option[String]) = {
+      ExperimentalOptions.proyekIveOptions(o.experimentalOptions) match {
+        case Some(opts) => Cli(Os.pathSepChar).parseSireumProyekIve(opts, 0) match {
+          case Some(o: Cli.SireumProyekIveOption) =>
+            (o.proxyHost, o.proxyProtocol, o.proxyPort, o.proxyUser, o.proxyPassword, o.proxyNonHosts)
+          case _ => (None(), None(), None(), None(), None(), None())
+        }
+        case _ => (None(), None(), None(), None(), None(), None())
+      }
+    }
+
     // call back function
     def proyekIve(po: SireumProyekIveOption): Z = {
       val spivo = Cli.SireumProyekIveOption(
@@ -438,12 +451,12 @@ object HAMR {
         repositories = po.repositories,
         empty = F,
         rebuildIve = F,
-        proxyHost = None(),
-        proxyProtocol = None(),
-        proxyPort = None(),
-        proxyUser = None(),
-        proxyPassword = None(),
-        proxyNonHosts = None()
+        proxyHost = proxyHost,
+        proxyProtocol = proxyProtocol,
+        proxyPort = proxyPort,
+        proxyUser = proxyUser,
+        proxyPassword = proxyPassword,
+        proxyNonHosts = proxyNonHosts
       )
       return Proyek.ive(spivo)
     }
