@@ -31,10 +31,9 @@ import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
 
-  var (libTypeHierarchy, libReporter) = if (NativeUtil.isNative) {
-    val p = lang.FrontEnd.checkedLibraryReporter
-    (p._1.typeHierarchy, p._2)
-  } else (null, null)
+  if (NativeUtil.isNative) {
+    lang.FrontEnd.checkedLibraryReporter
+  }
 
   lazy val commitSha: String = {
     val commitHashOps = ops.StringOps(commitHash)
@@ -501,14 +500,13 @@ object Sireum {
               }
               System.setProperty("org.sireum.silenthalt", "true")
               val paths = paths2files("Slang Runner", o.args, T)
-              initLib()
               for (path <- paths) {
                 val reporter = message.Reporter.create
                 lang.parser.Parser.parseTopUnit[lang.ast.TopUnit.Program](path.read, T, F, Some(path.toUri), reporter) match {
                   case Some(p) =>
                     if (!reporter.hasError) {
                       val (th, program) = lang.FrontEnd.checkWorksheet(Runtime.getRuntime.availableProcessors,
-                        Some(libTypeHierarchy), p, reporter)
+                        Some(lang.FrontEnd.checkedLibraryReporter._1.typeHierarchy), p, reporter)
                       if (!reporter.hasError) {
                         val ev = lang.eval.Evaluator(th, lang.eval.State.empty(512), ISZ(LibJvmUtil.Ext.create,
                           cli.SlangRunner.Ext.create))
@@ -657,16 +655,12 @@ object Sireum {
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             init.basicDeps()
             init.logikaDeps()
-            val thInit = (par: Z) => {
-              initLib(par)
-              (libTypeHierarchy, libReporter)
-            }
             reporter match {
-              case reporter: logika.Logika.Reporter => return cli.Logika.run(o, thInit, reporter)
+              case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
                 val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo)
                 rep.collectStats = o.stats
-                val exitCode = cli.Logika.run(o, thInit, rep)
+                val exitCode = cli.Logika.run(o, rep)
                 reporter.reports(rep.messages)
                 return exitCode
             }
@@ -852,13 +846,5 @@ object Sireum {
     proyek.Assemble.nativ(homeOpt.get, f)
     (f.up / exePath.name).canon.moveOverTo(exePath)
     d.removeAll()
-  }
-
-  def initLib(par: Z = Runtime.getRuntime.availableProcessors): Unit = {
-    if (libTypeHierarchy == null) {
-      val p = lang.FrontEnd.checkedLibraryReporterPar(par)
-      libTypeHierarchy = p._1.typeHierarchy
-      libReporter = p._2
-    }
   }
 }

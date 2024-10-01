@@ -38,8 +38,7 @@ object Logika {
   val INVALID_VC_DIR: Z = -4
   val INVALID_SOURCE_PATH: Z = -5
 
-  def run(o: Cli.SireumLogikaVerifierOption, thInit: Z => (TypeHierarchy, message.Reporter),
-          reporter: logika.Logika.Reporter): Z = {
+  def run(o: Cli.SireumLogikaVerifierOption, reporter: logika.Logika.Reporter): Z = {
     val start = extension.Time.currentMillis
     if (o.args.isEmpty) {
       println(o.help)
@@ -222,7 +221,7 @@ object Logika {
           logika.Logika.checkScript(Some(f.value), content, config, nameExePathMap, Os.numOfProcessors,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
               th, reporter),
-            logika.NoTransitionSmt2Cache.create, reporter, T, plugins, thInit, o.line, o.skipMethods, o.skipTypes)
+            logika.NoTransitionSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
           reporter.printMessages()
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
@@ -366,9 +365,9 @@ object Logika {
         if (o.noRuntime) {
           TypeHierarchy.empty
         } else {
-          val (th, rep) = thInit(parCores)
+          val (tc, rep) = lang.FrontEnd.checkedLibraryReporter
           reporter.reports(rep.messages)
-          th
+          tc.typeHierarchy
         }
       logika.Logika.checkPrograms(sources, files, config, nameExePathMap, Os.numOfProcessors, th,
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
