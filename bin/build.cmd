@@ -30,7 +30,7 @@ def usage(): Unit = {
         |       | cvc              | z3                  | m2[-lib[-js]]
         |       | jitpack          | ghpack              | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
-        |                | --sfx   | --ultimate          | --server                  )*  )*
+        |                | --sfx   | --ultimate          | --server          | --hamr    )*  )*
         |""".render)
 }
 
@@ -474,7 +474,7 @@ def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   build(fresh, F, F)
   val init = Init(home, Os.kind, versions)
   init.deps()
-  init.distro(isDev = F, buildSfx = F, isUltimate = isUltimate, isServer = isServer)
+  init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = isUltimate, isServer = isServer)
   val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
   project(T, isUltimate, isServer)
   Os.kind match {
@@ -681,6 +681,8 @@ if (Os.cliArgs.isEmpty) {
       case string"--help" => usage()
       case string"distro" =>
         var isSfx: B = F
+        var buildIve: B = T
+        var buildHamrPackage: B = T
         var isUltimate: B = F
         var isServer: B = F
         var kinds = ISZ[Os.Kind.Type]()
@@ -691,6 +693,7 @@ if (Os.cliArgs.isEmpty) {
             case string"--linux-arm" => kinds = kinds :+ Os.Kind.LinuxArm
             case string"--mac" => kinds = kinds :+ Os.Kind.Mac
             case string"--win" => kinds = kinds :+ Os.Kind.Win
+            case string"--hamr" => buildHamrPackage = T
             case string"--sfx" => isSfx = T
             case opt =>
               usage()
@@ -706,7 +709,7 @@ if (Os.cliArgs.isEmpty) {
         for (kind <- kinds) {
           val init = Init(home, kind, versions)
           init.deps()
-          init.distro(F, isSfx, isUltimate, isServer)
+          init.distro(F, isSfx, buildIve, buildHamrPackage, isUltimate, isServer)
           println()
         }
       case cmd =>

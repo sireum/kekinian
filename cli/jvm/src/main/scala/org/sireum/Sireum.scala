@@ -406,6 +406,7 @@ object Sireum {
            |    --init               Setup dependencies
            |    --native             Build native executable
            |    --setup              Setup IVE and dependencies
+           |    --setup-hamr         Setup HAMR SysMLv2 and dependencies
            |    --setup-server       Setup IVE (Server) and dependencies
            |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
            |    --sha                Print Sireum build SHA commit tip
@@ -431,7 +432,7 @@ object Sireum {
         return 0
       case ISZ(string"--setup") =>
         init.deps()
-        init.distro(isDev = F, buildSfx = F, isUltimate = F, isServer = F)
+        init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = F, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", init.home.string), reporter)
         }
@@ -444,7 +445,7 @@ object Sireum {
         return 0
       case ISZ(string"--setup-server") =>
         init.deps()
-        init.distro(isDev = F, buildSfx = F, isUltimate = F, isServer = T)
+        init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = F, isServer = T)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
         }
@@ -457,7 +458,7 @@ object Sireum {
         return 0
       case ISZ(string"--setup-ultimate") =>
         init.deps()
-        init.distro(isDev = F, buildSfx = F, isUltimate = T, isServer = F)
+        init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = T, isServer = F)
         if ((init.home / "bin" / "project.cmd").exists) {
           run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
         }
@@ -709,7 +710,7 @@ object Sireum {
             val isServer = o.edition == Cli.SireumProyekIveEdition.Server
             if (o.rebuildIve || !init.ideaDirPath(isUltimate, isServer).exists) {
               init.deps()
-              init.distro(isDev = F, buildSfx = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
+              init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
                 isServer = o.edition == Cli.SireumProyekIveEdition.Server)
             }
             return cli.Proyek.ive(o)
