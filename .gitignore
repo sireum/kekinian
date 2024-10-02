@@ -22,6 +22,8 @@
 /distro/setup
 /distro/*.sfx
 /distro/*.exe
+/distro/*.tar.gz
+/distro/*.zip
 /lib
 /log
 /project.dot
