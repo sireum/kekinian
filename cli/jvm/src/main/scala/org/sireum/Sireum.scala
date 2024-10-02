@@ -570,13 +570,19 @@ object Sireum {
             init.deps()
             return cli.HAMR.codeGen(o, reporter)
           case Some(o: Cli.SireumHamrSysmlCodegenOption) =>
-            init.deps()
+            if (!NativeUtil.isNative) {
+              init.deps()
+            }
             return cli.HAMR.codeGenS(o, reporter)
           case Some(o: Cli.SireumHamrPhantomOption) =>
             init.basicDeps()
             return cli.Phantom.run(o)
           case Some(o: Cli.SireumHamrSysmlLogikaOption) =>
-            init.basicDeps()
+            if (!NativeUtil.isNative) {
+              init.basicDeps()
+            } else {
+              init.logikaDeps()
+            }
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.HAMR.sysmlLogika(o, reporter)
               case _ =>
@@ -636,8 +642,18 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
+          case Some(o: Cli.SireumHamrSysmlSetupOption) =>
+            init.logikaDeps()
+            init.installVSCodium(
+              path2fileOpt("existing VSCode/VSCodium", o.existingInstall, T),
+              path2fileOpt("extensions directory", o.extensionsDir, F),
+              o.extensions
+            )
+            return 0
           case Some(o: Cli.SireumHamrSysmlTipeOption) =>
-            init.basicDeps()
+            if (!NativeUtil.isNative) {
+              init.basicDeps()
+            }
             cli.HAMR.sysmlRun(o, reporter) match {
               case Either.Right(code) => return code
               case Either.Left((_, _, _, hasError)) =>
@@ -647,10 +663,14 @@ object Sireum {
                 return 0
             }
           case Some(o: Cli.SireumHamrSysmlTranslatorOption) =>
-            init.basicDeps()
+            if (!NativeUtil.isNative) {
+              init.basicDeps()
+            }
             return cli.HAMR.sysmlTranslator(o)
           case Some(o: Cli.SireumHamrSysmlConfigOption) =>
-            init.basicDeps()
+            if (!NativeUtil.isNative) {
+              init.basicDeps()
+            }
             return cli.HAMR.sysmlConfig(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             init.basicDeps()
