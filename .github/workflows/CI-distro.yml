@@ -56,6 +56,7 @@ jobs:
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
           mv "$SIREUM_HOME/distro/linux.sfx" sireum-ive-linux-amd64.7z.sfx
           mv "$SIREUM_HOME/distro/sireum-hamr-sysmlv2-linux-amd64.tar.gz" .
+          rm -fR sireum-cli-linux-amd64.gz
           gzip -9 sireum-cli-linux-amd64
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
@@ -130,6 +131,7 @@ jobs:
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-arm64.7z.sfx
           mv "$SIREUM_HOME/distro/sireum-hamr-sysmlv2-mac-arm64.tar.gz" .
+          rm -fR sireum-cli-mac-arm64.gz
           gzip -9 sireum-cli-mac-arm64
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
@@ -204,6 +206,7 @@ jobs:
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-amd64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-amd64.7z.sfx
           mv "$SIREUM_HOME/distro/sireum-hamr-sysmlv2-mac-amd64.tar.gz" .
+          rm -fR sireum-cli-mac-amd64.gz
           gzip -9 sireum-cli-mac-amd64
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
@@ -287,6 +290,7 @@ jobs:
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.exe" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z.exe"
           move "%SIREUM_HOME%\distro\sireum-hamr-sysmlv2-win-amd64.zip" "%GITHUB_WORKSPACE%\"
+          del sireum-cli-win-amd64.exe.zip
           "%SIREUM_HOME%\bin\win\7za.exe" a -bsp0 -tzip -mx9 sireum-cli-win-amd64.exe.zip sireum-cli-win-amd64.exe
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
