@@ -287,7 +287,7 @@ jobs:
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.exe" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z.exe"
           move "%SIREUM_HOME%\distro\sireum-hamr-sysmlv2-win-amd64.zip" "%GITHUB_WORKSPACE%\"
-          zip -9 sireum-cli-win-amd64.exe.zip sireum-cli-win-amd64.exe
+          "%SIREUM_HOME%\bin\win\7za.exe" a -bsp0 -tzip -mx9 sireum-cli-win-amd64.exe.zip sireum-cli-win-amd64.exe
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
