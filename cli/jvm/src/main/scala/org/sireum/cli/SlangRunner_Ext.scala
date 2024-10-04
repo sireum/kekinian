@@ -35,7 +35,7 @@ object SlangRunner_Ext {
 
 import SlangRunner_Ext._
 
-class SlangRunner_Ext extends Reflection {
+class SlangRunner_Ext extends Reflection_Ext {
 
   private lazy val nameMap: Int2ObjectOpenHashMap[Reflection.Info] = {
     val r = new Int2ObjectOpenHashMap[Info](1)
@@ -93,50 +93,54 @@ class SlangRunner_Ext extends Reflection {
     if (r == null) None() else Some(r)
   }
 
-  override def invoke0[T, R](owner: String, name: String, rOpt: Option[T]): R = {
-    val f = method0Map.get(methodKey(rOpt.isEmpty, owner, name).value)
+  override def invoke0[T, R](owner: String, name: String, receiver: T): R = {
+    val isInObject = receiver == null
+    val f = method0Map.get(methodKey(isInObject, owner, name).value)
     if (f == null) {
-      illegalReflection("Unavailable", rOpt.isEmpty, owner, name)
+      illegalReflection("Unavailable", isInObject, owner, name)
     }
-    val r: R = X(f(X(rOpt)))
+    val r: R = X(f(X(receiver)))
     if (r == null) {
-      illegalReflection("Invalid", rOpt.isEmpty, owner, name)
+      illegalReflection("Invalid", isInObject, owner, name)
     }
     r
   }
 
-  override def invoke1[T, T1, R](owner: String, name: String, rOpt: Option[T], o1: T1): R = {
-    val f = method1Map.get(methodKey(rOpt.isEmpty, owner, name).value)
+  override def invoke1[T, T1, R](owner: String, name: String, receiver: T, o1: T1): R = {
+    val isInObject = receiver == null
+    val f = method1Map.get(methodKey(isInObject, owner, name).value)
     if (f == null) {
-      illegalReflection("Unavailable", rOpt.isEmpty, owner, name)
+      illegalReflection("Unavailable", isInObject, owner, name)
     }
-    val r: R = X(f(X(rOpt))(o1))
+    val r: R = X(f(X(receiver))(o1))
     if (r == null) {
-      illegalReflection("Invalid", rOpt.isEmpty, owner, name)
+      illegalReflection("Invalid", isInObject, owner, name)
     }
     r
   }
 
-  override def invoke2[T, T1, T2, R](owner: String, name: String, rOpt: Option[T], o1: T1, o2: T2): R = {
-    val f = method2Map.get(methodKey(rOpt.isEmpty, owner, name).value)
+  override def invoke2[T, T1, T2, R](owner: String, name: String, receiver: T, o1: T1, o2: T2): R = {
+    val isInObject = receiver == null
+    val f = method2Map.get(methodKey(isInObject, owner, name).value)
     if (f == null) {
-      illegalReflection("Unavailable", rOpt.isEmpty, owner, name)
+      illegalReflection("Unavailable", isInObject, owner, name)
     }
-    val r: R = X(f(X(rOpt))(o1)(o2))
+    val r: R = X(f(X(receiver))(o1)(o2))
     if (r == null) {
-      illegalReflection("Invalid", rOpt.isEmpty, owner, name)
+      illegalReflection("Invalid", isInObject, owner, name)
     }
     r
   }
 
-  override def invoke3[T, T1, T2, T3, R](owner: String, name: String, rOpt: Option[T], o1: T1, o2: T2, o3: T3): R = {
-    val f = method3Map.get(methodKey(rOpt.isEmpty, owner, name).value)
+  override def invoke3[T, T1, T2, T3, R](owner: String, name: String, receiver: T, o1: T1, o2: T2, o3: T3): R = {
+    val isInObject = receiver == null
+    val f = method3Map.get(methodKey(isInObject, owner, name).value)
     if (f == null) {
-      illegalReflection("Unavailable", rOpt.isEmpty, owner, name)
+      illegalReflection("Unavailable", isInObject, owner, name)
     }
-    val r: R = X(f(X(rOpt))(o1)(o2)(o3))
+    val r: R = X(f(X(receiver))(o1)(o2)(o3))
     if (r == null) {
-      illegalReflection("Invalid", rOpt.isEmpty, owner, name)
+      illegalReflection("Invalid", isInObject, owner, name)
     }
     r
   }
@@ -170,8 +174,6 @@ class SlangRunner_Ext extends Reflection {
   )
 
   @inline def X[T](o: Any): T = o.asInstanceOf[T]
-
-  @inline def X[T](o: Option[_]): T = o.get.asInstanceOf[T]
 
   override def string: String = "SlangRunner_Ext"
 }
