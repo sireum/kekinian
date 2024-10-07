@@ -763,7 +763,24 @@ object HAMR {
         lang.ast.ResolvedAttr(midPointPos, implyResOpt, lang.ast.Typed.bOpt), midPointPos)
 
       println(st"Checking integration constraints of ${(ids, ".")}".render)
-      tasks = tasks :+ logika.Task.Claim(th, config, st"Integration constraint of ${(ids, ".")}".render, claim, plugins)
+      var conf = config
+      midPointPos match {
+        case Some(pos) => fileOptionMap.get(pos.uriOpt) match {
+          case Some(m) => m.get(logika.options.OptionsUtil.logika) match {
+            case Some(options) => logika.options.OptionsUtil.toConfig(config, parCores, "file", nameExePathMap, options(0)) match {
+              case Either.Left(conf2) => conf = conf2
+              case Either.Right(msgs) =>
+                for (msg <- msgs) {
+                  reporter.error(None(), logika.Logika.kind, msg)
+                }
+            }
+            case _ =>
+          }
+          case _ =>
+        }
+        case _ =>
+      }
+      tasks = tasks :+ logika.Task.Claim(th, conf, st"Integration constraint of ${(ids, ".")}".render, claim, plugins)
     }
     val smt2f = (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
       th, reporter)
