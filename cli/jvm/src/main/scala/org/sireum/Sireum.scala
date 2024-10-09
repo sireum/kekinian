@@ -49,9 +49,9 @@ object Sireum {
     }
 
     override def state(plugins: ISZ[ClaimPlugin], posOpt: Option[Position], context: ISZ[String], th: TypeHierarchy, s: State, atLinesFresh: B, atRewrite: B): Unit = {
-      super.state(plugins, posOpt, context, th, s, atLinesFresh, atRewrite)
       feedbackDirOpt match {
         case Some(d) =>
+          val at: String = if (s.ok) "at" else "after"
           var claims: String = ""
           var err: String = ""
           posOpt match {
@@ -59,7 +59,7 @@ object Sireum {
               try {
                 val (es, _) = logika.Util.claimsToExps(plugins, pos, context, s.claims, th, atLinesFresh, atRewrite)
                 claims =
-                  st"""{ // State claims at line ${pos.beginLine}
+                  st"""{ // State claims $at line ${pos.beginLine}
                       |  ${(for (e <- es) yield e.prettyST, ";\n")}
                       |}""".render
               } catch {
@@ -69,7 +69,7 @@ object Sireum {
                   baos.close()
                   err = new java.lang.String(baos.toByteArray, "UTF-8")
                   claims =
-                    st"""{ // State claims at line ${pos.beginLine}
+                    st"""{ // State claims $at line ${pos.beginLine}
                         |  /*
                         |    ${(ISZ(err.value.split('\n').toIndexedSeq: _*), "\n")}
                         |  */
@@ -80,7 +80,7 @@ object Sireum {
           if (claims.size == 0) {
             val sts = logika.State.Claim.claimsSTs(s.claims, logika.Util.ClaimDefs.empty)
             claims =
-              st"""{${if (posOpt.nonEmpty) st"// State claims at line ${posOpt.get.beginLine}" else ""}
+              st"""{${if (posOpt.nonEmpty) st"// State claims $at line ${posOpt.get.beginLine}" else ""}
                   |  ${(sts, ",\n")}
                   |}
                   |
@@ -103,7 +103,6 @@ object Sireum {
       }
     }
     override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
-      super.query(pos, title, isSat, time, forceReport, detailElided, r)
       feedbackDirOpt match {
         case Some(d) =>
           val content = server.protocol.JSON.fromLogikaVerifySmt2Query(
@@ -123,7 +122,6 @@ object Sireum {
       }
     }
     override def inform(pos: org.sireum.message.Position, kind: logika.Logika.Reporter.Info.Kind.Type, message: String): Unit = {
-      super.inform(pos, kind, message)
       feedbackDirOpt match {
         case Some(d) =>
           val k: server.protocol.Logika.Verify.Info.Kind.Type = kind match {
