@@ -287,8 +287,10 @@ object Cli {
   @datatype class SireumLogikaVerifierOption(
     val help: String,
     val args: ISZ[String],
+    val feedback: Option[String],
     val manual: B,
     val noRuntime: B,
+    val parseableMessages: B,
     val sourcepath: ISZ[String],
     val infoFlow: B,
     val charBitWidth: Z,
@@ -811,6 +813,7 @@ object Cli {
     val force: ISZ[String],
     val noRuntime: B,
     val outline: B,
+    val parseableMessages: B,
     val sourcepath: ISZ[String],
     val strictAliasing: B,
     val verbose: B,
@@ -1012,6 +1015,7 @@ object Cli {
     val exclude: ISZ[String],
     val force: ISZ[String],
     val noRuntime: B,
+    val parseableMessages: B,
     val sourcepath: ISZ[String],
     val strictAliasing: B,
     val verbose: B,
@@ -2856,9 +2860,11 @@ import Cli._
           |Usage: <option>* <slang-file>+
           |
           |Available Options:
+          |    --feedback           Feedback output directory (expects a path)
           |-m, --manual             Set verification mode to manual for Slang scripts
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
+          |    --parseable-messages Print parseable file messages
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |-h, --help               Display this information
@@ -2960,8 +2966,10 @@ import Cli._
           |    --search-pc          Search path conditions first before employing SMT2
           |                           solvers when discharging VCs""".render
 
+    var feedback: Option[String] = None[String]()
     var manual: B = false
     var noRuntime: B = false
+    var parseableMessages: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var infoFlow: B = false
     var charBitWidth: Z = 32
@@ -3017,7 +3025,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "-m" || arg == "--manual") {
+        } else if (arg == "--feedback") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => feedback = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--manual") {
            val o: Option[B] = { j = j - 1; Some(!manual) }
            o match {
              case Some(v) => manual = v
@@ -3027,6 +3041,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!noRuntime) }
            o match {
              case Some(v) => noRuntime = v
+             case _ => return None()
+           }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
              case _ => return None()
            }
          } else if (arg == "-s" || arg == "--sourcepath") {
@@ -3323,7 +3343,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), manual, noRuntime, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), feedback, manual, noRuntime, parseableMessages, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -7336,6 +7356,7 @@ import Cli._
           |                           sourcepath)
           |-o, --outline            Perform type outlining only for files in the
           |                           sourcepath
+          |    --parseable-messages Print parseable file messages
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --strict-aliasing    Enable strict aliasing check
@@ -7352,6 +7373,7 @@ import Cli._
     var force: ISZ[String] = ISZ[String]()
     var noRuntime: B = false
     var outline: B = false
+    var parseableMessages: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
     var verbose: B = false
@@ -7388,6 +7410,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!outline) }
            o match {
              case Some(v) => outline = v
+             case _ => return None()
+           }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
              case _ => return None()
            }
          } else if (arg == "-s" || arg == "--sourcepath") {
@@ -7435,7 +7463,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumSlangTipeOption(help, parseArguments(args, j), exclude, force, noRuntime, outline, sourcepath, strictAliasing, verbose, save, load, gzip))
+    return Some(SireumSlangTipeOption(help, parseArguments(args, j), exclude, force, noRuntime, outline, parseableMessages, sourcepath, strictAliasing, verbose, save, load, gzip))
   }
 
   def parseSireumSlangTranspilers(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -8633,6 +8661,7 @@ import Cli._
           |                           is enabled (expects a string separated by ",")
           |-r, --no-runtime         Do not use built-in runtime (use runtime in
           |                           sourcepath)
+          |    --parseable-messages Print parseable file messages
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --strict-aliasing    Enable strict aliasing check
@@ -8652,6 +8681,7 @@ import Cli._
     var exclude: ISZ[String] = ISZ[String]()
     var force: ISZ[String] = ISZ[String]()
     var noRuntime: B = false
+    var parseableMessages: B = false
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
     var verbose: B = false
@@ -8708,6 +8738,12 @@ import Cli._
              case Some(v) => noRuntime = v
              case _ => return None()
            }
+         } else if (arg == "--parseable-messages") {
+           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
+           o match {
+             case Some(v) => parseableMessages = v
+             case _ => return None()
+           }
          } else if (arg == "-s" || arg == "--sourcepath") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
@@ -8753,7 +8789,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumToolsOpgenOption(help, parseArguments(args, j), license, name, output, packageName, exclude, force, noRuntime, sourcepath, strictAliasing, verbose, save, load, gzip))
+    return Some(SireumToolsOpgenOption(help, parseArguments(args, j), license, name, output, packageName, exclude, force, noRuntime, parseableMessages, sourcepath, strictAliasing, verbose, save, load, gzip))
   }
 
   def parseSireumToolsSergenSerializerModeH(arg: String): Option[SireumToolsSergenSerializerMode.Type] = {

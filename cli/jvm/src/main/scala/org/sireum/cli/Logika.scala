@@ -218,11 +218,15 @@ object Logika {
           (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())
         if (f.isFile && (ext == "sc" || ext == "cmd" || ext == "logika")) {
           val content = f.read
-          logika.Logika.checkScript(Some(f.value), content, config, nameExePathMap, Os.numOfProcessors,
+          logika.Logika.checkScript(Some(f.canon.toUri), content, config, nameExePathMap, Os.numOfProcessors,
             (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
               th, reporter),
             logika.NoTransitionSmt2Cache.create, reporter, T, plugins, o.line, o.skipMethods, o.skipTypes)
-          reporter.printMessages()
+          if (o.parseableMessages) {
+            Os.printParseableMessages(reporter)
+          } else {
+            reporter.printMessages()
+          }
           if (reporter.hasError) {
             code = if (code == 0) ILL_FORMED_SCRIPT_FILE else code
           }
@@ -254,7 +258,7 @@ object Logika {
       }
 
       def readFile(f: Os.Path): (Option[String], String) = {
-        return (Some(f.toUri), f.read)
+        return (Some(f.canon.toUri), f.read)
       }
 
       var sources = ISZ[(Option[String], String)]()
@@ -373,7 +377,11 @@ object Logika {
         (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
           th, reporter),
         logika.NoTransitionSmt2Cache.create, reporter, T, T, plugins, o.line, o.skipMethods, o.skipTypes)
-      reporter.printMessages()
+      if (o.parseableMessages) {
+        Os.printParseableMessages(reporter)
+      } else {
+        reporter.printMessages()
+      }
       return if (reporter.hasError) Proyek.ILL_FORMED_PROGRAMS else 0
     }
 

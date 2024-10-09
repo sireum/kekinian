@@ -225,7 +225,11 @@ object SlangTipe {
             (p._1.typeHierarchy, p._2)
           }
           if (rep.hasError) {
-            rep.printMessages()
+            if (o.parseableMessages) {
+              Os.printParseableMessages(rep)
+            } else {
+              rep.printMessages()
+            }
             return Either.right(InvalidLibrary)
           }
           stopTime()
@@ -242,7 +246,11 @@ object SlangTipe {
     val t = FrontEnd.parseProgramAndGloballyResolve(0, for (p <- sources) yield FrontEnd.Input(p._2, p._1),
       th.nameMap, th.typeMap)
     if (t._1.hasError) {
-      t._1.printMessages()
+      if (o.parseableMessages) {
+        Os.printParseableMessages(t._1)
+      } else {
+        t._1.printMessages()
+      }
       return Either.right(InvalidSources)
     }
     stopTime()
@@ -255,7 +263,11 @@ object SlangTipe {
 
     th = TypeHierarchy.build(F, th(nameMap = t._3, typeMap = t._4), reporter)
     if (reporter.hasError) {
-      reporter.printMessages()
+      if (o.parseableMessages) {
+        Os.printParseableMessages(reporter)
+      } else {
+        reporter.printMessages()
+      }
       return Either.right(InvalidSources)
     }
     stopTime()
@@ -268,7 +280,11 @@ object SlangTipe {
 
     th = TypeOutliner.checkOutline(0, o.strictAliasing, th, reporter)
     if (reporter.hasError) {
-      reporter.printMessages()
+      if (o.parseableMessages) {
+        Os.printParseableMessages(reporter)
+      } else {
+        reporter.printMessages()
+      }
       return Either.right(InvalidSources)
     }
     stopTime()
@@ -318,7 +334,11 @@ object SlangTipe {
       th = TypeChecker.checkComponents(0, o.strictAliasing, th, nameMap, typeMap, reporter)
 
       if (reporter.hasError) {
-        reporter.printMessages()
+        if (o.parseableMessages) {
+          Os.printParseableMessages(reporter)
+        } else {
+          reporter.printMessages()
+        }
         return Either.right(InvalidSources)
       }
       if (o.force.nonEmpty) {
@@ -336,7 +356,11 @@ object SlangTipe {
       th = TypeChecker.checkComponents(0, o.strictAliasing, th, th.nameMap, th.typeMap, reporter)
 
       if (reporter.hasError) {
-        reporter.printMessages()
+        if (o.parseableMessages) {
+          Os.printParseableMessages(reporter)
+        } else {
+          reporter.printMessages()
+        }
         return Either.right(InvalidSources)
       }
       stopTime()
@@ -352,7 +376,11 @@ object SlangTipe {
       PostTipeAttrChecker.checkNameTypeMaps(th.nameMap, th.typeMap, reporter)
 
       if (reporter.hasError) {
-        reporter.printMessages()
+        if (o.parseableMessages) {
+          Os.printParseableMessages(reporter)
+        } else {
+          reporter.printMessages()
+        }
         return Either.right(InternalError)
       }
       stopTime()
@@ -391,7 +419,11 @@ object SlangTipe {
         case Some(p: TopUnit.Program) =>
           val p2 = FrontEnd.checkWorksheet(0, thOpt, p, reporter)
           if (reporter.hasError) {
-            reporter.printMessages()
+            if (o.parseableMessages) {
+              Os.printParseableMessages(reporter)
+            } else {
+              reporter.printMessages()
+            }
             return Either.right(InvalidSlangFiles)
           }
           stopTime()
@@ -405,7 +437,11 @@ object SlangTipe {
           PostTipeAttrChecker.checkProgram(p2._2, reporter)
 
           if (reporter.hasError) {
-            reporter.printMessages()
+            if (o.parseableMessages) {
+              Os.printParseableMessages(reporter)
+            } else {
+              reporter.printMessages()
+            }
             return Either.right(InternalError)
           }
           stopTime()
@@ -417,7 +453,11 @@ object SlangTipe {
 
     if (reporter.hasIssue) {
       println()
-      reporter.printMessages()
+      if (o.parseableMessages) {
+        Os.printParseableMessages(reporter)
+      } else {
+        reporter.printMessages()
+      }
     }
 
     if (o.verbose) {

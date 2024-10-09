@@ -194,7 +194,8 @@ object GenTools {
       verbose = o.verbose,
       save = o.save,
       load = o.load,
-      gzip = o.gzip
+      gzip = o.gzip,
+      parseableMessages = F
     )
     val th: TypeHierarchy = SlangTipe.run(to, reporter) match {
       case Either.Left(v) => v

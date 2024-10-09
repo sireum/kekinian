@@ -25,11 +25,118 @@
 
 package org.sireum
 
+import org.sireum.lang.tipe.TypeHierarchy
+import org.sireum.logika.State
+import org.sireum.logika.plugin.ClaimPlugin
+import org.sireum.message.Position
+
 import java.io.{FileWriter, OutputStream, PrintStream}
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
+  class Rep(feedbackDirOpt: Option[Os.Path], logPc: B, logRawPc: B, logVc: B, logDetailedInfo: B, stats: B)
+    extends logika.ReporterImpl(logPc, logRawPc, logVc, logDetailedInfo, F, ISZ(), stats,
+    new AtomicLong(0), new AtomicLong(0), new AtomicLong(0), new AtomicLong(0)) {
+    val sha3 = MessageDigest.getInstance("SHA3-512")
+    def write(d: Os.Path, content: String): Unit = {
+      val f = d / st"${(ISZ(sha3.digest(content.value.getBytes("UTF-8")).take(8).map(U8(_)).toSeq: _*), "")}.json".render
+      f.writeOver(content)
+    }
+
+    override def empty: logika.Logika.Reporter = {
+      new Rep(feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats)
+    }
+
+    override def state(plugins: ISZ[ClaimPlugin], posOpt: Option[Position], context: ISZ[String], th: TypeHierarchy, s: State, atLinesFresh: B, atRewrite: B): Unit = {
+      super.state(plugins, posOpt, context, th, s, atLinesFresh, atRewrite)
+      feedbackDirOpt match {
+        case Some(d) =>
+          var claims: String = ""
+          var err: String = ""
+          posOpt match {
+            case Some(pos) =>
+              try {
+                val (es, _) = logika.Util.claimsToExps(plugins, pos, context, s.claims, th, atLinesFresh, atRewrite)
+                claims =
+                  st"""{ // State claims at line ${pos.beginLine}
+                      |  ${(for (e <- es) yield e.prettyST, ";\n")}
+                      |}""".render
+              } catch {
+                case e: Throwable =>
+                  val baos = new java.io.ByteArrayOutputStream
+                  e.printStackTrace(new java.io.PrintStream(baos))
+                  baos.close()
+                  err = new java.lang.String(baos.toByteArray, "UTF-8")
+                  claims =
+                    st"""{ // State claims at line ${pos.beginLine}
+                        |  /*
+                        |    ${(ISZ(err.value.split('\n').toIndexedSeq: _*), "\n")}
+                        |  */
+                        |}""".render
+              }
+            case _ =>
+          }
+          if (claims.size == 0) {
+            val sts = logika.State.Claim.claimsSTs(s.claims, logika.Util.ClaimDefs.empty)
+            claims =
+              st"""{${if (posOpt.nonEmpty) st"// State claims at line ${posOpt.get.beginLine}" else ""}
+                  |  ${(sts, ",\n")}
+                  |}
+                  |
+                  |/* Error occurred when rendering claims:
+                  |$err
+                  |*/""".render
+          }
+          var found = F
+          var labels = ISZ[String]()
+          for (claim <- s.claims if !found) {
+            claim match {
+              case claim: logika.State.Claim.Label => labels = labels :+ claim.label; found = T
+              case _ =>
+            }
+          }
+          val content = server.protocol.JSON.fromLogikaVerifyState(
+            server.protocol.Logika.Verify.State(ISZ(), posOpt, !s.ok, labels, claims), T)
+          write(d, content)
+        case _ =>
+      }
+    }
+    override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
+      super.query(pos, title, isSat, time, forceReport, detailElided, r)
+      feedbackDirOpt match {
+        case Some(d) =>
+          val content = server.protocol.JSON.fromLogikaVerifySmt2Query(
+            server.protocol.Logika.Verify.Smt2Query(ISZ(), pos, isSat, time, title, r.kind, r.solverName,
+              r.query, r.info, r.output), T)
+          write(d, content)
+        case _ =>
+      }
+    }
+    override def coverage(setCache: B, cached: U64, pos: message.Position): Unit = {
+      feedbackDirOpt match {
+        case Some(d) =>
+          val content = server.protocol.JSON.fromAnalysisCoverage(
+            server.protocol.Analysis.Coverage(ISZ(), setCache, cached, pos), T)
+          write(d, content)
+        case _ =>
+      }
+    }
+    override def inform(pos: org.sireum.message.Position, kind: logika.Logika.Reporter.Info.Kind.Type, message: String): Unit = {
+      super.inform(pos, kind, message)
+      feedbackDirOpt match {
+        case Some(d) =>
+          val k: server.protocol.Logika.Verify.Info.Kind.Type = kind match {
+            case logika.Logika.Reporter.Info.Kind.Verified => server.protocol.Logika.Verify.Info.Kind.Verified
+            case logika.Logika.Reporter.Info.Kind.Error => server.protocol.Logika.Verify.Info.Kind.Error
+          }
+          val content = server.protocol.JSON.fromLogikaVerifyInfo(server.protocol.Logika.Verify.Info(ISZ(),
+            pos, k, message), T)
+          write(d, content)
+        case _ =>
+      }
+    }
+  }
 
   if (NativeUtil.isNative) {
     lang.FrontEnd.checkedLibraryReporter
@@ -591,53 +698,7 @@ object Sireum {
                   case Some(d) => Some(Os.path(d))
                   case _ => None()
                 }
-                val sha3 = MessageDigest.getInstance("SHA3-512")
-
-                def write(d: Os.Path, content: String): Unit = {
-                  val f = d / st"${(ISZ(sha3.digest(content.value.getBytes("UTF-8")).take(8).map(U8(_)).toSeq: _*), "")}.json".render
-                  f.writeOver(content)
-                }
-                class Rep extends logika.ReporterImpl(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, F, ISZ(), o.stats,
-                  new AtomicLong(0), new AtomicLong(0), new AtomicLong(0), new AtomicLong(0)) {
-                  override def empty: logika.Logika.Reporter = {
-                    new Rep()
-                  }
-                  override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
-                    super.query(pos, title, isSat, time, forceReport, detailElided, r)
-                    feedbackDirOpt match {
-                      case Some(d) =>
-                        val content = server.protocol.JSON.fromLogikaVerifySmt2Query(
-                          server.protocol.Logika.Verify.Smt2Query(ISZ(), pos, isSat, time, title, r.kind, r.solverName,
-                            r.query, r.info, r.output), T)
-                        write(d, content)
-                      case _ =>
-                    }
-                  }
-                  override def coverage(setCache: B, cached: U64, pos: message.Position): Unit = {
-                    feedbackDirOpt match {
-                      case Some(d) =>
-                        val content = server.protocol.JSON.fromAnalysisCoverage(
-                          server.protocol.Analysis.Coverage(ISZ(), setCache, cached, pos), T)
-                        write(d, content)
-                      case _ =>
-                    }
-                  }
-                  override def inform(pos: org.sireum.message.Position, kind: logika.Logika.Reporter.Info.Kind.Type, message: String): Unit = {
-                    super.inform(pos, kind, message)
-                    feedbackDirOpt match {
-                      case Some(d) =>
-                        val k: server.protocol.Logika.Verify.Info.Kind.Type = kind match {
-                          case logika.Logika.Reporter.Info.Kind.Verified => server.protocol.Logika.Verify.Info.Kind.Verified
-                          case logika.Logika.Reporter.Info.Kind.Error => server.protocol.Logika.Verify.Info.Kind.Error
-                        }
-                        val content = server.protocol.JSON.fromLogikaVerifyInfo(server.protocol.Logika.Verify.Info(ISZ(),
-                          pos, k, message), T)
-                        write(d, content)
-                      case _ =>
-                    }
-                  }
-                }
-                val rep = new Rep
+                val rep = new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats)
                 rep.collectStats = o.stats
                 val exitCode = cli.HAMR.sysmlLogika(o, rep)
                 reporter.reports(rep.messages)
@@ -674,12 +735,19 @@ object Sireum {
             }
             return cli.HAMR.sysmlConfig(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
-            init.basicDeps()
-            init.logikaDeps()
+            if (!NativeUtil.isNative) {
+              init.basicDeps()
+            } else {
+              init.logikaDeps()
+            }
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
-                val rep = logika.ReporterImpl.create(o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo)
+                val feedbackDirOpt: Option[Os.Path] = o.feedback match {
+                  case Some(d) => Some(Os.path(d))
+                  case _ => None()
+                }
+                val rep = new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats)
                 rep.collectStats = o.stats
                 val exitCode = cli.Logika.run(o, rep)
                 reporter.reports(rep.messages)

@@ -51,7 +51,7 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
-          "$SIREUM_HOME/bin/sireum" hamr sysml setup --extensions "ms-python.python,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/sireum" hamr sysml setup --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --sfx --hamr
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
           mv "$SIREUM_HOME/distro/linux.sfx" sireum-ive-linux-amd64.7z.sfx
@@ -126,7 +126,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/init.sh"
-          "$SIREUM_HOME/bin/sireum" hamr sysml setup --extensions "ms-python.python,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/sireum" hamr sysml setup --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx --hamr
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-arm64.7z.sfx
@@ -201,7 +201,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/init.sh"
-          "$SIREUM_HOME/bin/sireum" hamr sysml setup --extensions "ms-python.python,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/sireum" hamr sysml setup --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --sfx --hamr
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-amd64
           mv "$SIREUM_HOME/distro/mac.sfx" sireum-ive-mac-amd64.7z.sfx
@@ -285,7 +285,7 @@ jobs:
           set SIREUM_HOME=%GITHUB_WORKSPACE%\Sireum
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call "%SIREUM_HOME%\bin\init.bat"
-          call "%SIREUM_HOME%\bin\sireum.bat" hamr sysml setup --extensions "ms-python.python,rust-lang.rust-analyzer"
+          call "%SIREUM_HOME%\bin\sireum.bat" hamr sysml setup --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --sfx --hamr
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.exe" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z.exe"
