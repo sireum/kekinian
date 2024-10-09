@@ -509,6 +509,7 @@ object Sireum {
         s"""
            |Available Standalone Options:
            |    --init               Setup dependencies
+           |    --install-fonts      Install Sireum fonts
            |    --native             Build native executable
            |    --setup              Setup IVE and dependencies
            |    --setup-hamr         Setup HAMR SysMLv2 and dependencies
@@ -530,6 +531,9 @@ object Sireum {
         return 0
       case ISZ(string"--init") =>
         init.deps()
+        return 0
+      case ISZ(string"--install-fonts") =>
+        init.installFonts(F)
         return 0
       case ISZ(string"--native") =>
         init.deps()
