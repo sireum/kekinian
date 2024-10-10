@@ -161,6 +161,12 @@ def build(fresh: B, isNative: B, isUber: B): Unit = {
       val uberJar = homeBin / s"${sireumJar.name}.bat"
       (home / "out" / proyekName / "assemble" / uberJar.name).copyOverTo(uberJar)
     }
+    if (Os.isWin) {
+      (homeBin / platform / "sireum.exe").removeAll()
+      (homeBin / platform / ".sireum.exe").removeAll()
+    } else {
+      (homeBin / platform / "sireum").removeAll()
+    }
     if (isNative) {
       val exePath: Os.Path = Os.kind match {
         case Os.Kind.Win => homeBin / "win" / s"$jarName.exe"

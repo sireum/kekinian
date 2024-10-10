@@ -6,10 +6,7 @@ set SIREUM_HOME=%CD%
 popd
 set JAVA_HOME=%SIREUM_HOME%\bin\win\java
 set NEWER=False
-if exist "%~dp0win\sireum.exe" if not exist "%~dp0sireum.jar" goto native
-if exist "%~dp0win\sireum.exe" for /f %%i in ('dir /b /o:d "%~dp0win\sireum.exe" "%~dp0sireum.jar"') do goto native 
-del "%~dp0win\sireum.exe" > nul 2>&1
-del "%~dp0win\.sireum.exe" > nul 2>&1
+if exist "%~dp0win\sireum.exe" goto native
 set JAVA=java.exe
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not defined SIREUM_PROVIDED_SCALA set SCALA_HOME=%SIREUM_HOME%/bin/scala

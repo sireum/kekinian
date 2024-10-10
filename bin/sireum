@@ -40,9 +40,8 @@ if [[ -z ${SIREUM_PROVIDED_SCALA} ]]; then
   export SCALA_HOME=$SIREUM_HOME/bin/scala
 fi
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
-if [[ -f ${NATIVE} ]] && [[ ${NATIVE} -nt ${SIREUM_JAR} ]]; then
+if [[ -f ${NATIVE} ]]; then
   exec "${NATIVE}" "$@"
 else
-  rm -fR "${NATIVE}"
   exec "${JAVA}" -Djava.net.useSystemProxies=true ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
 fi
