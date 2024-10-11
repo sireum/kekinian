@@ -11,6 +11,9 @@ jobs:
   ci-distro-linux-amd64:
     runs-on: ubuntu-latest
     steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -116,6 +119,9 @@ jobs:
   ci-distro-macos-arm64:
     runs-on: mac-mini-m1
     steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -191,6 +197,9 @@ jobs:
   ci-distro-macos-amd64:
     runs-on: macOS-13
     steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -268,6 +277,9 @@ jobs:
     steps:
       - name: Enable git config core.longpaths
         run: git config --system core.longpaths true
+      - name: Clean
+        run: |
+          rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
