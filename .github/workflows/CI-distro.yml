@@ -278,6 +278,7 @@ jobs:
       - name: Enable git config core.longpaths
         run: git config --system core.longpaths true
       - name: Clean
+        shell: cmd
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
