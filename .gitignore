@@ -23,6 +23,12 @@
 /distro/*.sfx
 /distro/*.exe
 /distro/*.tar.gz
+/distro/dev/Sireum
+/distro/dev/*.tar
+/distro/dev/*.zip
+/distro/release/Sireum
+/distro/release/*.tar
+/distro/release/*.zip
 /distro/*.zip
 /lib
 /log

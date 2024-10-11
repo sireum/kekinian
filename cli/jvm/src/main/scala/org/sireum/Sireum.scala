@@ -511,10 +511,6 @@ object Sireum {
            |    --init               Setup dependencies
            |    --install-fonts      Install Sireum fonts
            |    --native             Build native executable
-           |    --setup              Setup IVE and dependencies
-           |    --setup-hamr         Setup HAMR SysMLv2 and dependencies
-           |    --setup-server       Setup IVE (Server) and dependencies
-           |    --setup-ultimate     Setup IVE (Ultimate) and dependencies
            |    --sha                Print Sireum build SHA commit tip
            |    --test-cli           Test CLI arguments (expects strings)
            |-v, --version            Print version information""".stripMargin)
@@ -539,45 +535,6 @@ object Sireum {
         init.deps()
         nativ()
         return 0
-      case ISZ(string"--setup") =>
-        init.deps()
-        init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = F, isServer = F)
-        if ((init.home / "bin" / "project.cmd").exists) {
-          run(ISZ("proyek", "ive", init.home.string), reporter)
-        }
-        proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, F),
-          Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
-          init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
-        println()
-        println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = F, isServer = F)}")
-        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
-        return 0
-      case ISZ(string"--setup-server") =>
-        init.deps()
-        init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = F, isServer = T)
-        if ((init.home / "bin" / "project.cmd").exists) {
-          run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
-        }
-        proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, T),
-          Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
-          init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
-        println()
-        println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = F, isServer = T)}")
-        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
-        return 0
-      case ISZ(string"--setup-ultimate") =>
-        init.deps()
-        init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = T, isServer = F)
-        if ((init.home / "bin" / "project.cmd").exists) {
-          run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
-        }
-        proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(T, F),
-          Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
-          init.ideaConfig(T, F, T, None()), init.ideaSandbox(F))
-        println()
-        println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = T, isServer = F)}")
-        println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
-        return 0
       case ISZ(string"--sha") =>
         println(commitSha)
         return 0
@@ -593,6 +550,56 @@ object Sireum {
         return 0
       case _ =>
         Cli(Os.pathSepChar).parseSireum(args, 0) match {
+          case Some(o: Cli.SireumSetupIveOption) =>
+            o.mode match {
+              case Cli.SireumSetupIveIveMode.Community =>
+                init.deps()
+                init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = F, isServer = F)
+                if ((init.home / "bin" / "project.cmd").exists) {
+                  run(ISZ("proyek", "ive", init.home.string), reporter)
+                }
+                proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, F),
+                  Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
+                  init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
+                println()
+                println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = F, isServer = F)}")
+                println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
+                return 0
+              case Cli.SireumSetupIveIveMode.Ultimate =>
+                init.deps()
+                init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = T, isServer = F)
+                if ((init.home / "bin" / "project.cmd").exists) {
+                  run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
+                }
+                proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(T, F),
+                  Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
+                  init.ideaConfig(T, F, T, None()), init.ideaSandbox(F))
+                println()
+                println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = T, isServer = F)}")
+                println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
+                return 0
+              case Cli.SireumSetupIveIveMode.Server =>
+                init.deps()
+                init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = F, isServer = T)
+                if ((init.home / "bin" / "project.cmd").exists) {
+                  run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
+                }
+                proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, T),
+                  Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
+                  init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
+                println()
+                println(s"Sireum IVE v$version is available at ${init.ideaDirPath(isUltimate = F, isServer = T)}")
+                println(s"Java Development Kit (JDK) ${init.javaVersion} is available at ${Os.javaHomeOpt(init.kind, Some(init.home)).get}")
+                return 0
+            }
+          case Some(o: Cli.SireumSetupVscodeOption) =>
+            init.logikaDeps()
+            init.installVSCodium(
+              path2fileOpt("existing VSCode/VSCodium", o.existingInstall, T),
+              path2fileOpt("extensions directory", o.extensionsDir, F),
+              o.extensions
+            )
+            return 0
           case Some(o: Cli.SireumSlangTipeOption) =>
             cli.SlangTipe.run(o, message.Reporter.create) match {
               case Either.Right(code) => return code
@@ -706,14 +713,6 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
-          case Some(o: Cli.SireumHamrSysmlSetupOption) =>
-            init.logikaDeps()
-            init.installVSCodium(
-              path2fileOpt("existing VSCode/VSCodium", o.existingInstall, T),
-              path2fileOpt("extensions directory", o.extensionsDir, F),
-              o.extensions
-            )
-            return 0
           case Some(o: Cli.SireumHamrSysmlTipeOption) =>
             if (!NativeUtil.isNative) {
               init.basicDeps()
@@ -780,7 +779,7 @@ object Sireum {
             val isServer = o.edition == Cli.SireumProyekIveEdition.Server
             if (o.rebuildIve || !init.ideaDirPath(isUltimate, isServer).exists) {
               init.deps()
-              init.distro(isDev = F, buildSfx = F, buildIve = T, buildHamrPackage = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
+              init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = o.edition == Cli.SireumProyekIveEdition.Ultimate,
                 isServer = o.edition == Cli.SireumProyekIveEdition.Server)
             }
             return cli.Proyek.ive(o)

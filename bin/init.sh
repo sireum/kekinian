@@ -194,5 +194,5 @@ fi
 #
 if [[ ! -f ${SIREUM_HOME}/bin/build.cmd ]] && [[ ! "${SIREUM_NO_SETUP}" = "true" ]]; then
   export PATH=${SIREUM_HOME}/bin/${PLATFORM}/java/bin:$PATH
-  java -jar "${SIREUM_HOME}/bin/sireum.jar" --setup
+  java -jar "${SIREUM_HOME}/bin/sireum.jar" setup ive
 fi

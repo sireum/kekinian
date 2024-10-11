@@ -134,6 +134,75 @@ val presentasiGroup = Group(
   subs = ISZ(pgenTool, text2speechTool)
 )
 
+
+val iveSetup: Tool = Tool(
+  name = "ive",
+  command = "ive",
+  description = "IVE setup",
+  header = "Sireum IVE Setup",
+  usage = "<options>*",
+  usageDescOpt = None(),
+  opts = ISZ(
+    Opt(name = "mode", longKey = "mode", shortKey = Some('m'),
+      tpe = Type.Choice(name = "iveMode", sep = None(), elements = ISZ("community", "ultimate", "server")),
+      description = "Setup version mode")
+  ),
+  groups = ISZ()
+)
+
+val vscodiumExtensions: ISZ[String] = ISZ(
+  "llvm-vs-code-extensions.vscode-clangd",
+  "mike-lischke.vscode-antlr4",
+  "mads-hartmann.bash-ide-vscode",
+  "dbaeumer.vscode-eslint",
+  "mhutchie.git-graph",
+  "ecmel.vscode-html-css",
+  "kofuk.hugo-utils",
+  "redhat.java",
+  "langium.langium-vscode",
+  "James-Yu.latex-workshop",
+  "jebbs.plantuml",
+  "esbenp.prettier-vscode",
+  "ms-python.python",
+  "rust-lang.rust-analyzer",
+  "scalameta.metals",
+  "mshr-h.veriloghdl",
+  "redhat.vscode-xml",
+  "redhat.vscode-yaml",
+  "adamraichu.zip-viewer"
+)
+
+val vscodeSetup: Tool = Tool(
+  name = "vscode",
+  command = "vscode",
+  description = "VSCode setup",
+  header = "Sireum VSCode Setup",
+  usage = "<options>*",
+  usageDescOpt = None(),
+  opts = ISZ(
+    Opt(name = "existingInstall", longKey = "existing-install", shortKey = None(),
+      tpe = Type.Path(multiple = F, default = None()),
+      description = "Existing VSCodium/VSCode installation path"),
+    Opt(name = "extensions", longKey = "extensions", shortKey = None(),
+      tpe = Type.Str(sep = Some(','), default = Some(st"${(vscodiumExtensions, ", ")}".render)),
+      description = "List of extensions to be installed (excluding Sireum and SysIDE)"),
+    Opt(name = "extensionsDir", longKey = "extensions-dir", shortKey = None(),
+      tpe = Type.Path(multiple = F, default = None()),
+      description = "Custom VSCodium/VSCode extensions directory")
+  ),
+  groups = ISZ()
+)
+
+val setup = Group(
+  name = "setup",
+  description = "Setup",
+  header =
+    st"""Sireum Setup""".render,
+  unlisted = F,
+  subs = ISZ(iveSetup, vscodeSetup)
+)
+
+
 val main = Group(
   name = "sireum",
   description = "",
@@ -150,6 +219,7 @@ val main = Group(
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
     presentasiGroup,
     server.cli.serverTool,
+    setup,
     tools.cli.group,
     x
   )

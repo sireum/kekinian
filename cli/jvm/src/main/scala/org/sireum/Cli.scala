@@ -245,14 +245,6 @@ object Cli {
     val searchPC: B
   ) extends SireumTopOption
 
-  @datatype class SireumHamrSysmlSetupOption(
-    val help: String,
-    val args: ISZ[String],
-    val existingInstall: Option[String],
-    val extensions: ISZ[String],
-    val extensionsDir: Option[String]
-  ) extends SireumTopOption
-
   @datatype class SireumHamrSysmlTipeOption(
     val help: String,
     val args: ISZ[String],
@@ -933,6 +925,26 @@ object Cli {
     val workers: Z
   ) extends SireumTopOption
 
+  @enum object SireumSetupIveIveMode {
+    "Community"
+    "Ultimate"
+    "Server"
+  }
+
+  @datatype class SireumSetupIveOption(
+    val help: String,
+    val args: ISZ[String],
+    val mode: SireumSetupIveIveMode.Type
+  ) extends SireumTopOption
+
+  @datatype class SireumSetupVscodeOption(
+    val help: String,
+    val args: ISZ[String],
+    val existingInstall: Option[String],
+    val extensions: ISZ[String],
+    val extensionsDir: Option[String]
+  ) extends SireumTopOption
+
   @enum object SireumToolsBcgenBitCodecMode {
     "Program"
     "Script"
@@ -1108,11 +1120,12 @@ import Cli._
             |slang                    Slang tools
             |presentasi               Presentation tools
             |server                   Sireum server
+            |setup                    Setup
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("hamr", "logika", "parser", "proyek", "slang", "presentasi", "server", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("hamr", "logika", "parser", "proyek", "slang", "presentasi", "server", "setup", "tools", "x"))
     opt match {
       case Some(string"hamr") => return parseSireumHamr(args, i + 1)
       case Some(string"logika") => return parseSireumLogika(args, i + 1)
@@ -1121,6 +1134,7 @@ import Cli._
       case Some(string"slang") => return parseSireumSlang(args, i + 1)
       case Some(string"presentasi") => return parseSireumPresentasi(args, i + 1)
       case Some(string"server") => return parseSireumServer(args, i + 1)
+      case Some(string"setup") => return parseSireumSetup(args, i + 1)
       case Some(string"tools") => return parseSireumTools(args, i + 1)
       case Some(string"x") => return parseSireumX(args, i + 1)
       case _ => return None()
@@ -1670,18 +1684,16 @@ import Cli._
             |codegen                  SysML v2 Codegen
             |config                   SysML v2 CodeGen Config
             |logika                   SysML v2 Verifier
-            |setup                    HAMR SysMLv2 VSCode setup
             |tipe                     SysML v2 Type Checker
             |translator               SysML v2 Grammar Translator to ANTLR v4""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sysml", args, i, ISZ("codegen", "config", "logika", "setup", "tipe", "translator"))
+    val opt = select("sysml", args, i, ISZ("codegen", "config", "logika", "tipe", "translator"))
     opt match {
       case Some(string"codegen") => return parseSireumHamrSysmlCodegen(args, i + 1)
       case Some(string"config") => return parseSireumHamrSysmlConfig(args, i + 1)
       case Some(string"logika") => return parseSireumHamrSysmlLogika(args, i + 1)
-      case Some(string"setup") => return parseSireumHamrSysmlSetup(args, i + 1)
       case Some(string"tipe") => return parseSireumHamrSysmlTipe(args, i + 1)
       case Some(string"translator") => return parseSireumHamrSysmlTranslator(args, i + 1)
       case _ => return None()
@@ -2606,73 +2618,6 @@ import Cli._
       }
     }
     return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, feedback, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
-  }
-
-  def parseSireumHamrSysmlSetup(args: ISZ[String], i: Z): Option[SireumTopOption] = {
-    val help =
-      st"""Sireum HAMR SysMLv2 VSCode Setup
-          |
-          |Usage: <options>*
-          |
-          |Available Options:
-          |    --existing-install   Existing VSCodium/VSCode installation path (expects a
-          |                           path)
-          |    --extensions         List of extensions to be installed (excluding Sireum
-          |                           and SysIDE) (expects a string separated by ",";
-          |                           default is "llvm-vs-code-extensions.vscode-clangd,
-          |                           mike-lischke.vscode-antlr4,
-          |                           mads-hartmann.bash-ide-vscode,
-          |                           dbaeumer.vscode-eslint, mhutchie.git-graph,
-          |                           ecmel.vscode-html-css, kofuk.hugo-utils,
-          |                           redhat.java, langium.langium-vscode,
-          |                           James-Yu.latex-workshop, jebbs.plantuml,
-          |                           esbenp.prettier-vscode, ms-python.python,
-          |                           rust-lang.rust-analyzer, scalameta.metals,
-          |                           mshr-h.veriloghdl, redhat.vscode-xml,
-          |                           redhat.vscode-yaml, adamraichu.zip-viewer")
-          |    --extensions-dir     Custom VSCodium/VSCode extensions directory (expects a
-          |                           path)
-          |-h, --help               Display this information""".render
-
-    var existingInstall: Option[String] = None[String]()
-    var extensions: ISZ[String] = ISZ("llvm-vs-code-extensions.vscode-clangd", "mike-lischke.vscode-antlr4", "mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "mhutchie.git-graph", "ecmel.vscode-html-css", "kofuk.hugo-utils", "redhat.java", "langium.langium-vscode", "James-Yu.latex-workshop", "jebbs.plantuml", "esbenp.prettier-vscode", "ms-python.python", "rust-lang.rust-analyzer", "scalameta.metals", "mshr-h.veriloghdl", "redhat.vscode-xml", "redhat.vscode-yaml", "adamraichu.zip-viewer")
-    var extensionsDir: Option[String] = None[String]()
-    var j = i
-    var isOption = T
-    while (j < args.size && isOption) {
-      val arg = args(j)
-      if (ops.StringOps(arg).first == '-') {
-        if (args(j) == "-h" || args(j) == "--help") {
-          println(help)
-          return Some(HelpOption())
-        } else if (arg == "--existing-install") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => existingInstall = v
-             case _ => return None()
-           }
-         } else if (arg == "--extensions") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => extensions = v
-             case _ => return None()
-           }
-         } else if (arg == "--extensions-dir") {
-           val o: Option[Option[String]] = parsePath(args, j + 1)
-           o match {
-             case Some(v) => extensionsDir = v
-             case _ => return None()
-           }
-         } else {
-          eprintln(s"Unrecognized option '$arg'.")
-          return None()
-        }
-        j = j + 2
-      } else {
-        isOption = F
-      }
-    }
-    return Some(SireumHamrSysmlSetupOption(help, parseArguments(args, j), existingInstall, extensions, extensionsDir))
   }
 
   def parseSireumHamrSysmlTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -8237,6 +8182,150 @@ import Cli._
       }
     }
     return Some(SireumServerOption(help, parseArguments(args, j), message, log, noInputCache, noTypeCache, verbose, workers))
+  }
+
+  def parseSireumSetup(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Setup
+            |
+            |Available modes:
+            |ive                      IVE setup
+            |vscode                   VSCode setup""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("setup", args, i, ISZ("ive", "vscode"))
+    opt match {
+      case Some(string"ive") => return parseSireumSetupIve(args, i + 1)
+      case Some(string"vscode") => return parseSireumSetupVscode(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumSetupIveIveModeH(arg: String): Option[SireumSetupIveIveMode.Type] = {
+    arg.native match {
+      case "community" => return Some(SireumSetupIveIveMode.Community)
+      case "ultimate" => return Some(SireumSetupIveIveMode.Ultimate)
+      case "server" => return Some(SireumSetupIveIveMode.Server)
+      case s =>
+        eprintln(s"Expecting one of the following: { community, ultimate, server }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumSetupIveIveMode(args: ISZ[String], i: Z): Option[SireumSetupIveIveMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { community, ultimate, server }, but none found.")
+      return None()
+    }
+    val r = parseSireumSetupIveIveModeH(args(i))
+    return r
+  }
+
+  def parseSireumSetupIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum IVE Setup
+          |
+          |Usage: <options>*
+          |
+          |Available Options:
+          |-m, --mode               Setup version mode (expects one of { community,
+          |                           ultimate, server }; default: community)
+          |-h, --help               Display this information""".render
+
+    var mode: SireumSetupIveIveMode.Type = SireumSetupIveIveMode.Community
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[SireumSetupIveIveMode.Type] = parseSireumSetupIveIveMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumSetupIveOption(help, parseArguments(args, j), mode))
+  }
+
+  def parseSireumSetupVscode(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum VSCode Setup
+          |
+          |Usage: <options>*
+          |
+          |Available Options:
+          |    --existing-install   Existing VSCodium/VSCode installation path (expects a
+          |                           path)
+          |    --extensions         List of extensions to be installed (excluding Sireum
+          |                           and SysIDE) (expects a string separated by ",";
+          |                           default is "llvm-vs-code-extensions.vscode-clangd,
+          |                           mike-lischke.vscode-antlr4,
+          |                           mads-hartmann.bash-ide-vscode,
+          |                           dbaeumer.vscode-eslint, mhutchie.git-graph,
+          |                           ecmel.vscode-html-css, kofuk.hugo-utils,
+          |                           redhat.java, langium.langium-vscode,
+          |                           James-Yu.latex-workshop, jebbs.plantuml,
+          |                           esbenp.prettier-vscode, ms-python.python,
+          |                           rust-lang.rust-analyzer, scalameta.metals,
+          |                           mshr-h.veriloghdl, redhat.vscode-xml,
+          |                           redhat.vscode-yaml, adamraichu.zip-viewer")
+          |    --extensions-dir     Custom VSCodium/VSCode extensions directory (expects a
+          |                           path)
+          |-h, --help               Display this information""".render
+
+    var existingInstall: Option[String] = None[String]()
+    var extensions: ISZ[String] = ISZ("llvm-vs-code-extensions.vscode-clangd", "mike-lischke.vscode-antlr4", "mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "mhutchie.git-graph", "ecmel.vscode-html-css", "kofuk.hugo-utils", "redhat.java", "langium.langium-vscode", "James-Yu.latex-workshop", "jebbs.plantuml", "esbenp.prettier-vscode", "ms-python.python", "rust-lang.rust-analyzer", "scalameta.metals", "mshr-h.veriloghdl", "redhat.vscode-xml", "redhat.vscode-yaml", "adamraichu.zip-viewer")
+    var extensionsDir: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--existing-install") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => existingInstall = v
+             case _ => return None()
+           }
+         } else if (arg == "--extensions") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => extensions = v
+             case _ => return None()
+           }
+         } else if (arg == "--extensions-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => extensionsDir = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumSetupVscodeOption(help, parseArguments(args, j), existingInstall, extensions, extensionsDir))
   }
 
   def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {

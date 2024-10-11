@@ -137,7 +137,7 @@ if (!(Test-Path "$build_path") -And $sireum_setup) {
   } else {
     $java = "java"
   }
-  Start-Process -NoNewWindow -Wait -FilePath "$java" -ArgumentList @("-Dorg.sireum.home=`"$sireum_home`"", "-jar", "`"$sireum_jar`"", "--setup")
+  Start-Process -NoNewWindow -Wait -FilePath "$java" -ArgumentList @("-Dorg.sireum.home=`"$sireum_home`"", "-jar", "`"$sireum_jar`"", "setup", "ive")
 }
 
 $Global:ProgressPreference = $OriginalProgressPreference
