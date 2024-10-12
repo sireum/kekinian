@@ -14,10 +14,11 @@ jobs:
     steps:
       - name: Support longpaths
         run: git config --system core.longpaths true
-      - name: Clean
-        shell: cmd
-        run: |
-          if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: Sireum
+          recursive: true
       - name: Checkout
         shell: cmd
         run: |

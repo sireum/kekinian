@@ -13,8 +13,10 @@ jobs:
         run: |
           rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
-        run: |
-          git clone --recursive https://github.com/sireum/kekinian Sireum
+        uses: actions/checkout@v4
+        with:
+          path: Sireum
+          recursive: true
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
