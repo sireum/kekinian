@@ -295,8 +295,8 @@ jobs:
           call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --pack --vscodium
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
-          move "%SIREUM_HOME%\distro\win.tar.xz" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.tar.xz"
-          move "%SIREUM_HOME%\distro\sireum-ive-vscodium-win-amd64.tar.xz" "%GITHUB_WORKSPACE%\"
+          move "%SIREUM_HOME%\distro\win.tar.bz2" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.tar.bz2"
+          move "%SIREUM_HOME%\distro\sireum-ive-vscodium-win-amd64.tar.bz2" "%GITHUB_WORKSPACE%\"
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -311,8 +311,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-win-amd64.tar.xz
-          asset_name: sireum-ive-win-amd64.tar.xz
+          file: sireum-ive-win-amd64.tar.bz2
+          asset_name: sireum-ive-win-amd64.tar.bz2
           tag: dev
           overwrite: true
       - name: Upload HAMR dev
@@ -320,8 +320,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-win-amd64.tar.xz
-          asset_name: sireum-ive-vscodium-win-amd64.tar.xz
+          file: sireum-ive-vscodium-win-amd64.tar.bz2
+          asset_name: sireum-ive-vscodium-win-amd64.tar.bz2
           tag: dev
           overwrite: true
       - name: Upload CLI Release
@@ -338,8 +338,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-win-amd64.tar.xz
-          asset_name: sireum-ive-win-amd64.tar.xz
+          file: sireum-ive-win-amd64.tar.bz2
+          asset_name: sireum-ive-win-amd64.tar.bz2
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload HAMR Release
@@ -347,7 +347,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-win-amd64.tar.xz
-          asset_name: sireum-ive-vscodium-win-amd64.tar.xz
+          file: sireum-ive-vscodium-win-amd64.tar.bz2
+          asset_name: sireum-ive-vscodium-win-amd64.tar.bz2
           tag: ${{ github.ref }}
           overwrite: true
