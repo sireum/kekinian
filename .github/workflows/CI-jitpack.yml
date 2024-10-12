@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: Sireum
-          recursive: true
+          submodules: recursive
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
