@@ -59,15 +59,13 @@ jobs:
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
           mv "$SIREUM_HOME/distro/linux.tar.gz" sireum-ive-linux-amd64.tar.gz
           mv "$SIREUM_HOME/distro/sireum-ive-vscodium-linux-amd64.tar.gz" .
-          rm -fR sireum-cli-linux-amd64.gz
-          gzip -9 sireum-cli-linux-amd64
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-linux-amd64.gz
-          asset_name: sireum-cli-linux-amd64.gz
+          file: sireum-cli-linux-amd64
+          asset_name: sireum-cli-linux-amd64
           tag: dev
           overwrite: true
       - name: Upload IVE dev
@@ -93,8 +91,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-linux-amd64.gz
-          asset_name: sireum-cli-linux-amd64.gz
+          file: sireum-cli-linux-amd64
+          asset_name: sireum-cli-linux-amd64
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
@@ -137,15 +135,13 @@ jobs:
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.tar.gz" sireum-ive-mac-arm64.tar.gz
           mv "$SIREUM_HOME/distro/sireum-ive-vscodium-mac-arm64.tar.gz" .
-          rm -fR sireum-cli-mac-arm64.gz
-          gzip -9 sireum-cli-mac-arm64
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-mac-arm64.gz
-          asset_name: sireum-cli-mac-arm64.gz
+          file: sireum-cli-mac-arm64
+          asset_name: sireum-cli-mac-arm64
           tag: dev
           overwrite: true
       - name: Upload IVE dev
@@ -171,8 +167,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-mac-arm64.gz
-          asset_name: sireum-cli-mac-arm64.gz
+          file: sireum-cli-mac-arm64
+          asset_name: sireum-cli-mac-arm64
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
@@ -215,15 +211,13 @@ jobs:
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-amd64
           mv "$SIREUM_HOME/distro/mac.tar.gz" sireum-ive-mac-amd64.tar.gz
           mv "$SIREUM_HOME/distro/sireum-ive-vscodium-mac-amd64.tar.gz" .
-          rm -fR sireum-cli-mac-amd64.gz
-          gzip -9 sireum-cli-mac-amd64
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-mac-amd64.gz
-          asset_name: sireum-cli-mac-amd64.gz
+          file: sireum-cli-mac-amd64
+          asset_name: sireum-cli-mac-amd64
           tag: dev
           overwrite: true
       - name: Upload IVE dev
@@ -249,8 +243,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-mac-amd64.gz
-          asset_name: sireum-cli-mac-amd64.gz
+          file: sireum-cli-mac-amd64
+          asset_name: sireum-cli-mac-amd64
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
@@ -303,15 +297,13 @@ jobs:
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
           move "%SIREUM_HOME%\distro\sireum-ive-vscodium-win-amd64.zip" "%GITHUB_WORKSPACE%\"
-          del sireum-cli-win-amd64.exe.zip
-          "%SIREUM_HOME%\bin\win\7za.exe" a -bsp0 -tzip -mx9 sireum-cli-win-amd64.exe.zip sireum-cli-win-amd64.exe
       - name: Upload CLI dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-win-amd64.exe.zip
-          asset_name: sireum-cli-win-amd64.exe.zip
+          file: sireum-cli-win-amd64.exe
+          asset_name: sireum-cli-win-amd64.exe
           tag: dev
           overwrite: true
       - name: Upload IVE dev
@@ -337,8 +329,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-win-amd64.exe.zip
-          asset_name: sireum-cli-win-amd64.exe.zip
+          file: sireum-cli-win-amd64.exe
+          asset_name: sireum-cli-win-amd64.exe
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release

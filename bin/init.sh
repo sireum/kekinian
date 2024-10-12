@@ -46,27 +46,19 @@ function versionNorm {
 }
 
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then
-  Z7="${SIREUM_HOME}/bin/win/7za.exe"
-  Z7_URL="https://github.com/sireum/bin-windows/raw/master/7za.exe"
   if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=win
   fi
 elif [[ "$(uname)" == "Darwin" ]]; then
-  Z7="${SIREUM_HOME}/bin/mac/7za"
-  Z7_URL="https://github.com/sireum/bin-mac/raw/master/7za"
   if [[ -z "${PLATFORM}" ]]; then
     PLATFORM=mac
   fi
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
   if [[ "$(uname -m)" == "aarch64" ]]; then
-    Z7="${SIREUM_HOME}/bin/linux/arm/7za"
-    Z7_URL="https://github.com/sireum/bin-linux/raw/master/arm/7za"
     if [[ -z "${PLATFORM}" ]]; then
       PLATFORM=linux/arm
     fi
   else
-    Z7="${SIREUM_HOME}/bin/linux/7za"
-    Z7_URL="https://github.com/sireum/bin-linux/raw/master/7za"
     if [[ -z "${PLATFORM}" ]]; then
       PLATFORM=linux
     fi
@@ -92,19 +84,13 @@ download() {
 }
 
 uncompress() {
-  if [ -x "$Z7" ]; then
-    $Z7 x -y $1 > /dev/null
-  elif hash unzip 2>/dev/null; then
+  if hash unzip 2>/dev/null; then
     unzip -qo $1
   elif hash 7z 2>/dev/null; then
     7z x -y $1 > /dev/null
   else
-    echo "Please wait while downloading 7za ..."
-    rm -fR $Z7
-    download $Z7 $Z7_URL
-    chmod +x $Z7
-    echo
-    $Z7 x -y $1 > /dev/null
+    >&2 echo "Either unzip or 7z is required, but none found."
+    exit 1
   fi
 }
 
