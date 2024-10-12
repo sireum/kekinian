@@ -14,57 +14,57 @@ jobs:
     steps:
       - name: Clean
         run: |
-          rm -fR "$GITHUB_WORKSPACE"/.*
-          rm -fR "$GITHUB_WORKSPACE"/*
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          path: Sireum
           submodules: recursive
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
         with:
-          path: bin/mac/java
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
+          path: Sireum/bin/mac/java
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v3
         with:
-          path: bin/scala
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
+          path: Sireum/bin/scala
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v3
         with:
-          path: cache/coursier
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+          path: Sireum/cache/coursier
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-coursier
       - name: Cache Graal
         id: cache-graal
         uses: actions/cache@v3
         with:
-          path: bin/mac/graal
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
+          path: Sireum/bin/mac/graal
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/bin/install/graal.cmd') }}-graal
       - name: Cache SMT2 solvers
         id: cache-smt2
         uses: actions/cache@v3
         with:
           path: |
-            bin/mac/cvc
-            bin/mac/cvc5
-            bin/mac/.cvc.ver
-            bin/mac/.cvc5.ver
-            bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+            Sireum/bin/mac/cvc
+            Sireum/bin/mac/cvc5
+            Sireum/bin/mac/.cvc.ver
+            Sireum/bin/mac/.cvc5.ver
+            Sireum/bin/mac/z3
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-smt2
       - name: Cache OSATE
         id: cache-osate
         uses: actions/cache@v3
         with:
-          path: bin/mac/osate.app
-          key: ${{ runner.os }}-${{ hashFiles('hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
+          path: Sireum/bin/mac/osate.app
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
       - name: Test
         run: |
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
-          cd $GITHUB_WORKSPACE
+          export COURSIER_CACHE=$GITHUB_WORKSPACE/Sireum/cache/coursier
+          cd $GITHUB_WORKSPACE/Sireum
           .ci/build.sh && .ci/build.sh test-verify
           #.ci/mac-native.sh # need large runner
           #rm bin/mac/sireum

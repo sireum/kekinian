@@ -14,55 +14,55 @@ jobs:
     steps:
       - name: Clean
         run: |
-          rm -fR "$GITHUB_WORKSPACE"/.*
-          rm -fR "$GITHUB_WORKSPACE"/*
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          path: Sireum
           submodules: recursive
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
         with:
-          path: bin/mac/java
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-java
+          path: Sireum/bin/mac/java
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-compcert-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v3
         with:
-          path: bin/scala
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-scala
+          path: Sireum/bin/scala
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-compcert-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v3
         with:
-          path: cache/coursier
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-compcert-coursier
+          path: Sireum/cache/coursier
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-compcert-coursier
       - name: Cache SMT2 solvers
         id: cache-smt2
         uses: actions/cache@v3
         with:
           path: |
-            bin/mac/cvc
-            bin/mac/cvc5
-            bin/mac/.cvc.ver
-            bin/mac/.cvc5.ver
-            bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+            Sireum/bin/mac/cvc
+            Sireum/bin/mac/cvc5
+            Sireum/bin/mac/.cvc.ver
+            Sireum/bin/mac/.cvc5.ver
+            Sireum/bin/mac/z3
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-smt2
       - name: Cache CompCert
         id: cache-compcert
         uses: actions/cache@v3
         with:
           path: |
-            bin/mac/.compcert.ver
-            bin/mac/.coq.ver
-            bin/mac/.menhir.ver
-            bin/mac/.opam.ver
-            bin/mac/.opam
-            bin/mac/opam
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/opam.cmd','bin/install/compcert.cmd') }}-compcert
+            Sireum/bin/mac/.compcert.ver
+            Sireum/bin/mac/.coq.ver
+            Sireum/bin/mac/.menhir.ver
+            Sireum/bin/mac/.opam.ver
+            Sireum/bin/mac/.opam
+            Sireum/bin/mac/opam
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/bin/install/opam.cmd','Sireum/bin/install/compcert.cmd') }}-compcert
       - name: Test
         run: |
-          export COURSIER_CACHE=$GITHUB_WORKSPACE/cache/coursier
-          cd $GITHUB_WORKSPACE
+          export COURSIER_CACHE=$GITHUB_WORKSPACE/Sireum/cache/coursier
+          cd $GITHUB_WORKSPACE/Sireum
           .ci/macOS-compcert.sh

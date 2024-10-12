@@ -17,52 +17,52 @@ jobs:
       - name: Clean
         shell: cmd
         run: |
-          if exist "%GITHUB_WORKSPACE%"\.git rmdir /s/q "%GITHUB_WORKSPACE%"\.*
-          if exist "%GITHUB_WORKSPACE%"\versions.properties rmdir /s/q "%GITHUB_WORKSPACE%"\*
+          if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          path: Sireum
           submodules: recursive
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
         with:
-          path: bin\win\java
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
+          path: Sireum\bin\win\java
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v3
         with:
-          path: bin\scala
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
+          path: Sireum\bin\scala
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v3
         with:
-          path: cache\coursier
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+          path: Sireum\cache\coursier
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
       - name: Cache SMT2 solvers
         id: cache-smt2
         uses: actions/cache@v3
         with:
           path: |
-            bin\win\cvc.exe
-            bin\win\cvc5.exe
-            bin\win\.cvc.ver
-            bin\win\.cvc5.ver
-            bin\win\z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+            Sireum\bin\win\cvc.exe
+            Sireum\bin\win\cvc5.exe
+            Sireum\bin\win\.cvc.ver
+            Sireum\bin\win\.cvc5.ver
+            Sireum\bin\win\z3
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-smt2
       - name: Cache OSATE
         id: cache-osate
         uses: actions/cache@v3
         with:
-          path: bin\win\osate
-          key: ${{ runner.os }}-${{ hashFiles('hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
+          path: Sireum\bin\win\osate
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
       - name: Test
         shell: cmd
         run: |
-          set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
-          cd /d %GITHUB_WORKSPACE%
+          set COURSIER_CACHE=%GITHUB_WORKSPACE%\Sireum\cache\coursier
+          cd /d %GITHUB_WORKSPACE%\Sireum
           set errorlevel=
           call .ci\build.bat || goto :error
           call .ci\build.bat test-verify || goto :error
@@ -76,39 +76,44 @@ jobs:
     steps:
       - name: Support longpaths
         run: git config --system core.longpaths true
+      - name: Clean
+        shell: cmd
+        run: |
+          if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          path: Sireum
           submodules: recursive
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
         with:
-          path: bin\win\java
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-java
+          path: Sireum\bin\win\java
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v3
         with:
-          path: bin\scala
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-scala
+          path: Sireum\bin\scala
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
         uses: actions/cache@v3
         with:
-          path: cache\coursier
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-coursier
+          path: Sireum\cache\coursier
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
       - name: Cache SMT2 solvers
         id: cache-smt2
         uses: actions/cache@v3
         with:
           path: |
-            bin\win\cvc.exe
-            bin\win\cvc5.exe
-            bin\win\.cvc.ver
-            bin\win\.cvc5.ver
-            bin\win\z3
-          key: ${{ runner.os }}-${{ hashFiles('versions.properties') }}-smt2
+            Sireum\bin\win\cvc.exe
+            Sireum\bin\win\cvc5.exe
+            Sireum\bin\win\.cvc.ver
+            Sireum\bin\win\.cvc5.ver
+            Sireum\bin\win\z3
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-smt2
       - name: Configure Pagefile
         uses: al-cheb/configure-pagefile-action@v1.4
         with:
@@ -119,13 +124,13 @@ jobs:
         id: cache-graal
         uses: actions/cache@v3
         with:
-          path: bin\win\graal
-          key: ${{ runner.os }}-${{ hashFiles('bin/install/graal.cmd') }}-graal
+          path: Sireum\bin\win\graal
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\bin/install/graal.cmd') }}-graal
       - name: Test Native
         shell: cmd
         run: |
-          set COURSIER_CACHE=%GITHUB_WORKSPACE%\cache\coursier
-          cd /d %GITHUB_WORKSPACE%
+          set COURSIER_CACHE=%GITHUB_WORKSPACE%\Sireum\cache\coursier
+          cd /d %GITHUB_WORKSPACE%\Sireum
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set errorlevel=
           call .ci\win-native.bat || goto :error
