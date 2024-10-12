@@ -1,10 +1,7 @@
 jdk:
   - oraclejdk8
-git:
-  dir: Sireum
 before_install:
-  - export SIREUM_HOME=`pwd`/Sireum
+  - export SIREUM_HOME=`pwd`
 install:
   - unset JAVA_TOOL_OPTIONS
-  - Sireum/bin/build.cmd m2
-  - rm -fR Sireum/lib/cache
+  - bin/build.cmd m2
