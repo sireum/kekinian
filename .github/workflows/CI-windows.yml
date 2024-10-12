@@ -19,10 +19,9 @@ jobs:
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: Sireum
-          submodules: recursive
+        shell: cmd
+        run: |
+          git clone --recursive https://github.com/sireum/kekinian Sireum
       - name: Cache Java
         id: cache-java
         uses: actions/cache@v3
