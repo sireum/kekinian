@@ -9,6 +9,10 @@ jobs:
   ci-jitpack:
     runs-on: ubuntu-latest
     steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE"/.*
+          rm -fR "$GITHUB_WORKSPACE"/*
       - name: Checkout
         uses: actions/checkout@v4
         with:

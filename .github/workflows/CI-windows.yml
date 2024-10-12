@@ -14,6 +14,11 @@ jobs:
     steps:
       - name: Support longpaths
         run: git config --system core.longpaths true
+      - name: Clean
+        shell: cmd
+        run: |
+          if exist "%GITHUB_WORKSPACE%"\.git rmdir /s/q "%GITHUB_WORKSPACE%"\.*
+          if exist "%GITHUB_WORKSPACE%"\versions.properties rmdir /s/q "%GITHUB_WORKSPACE%"\*
       - name: Checkout
         uses: actions/checkout@v4
         with:
