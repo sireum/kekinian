@@ -49,3 +49,12 @@
 [submodule "hamr/sysml"]
 	path = hamr/sysml
 	url = https://github.com/sireum/hamr-sysml.git
+[submodule "bin/mac"]
+	path = bin/mac
+	url = https://github.com/sireum/bin-mac
+[submodule "bin/linux"]
+	path = bin/linux
+	url = https://github.com/sireum/bin-linux
+[submodule "bin/win"]
+	path = bin/win
+	url = https://github.com/sireum/bin-windows
