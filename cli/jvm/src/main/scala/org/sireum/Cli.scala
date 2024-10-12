@@ -788,6 +788,21 @@ object Cli {
     val versions: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumSlangRefactorMode {
+    "EnumSymbol"
+    "InsertVal"
+    "RenumberProof"
+    "ReformatProof"
+    "ExpandInduct"
+  }
+
+  @datatype class SireumSlangRefactorOption(
+    val help: String,
+    val args: ISZ[String],
+    val feedback: Option[String],
+    val mode: SireumSlangRefactorMode.Type
+  ) extends SireumTopOption
+
   @datatype class SireumSlangRunOption(
     val help: String,
     val args: ISZ[String],
@@ -796,6 +811,31 @@ object Cli {
     val output: Option[String],
     val transformed: B,
     val nativ: B
+  ) extends SireumTopOption
+
+  @enum object SireumSlangTemplateMode {
+    "Step"
+    "Assume"
+    "Assert"
+    "Subproof"
+    "SubproofFresh"
+    "Forall"
+    "Exists"
+    "ForallRange"
+    "ExistsRange"
+    "ForallElements"
+    "ExistsElements"
+    "ForallIndices"
+    "ExistsIndices"
+  }
+
+  @datatype class SireumSlangTemplateOption(
+    val help: String,
+    val args: ISZ[String],
+    val feedback: Option[String],
+    val line: Z,
+    val column: Z,
+    val mode: SireumSlangTemplateMode.Type
   ) extends SireumTopOption
 
   @datatype class SireumSlangTipeOption(
@@ -7200,19 +7240,92 @@ import Cli._
         st"""The Sireum Language (Slang) Tools
             |
             |Available modes:
+            |refactor                 Refactor script
             |run                      Script runner
+            |template                 Insert Slang template
             |tipe                     Type checker
             |transpilers              Slang transpilers""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("slang", args, i, ISZ("run", "tipe", "transpilers"))
+    val opt = select("slang", args, i, ISZ("refactor", "run", "template", "tipe", "transpilers"))
     opt match {
+      case Some(string"refactor") => return parseSireumSlangRefactor(args, i + 1)
       case Some(string"run") => return parseSireumSlangRun(args, i + 1)
+      case Some(string"template") => return parseSireumSlangTemplate(args, i + 1)
       case Some(string"tipe") => return parseSireumSlangTipe(args, i + 1)
       case Some(string"transpilers") => return parseSireumSlangTranspilers(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumSlangRefactorModeH(arg: String): Option[SireumSlangRefactorMode.Type] = {
+    arg.native match {
+      case "enumSymbol" => return Some(SireumSlangRefactorMode.EnumSymbol)
+      case "insertVal" => return Some(SireumSlangRefactorMode.InsertVal)
+      case "renumberProof" => return Some(SireumSlangRefactorMode.RenumberProof)
+      case "reformatProof" => return Some(SireumSlangRefactorMode.ReformatProof)
+      case "expandInduct" => return Some(SireumSlangRefactorMode.ExpandInduct)
+      case s =>
+        eprintln(s"Expecting one of the following: { enumSymbol, insertVal, renumberProof, reformatProof, expandInduct }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumSlangRefactorMode(args: ISZ[String], i: Z): Option[SireumSlangRefactorMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { enumSymbol, insertVal, renumberProof, reformatProof, expandInduct }, but none found.")
+      return None()
+    }
+    val r = parseSireumSlangRefactorModeH(args(i))
+    return r
+  }
+
+  def parseSireumSlangRefactor(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Script Refactoring
+          |
+          |Usage: <option>* <slang-file>
+          |
+          |Available Options:
+          |    --feedback           Feedback output directory (expects a path)
+          |-m, --mode               Refactoring mode (expects one of { enumSymbol,
+          |                           insertVal, renumberProof, reformatProof,
+          |                           expandInduct }; default: enumSymbol)
+          |-h, --help               Display this information""".render
+
+    var feedback: Option[String] = None[String]()
+    var mode: SireumSlangRefactorMode.Type = SireumSlangRefactorMode.EnumSymbol
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--feedback") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => feedback = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[SireumSlangRefactorMode.Type] = parseSireumSlangRefactorMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumSlangRefactorOption(help, parseArguments(args, j), feedback, mode))
   }
 
   def parseSireumSlangRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -7283,6 +7396,103 @@ import Cli._
       }
     }
     return Some(SireumSlangRunOption(help, parseArguments(args, j), eval, input, output, transformed, nativ))
+  }
+
+  def parseSireumSlangTemplateModeH(arg: String): Option[SireumSlangTemplateMode.Type] = {
+    arg.native match {
+      case "step" => return Some(SireumSlangTemplateMode.Step)
+      case "assume" => return Some(SireumSlangTemplateMode.Assume)
+      case "assert" => return Some(SireumSlangTemplateMode.Assert)
+      case "subproof" => return Some(SireumSlangTemplateMode.Subproof)
+      case "subproofFresh" => return Some(SireumSlangTemplateMode.SubproofFresh)
+      case "forall" => return Some(SireumSlangTemplateMode.Forall)
+      case "exists" => return Some(SireumSlangTemplateMode.Exists)
+      case "forallRange" => return Some(SireumSlangTemplateMode.ForallRange)
+      case "existsRange" => return Some(SireumSlangTemplateMode.ExistsRange)
+      case "forallElements" => return Some(SireumSlangTemplateMode.ForallElements)
+      case "existsElements" => return Some(SireumSlangTemplateMode.ExistsElements)
+      case "forallIndices" => return Some(SireumSlangTemplateMode.ForallIndices)
+      case "existsIndices" => return Some(SireumSlangTemplateMode.ExistsIndices)
+      case s =>
+        eprintln(s"Expecting one of the following: { step, assume, assert, subproof, subproofFresh, forall, exists, forallRange, existsRange, forallElements, existsElements, forallIndices, existsIndices }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumSlangTemplateMode(args: ISZ[String], i: Z): Option[SireumSlangTemplateMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { step, assume, assert, subproof, subproofFresh, forall, exists, forallRange, existsRange, forallElements, existsElements, forallIndices, existsIndices }, but none found.")
+      return None()
+    }
+    val r = parseSireumSlangTemplateModeH(args(i))
+    return r
+  }
+
+  def parseSireumSlangTemplate(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Script Template Inserter
+          |
+          |Usage: <option>* <slang-file>
+          |
+          |Available Options:
+          |    --feedback           Feedback output directory (expects a path)
+          |-l, --line               Line location (expects an integer; min is 1; default
+          |                           is 0)
+          |-c, --column             Column location (expects an integer; min is 1; default
+          |                           is 0)
+          |-m, --mode               Refactoring mode (expects one of { step, assume,
+          |                           assert, subproof, subproofFresh, forall, exists,
+          |                           forallRange, existsRange, forallElements,
+          |                           existsElements, forallIndices, existsIndices };
+          |                           default: step)
+          |-h, --help               Display this information""".render
+
+    var feedback: Option[String] = None[String]()
+    var line: Z = 0
+    var column: Z = 0
+    var mode: SireumSlangTemplateMode.Type = SireumSlangTemplateMode.Step
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--feedback") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => feedback = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--line") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => line = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--column") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(1), None())
+           o match {
+             case Some(v) => column = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[SireumSlangTemplateMode.Type] = parseSireumSlangTemplateMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumSlangTemplateOption(help, parseArguments(args, j), feedback, line, column, mode))
   }
 
   def parseSireumSlangTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

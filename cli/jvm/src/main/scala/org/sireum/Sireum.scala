@@ -600,6 +600,18 @@ object Sireum {
               o.extensions
             )
             return 0
+          case Some(o: Cli.SireumSlangRefactorOption) =>
+            if (o.args.size != 1) {
+              println(o.help)
+              return 0
+            }
+            return cli.SlangTools.refactor(o, path2fileOpt("Slang script", Some(o.args(0)), T).get)
+          case Some(o: Cli.SireumSlangTemplateOption) =>
+            if (o.args.size != 1) {
+              println(o.help)
+              return 0
+            }
+            return cli.SlangTools.template(o, path2fileOpt("Slang script", Some(o.args(0)), T).get)
           case Some(o: Cli.SireumSlangTipeOption) =>
             cli.SlangTipe.run(o, message.Reporter.create) match {
               case Either.Right(code) => return code
