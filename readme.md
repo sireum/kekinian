@@ -88,11 +88,11 @@ Sireum stores small, pre-built binary executables in its submodule repositories 
 | Application | License |
 | :--- | :---: |
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
-| [pts-tiny-7z-sfx](https://github.com/sireum/7z-sfx) | [GPL v2](https://github.com/sireum/7z-sfx#readme) | 
 | [ACL2](https://www.cs.utexas.edu/~moore/acl2/) | [BSD3](https://www.cs.utexas.edu/~moore/acl2/v8-5/HTML/LICENSE) |
 | [Alt-Ergo](https://alt-ergo.ocamlpro.com/) | [OCamlPro-Non-Commercial-License](https://github.com/OCamlPro/alt-ergo/blob/next/licenses/OCamlPro-Non-Commercial-License.pdf) |
 | [Brave Browser](https://brave.com/) | [MPL 2.0](https://github.com/brave/brave-browser/blob/master/LICENSE) |
 | [CompCert](https://compcert.org/) | [INRIA Non-Commercial License Agreement](https://compcert.org/doc/LICENSE.txt) |
+| [Cosmos](https://cosmo.zip/) | Open Source |
 | [Coq](https://coq.inria.fr/) | [LGPL 2.1](https://github.com/coq/coq/blob/master/LICENSE) |
 | [CLion](https://www.jetbrains.com/clion/) | Commercial |
 | [FM Workbench](https://github.com/loonwerks/formal-methods-workbench) | [BSD3](https://github.com/loonwerks/formal-methods-workbench/blob/master/LICENSE) |
