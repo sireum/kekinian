@@ -9,10 +9,13 @@
 /bin/antlrworks.jar
 /bin/.antlrworks.jar.ver
 /bin/.sireum-win.jar
+/bin/linux
+/bin/mac
 /bin/mill*
 /bin/scala
 /bin/sireum.jar
 /bin/sireum.jar.bat
+/bin/win
 /bin/VER
 /bin/*.sc
 /bsp.log
