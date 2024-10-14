@@ -162,27 +162,59 @@ object SlangTools {
       return -1
     }
 
+    var lineColumn: B = F
+
     val tmpl: String = o.mode match {
       case Cli.SireumSlangTemplateMode.Step => lang.ast.Util.ProofStepTemplate.regular
       case Cli.SireumSlangTemplateMode.Assume => lang.ast.Util.ProofStepTemplate.assum
       case Cli.SireumSlangTemplateMode.Assert => lang.ast.Util.ProofStepTemplate.asser
       case Cli.SireumSlangTemplateMode.Subproof => lang.ast.Util.ProofStepTemplate.subProof
       case Cli.SireumSlangTemplateMode.SubproofFresh => lang.ast.Util.ProofStepTemplate.let
-      case Cli.SireumSlangTemplateMode.Forall => lang.ast.Util.ProofStepTemplate.all
-      case Cli.SireumSlangTemplateMode.Exists => lang.ast.Util.ProofStepTemplate.exists
-      case Cli.SireumSlangTemplateMode.ForallRange => lang.ast.Util.ProofStepTemplate.allRange
-      case Cli.SireumSlangTemplateMode.ExistsRange => lang.ast.Util.ProofStepTemplate.existsRange
-      case Cli.SireumSlangTemplateMode.ForallElements => lang.ast.Util.ProofStepTemplate.allEach
-      case Cli.SireumSlangTemplateMode.ExistsElements => lang.ast.Util.ProofStepTemplate.existsEach
-      case Cli.SireumSlangTemplateMode.ForallIndices => lang.ast.Util.ProofStepTemplate.allEachIndex
-      case Cli.SireumSlangTemplateMode.ExistsIndices => lang.ast.Util.ProofStepTemplate.existsEachIndex
+      case Cli.SireumSlangTemplateMode.Forall =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.all
+      case Cli.SireumSlangTemplateMode.Exists =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.exists
+      case Cli.SireumSlangTemplateMode.ForallRange =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.allRange
+      case Cli.SireumSlangTemplateMode.ExistsRange =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.existsRange
+      case Cli.SireumSlangTemplateMode.ForallElements =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.allEach
+      case Cli.SireumSlangTemplateMode.ExistsElements =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.existsEach
+      case Cli.SireumSlangTemplateMode.ForallIndices =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.allEachIndex
+      case Cli.SireumSlangTemplateMode.ExistsIndices =>
+        lineColumn = T
+        lang.ast.Util.ProofStepTemplate.existsEachIndex
     }
 
-    lang.FrontEnd.insertProofStep(T, Some(file.toUri), file.read, tmpl, o.line) match {
-      case Some(r) =>
-        file.writeOver(r)
-        return 0
-      case _ =>
+    if (lineColumn && o.column == 0) {
+      eprintln("Please specify the column location")
+      return -1
+    }
+
+
+    if (lineColumn) {
+      val content = conversions.String.toCis(file.read)
+      val docInfo = message.DocInfo.createFromCis(Some(file.toUri), content)
+      val offset = docInfo.lineOffsets(o.line - 1).toZ + o.column - 1
+      file.writeOver(s"${ops.StringOps.substring(content, 0, offset)}$tmpl${ops.StringOps.substring(content, offset, content.size)}")
+      return 0
+    } else {
+      lang.FrontEnd.insertProofStep(T, Some(file.toUri), file.read, tmpl, o.line) match {
+        case Some(r) =>
+          file.writeOver(r)
+          return 0
+        case _ =>
+      }
     }
 
     if (o.feedback.isEmpty) {
