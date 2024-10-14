@@ -27,7 +27,7 @@ def usage(): Unit = {
         |       | regen-server     | regen-cliopt        | regen-cli
         |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
         |       | regen-slang-tt   | regen-reflect
-        |       | cvc              | z3                  | m2[-lib[-js]]
+        |       | cvc              | z3                  | m2[-lib[-js] | -scalac]
         |       | jitpack          | ghpack              | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
         |                | --pack  | --ultimate          | --server          | --vscodium  )*  )*
@@ -435,6 +435,19 @@ def m2Lib(isJs: B): Unit = {
     message.Reporter.create)
 }
 
+def m2ScalacPlugin(): Unit = {
+  val scalacPluginVersion = versions.get("org.sireum%%scalac-plugin%").get
+  val repository = Os.home / ".m2" / "repository" / "org" / "sireum" / "scalac-plugin_2.13" / scalacPluginVersion
+  repository.mkdirAll()
+  for (suffix <- ISZ(".pom", ".jar", "-sources.jar", "-javadoc.jar")) {
+    val f = repository / s"scalac-plugin_2.13-$scalacPluginVersion$suffix"
+    val url = s"https://jitpack.io/org/sireum/scalac-plugin/$scalacPluginVersion/scalac-plugin-$scalacPluginVersion$suffix"
+    println(s"Downloading ${f.name} from $url ...")
+    f.downloadFrom(url)
+    println()
+  }
+}
+
 def jitpack(): Unit = {
   val init = Init(home, Os.kind, versions)
   init.installCoursier()
@@ -678,6 +691,7 @@ if (Os.cliArgs.isEmpty) {
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)
+      case string"m2-scalac" => m2ScalacPlugin()
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
       case string"ram" => ram()

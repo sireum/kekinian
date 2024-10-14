@@ -33,9 +33,9 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd"
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
-          "$SIREUM_HOME/bin/build.cmd" m2-lib
+          "$SIREUM_HOME/bin/build.cmd" m2-lib m2-scalac
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
-          zip -r org.sireum.kekinian.library.m2.zip .m2
+          zip -r org.sireum.m2.zip .m2
       - name: Upload Jar dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -50,8 +50,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: org.sireum.kekinian.library.m2.zip
-          asset_name: org.sireum.kekinian.library.m2.zip
+          file: org.sireum.m2.zip
+          asset_name: org.sireum.m2.zip
           tag: dev
           overwrite: true
       - name: Upload Jar Release
@@ -68,8 +68,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: org.sireum.kekinian.library.m2.zip
-          asset_name: org.sireum.kekinian.library.m2.zip
+          file: org.sireum.m2.zip
+          asset_name: org.sireum.m2.zip
           tag: ${{ github.ref }}
           overwrite: true
       - name: Build
