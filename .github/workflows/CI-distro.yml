@@ -24,7 +24,7 @@ jobs:
           cd "$GITHUB_WORKSPACE/Sireum"
           git push --force origin HEAD:refs/tags/dev
           git fetch --tags
-      - name: Build Jar
+      - name: Build Jar & m2
         run: |
           cd "$GITHUB_WORKSPACE/Sireum"
           git submodule update --init --recursive
@@ -32,6 +32,10 @@ jobs:
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/build.cmd"
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
+          rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
+          bin/build.cmd m2-lib
+          mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          zip -r org.sireum.kekinian.library.m2.zip .m2
       - name: Upload Jar dev
         if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -41,6 +45,15 @@ jobs:
           asset_name: sireum.jar
           tag: dev
           overwrite: true
+      - name: Upload m2 Dev
+        if: github.ref_type != 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: org.sireum.kekinian.library.m2.zip
+          asset_name: org.sireum.kekinian.library.m2.zip
+          tag: dev
+          overwrite: true
       - name: Upload Jar Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
@@ -48,6 +61,15 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: sireum.jar
           asset_name: sireum.jar
+          tag: ${{ github.ref }}
+          overwrite: true
+      - name: Upload m2 Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: org.sireum.kekinian.library.m2.zip
+          asset_name: org.sireum.kekinian.library.m2.zip
           tag: ${{ github.ref }}
           overwrite: true
       - name: Build
