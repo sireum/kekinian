@@ -33,7 +33,7 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd"
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
-          bin/build.cmd m2-lib
+          "$SIREUM_HOME/bin/build.cmd" m2-lib
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.kekinian.library.m2.zip .m2
       - name: Upload Jar dev
