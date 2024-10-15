@@ -750,9 +750,8 @@ object Sireum {
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             if (!NativeUtil.isNative) {
               init.basicDeps()
-            } else {
-              init.logikaDeps()
             }
+            init.logikaDeps()
             reporter match {
               case reporter: logika.Logika.Reporter => return cli.Logika.run(o, reporter)
               case _ =>
