@@ -188,10 +188,7 @@ object HAMR {
           }
 
           codeGenReporter(modelElement.model, convertSysmlOptions(mergedOptions), reporter)
-          if (!reporter.hasError && o.slangOutputDir.nonEmpty) {
-            val airOut = Os.path(o.slangOutputDir.get) / "air.json"
-            airOut.writeOver(org.sireum.hamr.ir.JSON.fromAadl(modelElement.model, F))
-            println(s"Wrote: ${airOut}")
+          if (!reporter.hasError) {
             reporter.info(None(), "codegen", "Code generation successful!")
           } else {
             reporter.info(None(), "codegen", "Code generation failed")
