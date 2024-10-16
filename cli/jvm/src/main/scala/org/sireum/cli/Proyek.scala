@@ -51,6 +51,7 @@ object Proyek {
   val INVALID_INT_WIDTH: Z = -13
   val ILL_FORMED_PROGRAMS: Z = -14
   val FAILED_REFLECT_GEN: Z = -15
+  val INVALID_IVY_FORM: Z = -16
 
   def check(jsonOpt: Option[String],
             projectOpt: Option[String],
@@ -221,6 +222,18 @@ object Proyek {
 
     val projectName = o.name.getOrElse(path.canon.name)
 
+    var excludedDeps = ISZ[(String, String)]()
+
+    for (ivy <- o.excludeJarDeps) {
+      ops.StringOps(ivy).split((c: C) => c == ':') match {
+        case ISZ(org) => excludedDeps = excludedDeps :+ (ops.StringOps(org).trim,  "")
+        case ISZ(org, module) => excludedDeps :+ (ops.StringOps(org).trim,  ops.StringOps(module).trim)
+        case _ =>
+          eprintln(s"Unsupported ivy form: $ivy")
+          return INVALID_IVY_FORM
+      }
+    }
+
     r = proyek.Assemble.run(
       path = path,
       outDirName = o.outputDirName.get,
@@ -233,7 +246,8 @@ object Proyek {
       isNative = o.isNative,
       isUber = o.uber,
       includeSources = o.includeSources,
-      includeTests = o.includeTests
+      includeTests = o.includeTests,
+      excludedDeps = excludedDeps
     )
 
     return r

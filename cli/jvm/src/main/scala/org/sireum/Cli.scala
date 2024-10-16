@@ -353,6 +353,7 @@ object Cli {
   @datatype class SireumProyekAssembleOption(
     val help: String,
     val args: ISZ[String],
+    val excludeJarDeps: ISZ[String],
     val includeSources: B,
     val includeTests: B,
     val jar: Option[String],
@@ -3514,6 +3515,9 @@ import Cli._
           |Usage: <options>* <dir>
           |
           |Available Options:
+          |    --exclude-jar-deps   Exclude .jar Ivy (format:
+          |                           <org-prefix>:<module-prefix>) dependencies (expects
+          |                           a string separated by ",")
           |    --include-sources    Include source files
           |    --include-tests      Include test classes
           |-j, --jar                The assembled jar filename (defaults to the project
@@ -3587,6 +3591,7 @@ import Cli._
           |                           dependencies from (expects a string separated by
           |                           ",")""".render
 
+    var excludeJarDeps: ISZ[String] = ISZ[String]()
     var includeSources: B = false
     var includeTests: B = false
     var jar: Option[String] = None[String]()
@@ -3628,7 +3633,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--include-sources") {
+        } else if (arg == "--exclude-jar-deps") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => excludeJarDeps = v
+             case _ => return None()
+           }
+         } else if (arg == "--include-sources") {
            val o: Option[B] = { j = j - 1; Some(!includeSources) }
            o match {
              case Some(v) => includeSources = v
@@ -3838,7 +3849,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), excludeJarDeps, includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {
