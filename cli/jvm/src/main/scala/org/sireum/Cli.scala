@@ -1288,7 +1288,7 @@ import Cli._
           |Slang Options:
           |-o, --slang-output-dir    
           |                          Output directory for the generated project files
-          |                           (expects a path; default is ".")
+          |                           (expects a path)
           |-n, --package-name       Base package name for Slang project (output-dir's
           |                           simple name used if not provided) (expects a string)
           |    --no-proyek-ive      Do not run Proyek IVE
@@ -1346,7 +1346,7 @@ import Cli._
     var runtimeMonitoring: B = false
     var platform: SireumHamrCodegenHamrPlatform.Type = SireumHamrCodegenHamrPlatform.JVM
     var parseableMessages: B = false
-    var slangOutputDir: Option[String] = Some(".")
+    var slangOutputDir: Option[String] = None[String]()
     var packageName: Option[String] = None[String]()
     var noProyekIve: B = false
     var noEmbedArt: B = false
@@ -1831,7 +1831,7 @@ import Cli._
           |Slang Options:
           |-o, --slang-output-dir    
           |                          Output directory for the generated project files
-          |                           (expects a path; default is ".")
+          |                           (expects a path)
           |-n, --package-name       Base package name for Slang project (output-dir's
           |                           simple name used if not provided) (expects a string)
           |    --no-proyek-ive      Do not run Proyek IVE
@@ -1891,7 +1891,7 @@ import Cli._
     var runtimeMonitoring: B = false
     var platform: SireumHamrSysmlCodegenHamrPlatform.Type = SireumHamrSysmlCodegenHamrPlatform.JVM
     var parseableMessages: B = false
-    var slangOutputDir: Option[String] = Some(".")
+    var slangOutputDir: Option[String] = None[String]()
     var packageName: Option[String] = None[String]()
     var noProyekIve: B = false
     var noEmbedArt: B = false
