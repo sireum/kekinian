@@ -36,8 +36,10 @@ jobs:
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.library.m2.zip .m2
           rm -fR $HOME/.m2
-          "$SIREUM_HOME/bin/build.cmd" m2 m2-js
+          cd "$SIREUM_HOME"
+          bin/build.cmd m2 m2-js
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          cd "$GITHUB_WORKSPACE"
           zip -r org.sireum.m2.zip .m2
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
       - name: Upload Jar dev
