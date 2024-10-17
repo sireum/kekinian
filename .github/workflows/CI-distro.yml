@@ -35,7 +35,7 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd" m2-lib
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.library.m2.zip .m2
-          rm -fR $HOME/.m2
+          rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
           "$SIREUM_HOME/bin/build.cmd" m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.m2.zip .m2
