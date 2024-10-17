@@ -1,0 +1,67 @@
+name: m2
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "!**"
+  workflow_dispatch:
+
+jobs:
+
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: Sireum
+      - name: Build Jar & m2
+        run: |
+          cd "$GITHUB_WORKSPACE/Sireum"
+          git submodule update --init --recursive
+          cd "$GITHUB_WORKSPACE"
+          export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
+          "$SIREUM_HOME/bin/build.cmd"
+          cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
+          rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
+          "$SIREUM_HOME/bin/build.cmd" m2-lib
+          mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          zip -r org.sireum.library.m2.zip .m2
+          rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
+          "$SIREUM_HOME/bin/build.cmd" m2
+          mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          zip -r org.sireum.m2.zip .m2
+      - name: Upload Jar dev
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: sireum.jar
+          asset_name: sireum.jar
+          tag: dev
+          overwrite: true
+      - name: Upload m2 Lib dev
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: org.sireum.library.m2.zip
+          asset_name: org.sireum.library.m2.zip
+          tag: dev
+          overwrite: true
+      - name: Upload m2 dev
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: org.sireum.m2.zip
+          asset_name: org.sireum.m2.zip
+          tag: dev
+          overwrite: true
+      - name: Trigger JitPack
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
+          timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
