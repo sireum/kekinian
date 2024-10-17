@@ -406,11 +406,23 @@ def regenReflect(): Unit = {
 }
 
 
+def m2Version: String = {
+  for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c == '\n')) {
+    val lineOps = ops.StringOps(line)
+    if (lineOps.contains(DependencyManager.libraryKey)) {
+      val i = lineOps.stringIndexOf("->")
+      val j: Z = lineOps.lastIndexOf(',')
+      return ops.StringOps(lineOps.substring(i + 2, if (j >= 0) j else line.size)).trim
+    }
+  }
+  halt("Could not detect Slang library version")
+}
+
 def m2(): Os.Path = {
   val repository = Os.home / ".m2" / "repository"
   val kekinianRepo = repository / "org" / "sireum" / "kekinian"
   kekinianRepo.removeAll()
-  Sireum.procCheck(proc"$sireum proyek publish$proxyOpt -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} $home org.sireum.kekinian".console,
+  Sireum.procCheck(proc"$sireum proyek publish$proxyOpt -n $proyekName --par --sha3 --ignore-runtime --m2 ${repository.up.canon} --version $m2Version $home org.sireum.kekinian".console,
     message.Reporter.create)
   return kekinianRepo
 }
@@ -418,20 +430,8 @@ def m2(): Os.Path = {
 def m2Lib(isJs: B): Unit = {
   val repository = Os.home / ".m2" / "repository"
 
-  def version: String = {
-    for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c == '\n')) {
-      val lineOps = ops.StringOps(line)
-      if (lineOps.contains(DependencyManager.libraryKey)) {
-        val i = lineOps.stringIndexOf("->")
-        val j: Z = lineOps.lastIndexOf(',')
-        return ops.StringOps(lineOps.substring(i + 2, if (j >= 0) j else line.size)).trim
-      }
-    }
-    halt("Could not detect Slang library version")
-  }
-
   val target: String = if (isJs) "--target js" else "--target jvm"
-  Sireum.procCheck(proc"$sireum proyek publish$proxyOpt -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $version $home org.sireum.kekinian".console,
+  Sireum.procCheck(proc"$sireum proyek publish$proxyOpt -n $proyekName --par --sha3 --ignore-runtime --slice library --m2 ${repository.up.canon} $target --version $m2Version $home org.sireum.kekinian".console,
     message.Reporter.create)
 }
 
