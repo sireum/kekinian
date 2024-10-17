@@ -19,7 +19,6 @@ jobs:
         with:
           path: Sireum
       - name: Update dev tag
-        if: github.ref_type != 'tag'
         run: |
           cd "$GITHUB_WORKSPACE/Sireum"
           git push --force origin HEAD:refs/tags/dev
@@ -33,11 +32,15 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd"
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
-          "$SIREUM_HOME/bin/build.cmd" m2-lib m2-scalac
+          "$SIREUM_HOME/bin/build.cmd" m2-lib
+          mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          zip -r org.sireum.library.m2.zip .m2
+          rm -fR $HOME/.m2
+          "$SIREUM_HOME/bin/build.cmd" m2 m2-js
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.m2.zip .m2
+          timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
       - name: Upload Jar dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,8 +48,15 @@ jobs:
           asset_name: sireum.jar
           tag: dev
           overwrite: true
+      - name: Upload m2 Lib Dev
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: org.sireum.library.m2.zip
+          asset_name: org.sireum.library.m2.zip
+          tag: dev
+          overwrite: true
       - name: Upload m2 Dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -61,6 +71,15 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: sireum.jar
           asset_name: sireum.jar
+          tag: ${{ github.ref }}
+          overwrite: true
+      - name: Upload m2 Library Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: org.sireum.library.m2.zip
+          asset_name: org.sireum.library.m2.zip
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload m2 Release
@@ -82,7 +101,6 @@ jobs:
           mv "$SIREUM_HOME/distro/linux.tar.xz" sireum-ive-linux-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-ive-vscodium-linux-amd64.tar.xz" .
       - name: Upload CLI dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -91,7 +109,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload IVE dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -100,7 +117,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload HAMR dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -158,7 +174,6 @@ jobs:
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-arm64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-ive-vscodium-mac-arm64.tar.xz" .
       - name: Upload CLI dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -167,7 +182,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload IVE dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -176,7 +190,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload HAMR dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -234,7 +247,6 @@ jobs:
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-ive-vscodium-mac-amd64.tar.xz" .
       - name: Upload CLI dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -243,7 +255,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload IVE dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -252,7 +263,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload HAMR dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -320,7 +330,6 @@ jobs:
           move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
           move "%SIREUM_HOME%\distro\sireum-ive-vscodium-win-amd64.zip" "%GITHUB_WORKSPACE%\"
       - name: Upload CLI dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -329,7 +338,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload IVE dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -338,7 +346,6 @@ jobs:
           tag: dev
           overwrite: true
       - name: Upload HAMR dev
-        if: github.ref_type != 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}

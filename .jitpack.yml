@@ -1,8 +1,8 @@
 jdk:
   - oraclejdk8
-before_install:
-  - export SIREUM_HOME=`pwd`
 install:
-  - unset JAVA_TOOL_OPTIONS
-  - bin/build.cmd m2
-  - rm -fR lib/cache
+  - cd $HOME
+  - rm -fR .m2
+  - curl -JLso org.sireum.m2.zip https://github.com/sireum/kekinian/releases/download/dev/org.sireum.m2.zip
+  - unzip org.sireum.m2.zip
+  - rm org.sireum.m2.zip
