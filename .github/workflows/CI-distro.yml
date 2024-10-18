@@ -8,7 +8,7 @@ jobs:
 
   ci-distro-linux-amd64:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event.event_type == 'workflow_dispatch'"
+    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
       - name: Clean
         run: |
@@ -153,7 +153,7 @@ jobs:
 
   ci-distro-macos-arm64:
     runs-on: mac-mini-m1
-    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event.event_type == 'workflow_dispatch'"
+    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
       - name: Clean
         run: |
@@ -227,7 +227,7 @@ jobs:
 
   ci-distro-macos-amd64:
     runs-on: macOS-13
-    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event.event_type == 'workflow_dispatch'"
+    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
       - name: Clean
         run: |
@@ -301,7 +301,7 @@ jobs:
 
   ci-distro-windows-amd64:
     runs-on: windows-latest
-    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event.event_type == 'workflow_dispatch'"
+    if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
       - name: Enable git config core.longpaths
         run: git config --system core.longpaths true
