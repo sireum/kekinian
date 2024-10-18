@@ -99,7 +99,7 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --pack --vscodium
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
           mv "$SIREUM_HOME/distro/linux.tar.xz" sireum-ive-linux-amd64.tar.xz
-          mv "$SIREUM_HOME/distro/sireum-ive-vscodium-linux-amd64.tar.xz" .
+          mv "$SIREUM_HOME/distro/sireum-codeive-linux-amd64.tar.xz" .
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -120,8 +120,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-linux-amd64.tar.xz
-          asset_name: sireum-ive-vscodium-linux-amd64.tar.xz
+          file: sireum-codeive-linux-amd64.tar.xz
+          asset_name: sireum-codeive-linux-amd64.tar.xz
           tag: dev
           overwrite: true
       - name: Upload CLI Release
@@ -147,8 +147,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-linux-amd64.tar.xz
-          asset_name: sireum-ive-vscodium-linux-amd64.tar.xz
+          file: sireum-codeive-linux-amd64.tar.xz
+          asset_name: sireum-codeive-linux-amd64.tar.xz
           tag: ${{ github.ref }}
           overwrite: true
 
@@ -172,7 +172,7 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-arm64
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-arm64.tar.xz
-          mv "$SIREUM_HOME/distro/sireum-ive-vscodium-mac-arm64.tar.xz" .
+          mv "$SIREUM_HOME/distro/sireum-codeive-mac-arm64.tar.xz" .
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -193,8 +193,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-mac-arm64.tar.xz
-          asset_name: sireum-ive-vscodium-mac-arm64.tar.xz
+          file: sireum-codeive-mac-arm64.tar.xz
+          asset_name: sireum-codeive-mac-arm64.tar.xz
           tag: dev
           overwrite: true
       - name: Upload CLI Release
@@ -220,8 +220,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-mac-arm64.tar.xz
-          asset_name: sireum-ive-vscodium-mac-arm64.tar.xz
+          file: sireum-codeive-mac-arm64.tar.xz
+          asset_name: sireum-codeive-mac-arm64.tar.xz
           tag: ${{ github.ref }}
           overwrite: true
 
@@ -245,7 +245,7 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           mv "$SIREUM_HOME/bin/mac/sireum" sireum-cli-mac-amd64
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-amd64.tar.xz
-          mv "$SIREUM_HOME/distro/sireum-ive-vscodium-mac-amd64.tar.xz" .
+          mv "$SIREUM_HOME/distro/sireum-codeive-mac-amd64.tar.xz" .
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -266,8 +266,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-mac-amd64.tar.xz
-          asset_name: sireum-ive-vscodium-mac-amd64.tar.xz
+          file: sireum-codeive-mac-amd64.tar.xz
+          asset_name: sireum-codeive-mac-amd64.tar.xz
           tag: dev
           overwrite: true
       - name: Upload CLI Release
@@ -293,8 +293,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-mac-amd64.tar.xz
-          asset_name: sireum-ive-vscodium-mac-amd64.tar.xz
+          file: sireum-codeive-mac-amd64.tar.xz
+          asset_name: sireum-codeive-mac-amd64.tar.xz
           tag: ${{ github.ref }}
           overwrite: true
 
@@ -328,7 +328,7 @@ jobs:
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --pack --vscodium
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
-          move "%SIREUM_HOME%\distro\sireum-ive-vscodium-win-amd64.zip" "%GITHUB_WORKSPACE%\"
+          move "%SIREUM_HOME%\distro\sireum-codeive-win-amd64.zip" "%GITHUB_WORKSPACE%\"
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -349,8 +349,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-win-amd64.zip
-          asset_name: sireum-ive-vscodium-win-amd64.zip
+          file: sireum-codeive-win-amd64.zip
+          asset_name: sireum-codeive-win-amd64.zip
           tag: dev
           overwrite: true
       - name: Upload CLI Release
@@ -376,7 +376,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-vscodium-win-amd64.zip
-          asset_name: sireum-ive-vscodium-win-amd64.zip
+          file: sireum-codeive-win-amd64.zip
+          asset_name: sireum-codeive-win-amd64.zip
           tag: ${{ github.ref }}
           overwrite: true
