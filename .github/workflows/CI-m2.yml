@@ -16,18 +16,18 @@ jobs:
         with:
           path: Sireum
           submodules: recursive
-      - name: Build Jar & m2
+      - name: Build
         run: |
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
           "$SIREUM_HOME/bin/build.cmd" m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.m2.zip .m2
-      - name: Upload m2 dev
+      - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           repo_name: sireum/rolling
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.RELEASE_TOKEN }}
           file: org.sireum.m2.zip
           asset_name: org.sireum.m2.zip
           tag: m2
