@@ -20,7 +20,7 @@ jobs:
         run: |
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
-          "$SIREUM_HOME/bin/build.cmd" m2
+          "$SIREUM_HOME/bin/build.cmd" jar m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.m2.zip .m2
       - name: Upload
