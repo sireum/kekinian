@@ -93,6 +93,12 @@ class SlangRunner_Ext extends Reflection_Ext {
     if (r == null) None() else Some(r)
   }
 
+  override def classNameOf[T](o: T): Option[String] = {
+    o match {
+      case _ => return None()
+    }
+  }
+
   override def invoke0[T, R](owner: String, name: String, receiver: T): R = {
     val isInObject = receiver == null
     val f = method0Map.get(methodKey(isInObject, owner, name).value)
