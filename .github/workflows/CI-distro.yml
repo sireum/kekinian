@@ -91,6 +91,7 @@ jobs:
           overwrite: true
       - name: Build
         run: |
+          sudo apt-get install -y musl musl-tools
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
