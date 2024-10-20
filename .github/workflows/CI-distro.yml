@@ -109,7 +109,7 @@ jobs:
           CC=musl-gcc ./configure --prefix=$MUSL_HOME --static
           make && make install
           popd
-          rm -fR musl-$MUSL_V.tar.gz zlib-$ZLIB_V.tar.gz musl-$MUSL_V zlib-$ZLIB_V
+          sudo rm -fR musl-$MUSL_V.tar.gz zlib-$ZLIB_V.tar.gz musl-$MUSL_V zlib-$ZLIB_V
       - name: Build
         run: |
           export MUSL_HOME="$GITHUB_WORKSPACE/musl-toolchain"
