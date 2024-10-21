@@ -37,17 +37,6 @@ jobs:
         with:
           path: Sireum\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
-      - name: Cache SMT2 solvers
-        id: cache-smt2
-        uses: actions/cache@v3
-        with:
-          path: |
-            Sireum\bin\win\cvc.exe
-            Sireum\bin\win\cvc5.exe
-            Sireum\bin\win\.cvc.ver
-            Sireum\bin\win\.cvc5.ver
-            Sireum\bin\win\z3
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-smt2
       - name: Cache OSATE
         id: cache-osate
         uses: actions/cache@v3

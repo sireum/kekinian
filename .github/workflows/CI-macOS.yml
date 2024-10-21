@@ -44,17 +44,6 @@ jobs:
         with:
           path: Sireum/bin/mac/graal
           key: ${{ runner.os }}-${{ hashFiles('Sireum/bin/install/graal.cmd') }}-graal
-      - name: Cache SMT2 solvers
-        id: cache-smt2
-        uses: actions/cache@v3
-        with:
-          path: |
-            Sireum/bin/mac/cvc
-            Sireum/bin/mac/cvc5
-            Sireum/bin/mac/.cvc.ver
-            Sireum/bin/mac/.cvc5.ver
-            Sireum/bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-smt2
       - name: Cache OSATE
         id: cache-osate
         uses: actions/cache@v3
