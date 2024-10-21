@@ -21,25 +21,25 @@ jobs:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\bin\win\java
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\bin\scala
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
       - name: Cache OSATE
         id: cache-osate
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\bin\win\osate
           key: ${{ runner.os }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
@@ -72,33 +72,22 @@ jobs:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\bin\win\java
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\bin\scala
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
-      - name: Cache SMT2 solvers
-        id: cache-smt2
-        uses: actions/cache@v3
-        with:
-          path: |
-            Sireum\bin\win\cvc.exe
-            Sireum\bin\win\cvc5.exe
-            Sireum\bin\win\.cvc.ver
-            Sireum\bin\win\.cvc5.ver
-            Sireum\bin\win\z3
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-smt2
       - name: Configure Pagefile
         uses: al-cheb/configure-pagefile-action@v1.4
         with:
@@ -107,7 +96,7 @@ jobs:
           disk-root: "C:"
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum\bin\win\graal
           key: ${{ runner.os }}-${{ hashFiles('Sireum\bin/install/graal.cmd') }}-graal

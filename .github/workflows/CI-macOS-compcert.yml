@@ -22,36 +22,25 @@ jobs:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum/bin/mac/java
           key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-compcert-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum/bin/scala
           key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-compcert-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Sireum/cache/coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-compcert-coursier
-      - name: Cache SMT2 solvers
-        id: cache-smt2
-        uses: actions/cache@v3
-        with:
-          path: |
-            Sireum/bin/mac/cvc
-            Sireum/bin/mac/cvc5
-            Sireum/bin/mac/.cvc.ver
-            Sireum/bin/mac/.cvc5.ver
-            Sireum/bin/mac/z3
-          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-smt2
       - name: Cache CompCert
         id: cache-compcert
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             Sireum/bin/mac/.compcert.ver
