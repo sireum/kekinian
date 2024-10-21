@@ -72,17 +72,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
 
-
-Sireum stores small, pre-built binary executables in its submodule repositories for
-[macOS](https://github.com/sireum/bin-mac), 
-[Linux](https://github.com/sireum/bin-linux), and
-[Windows](https://github.com/sireum/bin-windows) (please see the respective repository for virus analysis results).
-
-| Pre-built Executable | License |
-| :--- | :---: |
-| [7z](https://sourceforge.net/projects/sevenzip) | [LGPL v2, BSD3, unRAR restriction](https://www.7-zip.org/license.txt) |
-
-
 ### Optional Applications
 
 | Application | License |
