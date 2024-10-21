@@ -887,17 +887,21 @@ object HAMR {
   def mergeOptionsU(o: Cli.SireumHamrSysmlCodegenOption, fileUri: String, fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
     fileOptionMap.get(Some(fileUri)) match {
       case Some(optionMap) if optionMap.nonEmpty && optionMap.contains(toolName) =>
-        val fileOptionString = optionMap.get(toolName).get(0)
-        val fileOpts: ISZ[String] = for (option <- ops.StringOps(fileOptionString).split((c: C) => c.isWhitespace)) yield
-          ops.StringOps(option).replaceAllChars('␣', ' ')
 
-        Cli(':').parseSireumHamrSysmlCodegen(fileOpts, 0) match {
-          case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
-            return mergeOptionsM(o, fileOptions, fileOpts)
-          case _ =>
-            // parser should have emitted errors to console
-            return None()
+        for (options <- optionMap.get(toolName).get) {
+          val str = ops.StringOps(ops.StringOps(ops.StringOps(ops.StringOps(options).replaceAllChars('␣', ' ')).replaceAllLiterally("  ", " ")).replaceAllLiterally("\t", " ")).split(c => c == ' ')
+
+          Cli(':').parseSireumHamrSysmlCodegen(str, 0) match {
+            case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
+              if (fileOptions.platform == o.platform) {
+                return mergeOptionsM(o, fileOptions, str)
+              }
+            case _ =>
+              // parser should have emitted errors to console
+              return None()
+          }
         }
+        return None()
       case _ => return Some(o)
     }
   }
