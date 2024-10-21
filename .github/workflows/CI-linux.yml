@@ -75,7 +75,7 @@ jobs:
           export MUSL_HOME="$GITHUB_WORKSPACE/musl-toolchain"
           tar -xf musl-$MUSL_V.tar.gz
           pushd musl-$MUSL_V
-          ./configure --prefix=$MUSL_HOME --static
+          ./configure --prefix=$MUSL_HOME
           sudo make && make install
           popd
           ln -s $MUSL_HOME/bin/musl-gcc $MUSL_HOME/bin/x86_64-linux-musl-gcc
