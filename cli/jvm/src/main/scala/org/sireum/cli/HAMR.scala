@@ -98,6 +98,11 @@ object HAMR {
 
   // sysml interface
   def codeGenS(o: Cli.SireumHamrSysmlCodegenOption, reporter: Reporter): Z = {
+    o.args.size match {
+      case z"0 " => println(o.help); return 0
+      case _ =>
+    }
+
     if (o.sourcepath.isEmpty) {
       eprintln("The sourcepath option is required")
       return INVALID_OPTIONS
@@ -532,6 +537,10 @@ object HAMR {
   }
 
   def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = {
+    o.args.size match {
+      case z"0 " => println(o.help); return Either.Right(0)
+      case _ =>
+    }
     var sysmlFiles: ISZ[Os.Path] = ISZ()
     for (p <- o.sourcepath) {
       val cand = Os.path(p)
@@ -573,6 +582,10 @@ object HAMR {
   }
 
   def sysmlLogika(o: Cli.SireumHamrSysmlLogikaOption, reporter: logika.Logika.Reporter): Z = {
+    o.args.size match {
+      case z"0 " => println(o.help); return 0
+      case _ =>
+    }
     val start = extension.Time.currentMillis
     var uris = HashSet.empty[String]
     var ok = T
