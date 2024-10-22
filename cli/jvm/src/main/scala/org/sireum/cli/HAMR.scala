@@ -98,9 +98,9 @@ object HAMR {
 
   // sysml interface
   def codeGenS(o: Cli.SireumHamrSysmlCodegenOption, reporter: Reporter): Z = {
-    o.args.size match {
-      case z"0 " => println(o.help); return 0
-      case _ =>
+    if (o.args.isEmpty && o.sourcepath.isEmpty) {
+      println(o.help)
+      return 0
     }
 
     if (o.sourcepath.isEmpty) {
@@ -537,9 +537,9 @@ object HAMR {
   }
 
   def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = {
-    o.args.size match {
-      case z"0 " => println(o.help); return Either.Right(0)
-      case _ =>
+    if (o.args.isEmpty && o.sourcepath.isEmpty) {
+      println(o.help)
+      return Either.Right(0)
     }
     var sysmlFiles: ISZ[Os.Path] = ISZ()
     for (p <- o.sourcepath) {
@@ -582,9 +582,9 @@ object HAMR {
   }
 
   def sysmlLogika(o: Cli.SireumHamrSysmlLogikaOption, reporter: logika.Logika.Reporter): Z = {
-    o.args.size match {
-      case z"0 " => println(o.help); return 0
-      case _ =>
+    if (o.args.isEmpty && o.sourcepath.isEmpty) {
+      println(o.help)
+      return 0
     }
     val start = extension.Time.currentMillis
     var uris = HashSet.empty[String]
