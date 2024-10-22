@@ -508,12 +508,13 @@ object Sireum {
       println(
         s"""
            |Available Standalone Options:
-           |    --init               Setup dependencies
-           |    --install-fonts      Install Sireum fonts
-           |    --native             Build native executable
-           |    --sha                Print Sireum build SHA commit tip
-           |    --test-cli           Test CLI arguments (expects strings)
-           |-v, --version            Print version information""".stripMargin)
+           |    --init[-nik | -jdk]    Setup dependencies
+           |                             [-nik/jdk force-initializes Liberica NIK/JDK]
+           |    --install-fonts        Install Sireum fonts
+           |    --native               Build native executable
+           |    --sha                  Print Sireum build SHA commit tip
+           |    --test-cli             Test CLI arguments (expects strings)
+           |-v, --version              Print version information""".stripMargin)
     }
 
     args match {
@@ -526,6 +527,14 @@ object Sireum {
         printAdditionalHelp()
         return 0
       case ISZ(string"--init") =>
+        init.deps()
+        return 0
+      case ISZ(string"--init-jdk") =>
+        init.installJava(versions, F, T)
+        init.deps()
+        return 0
+      case ISZ(string"--init-nik") =>
+        init.installJava(versions, T, T)
         init.deps()
         return 0
       case ISZ(string"--install-fonts") =>
