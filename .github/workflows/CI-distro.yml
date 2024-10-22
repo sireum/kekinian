@@ -91,8 +91,6 @@ jobs:
           overwrite: true
       - name: Build
         run: |
-          export MUSL_HOME="$GITHUB_WORKSPACE/musl-toolchain"
-          export PATH="$MUSL_HOME/bin:$PATH"
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
