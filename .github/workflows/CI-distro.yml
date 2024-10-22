@@ -382,3 +382,153 @@ jobs:
           asset_name: sireum-codeive-win-amd64.zip
           tag: ${{ github.ref }}
           overwrite: true
+
+  test-mac-arm64:
+    needs: [ci-distro-linux-amd64, ci-distro-macos-arm64]
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: macOS-latest
+    steps:
+      - name: Test
+        run: |
+          mkdir -p ~/Applications ~/Downloads
+          curl -JLso ~/Downloads/sireum-ive-mac-arm64.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-ive-mac-arm64.tar.xz
+          curl -JLso ~/Downloads/org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip  
+          cd ~/Applications
+          tar xf ~/Downloads/sireum-ive-mac-arm64.tar.xz
+          cd ~
+          tar xf ~/Downloads/org.sireum.library.m2.zip
+          export SIREUM_HOME=~/Applications/Sireum
+          git clone https://github.com/sireum/logika-examples
+          logika-examples/bin/verify.cmd
+          "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+
+  test-mac-amd64:
+    needs: [ci-distro-linux-amd64, ci-distro-macos-amd64]
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: macOS-13
+    steps:
+      - name: Test
+        run: |
+          mkdir -p ~/Applications ~/Downloads
+          curl -JLso ~/Downloads/sireum-ive-mac-amd64.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-ive-mac-amd64.tar.xz
+          curl -JLso ~/Downloads/org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip  
+          cd ~/Applications
+          tar xf ~/Downloads/sireum-ive-mac-amd64.tar.xz
+          cd ~
+          tar xf ~/Downloads/org.sireum.library.m2.zip
+          export SIREUM_HOME=~/Applications/Sireum
+          git clone https://github.com/sireum/logika-examples
+          logika-examples/bin/verify.cmd
+          "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+
+  test-windows-amd64-2019:
+    needs: [ci-distro-linux-amd64, ci-distro-windows-amd64]
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: windows-2019
+    steps:
+      - name: Test
+        shell: cmd
+        run: |
+          md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
+          curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.zip
+          curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip  
+          cd /d %USERPROFILE%\Applications
+          tar xf %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip
+          cd /d "%USERPROFILE%"
+          tar xf %USERPROFILE%\Downloads\org.sireum.library.m2.zip
+          set errorlevel=
+          set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
+          git clone https://github.com/sireum/logika-examples
+          call logika-examples\bin\verify.cmd || goto :error
+          call "%SIREUM_HOME%\bin\sireum.bat" proyek ive logika-examples || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
+
+  test-windows-amd64-latest:
+    needs: [ci-distro-linux-amd64, ci-distro-windows-amd64]
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: windows-latest
+    steps:
+      - name: Test
+        shell: cmd
+        run: |
+          md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
+          curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.zip
+          curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip  
+          cd /d %USERPROFILE%\Applications
+          tar xf %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip
+          cd /d "%USERPROFILE%"
+          tar xf %USERPROFILE%\Downloads\org.sireum.library.m2.zip
+          set errorlevel=
+          set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
+          git clone https://github.com/sireum/logika-examples
+          call logika-examples\bin\verify.cmd || goto :error
+          call "%SIREUM_HOME%\bin\sireum.bat" proyek ive logika-examples || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
+
+  test-linux-amd64-20-04:
+    needs: ci-distro-linux-amd64
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Test
+        run: |
+          mkdir -p ~/Applications ~/Downloads
+          curl -JLso ~/Downloads/sireum-ive-linux-amd64.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-ive-linux-amd64.tar.xz
+          curl -JLso ~/Downloads/org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip  
+          cd ~/Applications
+          tar xf ~/Downloads/sireum-ive-linux-amd64.tar.xz
+          cd ~
+          unzip -qq ~/Downloads/org.sireum.library.m2.zip
+          export SIREUM_HOME=~/Applications/Sireum
+          git clone https://github.com/sireum/logika-examples
+          logika-examples/bin/verify.cmd
+          "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+
+  test-linux-amd64-22-04:
+    needs: ci-distro-linux-amd64
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Test
+        run: |
+          mkdir -p ~/Applications ~/Downloads
+          curl -JLso ~/Downloads/sireum-ive-linux-amd64.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-ive-linux-amd64.tar.xz
+          curl -JLso ~/Downloads/org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip  
+          cd ~/Applications
+          tar xf ~/Downloads/sireum-ive-linux-amd64.tar.xz
+          cd ~
+          unzip -qq ~/Downloads/org.sireum.library.m2.zip
+          export SIREUM_HOME=~/Applications/Sireum
+          git clone https://github.com/sireum/logika-examples
+          logika-examples/bin/verify.cmd
+          "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+          
+  test-linux-amd64-latest:
+    needs: ci-distro-linux-amd64
+    env:
+      SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: |
+          mkdir -p ~/Applications ~/Downloads
+          curl -JLso ~/Downloads/sireum-ive-linux-amd64.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-ive-linux-amd64.tar.xz
+          curl -JLso ~/Downloads/org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip  
+          cd ~/Applications
+          tar xf ~/Downloads/sireum-ive-linux-amd64.tar.xz
+          cd ~
+          unzip -qq ~/Downloads/org.sireum.library.m2.zip
+          export SIREUM_HOME=~/Applications/Sireum
+          git clone https://github.com/sireum/logika-examples
+          logika-examples/bin/verify.cmd
+          "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
