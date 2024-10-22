@@ -81,6 +81,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Alt-Ergo](https://alt-ergo.ocamlpro.com/) | [OCamlPro-Non-Commercial-License](https://github.com/OCamlPro/alt-ergo/blob/next/licenses/OCamlPro-Non-Commercial-License.pdf) |
 | [Brave Browser](https://brave.com/) | [MPL 2.0](https://github.com/brave/brave-browser/blob/master/LICENSE) |
 | [CompCert](https://compcert.org/) | [INRIA Non-Commercial License Agreement](https://compcert.org/doc/LICENSE.txt) |
+| [Cosmopolitan](https://github.com/jart/cosmopolitan) | [ISC](https://github.com/jart/cosmopolitan/blob/master/LICENSE) |
 | [Cosmos](https://cosmo.zip/) | Open Source |
 | [Coq](https://coq.inria.fr/) | [LGPL 2.1](https://github.com/coq/coq/blob/master/LICENSE) |
 | [CLion](https://www.jetbrains.com/clion/) | Commercial |
@@ -94,6 +95,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Rust](https://www.rust-lang.org/) | [MIT](https://www.rust-lang.org/policies/licenses) |
 | [RustRover](https://www.jetbrains.com/rust/) | Non-Commercial |
 | [VSCodium](https://vscodium.com/) | [MIT](https://github.com/VSCodium/vscodium/blob/master/LICENSE) |
+| [Zig](https://ziglang.org) | [MIT (Expat)](https://github.com/ziglang/zig/blob/master/LICENSE) |
 
 
 | IntelliJ/CLion/RustRover Plugin | License |
@@ -102,6 +104,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [ASM](https://github.com/sireum/intellij-asm) | [Apache 2.0](https://github.com/sireum/intellij-asm/blob/master/LICENSE) |
 | [GitLab](https://plugins.jetbrains.com/plugin/22857-gitlab) | [JetBrains User Agreement (Free)](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
+| [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) | [EPL 2.0](https://github.com/redhat-developer/lsp4ij/blob/main/LICENSE) |
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [PDF Viewer](https://plugins.jetbrains.com/plugin/14494-pdf-viewer) | [MIT](https://github.com/FirstTimeInForever/intellij-pdf-viewer/blob/master/LICENSE) |
 | [PlantUML Integration](https://plugins.jetbrains.com/plugin/7017-plantuml-integration) | [Apache 2.0](https://github.com/esteinberg/plantuml4idea/blob/master/LICENSE.txt) |
@@ -112,6 +115,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Terminal](https://plugins.jetbrains.com/plugin/13123-terminal) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [TeXiFy IDEA](https://plugins.jetbrains.com/plugin/9473-texify-idea) | [MIT](https://github.com/Hannah-Sten/TeXiFy-IDEA/blob/master/LICENSE) |
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
+| [ZigBrains](https://plugins.jetbrains.com/plugin/22456-zigbrains) | [Apache 2.0](https://github.com/FalsePattern/ZigBrains/blob/master/LICENSE) |
 
 
 | VSCodium Extension | License |
