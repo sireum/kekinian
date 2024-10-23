@@ -330,7 +330,7 @@ jobs:
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --pack --vscodium
           copy C:\Windows\System32\vcruntime140.dll Sireum\bin\win\
           copy C:\Windows\System32\vcruntime140_1.dll Sireum\bin\win\
-          tar -acf sireum-cli-win-amd64.zip Sireum\bin\win\sireum-cli-win-amd64.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll Sireum\bin\sireum.bat Sireum\bin\install Sireum\license.txt Sireum\readme.md Sireum\versions.properties
+          tar -acf sireum-cli-win-amd64.zip Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll Sireum\bin\sireum.bat Sireum\bin\install Sireum\license.txt Sireum\readme.md Sireum\versions.properties
           move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
           move "%SIREUM_HOME%\distro\sireum-codeive-win-amd64.zip" "%GITHUB_WORKSPACE%\"
       - name: Upload CLI dev
