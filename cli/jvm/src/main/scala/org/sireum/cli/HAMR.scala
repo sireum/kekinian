@@ -182,7 +182,9 @@ object HAMR {
                   case ISZ(single) =>
                     (single, mergedOptions)
                   case x =>
-                    eprintln(s"Found ${x.size} systems at line ${o.line} in file ${f.value}")
+                    eprintln(
+                      st"""There are ${cands.size} systems in ${f.value}. Please place the cursor
+                          |(or set the --line option) so that it's inside the system you want to instantiate.""".render)
                     return -1
                 }
               } else {
@@ -907,7 +909,12 @@ object HAMR {
           Cli(':').parseSireumHamrSysmlCodegen(str, 0) match {
             case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
               if (fileOptions.platform == o.platform) {
-                return mergeOptionsM(o, fileOptions, str)
+                mergeOptionsM(o, fileOptions, str) match {
+                  case Either.Left((o, _)) => return Some(o)
+                  case Either.Right(msg) =>
+                    eprintln(msg)
+                    return None()
+                }
               }
             case _ =>
               // parser should have emitted errors to console
@@ -919,13 +926,15 @@ object HAMR {
     }
   }
 
+  // Note: this method is also used by sireum forms (insert url)
   def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
-                    fileOpts: ISZ[String]): Option[Cli.SireumHamrSysmlCodegenOption] = {
+                    fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
 
     assert(LongKeys.allKeys.size == 29, s"Expecting 29 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
 
+    var userModifiedKeys: ISZ[String] = ISZ()
     // TODO: for now the file options (if set) takes precedence over any cli options (expect line and system-name)
     var ret = o
     var i = 0
@@ -935,113 +944,136 @@ object HAMR {
         (ops.StringOps(k).startsWith("-") && ShortKeys.allKeys.contains(k))) {
         if (k == LongKeys.sourcepath) {
           ret = ret(sourcepath = fileOptions.sourcepath)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.sourcepath
           i = i + 2
         } else if (k == LongKeys.line) {
-          eprintln("Cannot set 'line' in file options")
-          return None()
+          return Either.Right("Cannot set 'line' in file options")
         } else if (k == LongKeys.system) {
-          eprintln("Cannot set 'system-name' in file options")
-          return None()
+          return Either.Right("Cannot set 'system-name' in file options")
         }
         // common tool options
         else if (k == ShortKeys.verbose || k == LongKeys.verbose) {
           ret = ret(verbose = fileOptions.verbose)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.verbose
           i = i + 1
         } else if (k == ShortKeys.runtimeMonitoring || k == LongKeys.runtimeMonitoring) {
           ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.runtimeMonitoring
           i = i + 1
         } else if (k == ShortKeys.platform || k == LongKeys.platform) {
           ret = ret(platform = fileOptions.platform)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.platform
           i = i + 2
         } else if (k == LongKeys.parseableMessages) {
           ret = ret(parseableMessages = fileOptions.parseableMessages)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.parseableMessages
           i = i + 1
         }
         // slang group options
         else if (k == ShortKeys.Slang_slangOutputDir || k == LongKeys.Slang_slangOutputDir) {
           ret = ret(slangOutputDir = fileOptions.slangOutputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_slangOutputDir
           i = i + 2
         } else if (k == ShortKeys.Slang_packageName || k == LongKeys.Slang_packageName) {
           ret = ret(packageName = fileOptions.packageName)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_packageName
           i = i + 2
         } else if (k == LongKeys.Slang_noProyekIve) {
           ret = ret(noProyekIve = fileOptions.noProyekIve)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_noProyekIve
           i = i + 1
         } else if (k == LongKeys.Slang_noEmbedArt) {
           ret = ret(noEmbedArt = fileOptions.noEmbedArt)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_noEmbedArt
           i = i + 1
         } else if (k == LongKeys.Slang_devicesAsThreads) {
           ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_devicesAsThreads
           i = i + 1
         } else if (k == LongKeys.Slang_genSbtMill) {
           ret = ret(genSbtMill = fileOptions.genSbtMill)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_genSbtMill
           i = i + 1
         }
         // transpiler group options
         else if (k == LongKeys.Transpiler_slangAuxCodeDirs) {
           ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_slangAuxCodeDirs
           i = i + 2
         } else if (k == LongKeys.Transpiler_slangOutputCDir) {
           ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_slangOutputCDir
           i = i + 2
         } else if (k == ShortKeys.Transpiler_excludeComponentImpl || k == LongKeys.Transpiler_excludeComponentImpl) {
           ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_excludeComponentImpl
           i = i + 1
         } else if (k == ShortKeys.Transpiler_bitWidth || k == LongKeys.Transpiler_bitWidth) {
           ret = ret(bitWidth = fileOptions.bitWidth)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_bitWidth
           i = i + 2
         } else if (k == ShortKeys.Transpiler_maxStringSize || k == LongKeys.Transpiler_maxStringSize) {
           ret = ret(maxStringSize = fileOptions.maxStringSize)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_maxStringSize
           i = i + 2
         } else if (k == ShortKeys.Transpiler_maxArraySize || k == LongKeys.Transpiler_maxArraySize) {
           ret = ret(maxArraySize = fileOptions.maxArraySize)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_maxArraySize
           i = i + 2
         } else if (k == ShortKeys.Transpiler_runTranspiler || k == LongKeys.Transpiler_runTranspiler) {
           ret = ret(runTranspiler = fileOptions.runTranspiler)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_runTranspiler
           i = i + 1
         }
         // camkes group options
         else if (k == LongKeys.CAmkES_camkesOutputDir) {
           ret = ret(camkesOutputDir = fileOptions.camkesOutputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_camkesOutputDir
           i = i + 2
         } else if (k == LongKeys.CAmkES_camkesAuxCodeDirs) {
           ret = ret(camkesAuxCodeDirs = fileOptions.camkesAuxCodeDirs)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_camkesAuxCodeDirs
           i = i + 2
         } else if (k == ShortKeys.CAmkES_workspaceRootDir || k == LongKeys.CAmkES_workspaceRootDir) {
           ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_workspaceRootDir
           i = i + 2
         }
         // ros2 group options
         else if (k == LongKeys.ROS2_strictAadlMode) {
           ret = ret(strictAadlMode = fileOptions.strictAadlMode)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_strictAadlMode
           i = i + 1
         } else if (k == LongKeys.ROS2_ros2OutputWorkspaceDir) {
           ret = ret(ros2OutputWorkspaceDir = fileOptions.ros2OutputWorkspaceDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2OutputWorkspaceDir
           i = i + 2
         } else if (k == LongKeys.ROS2_ros2Dir) {
           ret = ret(ros2Dir = fileOptions.ros2Dir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2Dir
           i = i + 2
         } else if (k == LongKeys.ROS2_ros2NodesLanguage) {
           ret = ret(ros2NodesLanguage = fileOptions.ros2NodesLanguage)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2NodesLanguage
           i = i + 2
         } else if (k == LongKeys.ROS2_ros2LaunchLanguage) {
           ret = ret(ros2LaunchLanguage = fileOptions.ros2LaunchLanguage)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2LaunchLanguage
           i = i + 2
         }
         // experimental group options
         else if (k == ShortKeys.Experimental_experimentalOptions || k == LongKeys.Experimental_experimentalOptions) {
           ret = ret(experimentalOptions = fileOptions.experimentalOptions)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Experimental_experimentalOptions
           i = i + 2
         } else {
-          eprintln(s"'$k' is not a valid option key")
-          return None()
+          return Either.Right(s"'$k' is not a valid option key")
         }
       } else {
-        eprintln(s"Invalid option '${fileOpts(i)}'. File options can only set codegen options, not arguments")
-        return None()
+        return Either.Right(s"Invalid option '${fileOpts(i)}'. File options can only set codegen options, not arguments")
       }
     }
-    return Some(ret)
+    return Either.Left((ret, userModifiedKeys))
   }
 
   def sysmlConfig(o: Cli.SireumHamrSysmlConfigOption): Z = {
@@ -1049,3 +1081,6 @@ object HAMR {
     return 0
   }
 }
+
+// BEGIN_SireumHamrCodegenOptionUtil
+// END_SireumHamrCodegenOptionUtil
