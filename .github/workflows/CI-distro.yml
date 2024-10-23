@@ -97,18 +97,14 @@ jobs:
           "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --pack --vscodium
           mv "$SIREUM_HOME/bin/linux/sireum" sireum-cli-linux-amd64
-          copy C:\Windows\System32\vcruntime140.dll .
-          copy C:\Windows\System32\vcruntime140_1.dll .
-          tar -acf sireum-cli-linux-amd64.zip sireum-cli-linux-amd64 vcruntime140.dll vcruntime140_1.dll
-          del sireum-cli-linux-amd64 vcruntime140.dll vcruntime140_1.dll
           mv "$SIREUM_HOME/distro/linux.tar.xz" sireum-ive-linux-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-linux-amd64.tar.xz" .
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-linux-amd64.zip
-          asset_name: sireum-cli-linux-amd64.zip
+          file: sireum-cli-linux-amd64
+          asset_name: sireum-cli-linux-amd64
           tag: dev
           overwrite: true
       - name: Upload IVE dev
@@ -132,8 +128,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-linux-amd64.zip
-          asset_name: sireum-cli-linux-amd64.zip
+          file: sireum-cli-linux-amd64
+          asset_name: sireum-cli-linux-amd64
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
@@ -335,12 +331,16 @@ jobs:
           move "%SIREUM_HOME%\bin\win\sireum.exe" "%GITHUB_WORKSPACE%\sireum-cli-win-amd64.exe"
           move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
           move "%SIREUM_HOME%\distro\sireum-codeive-win-amd64.zip" "%GITHUB_WORKSPACE%\"
+          copy C:\Windows\System32\vcruntime140.dll .
+          copy C:\Windows\System32\vcruntime140_1.dll .
+          tar -acf sireum-cli-win-amd64.zip sireum-cli-win-amd64.exe vcruntime140.dll vcruntime140_1.dll
+          del sireum-cli-win-amd64.exe vcruntime140.dll vcruntime140_1.dll
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-win-amd64.exe
-          asset_name: sireum-cli-win-amd64.exe
+          file: sireum-cli-win-amd64.zip
+          asset_name: sireum-cli-win-amd64.zip
           tag: dev
           overwrite: true
       - name: Upload IVE dev
@@ -364,8 +364,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-win-amd64.exe
-          asset_name: sireum-cli-win-amd64.exe
+          file: sireum-cli-win-amd64.zip
+          asset_name: sireum-cli-win-amd64.zip
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
