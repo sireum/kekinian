@@ -169,7 +169,8 @@ val vscodiumExtensions: ISZ[String] = ISZ(
   "mshr-h.veriloghdl",
   "redhat.vscode-xml",
   "redhat.vscode-yaml",
-  "adamraichu.zip-viewer"
+  "adamraichu.zip-viewer",
+  "hediet.vscode-drawio"
 )
 
 val vscodeSetup: Tool = Tool(

@@ -417,17 +417,17 @@ object Proyek {
           st"""object tests extends TestSuite {
               |  def millSourcePath = $mid.millSourcePath
               |  def moduleDeps = Seq($mid${(for (parent <- prj.poset.ancestorsOf(m.id).elements if files.hasFiles(project.ProjectUtil.moduleTestSources(prj.modules.get(parent).get))) yield s", `m-$parent`.tests", "")})
-              |  def sources = T.sources {
+              |  def sources = Task.Sources {
               |    Seq(${(for (src <- m.testSources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
-              |  def resources = T.sources {
+              |  def resources = Task.Sources {
               |    Seq(${(for (src <- m.testResources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
               |}"""
         )
         val ivyDepOpt: Option[ST] = if (prj.poset.parentsOf(m.id).isEmpty) Some(st"ivy\"org.scala-lang:scala-reflect:$$scalaVer\",") else None()
-        val ivyDeps: ST = if (ivyDepOpt.isEmpty && m.ivyDeps.isEmpty) st"def ivyDeps = T { Agg.empty }" else
-          st"""def ivyDeps = T { Agg(
+        val ivyDeps: ST = if (ivyDepOpt.isEmpty && m.ivyDeps.isEmpty) st"def ivyDeps = Task { Agg.empty }" else
+          st"""def ivyDeps = Task { Agg(
               |  $ivyDepOpt
               |  ${(for (d <- m.ivyDeps) yield st"""ivy"$d$${`$d`}"""", ",\n")}
               |)}"""
@@ -435,10 +435,10 @@ object Proyek {
           st"""object ${quote(m.id)} extends ${(supers, " with ")} {
               |  def millSourcePath = super.millSourcePath / os.up / ${(bases, " / ")}
               |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"`m-$parent`", ", ")})
-              |  def sources = T.sources {
+              |  def sources = Task.Sources {
               |    Seq(${(for (src <- m.sources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
-              |  def resources = T.sources {
+              |  def resources = Task.Sources {
               |    Seq(${(for (src <- m.resources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
               |  }
               |  $ivyDeps
@@ -449,9 +449,9 @@ object Proyek {
       var modules = ISZ[ST](
         st"""object ${quote(rootName)} extends ScalaModule {
             |  def millSourcePath = super.millSourcePath / os.up
-            |  def sources = T.sources { Seq(${if (genBloop) "PathRef(millSourcePath / \".BIN\")" else "" }) }
-            |  def resources = T.sources { Seq() }
-            |  def unmanagedClasspath = T {
+            |  def sources = Task.Sources { Seq(${if (genBloop) "PathRef(millSourcePath / \".BIN\")" else "" }) }
+            |  def resources = Task.Sources { Seq() }
+            |  def unmanagedClasspath = Task {
             |    val sireumHome = Option(System.getenv("SIREUM_HOME")) match {
             |      case Some(p) => os.Path(p)
             |      case _ => os.Path("${SireumApi.homeOpt.get.string}")
@@ -482,10 +482,10 @@ object Proyek {
         }
         works = HashSSet ++ next
       }
-      val build = (root / "build.sc").canon
+      val build = (root / "build.mill").canon
       val javaST =
         st"""def javacOptions = javacOpts
-            |def repositoriesTask = T.task { super.repositoriesTask() ++ repos }"""
+            |def repositoriesTask = Task.Anon { super.repositoriesTask() ++ repos }"""
       val scalaST =
         st"""def scalaVersion = scalaVer
             |def scalacOptions = scalacOpts
@@ -504,6 +504,8 @@ object Proyek {
 
       build.writeOver(
         st"""// Auto-generated
+            |package build
+            |
             |import mill._, scalalib._
             |
             |val scalaVer = "${SireumApi.scalaVer}"
@@ -548,24 +550,16 @@ object Proyek {
       )
       if (genMill) {
         println(s"Wrote $build")
-        val pr: OsProto.Proc = if (Os.isWin) {
-          proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --disable-ticker mill.bsp.BSP/install"
-        } else {
-          Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --disable-ticker mill.bsp.BSP/install"))
-        }
-        pr.console.at(root).env(ISZ(
-          "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
-          "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
-        )).runCheck()
       }
     }
 
     def bloopGen(): Unit = {
       millGen()
+      println("Generating Bloop configuration ...")
       val pr: OsProto.Proc = if (Os.isWin) {
-        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --disable-ticker --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
+        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --ticker false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
       } else {
-        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --disable-ticker --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
+        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --ticker false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
       }
       pr.console.at(root).env(ISZ(
         "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
@@ -575,9 +569,9 @@ object Proyek {
       top.writeOver(ops.StringOps(top.read).replaceAllLiterally(s".BIN\"", s"bin\""))
       (root / ".bloop" / "mill-build-.json").removeAll()
       if (!genMill) {
-        (root / "build.sc").removeAll()
+        (root / "build.mill").removeAll()
       }
-      println(s"Generated ${(root / ".bloop").canon}")
+      println()
     }
 
     if (genBloop) {

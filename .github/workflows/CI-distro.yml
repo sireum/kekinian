@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  ci-distro-linux-amd64:
+  build-linux-amd64:
     runs-on: ubuntu-latest
     if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
@@ -94,9 +94,11 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --pack --vscodium
-          tar -cJf sireum-cli-linux-amd64.tar.xz Sireum/bin/linux/sireum Sireum/bin/sireum Sireum/bin/install Sireum/license.txt Sireum/readme.md Sireum/versions.properties
+          tar -cJf sireum-cli-linux-amd64.tar.xz \
+            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/linux/sireum Sireum/bin/install \
+            Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/linux.tar.xz" sireum-ive-linux-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-linux-amd64.tar.xz" .
       - name: Upload CLI dev
@@ -151,7 +153,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-  ci-distro-macos-arm64:
+  build-macos-arm64:
     runs-on: mac-mini-m1
     if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
@@ -168,9 +170,11 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/init.sh"
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
-          tar -cJf sireum-cli-mac-arm64.tar.xz Sireum/bin/mac/sireum Sireum/bin/sireum Sireum/bin/install Sireum/license.txt Sireum/readme.md Sireum/versions.properties 
+          tar -cJf sireum-cli-mac-arm64.tar.xz \
+            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install \
+            Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-arm64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-arm64.tar.xz" .
       - name: Upload CLI dev
@@ -225,7 +229,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-  ci-distro-macos-amd64:
+  build-macos-amd64:
     runs-on: macOS-13
     if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
@@ -242,9 +246,11 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/init.sh"
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
+          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
-          tar -cJf sireum-cli-mac-amd64.tar.xz Sireum/bin/mac/sireum Sireum/bin/sireum Sireum/bin/install Sireum/license.txt Sireum/readme.md Sireum/versions.properties
+          tar -cJf sireum-cli-mac-amd64.tar.xz \
+            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install \
+            Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-amd64.tar.xz" .
       - name: Upload CLI dev
@@ -299,7 +305,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-  ci-distro-windows-amd64:
+  build-windows-amd64:
     runs-on: windows-latest
     if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
@@ -326,11 +332,14 @@ jobs:
           set SIREUM_HOME=%GITHUB_WORKSPACE%\Sireum
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           call "%SIREUM_HOME%\bin\init.bat"
-          call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --extensions "mhutchie.git-graph,ms-python.python,scalameta.metals,rust-lang.rust-analyzer"
+          call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --pack --vscodium
           copy C:\Windows\System32\vcruntime140.dll Sireum\bin\win\
           copy C:\Windows\System32\vcruntime140_1.dll Sireum\bin\win\
-          tar -acf sireum-cli-win-amd64.zip Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll Sireum\bin\sireum.bat Sireum\bin\install Sireum\license.txt Sireum\readme.md Sireum\versions.properties
+          tar -acf sireum-cli-win-amd64.zip ^
+            Sireum\bin\sireum.bat Sireum\bin\slang-run.bat Sireum\bin\install ^ 
+            Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll ^
+            Sireum\license.txt Sireum\readme.md Sireum\versions.properties
           move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
           move "%SIREUM_HOME%\distro\sireum-codeive-win-amd64.zip" "%GITHUB_WORKSPACE%\"
       - name: Upload CLI dev

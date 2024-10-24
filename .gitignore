@@ -24,7 +24,7 @@
 !/bin/slang-run.bat
 !/bin/slang-run.sh
 /bsp.log
-/build.sc
+/build.mill
 /distro/config.txt
 /distro/setup.bat
 /distro/setup

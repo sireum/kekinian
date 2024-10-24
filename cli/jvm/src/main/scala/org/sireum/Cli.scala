@@ -8503,13 +8503,14 @@ import Cli._
           |                           esbenp.prettier-vscode, ms-python.python,
           |                           rust-lang.rust-analyzer, scalameta.metals,
           |                           mshr-h.veriloghdl, redhat.vscode-xml,
-          |                           redhat.vscode-yaml, adamraichu.zip-viewer")
+          |                           redhat.vscode-yaml, adamraichu.zip-viewer,
+          |                           hediet.vscode-drawio")
           |    --extensions-dir     Custom VSCodium/VSCode extensions directory (expects a
           |                           path)
           |-h, --help               Display this information""".render
 
     var existingInstall: Option[String] = None[String]()
-    var extensions: ISZ[String] = ISZ("llvm-vs-code-extensions.vscode-clangd", "mike-lischke.vscode-antlr4", "mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "mhutchie.git-graph", "ecmel.vscode-html-css", "kofuk.hugo-utils", "redhat.java", "langium.langium-vscode", "James-Yu.latex-workshop", "jebbs.plantuml", "esbenp.prettier-vscode", "ms-python.python", "rust-lang.rust-analyzer", "scalameta.metals", "mshr-h.veriloghdl", "redhat.vscode-xml", "redhat.vscode-yaml", "adamraichu.zip-viewer")
+    var extensions: ISZ[String] = ISZ("llvm-vs-code-extensions.vscode-clangd", "mike-lischke.vscode-antlr4", "mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "mhutchie.git-graph", "ecmel.vscode-html-css", "kofuk.hugo-utils", "redhat.java", "langium.langium-vscode", "James-Yu.latex-workshop", "jebbs.plantuml", "esbenp.prettier-vscode", "ms-python.python", "rust-lang.rust-analyzer", "scalameta.metals", "mshr-h.veriloghdl", "redhat.vscode-xml", "redhat.vscode-yaml", "adamraichu.zip-viewer", "hediet.vscode-drawio")
     var extensionsDir: Option[String] = None[String]()
     var j = i
     var isOption = T

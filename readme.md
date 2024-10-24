@@ -102,12 +102,12 @@ In addition, Sireum includes adaptations of the following artifacts:
 |  :---  | :---: |
 | [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [ASM](https://github.com/sireum/intellij-asm) | [Apache 2.0](https://github.com/sireum/intellij-asm/blob/master/LICENSE) |
+| [Diagrams.net Integration](https://plugins.jetbrains.com/plugin/15635-diagrams-net-integration) | [Apache 2.0](https://github.com/docToolchain/diagrams.net-intellij-plugin/blob/main/LICENSE) |
 | [GitLab](https://plugins.jetbrains.com/plugin/22857-gitlab) | [JetBrains User Agreement (Free)](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) | [EPL 2.0](https://github.com/redhat-developer/lsp4ij/blob/main/LICENSE) |
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [PDF Viewer](https://plugins.jetbrains.com/plugin/14494-pdf-viewer) | [MIT](https://github.com/FirstTimeInForever/intellij-pdf-viewer/blob/master/LICENSE) |
-| [PlantUML Integration](https://plugins.jetbrains.com/plugin/7017-plantuml-integration) | [Apache 2.0](https://github.com/esteinberg/plantuml4idea/blob/master/LICENSE.txt) |
 | [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | Ultimate/Commercial/Non-Commercial |
 | [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
@@ -124,6 +124,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [markdownlint](https://open-vsx.org/extension/DavidAnson/vscode-markdownlint) | [MIT](https://github.com/DavidAnson/vscode-markdownlint/blob/main/LICENSE) |
 | [ANTLR4 grammar syntax support](https://open-vsx.org/extension/mike-lischke/vscode-antlr4) | [MIT](https://github.com/mike-lischke/vscode-antlr4/blob/master/License.txt) |
 | [Bash IDE](https://open-vsx.org/extension/mads-hartmann/bash-ide-vscode) | [MIT](https://github.com/bash-lsp/bash-language-server/blob/main/LICENSE) |
+| [Draw.io Integration](https://open-vsx.org/extension/hediet/vscode-drawio) | [GPL3](https://github.com/hediet/vscode-drawio/blob/master/LICENSE.md) |
 | [ESLint](https://open-vsx.org/extension/dbaeumer/vscode-eslint) | [MIT](https://github.com/microsoft/vscode-eslint/blob/main/License.txt) |
 | [Git Graph](https://open-vsx.org/extension/mhutchie/git-graph) | [MIT w/ non-derivative work restrictions](https://github.com/mhutchie/vscode-git-graph/blob/develop/LICENSE) |
 | [HTML CSS](https://open-vsx.org/extension/ecmel/vscode-html-css) | [MIT](https://github.com/ecmel/vscode-html-css/blob/master/LICENSE.md) |
@@ -132,7 +133,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Jest](https://open-vsx.org/extension/Orta/vscode-jest) | [MIT](https://github.com/jest-community/vscode-jest/blob/master/LICENSE) |
 | [Langium](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/eclipse-langium/langium/blob/main/LICENSE) |
 | [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
-| [PlantUML](https://open-vsx.org/extension/jebbs/plantuml) | [MIT](https://github.com/qjebbs/vscode-plantuml/blob/master/LICENSE.txt) |
 | [Prettier - Code Formatter](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/prettier/prettier-vscode/blob/main/LICENSE) |
 | [Python](https://open-vsx.org/extension/ms-python/python) | [MIT](https://github.com/microsoft/vscode-python/blob/main/LICENSE) |
 | [Rust Analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer) | [MIT](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-MIT) & [Apache 2.0](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-APACHE) |
