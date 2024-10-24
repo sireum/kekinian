@@ -395,7 +395,7 @@ jobs:
           overwrite: true
 
   test-mac-arm64:
-    needs: [ci-distro-linux-amd64, ci-distro-macos-arm64]
+    needs: [build-linux-amd64, build-macos-arm64]
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: macOS-latest
@@ -415,7 +415,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
 
   test-mac-amd64:
-    needs: [ci-distro-linux-amd64, ci-distro-macos-amd64]
+    needs: [build-linux-amd64, build-macos-amd64]
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: macOS-13
@@ -435,7 +435,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
 
   test-windows-amd64-2019:
-    needs: [ci-distro-linux-amd64, ci-distro-windows-amd64]
+    needs: [build-linux-amd64, build-windows-amd64]
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: windows-2019
@@ -460,7 +460,7 @@ jobs:
           exit /b %errorlevel%
 
   test-windows-amd64-latest:
-    needs: [ci-distro-linux-amd64, ci-distro-windows-amd64]
+    needs: [build-linux-amd64, build-windows-amd64]
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: windows-latest
@@ -485,7 +485,7 @@ jobs:
           exit /b %errorlevel%
 
   test-linux-amd64-20-04:
-    needs: ci-distro-linux-amd64
+    needs: build-linux-amd64
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: ubuntu-20.04
@@ -505,7 +505,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
 
   test-linux-amd64-22-04:
-    needs: ci-distro-linux-amd64
+    needs: build-linux-amd64
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: ubuntu-22.04
@@ -525,7 +525,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
           
   test-linux-amd64-latest:
-    needs: ci-distro-linux-amd64
+    needs: build-linux-amd64
     env:
       SIREUM_V: ${{ github.ref_type == 'tag' && github.ref || 'dev' }}
     runs-on: ubuntu-latest
