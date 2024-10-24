@@ -117,7 +117,7 @@ jobs:
           asset_name: sireum-ive-linux-amd64.tar.xz
           tag: dev
           overwrite: true
-      - name: Upload HAMR dev
+      - name: Upload CodeIVE dev
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -143,7 +143,7 @@ jobs:
           asset_name: sireum-ive-linux-amd64.tar.xz
           tag: ${{ github.ref }}
           overwrite: true
-      - name: Upload HAMR Release
+      - name: Upload CodeIVE Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -193,7 +193,7 @@ jobs:
           asset_name: sireum-ive-mac-arm64.tar.xz
           tag: dev
           overwrite: true
-      - name: Upload HAMR dev
+      - name: Upload CodeIVE dev
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -219,7 +219,7 @@ jobs:
           asset_name: sireum-ive-mac-arm64.tar.xz
           tag: ${{ github.ref }}
           overwrite: true
-      - name: Upload HAMR Release
+      - name: Upload CodeIVE Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -269,7 +269,7 @@ jobs:
           asset_name: sireum-ive-mac-amd64.tar.xz
           tag: dev
           overwrite: true
-      - name: Upload HAMR dev
+      - name: Upload CodeIVE dev
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -295,7 +295,7 @@ jobs:
           asset_name: sireum-ive-mac-amd64.tar.xz
           tag: ${{ github.ref }}
           overwrite: true
-      - name: Upload HAMR Release
+      - name: Upload CodeIVE Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -340,7 +340,7 @@ jobs:
             Sireum\bin\sireum.bat Sireum\bin\slang-run.bat Sireum\bin\install ^ 
             Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll ^
             Sireum\license.txt Sireum\readme.md Sireum\versions.properties
-          move "%SIREUM_HOME%\distro\win.zip" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.zip"
+          move "%SIREUM_HOME%\distro\win.7z" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z"
           move "%SIREUM_HOME%\distro\sireum-codeive-win-amd64.zip" "%GITHUB_WORKSPACE%\"
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
@@ -354,11 +354,11 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-win-amd64.zip
-          asset_name: sireum-ive-win-amd64.zip
+          file: sireum-ive-win-amd64.7z
+          asset_name: sireum-ive-win-amd64.7z
           tag: dev
           overwrite: true
-      - name: Upload HAMR dev
+      - name: Upload CodeIVE dev
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -380,11 +380,11 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-ive-win-amd64.zip
-          asset_name: sireum-ive-win-amd64.zip
+          file: sireum-ive-win-amd64.7z
+          asset_name: sireum-ive-win-amd64.7z
           tag: ${{ github.ref }}
           overwrite: true
-      - name: Upload HAMR Release
+      - name: Upload CodeIVE Release
         if: github.ref_type == 'tag'
         uses: svenstaro/upload-release-action@v2
         with:
@@ -444,10 +444,11 @@ jobs:
         shell: cmd
         run: |
           md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
-          curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.zip
-          curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip  
+          curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.7z
+          curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip
+          curl -JLso %USERPROFILE%\Downloads\7zr-24.08.exe https://github.com/ip7z/7zip/releases/download/24.08/7zr.exe 
           cd /d %USERPROFILE%\Applications
-          tar xf %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip
+          %USERPROFILE%\Downloads\7zr-24.08.exe x %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z
           cd /d "%USERPROFILE%"
           tar xf %USERPROFILE%\Downloads\org.sireum.library.m2.zip
           set errorlevel=
@@ -469,10 +470,11 @@ jobs:
         shell: cmd
         run: |
           md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
-          curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.zip
+          curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.7z
           curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip  
+          curl -JLso %USERPROFILE%\Downloads\7zr-24.08.exe https://github.com/ip7z/7zip/releases/download/24.08/7zr.exe 
           cd /d %USERPROFILE%\Applications
-          tar xf %USERPROFILE%\Downloads\sireum-ive-win-amd64.zip
+          %USERPROFILE%\Downloads\7zr-24.08.exe x %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z
           cd /d "%USERPROFILE%"
           tar xf %USERPROFILE%\Downloads\org.sireum.library.m2.zip
           set errorlevel=
