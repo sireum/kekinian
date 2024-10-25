@@ -97,7 +97,7 @@ jobs:
           "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --pack --vscodium
           tar -cJf sireum-cli-linux-amd64.tar.xz \
-            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/linux/sireum Sireum/bin/install \
+            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/linux/sireum Sireum/bin/install Sireum/bin/7zz \
             Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/linux.tar.xz" sireum-ive-linux-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-linux-amd64.tar.xz" .
@@ -173,7 +173,7 @@ jobs:
           "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           tar -cJf sireum-cli-mac-arm64.tar.xz \
-            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install \
+            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install Sireum/bin/7zz \
             Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-arm64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-arm64.tar.xz" .
@@ -249,7 +249,7 @@ jobs:
           "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,ms-python.python,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           tar -cJf sireum-cli-mac-amd64.tar.xz \
-            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install \
+            Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install Sireum/bin/7zz \
             Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-amd64.tar.xz" .
@@ -337,7 +337,7 @@ jobs:
           copy C:\Windows\System32\vcruntime140.dll Sireum\bin\win\
           copy C:\Windows\System32\vcruntime140_1.dll Sireum\bin\win\
           tar -acf sireum-cli-win-amd64.zip ^
-            Sireum\bin\sireum.bat Sireum\bin\slang-run.bat Sireum\bin\install ^ 
+            Sireum\bin\sireum.bat Sireum\bin\slang-run.bat Sireum\bin\install Sireum\bin\7zz.com ^ 
             Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll ^
             Sireum\license.txt Sireum\readme.md Sireum\versions.properties
           move "%SIREUM_HOME%\distro\win.7z" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z"
