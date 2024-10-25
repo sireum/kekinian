@@ -605,10 +605,34 @@ if (Os.cliArgs.isEmpty) {
   val idea = homeBin / platform / "idea"
   val ideaUlt = homeBin / platform / "idea-ultimate"
   val ideaServer = homeBin / platform / "idea-server"
+  val vscodium = homeBin / platform / "vscodium"
   val version: B = sireumJar.exists && (home / "versions.properties").lastModified > sireumJar.lastModified
-  val isCommunity: B = (fresh | version) & idea.exists
-  val isUltimate: B = (fresh | version) & ideaUlt.exists
-  val isServer: B = (fresh | version) & ideaServer.exists
+  val vers = (home / "versions.properties").properties
+  val rebuildIVE: B = {
+    var r = F
+    for (key <- vers.keys if !r) {
+      if (key == "org.sireum.version.idea" || ops.StringOps(key).startsWith("org.sireum.version.plugin.")) {
+        if (versions.get(key) != vers.get(key)) {
+          r = T
+        }
+      }
+    }
+    r
+  }
+  val rebuildCodeIVE: B = {
+    var r = F
+    for (key <- vers.keys if !r) {
+      if (key == "org.sireum.version.vscodium" || ops.StringOps(key).startsWith("org.sireum.version.vscodium.extension")) {
+        if (versions.get(key) != vers.get(key)) {
+          r = T
+        }
+      }
+    }
+    r
+  }
+  val isCommunity: B = rebuildIVE & idea.exists
+  val isUltimate: B = rebuildIVE & ideaUlt.exists
+  val isServer: B = rebuildIVE & ideaServer.exists
 
   if (fresh) {
     println(s"Modifications to ${builtIn.name} detected ... ")
@@ -617,7 +641,7 @@ if (Os.cliArgs.isEmpty) {
     println(s"Modifications to version.properties detected ... ")
     println()
   }
-  if (fresh || version) {
+  if (rebuildIVE) {
     (isCommunity, isUltimate, isServer) match {
       case (T, T, T) => println(s"Rebuilding IVE, IVE Server, and IVE Ultimate  ...")
       case (T, T, F) => println(s"Rebuilding IVE and IVE Ultimate ...")
@@ -648,6 +672,11 @@ if (Os.cliArgs.isEmpty) {
     }
   } else {
     build(fresh, F, F)
+  }
+  if (rebuildCodeIVE && vscodium.exists) {
+    println(s"Rebuilding CodeIVE ...")
+    proc"${Os.javaExe(Some(home))} -jar $sireumJar setup vscode".console.runCheck()
+    println()
   }
 } else {
   val cliArgs = Os.cliArgs
