@@ -24,6 +24,8 @@ jobs:
           git fetch --tags
       - name: Build Jar & m2
         run: |
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli'
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status'
           cd "$GITHUB_WORKSPACE/Sireum"
           git submodule update --init --recursive
           cd "$GITHUB_WORKSPACE"
