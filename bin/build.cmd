@@ -156,16 +156,16 @@ def build(fresh: B, isNative: B, isUber: B): Unit = {
   val r = Sireum.proc(proc"$sireum proyek assemble$proxyOpt -n $proyekName -j $jarName -m org.sireum.Sireum --par --sha3 --ignore-runtime ${includeSources}--include-tests$recompile$nativ$uber $home".console,
     message.Reporter.create)
   if (r.exitCode == 0) {
+    if (Os.isWin) {
+      (homeBin / platform / "sireum.exe").removeAll()
+      (homeBin / platform / ".sireum.exe").removeOnExit()
+    } else {
+      (homeBin / platform / "sireum").removeAll()
+    }
     (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
     if (isUber) {
       val uberJar = homeBin / s"${sireumJar.name}.bat"
       (home / "out" / proyekName / "assemble" / uberJar.name).copyOverTo(uberJar)
-    }
-    if (Os.isWin) {
-      (homeBin / platform / "sireum.exe").removeAll()
-      (homeBin / platform / ".sireum.exe").removeAll()
-    } else {
-      (homeBin / platform / "sireum").removeAll()
     }
     if (isNative) {
       val exePath: Os.Path = Os.kind match {
