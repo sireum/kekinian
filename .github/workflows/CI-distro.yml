@@ -448,9 +448,9 @@ jobs:
           md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
           curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.7z
           curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip
-          curl -JLso %USERPROFILE%\Downloads\7zz-24.08-cosmo-3.9.4.com https://github.com/sireum/rolling/releases/download/misc/7zz-24.08-cosmo-3.9.4.com 
+          curl -JLso %USERPROFILE%\Downloads\7zr-24.08.exe https://github.com/ip7z/7zip/releases/download/24.08/7zr.exe 
           cd /d %USERPROFILE%\Applications
-          %USERPROFILE%\Downloads\7zz-24.08-cosmo-3.9.4.com x %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z
+          %USERPROFILE%\Downloads\7zr-24.08.exe x %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z
           cd /d "%USERPROFILE%"
           tar xf %USERPROFILE%\Downloads\org.sireum.library.m2.zip
           set errorlevel=
@@ -474,9 +474,9 @@ jobs:
           md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
           curl -JLso %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-ive-win-amd64.7z
           curl -JLso %USERPROFILE%\Downloads\org.sireum.library.m2.zip https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip  
-          curl -JLso %USERPROFILE%\Downloads\7zz-24.08-cosmo-3.9.4.com https://github.com/sireum/rolling/releases/download/misc/7zz-24.08-cosmo-3.9.4.com 
+          curl -JLso %USERPROFILE%\Downloads\7zr-24.08.exe https://github.com/ip7z/7zip/releases/download/24.08/7zr.exe 
           cd /d %USERPROFILE%\Applications
-          %USERPROFILE%\Downloads\7zz-24.08-cosmo-3.9.4.com x %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z
+          %USERPROFILE%\Downloads\7zr-24.08.exe x %USERPROFILE%\Downloads\sireum-ive-win-amd64.7z
           cd /d "%USERPROFILE%"
           tar xf %USERPROFILE%\Downloads\org.sireum.library.m2.zip
           set errorlevel=
