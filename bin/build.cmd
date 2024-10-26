@@ -221,9 +221,6 @@ def test(): Unit = {
 }
 
 def verifyLogikaExamples(): Unit = {
-  println("Building ...")
-  build(F, F, F)
-
   println("Verifying https://github.com/sireum/logika-examples ...")
   val logikaExamples = home / "logika-examples"
   logikaExamples.removeAll()
