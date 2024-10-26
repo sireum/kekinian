@@ -56,7 +56,6 @@ jobs:
           exit /b %errorlevel%
 
   ci-native:
-    needs: ci
     runs-on: windows-latest
     steps:
       - name: Support longpaths
@@ -99,7 +98,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Sireum\bin\win\graal
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\bin/install/graal.cmd') }}-graal
+          key: ${{ runner.os }}-${{ hashFiles('Sireum\bin\install\graal.cmd') }}-graal
       - name: Test Native
         shell: cmd
         run: |
