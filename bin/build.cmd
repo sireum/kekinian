@@ -669,6 +669,9 @@ if (Os.cliArgs.isEmpty) {
     }
   } else {
     build(fresh, F, F)
+    if (version) {
+      project(T, isUltimate, isServer)
+    }
   }
   if (rebuildCodeIVE && vscodium.exists) {
     println(s"Rebuilding CodeIVE ...")
