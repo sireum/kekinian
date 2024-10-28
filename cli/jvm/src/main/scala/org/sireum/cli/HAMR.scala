@@ -222,6 +222,7 @@ object HAMR {
                verbose: B,
                runtimeMonitoring: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
+               outputDir: Option[String],
                //
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
@@ -252,6 +253,7 @@ object HAMR {
       verbose = verbose,
       runtimeMonitoring = runtimeMonitoring,
       platform = platform,
+      outputDir = outputDir,
       //
       slangOutputDir = slangOutputDir,
       slangPackageName = slangPackageName,
@@ -298,6 +300,7 @@ object HAMR {
                verbose: B,
                runtimeMonitoring: B,
                platform: Cli.SireumHamrCodegenHamrPlatform.Type,
+               outputDir: Option[String],
                //
                slangOutputDir: Option[String],
                slangPackageName: Option[String],
@@ -333,6 +336,7 @@ object HAMR {
       verbose = verbose,
       runtimeMonitoring = runtimeMonitoring,
       platform = platform,
+      outputDir = outputDir,
       parseableMessages = F,
       //
       slangOutputDir = slangOutputDir,
@@ -823,6 +827,7 @@ object HAMR {
       verbose = o.verbose,
       runtimeMonitoring = o.runtimeMonitoring,
       platform = Cli.SireumHamrCodegenHamrPlatform.byName(o.platform.name).get,
+      outputDir = o.outputDir,
       parseableMessages = o.parseableMessages,
       slangOutputDir = o.slangOutputDir,
       packageName = o.packageName,
@@ -860,6 +865,7 @@ object HAMR {
       verbose = o.verbose,
       runtimeMonitoring = o.runtimeMonitoring,
       platform = CodegenHamrPlatform.byName(o.platform.name).get,
+      outputDir = o.outputDir,
       parseableMessages = o.parseableMessages,
       //
       slangOutputDir = o.slangOutputDir,
@@ -931,7 +937,7 @@ object HAMR {
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
 
-    assert(LongKeys.allKeys.size == 29, s"Expecting 29 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
+    assert(LongKeys.allKeys.size == 30, s"Expecting 30 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
 
     var userModifiedKeys: ISZ[String] = ISZ()
@@ -964,13 +970,17 @@ object HAMR {
           ret = ret(platform = fileOptions.platform)
           userModifiedKeys = userModifiedKeys :+ LongKeys.platform
           i = i + 2
+        } else if (k == ShortKeys.outputDir || k == LongKeys.outputDir) {
+          ret = ret(outputDir = fileOptions.outputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.outputDir
+          i = i + 2
         } else if (k == LongKeys.parseableMessages) {
           ret = ret(parseableMessages = fileOptions.parseableMessages)
           userModifiedKeys = userModifiedKeys :+ LongKeys.parseableMessages
           i = i + 1
         }
         // slang group options
-        else if (k == ShortKeys.Slang_slangOutputDir || k == LongKeys.Slang_slangOutputDir) {
+        else if (k == LongKeys.Slang_slangOutputDir) {
           ret = ret(slangOutputDir = fileOptions.slangOutputDir)
           userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_slangOutputDir
           i = i + 2
@@ -1112,6 +1122,9 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (includeDefaults || o.platform.name != "JVM") {
       ret = ret :+ ("--platform", Some(o.platform.name))
                       }
+    if (o.outputDir.nonEmpty) {
+      ret = ret :+ ("--output-dir", Some(st"${(o.outputDir, Os.pathSep)}".render))
+    }
     if (o.parseableMessages) {
       ret = ret :+ ("--parseable-messages", None())
     }
@@ -1210,6 +1223,9 @@ object SireumHamrCodegenOptionUtil {
     if (includeDefaults || o.platform.name != "JVM") {
       ret = ret :+ ("--platform", Some(o.platform.name))
                       }
+    if (o.outputDir.nonEmpty) {
+      ret = ret :+ ("--output-dir", Some(st"${(o.outputDir, Os.pathSep)}".render))
+    }
     if (o.parseableMessages) {
       ret = ret :+ ("--parseable-messages", None())
     }
