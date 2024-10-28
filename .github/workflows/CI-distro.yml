@@ -98,9 +98,10 @@ jobs:
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
           "$SIREUM_HOME/bin/sireum" setup vscode --extensions "mhutchie.git-graph,hediet.vscode-drawio,scalameta.metals,rust-lang.rust-analyzer"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --pack --vscodium
+          echo "" >  Sireum/bin/.binfmt
           tar -cJf sireum-cli-linux-amd64.tar.xz \
             Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/linux/sireum Sireum/bin/install Sireum/bin/7zz \
-            Sireum/bin/7zz.ver Sireum/license.txt Sireum/readme.md Sireum/versions.properties
+            Sireum/bin/.binfmt Sireum/bin/7zz.ver Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/linux.tar.xz" sireum-ive-linux-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-linux-amd64.tar.xz" .
       - name: Upload CLI dev
