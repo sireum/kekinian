@@ -29,7 +29,7 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.LibUtil.FileOptionMap
 import org.sireum.Os.Path
-import org.sireum.hamr.arsit.plugin.ArsitPlugin
+import org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
@@ -124,18 +124,36 @@ object HAMR {
     }
 
     if (o.system.nonEmpty && o.args.nonEmpty) {
-      // TODO: could see if the file has exactly one system, if so then instantiate that
       println("The file argument is currently ignored when the system-name is set")
     }
 
-    val tipeOpts = Cli.SireumHamrSysmlTipeOption(
+    var tipeOpts = Cli.SireumHamrSysmlTipeOption(
       help = "",
       args = ISZ(),
       exclude = ISZ(),
       sourcepath = o.sourcepath,
       parseableMessages = F
     )
+
+    o.args match {
+      case ISZ(cand) =>
+        val p = Os.path(cand)
+        if (p.exists && p.isFile && p.ext == "sysml") {
+          mergeOptionsU2(o, LibUtil.mineOptions(p.read)) match {
+            case Some(mo) => tipeOpts = tipeOpts(sourcepath = mo.sourcepath)
+            case _ =>
+          }
+        } else {
+          eprintln(s"$p is not a valid SysMLv2 file")
+          return INVALID_OPTIONS
+        }
+      case x if x.size > 1 =>
+        eprintln(s"Only a single file argument is allowed")
+        return INVALID_OPTIONS
+    }
+
     val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = sysmlRun(tipeOpts, reporter)
+
     if (!reporter.hasError) {
       results match {
         case Either.Left((th, models, inputs, _)) =>
@@ -169,7 +187,7 @@ object HAMR {
 
               @strictpure def matchingLine(p: Option[Position], line: Z): B = p.nonEmpty && p.get.beginLine <= line && line <= p.get.endLine
 
-              val mergedOptions: Cli.SireumHamrSysmlCodegenOption = mergeOptionsU(o, f.toUri, fileOptionMap) match {
+              val mergedOptions: Cli.SireumHamrSysmlCodegenOption = mergeOptionsU1(o, f.toUri, fileOptionMap) match {
                 case Some(mo) => mo
                 case _ => return INVALID_OPTIONS
               }
@@ -281,7 +299,7 @@ object HAMR {
 
   /** JAVA/OSATE interface with Plugins
     *
-    * @param plugins should at least include those in org.sireum.hamr.arsit.plugin.ArsitPlugin.defaultPlugins.
+    * @param plugins should at least include those in org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin.defaultPlugins.
     *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
     *        so place plugins that override default behavior before the default plugins.
     *
@@ -377,7 +395,7 @@ object HAMR {
   }
 
   /**
-    * @param plugins should at least include those in org.sireum.hamr.arsit.plugin.ArsitPlugin.defaultPlugins.
+    * @param plugins should at least include those in org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin.defaultPlugins.
     *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
     *        so place plugins that override default behavior before the default plugins.
     *
@@ -899,16 +917,22 @@ object HAMR {
 
   def mergeOptions(o: Cli.SireumHamrSysmlCodegenOption, systemPos: Option[Position], fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
     if (systemPos.nonEmpty && systemPos.get.uriOpt.nonEmpty) {
-      return mergeOptionsU(o, systemPos.get.uriOpt.get, fileOptionMap)
+      return mergeOptionsU1(o, systemPos.get.uriOpt.get, fileOptionMap)
     } else {
       return Some(o)
     }
   }
 
-  def mergeOptionsU(o: Cli.SireumHamrSysmlCodegenOption, fileUri: String, fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
+  def mergeOptionsU1(o: Cli.SireumHamrSysmlCodegenOption, fileUri: String, fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
     fileOptionMap.get(Some(fileUri)) match {
-      case Some(optionMap) if optionMap.nonEmpty && optionMap.contains(toolName) =>
+      case Some(optionMap) =>
+        return mergeOptionsU2(o, optionMap)
+      case _ => return Some(o)
+    }
+  }
 
+  def mergeOptionsU2(o: Cli.SireumHamrSysmlCodegenOption, optionMap: LibUtil.OptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
+    if(optionMap.contains(toolName)) {
         for (options <- optionMap.get(toolName).get) {
           val str = ops.StringOps(ops.StringOps(ops.StringOps(ops.StringOps(options).replaceAllChars('␣', ' ')).replaceAllLiterally("  ", " ")).replaceAllLiterally("\t", " ")).split(c => c == ' ')
 
@@ -927,9 +951,8 @@ object HAMR {
               return None()
           }
         }
-        return None()
-      case _ => return Some(o)
     }
+    return None()
   }
 
   // Note: this method is also used by sireum forms (insert url)
@@ -1139,7 +1162,7 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.slangOutputDir.nonEmpty) {
       ret = ret :+ ("--slang-output-dir", Some(st"${(o.slangOutputDir, Os.pathSep)}".render))
     }
-    if (o.packageName.nonEmpty) {
+    if (includeDefaults || o.packageName.nonEmpty) {
       ret = ret :+ ("--package-name", Some(o.packageName.get))
     }
     if (o.noProyekIve) {
@@ -1240,7 +1263,7 @@ object SireumHamrCodegenOptionUtil {
     if (o.slangOutputDir.nonEmpty) {
       ret = ret :+ ("--slang-output-dir", Some(st"${(o.slangOutputDir, Os.pathSep)}".render))
     }
-    if (o.packageName.nonEmpty) {
+    if (includeDefaults || o.packageName.nonEmpty) {
       ret = ret :+ ("--package-name", Some(o.packageName.get))
     }
     if (o.noProyekIve) {

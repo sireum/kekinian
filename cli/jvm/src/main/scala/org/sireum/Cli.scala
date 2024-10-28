@@ -1295,8 +1295,8 @@ import Cli._
           |Slang Options:
           |    --slang-output-dir   Output directory for the generated Slang project files
           |                           (expects a path)
-          |-n, --package-name       Base package name for Slang project (output-dir's
-          |                           simple name used if not provided) (expects a string)
+          |-n, --package-name       Base package name for Slang project (expects a string;
+          |                           default is "base")
           |    --no-proyek-ive      Do not run Proyek IVE
           |    --no-embed-art       Do not embed ART project files
           |    --devices-as-thread  Treat AADL devices as threads
@@ -1354,7 +1354,7 @@ import Cli._
     var outputDir: Option[String] = None[String]()
     var parseableMessages: B = false
     var slangOutputDir: Option[String] = None[String]()
-    var packageName: Option[String] = None[String]()
+    var packageName: Option[String] = Some("base")
     var noProyekIve: B = false
     var noEmbedArt: B = false
     var devicesAsThreads: B = false
@@ -1845,8 +1845,8 @@ import Cli._
           |Slang Options:
           |    --slang-output-dir   Output directory for the generated Slang project files
           |                           (expects a path)
-          |-n, --package-name       Base package name for Slang project (output-dir's
-          |                           simple name used if not provided) (expects a string)
+          |-n, --package-name       Base package name for Slang project (expects a string;
+          |                           default is "base")
           |    --no-proyek-ive      Do not run Proyek IVE
           |    --no-embed-art       Do not embed ART project files
           |    --devices-as-thread  Treat AADL devices as threads
@@ -1906,7 +1906,7 @@ import Cli._
     var outputDir: Option[String] = None[String]()
     var parseableMessages: B = false
     var slangOutputDir: Option[String] = None[String]()
-    var packageName: Option[String] = None[String]()
+    var packageName: Option[String] = Some("base")
     var noProyekIve: B = false
     var noEmbedArt: B = false
     var devicesAsThreads: B = false
