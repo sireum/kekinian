@@ -325,12 +325,26 @@ object Proyek {
     )
 
     var deps = ISZ[String]()
+    var unmanaged = HashSSet.empty[String]
     for (m <- prj.modules.values if prj.poset.childrenOf(m.id).isEmpty) {
-      deps = deps ++ dm.computeTransitiveIvyDeps(m)
+      for (d <- dm.computeTransitiveIvyDeps(m)) {
+        if (ops.StringOps(d).startsWith("file://")) {
+          unmanaged = unmanaged + d
+        } else {
+          deps = deps :+ d
+        }
+      }
     }
 
     Coursier.resolve(dm.scalaVersion, dm.cacheOpt, o.repositories, deps, T, Coursier.Proxy.empty)
 
+    if (unmanaged.nonEmpty) {
+      println()
+      println("Unmanaged:")
+      for (f <- unmanaged.elements) {
+        println(s"* ${Os.Path.fromUri(f)}")
+      }
+    }
     return 0
   }
 
