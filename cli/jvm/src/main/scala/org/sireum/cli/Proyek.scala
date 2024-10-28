@@ -328,10 +328,10 @@ object Proyek {
     var unmanaged = HashSSet.empty[String]
     for (m <- prj.modules.values if prj.poset.childrenOf(m.id).isEmpty) {
       for (d <- dm.computeTransitiveIvyDeps(m)) {
-        if (ops.StringOps(d).startsWith("file://")) {
-          unmanaged = unmanaged + d
-        } else {
-          deps = deps :+ d
+        dm.depKind(d) match {
+          case DependencyManager.DepKind.IVY => deps = deps :+ d
+          case DependencyManager.DepKind.File => unmanaged = unmanaged + Os.Path.fromUri(d).string
+          case _ => unmanaged = unmanaged + d
         }
       }
     }
