@@ -602,7 +602,7 @@ object Sireum {
                 return 0
             }
           case Some(o: Cli.SireumSetupVscodeOption) =>
-            init.logikaDeps()
+            init.deps()
             init.installVSCodium(
               path2fileOpt("existing VSCode/VSCodium", o.existingInstall, T),
               path2fileOpt("extensions directory", o.extensionsDir, F),
