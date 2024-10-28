@@ -26,7 +26,7 @@ def usage(): Unit = {
         |       | regen-slang-ll2  | regen-parser        | regen-parser-antlr3
         |       | regen-server     | regen-cliopt        | regen-cli
         |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
-        |       | regen-slang-tt   | regen-reflect
+        |       | regen-slang-tt   | regen-reflect       | forms
         |       | cvc              | z3                  | m2[-lib[-js] | -scalac]
         |       | jitpack          | ghpack              | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
@@ -587,6 +587,10 @@ def ram(): Unit = {
   }
 }
 
+def buildForms(): Unit = {
+  Init(home, Os.kind, versions).buildForms()
+}
+
 @pure def builtIn: Os.Path = {
   return home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "BuiltInTypes.slang"
 }
@@ -726,6 +730,7 @@ if (Os.cliArgs.isEmpty) {
       case string"ram" => ram()
       case string"cvc" => cvc()
       case string"z3" => z3()
+      case string"forms" => buildForms()
       case string"-h" => usage()
       case string"--help" => usage()
       case string"distro" =>

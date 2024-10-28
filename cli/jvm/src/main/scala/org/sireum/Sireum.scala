@@ -608,6 +608,7 @@ object Sireum {
               path2fileOpt("extensions directory", o.extensionsDir, F),
               o.extensions
             )
+            init.buildForms()
             return 0
           case Some(o: Cli.SireumSlangRefactorOption) =>
             if (o.args.size != 1) {

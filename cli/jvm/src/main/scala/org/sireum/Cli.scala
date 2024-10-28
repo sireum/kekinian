@@ -2127,7 +2127,7 @@ import Cli._
     val help =
       st"""Sireum HAMR SysML v2 CodeGen Config
           |
-          |Usage: <option>* <sysmlv2-file>+
+          |Usage: <option>* <sysmlv2-file>
           |
           |Available Options:
           |    --parseable-messages Print parseable file messages

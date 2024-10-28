@@ -38,6 +38,7 @@
 /distro/release/*.tar
 /distro/release/*.zip
 /distro/*.zip
+/forms
 /lib
 /log
 /project.dot

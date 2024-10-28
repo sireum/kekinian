@@ -1087,7 +1087,15 @@ object HAMR {
   }
 
   def sysmlConfig(o: Cli.SireumHamrSysmlConfigOption): Z = {
-    println("Coming soon!")
+    if (o.args.size != 1) {
+      println(o.help)
+      return 0
+    }
+    val java: Os.Path = SireumApi.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
+    val cmds = ISZ[String](java.string, "-cp",
+      s"${SireumApi.homeOpt.get / "bin" / "sireum.jar"}${Os.pathSep}${SireumApi.homeOpt.get / "lib" / "forms.jar"}",
+      "org.sireum.forms.FormsApp", "hamr") ++ o.args
+    Os.proc(cmds).runCheck()
     return 0
   }
 }
