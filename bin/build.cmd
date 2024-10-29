@@ -608,7 +608,7 @@ if (Os.cliArgs.isEmpty) {
   val ideaServer = homeBin / platform / "idea-server"
   val vscodium = homeBin / platform / "vscodium"
   val version: B = sireumJar.exists && (home / "versions.properties").lastModified > sireumJar.lastModified
-  val vers = (home / "versions.properties").properties
+  val vers = Sireum.versions
   val rebuildIVE: B = {
     var r = F
     for (key <- vers.keys if !r) {
