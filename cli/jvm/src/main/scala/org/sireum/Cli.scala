@@ -175,8 +175,7 @@ object Cli {
 
   @datatype class SireumHamrSysmlConfigOption(
     val help: String,
-    val args: ISZ[String],
-    val parseableMessages: B
+    val args: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
@@ -262,6 +261,11 @@ object Cli {
     val grammar: Option[String],
     val url: Option[String],
     val keywords: ISZ[String]
+  ) extends SireumTopOption
+
+  @datatype class SireumLogikaConfigOption(
+    val help: String,
+    val args: ISZ[String]
   ) extends SireumTopOption
 
   @enum object SireumLogikaVerifierFPRoundingMode {
@@ -2130,11 +2134,9 @@ import Cli._
           |Usage: <option>* <sysmlv2-file>
           |
           |Available Options:
-          |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information""".render
 
-    var parseableMessages: B = false
-    var j = i
+    val j = i
     var isOption = T
     while (j < args.size && isOption) {
       val arg = args(j)
@@ -2142,22 +2144,16 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--parseable-messages") {
-           val o: Option[B] = { j = j - 1; Some(!parseableMessages) }
-           o match {
-             case Some(v) => parseableMessages = v
-             case _ => return None()
-           }
-         } else {
+        } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
         }
-        j = j + 2
+
       } else {
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), parseableMessages))
+    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j)))
   }
 
   def parseSireumHamrSysmlLogikaFPRoundingModeH(arg: String): Option[SireumHamrSysmlLogikaFPRoundingMode.Type] = {
@@ -2802,15 +2798,46 @@ import Cli._
         st"""Logika Tools for Slang
             |
             |Available modes:
+            |config                   Logika Config
             |verifier                 Logika verifier""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("logika", args, i, ISZ("verifier"))
+    val opt = select("logika", args, i, ISZ("config", "verifier"))
     opt match {
+      case Some(string"config") => return parseSireumLogikaConfig(args, i + 1)
       case Some(string"verifier") => return parseSireumLogikaVerifier(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumLogikaConfig(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Logika Config
+          |
+          |Usage: <option>* <file.sc>
+          |
+          |Available Options:
+          |-h, --help               Display this information""".render
+
+    val j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumLogikaConfigOption(help, parseArguments(args, j)))
   }
 
   def parseSireumLogikaVerifierFPRoundingModeH(arg: String): Option[SireumLogikaVerifierFPRoundingMode.Type] = {

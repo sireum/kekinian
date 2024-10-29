@@ -38,6 +38,19 @@ object Logika {
   val INVALID_VC_DIR: Z = -4
   val INVALID_SOURCE_PATH: Z = -5
 
+  def config(o: Cli.SireumLogikaConfigOption): Z = {
+    if (o.args.size != 1) {
+      println(o.help)
+      return 0
+    }
+    val java: Os.Path = SireumApi.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
+    val cmds = ISZ[String](java.string, "-cp",
+      s"${SireumApi.homeOpt.get / "bin" / "sireum.jar"}${Os.pathSep}${SireumApi.homeOpt.get / "lib" / "forms.jar"}",
+      "org.sireum.forms.FormsApp", "logika") ++ o.args
+    Os.proc(cmds).runCheck()
+    return 0
+  }
+
   def run(o: Cli.SireumLogikaVerifierOption, reporter: logika.Logika.Reporter): Z = {
     val start = extension.Time.currentMillis
     if (o.args.isEmpty) {

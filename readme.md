@@ -69,6 +69,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Coursier](https://github.com/coursier/coursier) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [JaCoCo](https://github.com/jacoco/jacoco) | [EPL 2.0](https://github.com/jacoco/jacoco/blob/master/LICENSE.md) |
+| [Sireum Forms](https://github.com/sireum/forms) | [BSD2](https://github.com/sireum/forms/blob/master/license.txt) |
 | [Z3](https://github.com/Z3Prover/z3) | [MIT](https://github.com/Z3Prover/z3/blob/master/LICENSE.txt) |
 
 

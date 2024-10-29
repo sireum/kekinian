@@ -757,6 +757,11 @@ object Sireum {
               init.basicDeps()
             }
             return cli.HAMR.sysmlConfig(o)
+          case Some(o: Cli.SireumLogikaConfigOption) =>
+            if (!NativeUtil.isNative) {
+              init.basicDeps()
+            }
+            return cli.Logika.config(o)
           case Some(o: Cli.SireumLogikaVerifierOption) =>
             if (!NativeUtil.isNative) {
               init.basicDeps()
