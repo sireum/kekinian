@@ -415,7 +415,7 @@ object Proyek {
           case Some(sub) => base = base / sub
           case _ =>
         }
-        for (src <- m.sources ++ m.testSources; _ <- Os.Path.walk(root / base.string / src, F, F, (p: Os.Path) => p.ext == "scala")) {
+        for (src <- m.sources ++ m.testSources; _ <- Os.Path.walk(root / base.string / src, F, F, (p: Os.Path) => p.ext == "scala" || p.ext == "sc")) {
           hasScala = T
         }
         supers = supers :+ (
@@ -447,7 +447,7 @@ object Proyek {
               |)}"""
         val r =
           st"""object ${quote(m.id)} extends ${(supers, " with ")} {
-              |  def millSourcePath = super.millSourcePath / os.up / ${(bases, " / ")}
+              |  def millSourcePath = super.millSourcePath / os.up${(for (b <- bases) yield st" / $b", "")}
               |  def moduleDeps = Seq(${(for (parent <- prj.poset.parentsOf(m.id).elements) yield s"`m-$parent`", ", ")})
               |  def sources = Task.Sources {
               |    Seq(${(for (src <- m.sources) yield st"PathRef(millSourcePath / ${(split(src), " / ")})", ", ")})
@@ -460,7 +460,7 @@ object Proyek {
               |}"""
         return r
       }
-      var modules = ISZ[ST](
+      var modules: ISZ[ST] = if (prj.modules.size == 1 && Os.path(prj.modules.values(0).basePath).canon.string == root.canon.string) ISZ() else ISZ[ST](
         st"""object ${quote(rootName)} extends ScalaModule {
             |  def millSourcePath = super.millSourcePath / os.up
             |  def sources = Task.Sources { Seq(${if (genBloop) "PathRef(millSourcePath / \".BIN\")" else "" }) }
@@ -575,12 +575,15 @@ object Proyek {
       } else {
         Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --ticker false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
       }
+      (root / ".bloop").removeAll()
       pr.console.at(root).env(ISZ(
         "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
         "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
       )).runCheck()
       val top = root / ".bloop" / s"$rootName.json"
-      top.writeOver(ops.StringOps(top.read).replaceAllLiterally(s".BIN\"", s"bin\""))
+      if (top.exists) {
+        top.writeOver(ops.StringOps(top.read).replaceAllLiterally(s".BIN\"", s"bin\""))
+      }
       (root / ".bloop" / "mill-build-.json").removeAll()
       if (!genMill) {
         (root / "build.mill").removeAll()
