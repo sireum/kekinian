@@ -50,4 +50,5 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
+          sleep 60
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
