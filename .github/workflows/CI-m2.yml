@@ -7,7 +7,6 @@ on:
       sha:
         description: 'Specific Commit SHA to build'
         required: false
-        default: ${{ env.GITHUB_SHA }}
 
 jobs:
 
@@ -20,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.sha }}
+          ref: ${{ inputs.sha == '' && env.GITHUB_SHA || inputs.sha }}
           path: Sireum
           submodules: recursive
       - name: Build
