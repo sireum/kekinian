@@ -36,7 +36,7 @@ jobs:
           repo_name: sireum/rolling
           repo_token: ${{ secrets.RELEASE_TOKEN }}
           file: org.sireum.m2.zip
-          asset_name: org.sireum.m2-${{ inputs.sha }}.zip
+          asset_name: org.sireum.m2-${{ inputs.sha == '' && env.GITHUB_SHA || inputs.sha }}.zip
           tag: m2
           overwrite: true
       - name: Trigger JitPack
