@@ -39,11 +39,13 @@ jobs:
           "$SIREUM_HOME/bin/build.cmd" m2-lib
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           cp "$GITHUB_WORKSPACE/Cache/https/jitpack.io"/* "$GITHUB_WORKSPACE/.m2/repository"
+          cp "$GITHUB_WORKSPACE/Cache/repo1.maven.org/maven2/* "$GITHUB_WORKSPACE/.m2/repository"
           zip -r org.sireum.library.m2.zip .m2
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
           "$SIREUM_HOME/bin/build.cmd" m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           cp "$GITHUB_WORKSPACE/Cache/https/jitpack.io"/* "$GITHUB_WORKSPACE/.m2/repository"
+          cp "$GITHUB_WORKSPACE/Cache/repo1.maven.org/maven2/* "$GITHUB_WORKSPACE/.m2/repository"
           zip -r org.sireum.m2.zip .m2
       - name: Upload Jar dev
         uses: svenstaro/upload-release-action@v2
