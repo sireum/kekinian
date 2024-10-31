@@ -3,7 +3,6 @@ jdk:
 install:
   - cd $HOME
   - rm -fR .m2
-  - SHA=`git rev-parse HEAD`
-  - curl -JLso org.sireum.m2.zip https://github.com/sireum/rolling/releases/download/m2/org.sireum.m2-$SHA.zip
+  - curl -JLso org.sireum.m2.zip https://github.com/sireum/rolling/releases/download/m2/org.sireum.m2-$GIT_COMMIT.zip
   - unzip org.sireum.m2.zip
   - rm org.sireum.m2.zip
