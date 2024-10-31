@@ -8,6 +8,9 @@ on:
         description: 'Specific Commit SHA to build'
         required: false
 
+env:
+  SHA: ${{ inputs.sha == '' && env.GITHUB_SHA || inputs.sha }}
+
 jobs:
 
   ci:
@@ -19,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.sha == '' && env.GITHUB_SHA || inputs.sha }}
+          ref: ${{ env.SHA }}
           path: Sireum
           submodules: recursive
       - name: Build
@@ -36,7 +39,7 @@ jobs:
           repo_name: sireum/rolling
           repo_token: ${{ secrets.RELEASE_TOKEN }}
           file: org.sireum.m2.zip
-          asset_name: org.sireum.m2-${{ inputs.sha == '' && env.GITHUB_SHA || inputs.sha }}.zip
+          asset_name: org.sireum.m2-${{ env.SHA }}.zip
           tag: m2
           overwrite: true
       - name: Trigger JitPack
