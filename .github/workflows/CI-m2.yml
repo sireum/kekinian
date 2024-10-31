@@ -9,7 +9,7 @@ on:
         required: false
 
 env:
-  SHA: "${{ inputs.sha == '' && env.GITHUB_SHA || inputs.sha }}"
+  SHA: '${{ inputs.sha || env.GITHUB_SHA }}'
 
 jobs:
 
