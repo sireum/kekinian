@@ -8,9 +8,6 @@ on:
         description: 'Specific Commit SHA to build'
         required: false
 
-env:
-  SHA: '${{ inputs.sha || env.GITHUB_SHA }}'
-
 jobs:
 
   ci:
@@ -19,6 +16,9 @@ jobs:
       - name: Clean
         run: |
           rm -fR "$GITHUB_WORKSPACE/Sireum"
+      - name: Set SHA Env Var
+        run: |
+          echo "SHA=${{ inputs.sha || env.GITHUB_SHA }}" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v4
         with:
