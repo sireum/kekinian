@@ -40,14 +40,14 @@ jobs:
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           cp -a "$GITHUB_WORKSPACE/Cache/https/jitpack.io"/* "$GITHUB_WORKSPACE/.m2/repository"
           cp -a "$GITHUB_WORKSPACE/Cache/https/repo1.maven.org/maven2"/* "$GITHUB_WORKSPACE/.m2/repository"
-          find . -type f ! \( -name '*.pom' -o -name '*.jar' \) -delete
+          find .m2 -type f ! \( -name '*.pom' -o -name '*.jar' \) -delete
           zip -r org.sireum.library.m2.zip .m2
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
           "$SIREUM_HOME/bin/build.cmd" m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           cp -a "$GITHUB_WORKSPACE/Cache/https/jitpack.io"/* "$GITHUB_WORKSPACE/.m2/repository"
           cp -a "$GITHUB_WORKSPACE/Cache/https/repo1.maven.org/maven2"/* "$GITHUB_WORKSPACE/.m2/repository"
-          find . -type f ! \( -name '*.pom' -o -name '*.jar' \) -delete
+          find .m2 -type f ! \( -name '*.pom' -o -name '*.jar' \) -delete
           zip -r org.sireum.m2.zip .m2
       - name: Upload Jar dev
         uses: svenstaro/upload-release-action@v2
