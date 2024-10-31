@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Clean
         run: |
-          rm -fR "$GITHUB_WORKSPACE/Sireum"
+          rm -fR "$GITHUB_WORKSPACE/Sireum" "$GITHUB_WORKSPACE/Cache"
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -30,15 +30,20 @@ jobs:
           git submodule update --init --recursive
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
+          export COURSIER_CACHE="$GITHUB_WORKSPACE/Cache"
+          rm -fR "$COURSIER_CACHE"
+          mkdir -p "$COURSIER_CACHE"
           "$SIREUM_HOME/bin/build.cmd"
           cp "$SIREUM_HOME/bin/sireum.jar" sireum.jar
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
           "$SIREUM_HOME/bin/build.cmd" m2-lib
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          cp "$GITHUB_WORKSPACE/Cache/https/jitpack.io"/* "$GITHUB_WORKSPACE/.m2/repository"
           zip -r org.sireum.library.m2.zip .m2
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
           "$SIREUM_HOME/bin/build.cmd" m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
+          cp "$GITHUB_WORKSPACE/Cache/https/jitpack.io"/* "$GITHUB_WORKSPACE/.m2/repository"
           zip -r org.sireum.m2.zip .m2
       - name: Upload Jar dev
         uses: svenstaro/upload-release-action@v2

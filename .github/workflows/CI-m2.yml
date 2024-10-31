@@ -2,6 +2,12 @@ name: m2
 
 on:
   push:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Specific Commit SHA to build'
+        required: false
+        default: ${{ env.GITHUB_SHA }}
 
 jobs:
 
@@ -14,13 +20,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.sha }}
           path: Sireum
           submodules: recursive
       - name: Build
         run: |
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           rm -fR "$GITHUB_WORKSPACE/.m2" $HOME/.m2
-          "$SIREUM_HOME/bin/build.cmd" jar m2
+          "$SIREUM_HOME/bin/build.cmd" jar 
+          "$SIREUM_HOME/bin/build.cmd" m2
           mv $HOME/.m2 "$GITHUB_WORKSPACE/.m2"
           zip -r org.sireum.m2.zip .m2
       - name: Upload
@@ -29,7 +37,7 @@ jobs:
           repo_name: sireum/rolling
           repo_token: ${{ secrets.RELEASE_TOKEN }}
           file: org.sireum.m2.zip
-          asset_name: org.sireum.m2.zip
+          asset_name: org.sireum.m2-${{ inputs.sha }}.zip
           tag: m2
           overwrite: true
       - name: Trigger JitPack
