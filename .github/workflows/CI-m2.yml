@@ -18,7 +18,11 @@ jobs:
           rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Set SHA Env Var
         run: |
-          echo "SHA=${{ inputs.sha || env.GITHUB_SHA }}" >> $GITHUB_ENV
+          if [[ "${{ input.sha }}" == "" ]]; then
+            echo "SHA=$GITHUB_SHA" >> $GITHUB_ENV
+          else
+            echo "SHA=${{ inputs.sha }}" >> $GITHUB_ENV
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
