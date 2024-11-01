@@ -173,9 +173,15 @@ object Cli {
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumHamrSysmlConfigTheme {
+    "Dark"
+    "Light"
+  }
+
   @datatype class SireumHamrSysmlConfigOption(
     val help: String,
-    val args: ISZ[String]
+    val args: ISZ[String],
+    val theme: SireumHamrSysmlConfigTheme.Type
   ) extends SireumTopOption
 
   @enum object SireumHamrSysmlLogikaFPRoundingMode {
@@ -263,9 +269,15 @@ object Cli {
     val keywords: ISZ[String]
   ) extends SireumTopOption
 
+  @enum object SireumLogikaConfigTheme {
+    "Dark"
+    "Light"
+  }
+
   @datatype class SireumLogikaConfigOption(
     val help: String,
-    val args: ISZ[String]
+    val args: ISZ[String],
+    val theme: SireumLogikaConfigTheme.Type
   ) extends SireumTopOption
 
   @enum object SireumLogikaVerifierFPRoundingMode {
@@ -2127,6 +2139,25 @@ import Cli._
     return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
   }
 
+  def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {
+    arg.native match {
+      case "dark" => return Some(SireumHamrSysmlConfigTheme.Dark)
+      case "light" => return Some(SireumHamrSysmlConfigTheme.Light)
+      case s =>
+        eprintln(s"Expecting one of the following: { dark, light }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlConfigTheme(args: ISZ[String], i: Z): Option[SireumHamrSysmlConfigTheme.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { dark, light }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlConfigThemeH(args(i))
+    return r
+  }
+
   def parseSireumHamrSysmlConfig(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum HAMR SysML v2 CodeGen Config
@@ -2134,9 +2165,12 @@ import Cli._
           |Usage: <option>* <sysmlv2-file>
           |
           |Available Options:
+          |-t, --theme              Form color theme (expects one of { dark, light };
+          |                           default: dark)
           |-h, --help               Display this information""".render
 
-    val j = i
+    var theme: SireumHamrSysmlConfigTheme.Type = SireumHamrSysmlConfigTheme.Dark
+    var j = i
     var isOption = T
     while (j < args.size && isOption) {
       val arg = args(j)
@@ -2144,16 +2178,22 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else {
+        } else if (arg == "-t" || arg == "--theme") {
+           val o: Option[SireumHamrSysmlConfigTheme.Type] = parseSireumHamrSysmlConfigTheme(args, j + 1)
+           o match {
+             case Some(v) => theme = v
+             case _ => return None()
+           }
+         } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
         }
-
+        j = j + 2
       } else {
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j)))
+    return Some(SireumHamrSysmlConfigOption(help, parseArguments(args, j), theme))
   }
 
   def parseSireumHamrSysmlLogikaFPRoundingModeH(arg: String): Option[SireumHamrSysmlLogikaFPRoundingMode.Type] = {
@@ -2811,6 +2851,25 @@ import Cli._
     }
   }
 
+  def parseSireumLogikaConfigThemeH(arg: String): Option[SireumLogikaConfigTheme.Type] = {
+    arg.native match {
+      case "dark" => return Some(SireumLogikaConfigTheme.Dark)
+      case "light" => return Some(SireumLogikaConfigTheme.Light)
+      case s =>
+        eprintln(s"Expecting one of the following: { dark, light }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumLogikaConfigTheme(args: ISZ[String], i: Z): Option[SireumLogikaConfigTheme.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { dark, light }, but none found.")
+      return None()
+    }
+    val r = parseSireumLogikaConfigThemeH(args(i))
+    return r
+  }
+
   def parseSireumLogikaConfig(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum Logika Config
@@ -2818,9 +2877,12 @@ import Cli._
           |Usage: <option>* <file.sc>
           |
           |Available Options:
+          |-t, --theme              Form color theme (expects one of { dark, light };
+          |                           default: dark)
           |-h, --help               Display this information""".render
 
-    val j = i
+    var theme: SireumLogikaConfigTheme.Type = SireumLogikaConfigTheme.Dark
+    var j = i
     var isOption = T
     while (j < args.size && isOption) {
       val arg = args(j)
@@ -2828,16 +2890,22 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else {
+        } else if (arg == "-t" || arg == "--theme") {
+           val o: Option[SireumLogikaConfigTheme.Type] = parseSireumLogikaConfigTheme(args, j + 1)
+           o match {
+             case Some(v) => theme = v
+             case _ => return None()
+           }
+         } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
         }
-
+        j = j + 2
       } else {
         isOption = F
       }
     }
-    return Some(SireumLogikaConfigOption(help, parseArguments(args, j)))
+    return Some(SireumLogikaConfigOption(help, parseArguments(args, j), theme))
   }
 
   def parseSireumLogikaVerifierFPRoundingModeH(arg: String): Option[SireumLogikaVerifierFPRoundingMode.Type] = {

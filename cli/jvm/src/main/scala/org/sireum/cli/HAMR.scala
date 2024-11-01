@@ -1114,10 +1114,14 @@ object HAMR {
       println(o.help)
       return 0
     }
+    val theme: String = o.theme match {
+      case Cli.SireumHamrSysmlConfigTheme.Dark => "dark"
+      case Cli.SireumHamrSysmlConfigTheme.Light => "light"
+    }
     val java: Os.Path = SireumApi.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
     val cmds = ISZ[String](java.string, "-cp",
       s"${SireumApi.homeOpt.get / "bin" / "sireum.jar"}${Os.pathSep}${SireumApi.homeOpt.get / "lib" / "forms.jar"}",
-      "org.sireum.forms.FormsApp", "hamr") ++ o.args
+      "org.sireum.forms.FormsApp", "hamr") ++ o.args :+ theme
     Os.proc(cmds).runCheck()
     return 0
   }
