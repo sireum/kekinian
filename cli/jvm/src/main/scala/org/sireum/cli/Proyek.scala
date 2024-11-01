@@ -566,9 +566,9 @@ object Proyek {
     def bloopGen(): Unit = {
       println("Generating Bloop configuration ...")
       val pr: OsProto.Proc = if (Os.isWin) {
-        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --ticker false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
+        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --ticker false --color false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
       } else {
-        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --ticker false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
+        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --ticker false --color false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
       }
       (root / ".bloop").removeAll()
       pr.console.at(root).env(ISZ(
