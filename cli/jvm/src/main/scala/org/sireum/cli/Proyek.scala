@@ -358,15 +358,6 @@ object Proyek {
   }
 
   def exprt(o: Cli.SireumProyekExportOption): Z = {
-    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
-    if (help) {
-      println(o.help)
-      return code
-    } else if (code != 0) {
-      return code
-    }
-
-    println()
 
     var genMill = F
     var genBloop = F
@@ -379,9 +370,14 @@ object Proyek {
       }
     }
 
-    Init(SireumApi.homeOpt.get, Os.kind, SireumApi.versions).installMill(genMill)
+    val init = Init(SireumApi.homeOpt.get, Os.kind, SireumApi.versions)
+    init.installMill(genMill)
 
-    val root = Os.path(o.args(0))
+    val root: Os.Path = getPath(o.args) match {
+      case Some(p) => p
+      case _ => return INVALID_PATH_ARG
+    }
+
     val rootName = root.canon.name
 
     var millGenerated = F
@@ -400,7 +396,7 @@ object Proyek {
       }
     }
 
-    def millGen(): Unit = {
+    def millGen(prj: project.Project, versions: HashSMap[String, String]): Unit = {
       if (millGenerated) {
         return
       }
@@ -568,7 +564,6 @@ object Proyek {
     }
 
     def bloopGen(): Unit = {
-      millGen()
       println("Generating Bloop configuration ...")
       val pr: OsProto.Proc = if (Os.isWin) {
         proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --ticker false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
@@ -587,15 +582,49 @@ object Proyek {
       (root / ".bloop" / "mill-build-.json").removeAll()
       if (!genMill) {
         (root / "build.mill").removeAll()
+        (root / ".mill-version").removeAll()
       }
       println()
     }
 
-    if (genBloop) {
+    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    println()
+
+    val dotSireum = root / ".sireum"
+    (root / ".mill-version").writeOver(SireumApi.versions.get("org.sireum.version.mill").get)
+    if (dotSireum.exists) {
+      (root / "build.mill").writeOver(
+        st"""package build
+            |
+            |import mill._, scalalib._
+            |
+            |object build extends ScalaModule {
+            |  def scalaVersion = "${SireumApi.versions.get("org.scala-lang:scala-library:").get}"
+            |  def ivyDeps = Agg(
+            |    ivy"org.sireum.kekinian::library:${ops.StringOps(Sireum.commitSha).substring(0, 10)}"
+            |  )
+            |  def repositoriesTask = T.task { super.repositoriesTask() :+
+            |    coursier.maven.MavenRepository("${(Os.home / ".m2" / "repository").toUri}") :+
+            |    coursier.maven.MavenRepository("https://jitpack.io")
+            |  }
+            |}""".render
+      )
+      bloopGen()
+      (root / ".sireum.ver").writeOver(Sireum.commitSha)
+    } else if (genBloop) {
+      millGen(prj, versions)
       bloopGen()
     } else if (genMill) {
-      millGen()
+      millGen(prj, versions)
     }
+    println("Done!")
     return 0
   }
 
