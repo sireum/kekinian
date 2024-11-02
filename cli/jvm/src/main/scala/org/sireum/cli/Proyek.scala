@@ -586,19 +586,19 @@ object Proyek {
       println()
     }
 
-    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
-    if (help) {
-      println(o.help)
-      return code
-    } else if (code != 0) {
-      return code
-    }
-
-    println()
-
     val dotSireum = root / ".sireum"
     (root / ".mill-version").writeOver(SireumApi.versions.get("org.sireum.version.mill").get)
     if (dotSireum.exists) {
+      val sireumHome = SireumApi.homeOpt.get
+      val buildCmd = sireumHome / "bin" / "build.cmd"
+      if ((SireumApi.homeOpt.get / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "Sireum.scala").exists) {
+        if (!Coursier.isRuntimePublishedLocally(SireumApi.scalaVer,
+          ops.StringOps(SireumApi.commitHash).substring(0, 10))) {
+          println()
+          println("Publishing Slang runtime library locally ...")
+          proc"$buildCmd m2-lib".console.runCheck()
+        }
+      }
       (root / "build.mill").writeOver(
         st"""package build
             |
@@ -617,7 +617,20 @@ object Proyek {
       )
       bloopGen()
       (root / ".sireum.ver").writeOver(Sireum.commitSha)
-    } else if (genBloop) {
+      return 0
+    }
+
+    val (help, code, _, prj, versions) = check(o.json, o.project, Some(1), Some(1), o.args, o.versions, o.slice)
+    if (help) {
+      println(o.help)
+      return code
+    } else if (code != 0) {
+      return code
+    }
+
+    println()
+
+    if (genBloop) {
       millGen(prj, versions)
       bloopGen()
     } else if (genMill) {
