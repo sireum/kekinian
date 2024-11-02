@@ -796,6 +796,7 @@ object Sireum {
             return r
           case Some(o: Cli.SireumProyekExportOption) =>
             init.basicDeps()
+            init.installMill(T)
             return cli.Proyek.exprt(o)
           case Some(o: Cli.SireumProyekDepOption) =>
             init.basicDeps()

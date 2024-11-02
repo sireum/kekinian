@@ -565,11 +565,13 @@ object Proyek {
 
     def bloopGen(): Unit = {
       println("Generating Bloop configuration ...")
-      val mill: Os.Path = SireumApi.homeOpt.get / "bin" / (if (Os.isWin) "mill.bat" else "mill")
-      val javaExe: Os.Path = SireumApi.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")
+      val pr: OsProto.Proc = if (Os.isWin) {
+        proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --ticker false --color false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
+      } else {
+        Os.proc(ISZ("bash", "-c", s"\"${SireumApi.homeOpt.get / "bin" / "mill"}\" --ticker false --color false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"))
+      }
       (root / ".bloop").removeAll()
-      proc"$javaExe -DMILL_CLASSPATH=$mill -Djna.nosys=true -cp $mill mill.runner.client.MillClientMain -i --ticker false --color false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install".
-        console.at(root).env(ISZ(
+      pr.console.at(root).env(ISZ(
           "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
           "PATH" ~> s"${SireumApi.javaHomeOpt.get / "bin"}${Os.pathSep}${Os.env("PATH").get}",
           "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
