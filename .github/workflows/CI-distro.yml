@@ -49,6 +49,14 @@ jobs:
           cp -a "$GITHUB_WORKSPACE/Cache/https/repo1.maven.org/maven2"/* "$GITHUB_WORKSPACE/.m2/repository"
           find .m2 -type f ! \( -name '*.pom' -o -name '*.jar' \) -delete
           zip -r org.sireum.m2.zip .m2
+      - name: Upload install.cmd dev
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Sireum/bin/install.cmd
+          asset_name: install.cmd
+          tag: dev
+          overwrite: true
       - name: Upload Jar dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -72,6 +80,15 @@ jobs:
           file: org.sireum.m2.zip
           asset_name: org.sireum.m2.zip
           tag: dev
+          overwrite: true
+      - name: Upload install.cmd Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Sireum/bin/install.cmd
+          asset_name: install.cmd
+          tag: ${{ github.ref }}
           overwrite: true
       - name: Upload Jar Release
         if: github.ref_type == 'tag'
@@ -189,14 +206,6 @@ jobs:
             Sireum/bin/.7zz.ver Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-arm64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-arm64.tar.xz" .
-      - name: Upload Setup dev
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: Sireum/bin/setup.cmd
-          asset_name: setup.cmd
-          tag: dev
-          overwrite: true
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -220,15 +229,6 @@ jobs:
           file: sireum-codeive-mac-arm64.tar.xz
           asset_name: sireum-codeive-mac-arm64.tar.xz
           tag: dev
-          overwrite: true
-      - name: Upload Setup Release
-        if: github.ref_type == 'tag'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: Sireum/bin/setup.cmd
-          asset_name: setup.cmd
-          tag: ${{ github.ref }}
           overwrite: true
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
