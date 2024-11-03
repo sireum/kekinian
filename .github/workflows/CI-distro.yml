@@ -367,7 +367,7 @@ jobs:
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --pack --vscodium || goto :error
           copy C:\Windows\System32\vcruntime140.dll Sireum\bin\win\ || goto :error
           copy C:\Windows\System32\vcruntime140_1.dll Sireum\bin\win\ || goto :error
-          tar -acf sireum-cli-win-amd64.zip Sireum\bin\sireum.bat Sireum\bin\slang-run.bat Sireum\bin\install Sireum\bin\7zz.com Sireum\bin\.7zz.ver Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll Sireum\license.txt Sireum\readme.md Sireum\versions.properties || goto :error
+          "%SIREUM_HOME%\bin\7zz.com" a sireum-cli-win-amd64.7z Sireum\bin\sireum.bat Sireum\bin\slang-run.bat Sireum\bin\install Sireum\bin\7zz.com Sireum\bin\.7zz.ver Sireum\bin\win\sireum.exe Sireum\bin\win\vcruntime140.dll Sireum\bin\win\vcruntime140_1.dll Sireum\license.txt Sireum\readme.md Sireum\versions.properties || goto :error
           move "%SIREUM_HOME%\distro\win.7z" "%GITHUB_WORKSPACE%\sireum-ive-win-amd64.7z" || goto :error
           move "%SIREUM_HOME%\distro\sireum-codeive-win-amd64.7z" "%GITHUB_WORKSPACE%\" || goto :error
           goto :EOF
@@ -377,8 +377,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-win-amd64.zip
-          asset_name: sireum-cli-win-amd64.zip
+          file: sireum-cli-win-amd64.7z
+          asset_name: sireum-cli-win-amd64.7z
           tag: dev
           overwrite: true
       - name: Upload IVE dev
