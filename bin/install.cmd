@@ -3,6 +3,10 @@
 set -e                                                                                                                                                                                      #
 : "${SIREUM_V:=dev}"                                                                                                                                                                        #
 : "${DISTRO:=ive}"                                                                                                                                                                          #
+if [ "$DISTRO" != "cli" ] && [ "$DISTRO" != "codeive" ] && [ "$DISTRO" != "ive" ]; then                                                                                                     #
+  echo "DISTRO has to be either cli, codeive, or ive"                                                                                                                                       #
+  exit -3                                                                                                                                                                                   #
+fi                                                                                                                                                                                          #
 if [ -n "$COMSPEC" -a -x "$COMSPEC" ]; then                                                                                                                                                 #
   echo "Please execute this script in a cmd terminal"                                                                                                                                       #
   exit -2                                                                                                                                                                                   #
@@ -17,7 +21,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                       
   OS=linux                                                                                                                                                                                  #
   if [ "$(uname -m)" = "aarch64" ]; then                                                                                                                                                    #
     ARCH=arm64                                                                                                                                                                              #
-    echo "Unsupported architecture aarch64"                                                                                                                                                 #
+    echo "Unsupported Linux architecture aarch64"                                                                                                                                           #
     exit -1                                                                                                                                                                                 #
   else                                                                                                                                                                                      #
     ARCH=amd64                                                                                                                                                                              #
@@ -45,20 +49,42 @@ else                                                                            
 fi                                                                                                                                                                                          #
 echo ""                                                                                                                                                                                     #
 echo "Sireum is installed at $HOME/Sireum"                                                                                                                                                  #
+if [ "$DISTRO" = "cli" ]; then                                                                                                                                                              #
+  exit 0                                                                                                                                                                                    #
+fi                                                                                                                                                                                          #
+if [ "$OS" = "Linux" ]; then                                                                                                                                                                #
+  if [ "$ARCH" = "arm64" ]; then                                                                                                                                                            #
+    echo "CodeIVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/arm/vscodium/bin/codeive"                                                                                  #
+    if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
+      echo "IVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/arm/ide/bin/IVE.sh"                                                                                          #
+    fi                                                                                                                                                                                      #
+  else                                                                                                                                                                                      #
+    echo "CodeIVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/vscodium/bin/codeive"                                                                                      #
+    if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
+      echo "IVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/ide/bin/IVE.sh"                                                                                              #
+    fi                                                                                                                                                                                      #
+  fi                                                                                                                                                                                        #
+else                                                                                                                                                                                        #
+    echo "CodeIVE can be launched as follow: open $HOME/Applications/Sireum/bin/mac/vscodium/CodeIVE.app"                                                                                   #
+    if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
+      echo "IVE can be launched as follow: open $HOME/Applications/Sireum/bin/mac/idea/IVE.app"                                                                                             #
+    fi                                                                                                                                                                                      #
+fi                                                                                                                                                                                          #
 exit 0                                                                                                                                                                                      #
 :BOF
 setlocal
 set errorlevel=
-set P7ZZ_V=24.08
-set COSMOCC_V=3.9.6
-if not defined SIREUM_V set SIREUM_V=dev
-if not defined DISTRO set DISTRO=ive
-set ARCH=amd64
-if "%PROCESSOR_ARCHITECTURE%" == "ARM64" set ARCH=arm64 && echo Unsupported architecture ARM64 && exit /b -2
+set "P7ZZ_V=24.08"
+set "COSMOCC_V=3.9.6"
+if not defined SIREUM_V set "SIREUM_V=dev"
+if not defined DISTRO set "DISTRO=ive"
+if not "%DISTRO%" == "cli" if not "%DISTRO%" == "codeive" if not "%DISTRO%" == "ive" echo DISTRO has to be either cli, codeive, or ive && exit /b -3
+set "ARCH=amd64"
+if "%PROCESSOR_ARCHITECTURE%" == "ARM64" set "ARCH=arm64" && echo Unsupported Windows architecture ARM64 && exit /b -2
 rmdir /s/q "%USERPROFILE%\Applications\Sireum" 2> null
-if exist %USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z delete /s "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul 2>&1
-if exist %USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip delete /s "%USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip" >nul 2>&1
-if exist %USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com delete /s "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" >nul 2>&1
+if exist %USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z del /q/f "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul 2>&1
+if exist %USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip del /q/f "%USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip" >nul 2>&1
+if exist %USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com del /q/f "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" >nul 2>&1
 md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
 echo Please wait while downloading https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-%DISTRO%-win-%ARCH%.7z to %USERPROFILE%\Downloads ...
 curl -JLso "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-%DISTRO%-win-%ARCH%.7z || goto :error
@@ -78,6 +104,9 @@ echo Extracting org.sireum.library.m2-%SIREUM_V%.zip ...
 tar xf "%USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip" || goto :error
 echo.
 echo Sireum is installed at %USERPROFILE%\Applications\Sireum
+if "%DISTRO%" == "cli" exit /b 0
+echo CodeIVE can be launched as follow: %USERPROFILE%\Applications\Sireum\bin\win\vscodium\CodeIVE.exe
+if "%DISTRO%" == "ive" echo IVE can be launched as follow: %USERPROFILE%\Applications\Sireum\bin\win\idea\bin\IVE.exe
 goto :EOF
 :error
 exit /b %errorlevel%
