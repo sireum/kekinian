@@ -189,6 +189,14 @@ jobs:
             Sireum/bin/.7zz.ver Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-arm64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-arm64.tar.xz" .
+      - name: Upload Setup dev
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Sireum/bin/setup.cmd
+          asset_name: setup.cmd
+          tag: dev
+          overwrite: true
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -212,6 +220,15 @@ jobs:
           file: sireum-codeive-mac-arm64.tar.xz
           asset_name: sireum-codeive-mac-arm64.tar.xz
           tag: dev
+          overwrite: true
+      - name: Upload Setup Release
+        if: github.ref_type == 'tag'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Sireum/bin/setup.cmd
+          asset_name: setup.cmd
+          tag: ${{ github.ref }}
           overwrite: true
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
@@ -265,14 +282,6 @@ jobs:
             Sireum/bin/.7zz.ver Sireum/license.txt Sireum/readme.md Sireum/versions.properties
           mv "$SIREUM_HOME/distro/mac.tar.xz" sireum-ive-mac-amd64.tar.xz
           mv "$SIREUM_HOME/distro/sireum-codeive-mac-amd64.tar.xz" .
-      - name: Upload Setup dev
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: bin/setup.cmd
-          asset_name: setup.cmd
-          tag: dev
-          overwrite: true
       - name: Upload CLI dev
         uses: svenstaro/upload-release-action@v2
         with:
@@ -296,15 +305,6 @@ jobs:
           file: sireum-codeive-mac-amd64.tar.xz
           asset_name: sireum-codeive-mac-amd64.tar.xz
           tag: dev
-          overwrite: true
-      - name: Upload Setup Release
-        if: github.ref_type == 'tag'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: bin/setup.cmd
-          asset_name: setup.cmd
-          tag: ${{ github.ref }}
           overwrite: true
       - name: Upload CLI Release
         if: github.ref_type == 'tag'
@@ -431,7 +431,7 @@ jobs:
     steps:
       - name: Test CodeIVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -439,7 +439,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -452,7 +452,7 @@ jobs:
     steps:
       - name: Test CodeIVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -460,7 +460,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -474,8 +474,8 @@ jobs:
       - name: Test CodeIVE
         shell: cmd
         run: |
-          rmdir /s/q "%USERPROFILE%\.m2" "%USERPROFILE%\logika-examples" 2> null
-          set DISTRO=codeive && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
+          set DISTRO=codeive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -487,8 +487,8 @@ jobs:
       - name: Test IVE
         shell: cmd
         run: |
-          rmdir /s/q "%USERPROFILE%\.m2" "%USERPROFILE%\logika-examples" 2> null
-          set DISTRO=ive && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
+          set DISTRO=ive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -505,8 +505,8 @@ jobs:
       - name: Test CodeIVE
         shell: cmd
         run: |
-          rmdir /s/q "%USERPROFILE%\.m2" "%USERPROFILE%\logika-examples" 2> null
-          set DISTRO=codeive && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
+          set DISTRO=codeive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -518,8 +518,8 @@ jobs:
       - name: Test IVE
         shell: cmd
         run: |
-          rmdir /s/q "%USERPROFILE%\.m2" "%USERPROFILE%\logika-examples" 2> null
-          set DISTRO=ive && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
+          set DISTRO=ive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -535,7 +535,7 @@ jobs:
     steps:
       - name: Test CodeIVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -543,7 +543,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -556,7 +556,7 @@ jobs:
     steps:
       - name: Test CodeIVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -564,7 +564,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -577,7 +577,7 @@ jobs:
     steps:
       - name: Test CodeIVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
@@ -585,7 +585,7 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
-          rm -fR ~/.m2 ~/logika-examples
+          rm -fR ~/.m2 logika-examples
           DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
