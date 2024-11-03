@@ -475,7 +475,7 @@ jobs:
         shell: cmd
         run: |
           rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
-          set DISTRO=codeive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          set "DISTRO=codeive" && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && del /q /f install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -488,7 +488,7 @@ jobs:
         shell: cmd
         run: |
           rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
-          set DISTRO=ive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          set "DISTRO=ive" && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && del /q /f install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -506,7 +506,7 @@ jobs:
         shell: cmd
         run: |
           rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
-          set DISTRO=codeive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          set "DISTRO=codeive" && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && del /q /f install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
@@ -519,7 +519,7 @@ jobs:
         shell: cmd
         run: |
           rmdir /s/q "%USERPROFILE%\.m2" logika-examples 2> null
-          set DISTRO=ive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && delete /s install.cmd
+          set "DISTRO=ive" && curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && del /q /f install.cmd
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
