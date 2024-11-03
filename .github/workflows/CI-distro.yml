@@ -554,6 +554,10 @@ jobs:
     needs: build-linux-amd64
     runs-on: ubuntu-22.04
     steps:
+      - name: Setup APE
+        run: |
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli'
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status'
       - name: Test CodeIVE
         run: |
           rm -fR ~/.m2 logika-examples
@@ -575,6 +579,12 @@ jobs:
     needs: build-linux-amd64
     runs-on: ubuntu-latest
     steps:
+      - name: Setup APE
+        run: |
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/v/3.9.2/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
       - name: Test CodeIVE
         run: |
           rm -fR ~/.m2 logika-examples

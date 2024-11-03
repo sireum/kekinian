@@ -52,7 +52,7 @@ echo "Sireum is installed at $HOME/Sireum"                                      
 if [ "$DISTRO" = "cli" ]; then                                                                                                                                                              #
   exit 0                                                                                                                                                                                    #
 fi                                                                                                                                                                                          #
-if [ "$OS" = "Linux" ]; then                                                                                                                                                                #
+if [ "$OS" = "linux" ]; then                                                                                                                                                                #
   if [ "$ARCH" = "arm64" ]; then                                                                                                                                                            #
     echo "CodeIVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/arm/vscodium/bin/codeive"                                                                                  #
     if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
