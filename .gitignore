@@ -17,6 +17,7 @@
 !/bin/init.bat
 !/bin/init.cmd
 !/bin/init-lib.cmd
+!/bin/install.cmd
 !/bin/project.cmd
 !/bin/rtag.sh
 !/bin/sireum
