@@ -554,7 +554,7 @@ jobs:
     needs: build-linux-amd64
     runs-on: ubuntu-22.04
     steps:
-      - name: Setup APE
+      - name: Disable binfmt
         run: |
           sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli'
           sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status'
@@ -579,7 +579,7 @@ jobs:
     needs: build-linux-amd64
     runs-on: ubuntu-latest
     steps:
-      - name: Setup APE
+      - name: Setup APE binfmt
         run: |
           sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/v/3.9.2/bin/ape-$(uname -m).elf
           sudo chmod +x /usr/bin/ape
