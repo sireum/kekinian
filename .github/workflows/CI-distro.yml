@@ -402,8 +402,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-cli-win-amd64.zip
-          asset_name: sireum-cli-win-amd64.zip
+          file: sireum-cli-win-amd64.7z
+          asset_name: sireum-cli-win-amd64.7z
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload IVE Release
@@ -420,8 +420,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sireum-codeive-win-amd64.zip
-          asset_name: sireum-codeive-win-amd64.zip
+          file: sireum-codeive-win-amd64.7z
+          asset_name: sireum-codeive-win-amd64.7z
           tag: ${{ github.ref }}
           overwrite: true
 
