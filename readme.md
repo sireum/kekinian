@@ -66,6 +66,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | Application | License |
 | :--- | :---: |
 | [Liberica NIK/JDK (Full)](https://bell-sw.com/) | [GPL v2 with "Classpath" exception](https://github.com/bell-sw/Liberica/blob/master/LICENSE) |
+| [7zz](https://github.com/ip7z/7zip) | [LGPL v2.1/BSD3/unRAR license restriction](https://github.com/ip7z/7zip/blob/main/DOC/License.txt) |
 | [CVC4/5](https://github.com/cvc5/cvc5) | [BSD3](https://github.com/cvc5/cvc5/blob/master/COPYING) |
 | [Coursier](https://github.com/coursier/coursier) | [Apache 2.0](https://github.com/coursier/coursier/blob/master/LICENSE) |
 | [JaCoCo](https://github.com/jacoco/jacoco) | [EPL 2.0](https://github.com/jacoco/jacoco/blob/master/LICENSE.md) |
