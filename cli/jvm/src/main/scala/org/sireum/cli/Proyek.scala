@@ -358,6 +358,10 @@ object Proyek {
   }
 
   def exprt(o: Cli.SireumProyekExportOption): Z = {
+    if (o.args.size != 1) {
+      println(o.help)
+      return 0
+    }
 
     var genMill = F
     var genBloop = F
