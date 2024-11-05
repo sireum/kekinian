@@ -27,25 +27,25 @@ elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                       
     ARCH=amd64                                                                                                                                                                              #
   fi                                                                                                                                                                                        #
 fi                                                                                                                                                                                          #
-rm -fR ~/Applications/Sireum ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.library.m2-$SIREUM_V.zip                                                          #
-rm -f ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.library.m2-$SIREUM_V.zip                                                                                 #
+rm -fR ~/Applications/Sireum ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                  #
+rm -f ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                         #
 mkdir -p ~/Applications ~/Downloads                                                                                                                                                         #
 echo "Please wait while downloading https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-$DISTRO-$OS-$ARCH.tar.xz to $HOME/Downloads ..."                                  #
 curl -JLso ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-$DISTRO-$OS-$ARCH.tar.xz                             #
 echo ""                                                                                                                                                                                     #
-echo "Please wait while downloading https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip to $HOME/Downloads ..."                                        #
-curl -JLso ~/Downloads/org.sireum.library.m2-$SIREUM_V.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.library.m2.zip                                         #
+echo "Please wait while downloading https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.m2.zip to $HOME/Downloads ..."                                                #
+curl -JLso ~/Downloads/org.sireum.m2-$SIREUM_V.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.m2.zip                                                         #
 echo ""                                                                                                                                                                                     #
 cd ~/Applications                                                                                                                                                                           #
 echo "Extracting sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ..."                                                                                                                             #
 tar xf ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz                                                                                                                                #
 echo ""                                                                                                                                                                                     #
 cd ~                                                                                                                                                                                        #
-echo "Extracting org.sireum.library.m2-$SIREUM_V.zip ..."                                                                                                                                   #
+echo "Extracting org.sireum.m2-$SIREUM_V.zip ..."                                                                                                                                           #
 if [ "$OS" = "mac" ]; then                                                                                                                                                                  #
-  tar xf ~/Downloads/org.sireum.library.m2-$SIREUM_V.zip                                                                                                                                    #
+  tar xf ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                                                                            #
 else                                                                                                                                                                                        #
-  unzip -qq ~/Downloads/org.sireum.library.m2-$SIREUM_V.zip                                                                                                                                 #
+  unzip -qq ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                                                                         #
 fi                                                                                                                                                                                          #
 echo ""                                                                                                                                                                                     #
 echo "Sireum is installed at $HOME/Sireum"                                                                                                                                                  #
@@ -83,14 +83,14 @@ set "ARCH=amd64"
 if "%PROCESSOR_ARCHITECTURE%" == "ARM64" set "ARCH=arm64" && echo Unsupported Windows architecture ARM64 && exit /b -2
 rmdir /s/q "%USERPROFILE%\Applications\Sireum" 2> null
 if exist %USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z del /q/f "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul 2>&1
-if exist %USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip del /q/f "%USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip" >nul 2>&1
+if exist %USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip del /q/f "%USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip" >nul 2>&1
 if exist %USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com del /q/f "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" >nul 2>&1
 md "%USERPROFILE%\Applications" "%USERPROFILE%\Downloads" 2> nul
 echo Please wait while downloading https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-%DISTRO%-win-%ARCH%.7z to %USERPROFILE%\Downloads ...
 curl -JLso "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/sireum-%DISTRO%-win-%ARCH%.7z || goto :error
 echo.
-echo Please wait while downloading https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip to %USERPROFILE%\Downloads ...
-curl -JLso "%USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip" https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.library.m2.zip || goto :error
+echo Please wait while downloading https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.m2.zip to %USERPROFILE%\Downloads ...
+curl -JLso "%USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip" https://github.com/sireum/kekinian/releases/download/%SIREUM_V%/org.sireum.m2.zip || goto :error
 echo.
 echo Please wait while downloading https://github.com/sireum/rolling/releases/download/misc/7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com to %USERPROFILE%\Downloads ...
 curl -JLso "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" https://github.com/sireum/rolling/releases/download/misc/7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com || goto :error
@@ -100,8 +100,8 @@ echo Extracting sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z ...
 "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" x "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul || goto :error
 echo.
 cd /d "%USERPROFILE%"
-echo Extracting org.sireum.library.m2-%SIREUM_V%.zip ...
-tar xf "%USERPROFILE%\Downloads\org.sireum.library.m2-%SIREUM_V%.zip" || goto :error
+echo Extracting org.sireum.m2-%SIREUM_V%.zip ...
+tar xf "%USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip" || goto :error
 echo.
 echo Sireum is installed at %USERPROFILE%\Applications\Sireum
 if "%DISTRO%" == "cli" exit /b 0

@@ -581,7 +581,7 @@ jobs:
     steps:
       - name: Setup APE binfmt
         run: |
-          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/v/3.9.2/bin/ape-$(uname -m).elf
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
           sudo chmod +x /usr/bin/ape
           sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
           sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
