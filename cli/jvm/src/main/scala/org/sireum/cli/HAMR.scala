@@ -484,7 +484,15 @@ object HAMR {
         proxyPassword = proxyPassword,
         proxyNonHosts = proxyNonHosts
       )
-      return Proyek.ive(spivo)
+      Proyek.ive(spivo) match {
+        case 0 =>
+          Cli(Os.pathSepChar).parseSireumProyekExport(po.args, 0) match {
+            case Some(exportOpts: Cli.SireumProyekExportOption) =>
+              return Proyek.exprt(exportOpts)
+            case x => return INVALID_OPTIONS
+          }
+        case errCode => return errCode
+      }
     }
 
     def sergen(stso: SireumToolsSergenOption, sreporter: Reporter): Z = {
@@ -952,7 +960,7 @@ object HAMR {
           }
         }
     }
-    return None()
+    return Some(o)
   }
 
   // Note: this method is also used by sireum forms (insert url)
