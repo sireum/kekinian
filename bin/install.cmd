@@ -56,12 +56,12 @@ if [ "$OS" = "linux" ]; then                                                    
   if [ "$ARCH" = "arm64" ]; then                                                                                                                                                            #
     echo "CodeIVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/arm/vscodium/bin/codeive"                                                                                  #
     if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
-      echo "IVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/arm/ide/bin/IVE.sh"                                                                                          #
+      echo "IVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/arm/idea/bin/IVE.sh"                                                                                         #
     fi                                                                                                                                                                                      #
   else                                                                                                                                                                                      #
     echo "CodeIVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/vscodium/bin/codeive"                                                                                      #
     if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
-      echo "IVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/ide/bin/IVE.sh"                                                                                              #
+      echo "IVE can be launched as follow: $HOME/Applications/Sireum/bin/linux/idea/bin/IVE.sh"                                                                                             #
     fi                                                                                                                                                                                      #
   fi                                                                                                                                                                                        #
 else                                                                                                                                                                                        #
