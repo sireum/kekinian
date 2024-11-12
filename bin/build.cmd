@@ -28,7 +28,7 @@ def usage(): Unit = {
         |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
         |       | regen-slang-tt   | regen-reflect       | forms
         |       | cvc              | z3                  | m2[-lib[-js] | -scalac]
-        |       | jitpack          | ghpack              | ram
+        |       | mill             | jitpack             | ghpack            | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
         |                | --pack  | --ultimate          | --server          | --vscodium  )*  )*
         |""".render)
@@ -485,6 +485,11 @@ def ghpack(): Unit = {
   }
 }
 
+def mill(): Unit = {
+  val init = Init(home, Os.kind, versions)
+  init.installMill(T)
+}
+
 def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   println("Setup ...")
   build(fresh, F, F)
@@ -727,6 +732,7 @@ if (Os.cliArgs.isEmpty) {
       case string"m2-scalac" => m2ScalacPlugin()
       case string"jitpack" => jitpack()
       case string"ghpack" => ghpack()
+      case string"mill" => mill()
       case string"ram" => ram()
       case string"cvc" => cvc()
       case string"z3" => z3()
