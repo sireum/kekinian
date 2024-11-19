@@ -468,7 +468,7 @@ object Proyek {
             |  def unmanagedClasspath = Task {
             |    val sireumHome = Option(System.getenv("SIREUM_HOME")) match {
             |      case Some(p) => os.Path(p)
-            |      case _ => os.Path("${SireumApi.homeOpt.get.string}")
+            |      case _ => os.Path("${ops.StringOps(SireumApi.homeOpt.get.string).escapeST}")
             |    }
             |    Agg(PathRef(sireumHome / "bin" / "sireum.jar"))
             |  }
