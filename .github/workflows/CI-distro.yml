@@ -445,6 +445,9 @@ jobs:
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+      - name: Test FMIDE
+        run: |
+          "${SIREUM_HOME}/bin/install/fmide.cmd"
 
   test-mac-amd64:
     needs: [build-linux-amd64, build-macos-amd64]
@@ -466,6 +469,9 @@ jobs:
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+      - name: Test FMIDE
+        run: |
+          "${SIREUM_HOME}/bin/install/fmide.cmd"
 
   test-windows-amd64-2019:
     needs: [build-linux-amd64, build-windows-amd64]
@@ -494,6 +500,14 @@ jobs:
           git clone https://github.com/sireum/logika-examples
           call logika-examples\bin\verify.cmd || goto :error
           call "%SIREUM_HOME%\bin\sireum.bat" proyek ive logika-examples || goto :error
+          call "%SIREUM_HOME%\bin\install\fmide.cmd" || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
+      - name: Test FMIDE
+        shell: cmd
+        run: |
+          call "%SIREUM_HOME%\bin\install\fmide.cmd" || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%
@@ -528,6 +542,13 @@ jobs:
           goto :EOF
           :error
           exit /b %errorlevel%
+      - name: Test FMIDE
+        shell: cmd
+        run: |
+          call "%SIREUM_HOME%\bin\install\fmide.cmd" || goto :error
+          goto :EOF
+          :error
+          exit /b %errorlevel%
 
   test-linux-amd64-20-04:
     needs: build-linux-amd64
@@ -549,6 +570,9 @@ jobs:
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+      - name: Test FMIDE
+        run: |
+          "${SIREUM_HOME}/bin/install/fmide.cmd"
 
   test-linux-amd64-22-04:
     needs: build-linux-amd64
@@ -574,6 +598,9 @@ jobs:
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+      - name: Test FMIDE
+        run: |
+          "${SIREUM_HOME}/bin/install/fmide.cmd"
 
   test-linux-amd64-latest:
     needs: build-linux-amd64
@@ -601,3 +628,6 @@ jobs:
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
+      - name: Test FMIDE
+        run: |
+          "${SIREUM_HOME}/bin/install/fmide.cmd"
