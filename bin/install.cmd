@@ -48,7 +48,7 @@ else                                                                            
   unzip -qq ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                                                                         #
 fi                                                                                                                                                                                          #
 echo ""                                                                                                                                                                                     #
-echo "Sireum is installed at $HOME/Sireum"                                                                                                                                                  #
+echo "Sireum is installed at $HOME/Applications/Sireum"                                                                                                                                     #
 if [ "$DISTRO" = "cli" ]; then                                                                                                                                                              #
   exit 0                                                                                                                                                                                    #
 fi                                                                                                                                                                                          #
