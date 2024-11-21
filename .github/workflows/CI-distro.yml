@@ -447,7 +447,6 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
       - name: Test FMIDE
         run: |
-          DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
 
@@ -473,7 +472,6 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
       - name: Test FMIDE
         run: |
-          DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
 
@@ -511,7 +509,6 @@ jobs:
       - name: Test FMIDE
         shell: cmd
         run: |
-          cmd /v/c "set DISTRO=codeive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && del /q/f install.cmd"
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           call "%SIREUM_HOME%\bin\install\fmide.cmd" || goto :error
@@ -552,7 +549,6 @@ jobs:
       - name: Test FMIDE
         shell: cmd
         run: |
-          cmd /v/c "set DISTRO=codeive&& curl -JLOs https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd && install.cmd && del /q/f install.cmd"
           set errorlevel=
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           call "%SIREUM_HOME%\bin\install\fmide.cmd" || goto :error
@@ -582,7 +578,6 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
       - name: Test FMIDE
         run: |
-          DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
 
@@ -612,7 +607,6 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
       - name: Test FMIDE
         run: |
-          DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
 
@@ -644,6 +638,5 @@ jobs:
           "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
       - name: Test FMIDE
         run: |
-          DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
