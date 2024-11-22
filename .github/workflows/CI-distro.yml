@@ -188,7 +188,7 @@ jobs:
     steps:
       - name: Clean
         run: |
-          rm -fR "$GITHUB_WORKSPACE/Sireum"
+          rm -fR "$GITHUB_WORKSPACE/Sireum" ~/Downloads/sireum
       - name: Checkout
         uses: actions/checkout@v4
         with:
