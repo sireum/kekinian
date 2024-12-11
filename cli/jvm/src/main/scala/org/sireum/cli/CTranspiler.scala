@@ -34,7 +34,7 @@ import org.sireum.lang.tipe._
 import org.sireum.message._
 
 import org.sireum.transpilers.c.StaticTranspiler
-import org.sireum.transpilers.common.TypeSpecializer
+import org.sireum.alir.TypeSpecializer
 
 object CTranspiler {
 
