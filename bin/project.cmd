@@ -44,6 +44,7 @@ val projects = ISZ(
   homeDir / "slang",
   homeDir / "tools",
   homeDir / "alir",
+  homeDir / "anvil",
   homeDir / "transpilers",
   homeDir / "logika",
   homeDir / "infoflow",

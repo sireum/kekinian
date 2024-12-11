@@ -49,3 +49,6 @@
 [submodule "hamr/sysml"]
 	path = hamr/sysml
 	url = https://github.com/sireum/hamr-sysml.git
+[submodule "anvil"]
+	path = anvil
+	url = https://github.com/sireum/anvil.git
