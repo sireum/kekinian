@@ -217,10 +217,7 @@ object SlangTipe {
             startTime()
           }
 
-          val (thl, rep): (TypeHierarchy, Reporter) = if (o.outline) {
-            val p = FrontEnd.libraryReporter
-            (p._1.typeHierarchy, p._2)
-          } else {
+          val (thl, rep): (TypeHierarchy, Reporter) = {
             val p = FrontEnd.checkedLibraryReporter
             (p._1.typeHierarchy, p._2)
           }
