@@ -114,6 +114,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Scala](https://plugins.jetbrains.com/plugin/1347-scala) | [Apache 2.0](https://github.com/JetBrains/intellij-scala/blob/idea212.x/LICENSE.txt) |
 | [Sireum](https://github.com/sireum/intellij-plugin) | [BSD2](https://github.com/sireum/intellij-plugin/blob/master/license.md) |
 | [Slang Injector](https://github.com/sireum/intellij-injector) | [BSD2](https://github.com/sireum/intellij-injector/blob/master/license.md) |
+| [Swing UI Designer](https://plugins.jetbrains.com/plugin/25304-swing-ui-designer) | [JetBrains User Agreement (Free)](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [Terminal](https://plugins.jetbrains.com/plugin/13123-terminal) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [TeXiFy IDEA](https://plugins.jetbrains.com/plugin/9473-texify-idea) | [MIT](https://github.com/Hannah-Sten/TeXiFy-IDEA/blob/master/LICENSE) |
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
