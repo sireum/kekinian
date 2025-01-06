@@ -82,8 +82,8 @@ object Cli {
     val maxStringSize: Z,
     val maxArraySize: Z,
     val runTranspiler: B,
-    val camkesOutputDir: Option[String],
-    val camkesAuxCodeDirs: ISZ[String],
+    val sel4OutputDir: Option[String],
+    val sel4AuxCodeDirs: ISZ[String],
     val workspaceRootDir: Option[String],
     val strictAadlMode: B,
     val ros2OutputWorkspaceDir: Option[String],
@@ -162,8 +162,8 @@ object Cli {
     val maxStringSize: Z,
     val maxArraySize: Z,
     val runTranspiler: B,
-    val camkesOutputDir: Option[String],
-    val camkesAuxCodeDirs: ISZ[String],
+    val sel4OutputDir: Option[String],
+    val sel4AuxCodeDirs: ISZ[String],
     val workspaceRootDir: Option[String],
     val strictAadlMode: B,
     val ros2OutputWorkspaceDir: Option[String],
@@ -1330,12 +1330,11 @@ import Cli._
           |                           integer; default is 100)
           |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
-          |CAmkES Options:
-          |    --camkes-output-dir  Output directory for the generated CAmkES project
-          |                           files (expects a path)
-          |    --camkes-aux-code-dirs
-          |                          Directories containing C files to be included in
-          |                           CAmkES build (expects path strings)
+          |CAmkES/Microkit Options:
+          |    --sel4-output-dir    Output directory for the generated CAmkES/Microkit
+          |                           project files (expects a path)
+          |    --sel4-aux-code-dirs Directories containing C files to be included in
+          |                           CAmkES/Microkit build (expects path strings)
           |-r, --workspace-root-dir    
           |                          Root directory containing the architectural model
           |                           project (expects a path)
@@ -1378,8 +1377,8 @@ import Cli._
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
     var runTranspiler: B = false
-    var camkesOutputDir: Option[String] = None[String]()
-    var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
+    var sel4OutputDir: Option[String] = None[String]()
+    var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
     var workspaceRootDir: Option[String] = None[String]()
     var strictAadlMode: B = false
     var ros2OutputWorkspaceDir: Option[String] = None[String]()
@@ -1509,16 +1508,16 @@ import Cli._
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
-         } else if (arg == "--camkes-output-dir") {
+         } else if (arg == "--sel4-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => camkesOutputDir = v
+             case Some(v) => sel4OutputDir = v
              case _ => return None()
            }
-         } else if (arg == "--camkes-aux-code-dirs") {
+         } else if (arg == "--sel4-aux-code-dirs") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
-             case Some(v) => camkesAuxCodeDirs = v
+             case Some(v) => sel4AuxCodeDirs = v
              case _ => return None()
            }
          } else if (arg == "-r" || arg == "--workspace-root-dir") {
@@ -1572,7 +1571,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1880,12 +1879,11 @@ import Cli._
           |                           integer; default is 100)
           |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
-          |CAmkES Options:
-          |    --camkes-output-dir  Output directory for the generated CAmkES project
-          |                           files (expects a path)
-          |    --camkes-aux-code-dirs
-          |                          Directories containing C files to be included in
-          |                           CAmkES build (expects path strings)
+          |CAmkES/Microkit Options:
+          |    --sel4-output-dir    Output directory for the generated CAmkES/Microkit
+          |                           project files (expects a path)
+          |    --sel4-aux-code-dirs Directories containing C files to be included in
+          |                           CAmkES/Microkit build (expects path strings)
           |-r, --workspace-root-dir    
           |                          Root directory containing the architectural model
           |                           project (expects a path)
@@ -1930,8 +1928,8 @@ import Cli._
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
     var runTranspiler: B = false
-    var camkesOutputDir: Option[String] = None[String]()
-    var camkesAuxCodeDirs: ISZ[String] = ISZ[String]()
+    var sel4OutputDir: Option[String] = None[String]()
+    var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
     var workspaceRootDir: Option[String] = None[String]()
     var strictAadlMode: B = false
     var ros2OutputWorkspaceDir: Option[String] = None[String]()
@@ -2073,16 +2071,16 @@ import Cli._
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
-         } else if (arg == "--camkes-output-dir") {
+         } else if (arg == "--sel4-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
-             case Some(v) => camkesOutputDir = v
+             case Some(v) => sel4OutputDir = v
              case _ => return None()
            }
-         } else if (arg == "--camkes-aux-code-dirs") {
+         } else if (arg == "--sel4-aux-code-dirs") {
            val o: Option[ISZ[String]] = parsePaths(args, j + 1)
            o match {
-             case Some(v) => camkesAuxCodeDirs = v
+             case Some(v) => sel4AuxCodeDirs = v
              case _ => return None()
            }
          } else if (arg == "-r" || arg == "--workspace-root-dir") {
@@ -2136,7 +2134,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, camkesOutputDir, camkesAuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {

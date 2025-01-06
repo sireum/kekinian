@@ -257,8 +257,8 @@ object HAMR {
                maxArraySize: Z,
                runTranspiler: B,
                //
-               camkesOutputDirectory: Option[String],
-               camkesAuxCodeDirs: ISZ[String],
+               sel4OutputDirectory: Option[String],
+               sel4AuxCodeDirs: ISZ[String],
                workspaceRootDir: Option[String],
                //
                experimentalOptions: ISZ[String],
@@ -288,8 +288,8 @@ object HAMR {
       maxArraySize = maxArraySize,
       runTranspiler = runTranspiler,
       //
-      camkesOutputDirectory = camkesOutputDirectory,
-      camkesAuxCodeDirs = camkesAuxCodeDirs,
+      sel4OutputDirectory = sel4OutputDirectory,
+      sel4AuxCodeDirs = sel4AuxCodeDirs,
       workspaceRootDir = workspaceRootDir,
       //
       experimentalOptions = experimentalOptions,
@@ -335,8 +335,8 @@ object HAMR {
                maxArraySize: Z,
                runTranspiler: B,
                //
-               camkesOutputDirectory: Option[String],
-               camkesAuxCodeDirs: ISZ[String],
+               sel4OutputDirectory: Option[String],
+               sel4AuxCodeDirs: ISZ[String],
                workspaceRootDir: Option[String],
                //
                experimentalOptions: ISZ[String],
@@ -372,8 +372,8 @@ object HAMR {
       maxArraySize = maxArraySize,
       runTranspiler = runTranspiler,
       //
-      camkesOutputDir = camkesOutputDirectory,
-      camkesAuxCodeDirs = camkesAuxCodeDirs,
+      sel4OutputDir = sel4OutputDirectory,
+      sel4AuxCodeDirs = sel4AuxCodeDirs,
       workspaceRootDir = workspaceRootDir,
       //
       strictAadlMode = F,
@@ -870,8 +870,8 @@ object HAMR {
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
       //
-      camkesOutputDir = o.camkesOutputDir,
-      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
+      sel4OutputDir = o.sel4OutputDir,
+      sel4AuxCodeDirs = o.sel4AuxCodeDirs,
       workspaceRootDir = o.workspaceRootDir,
       //
       strictAadlMode = o.strictAadlMode,
@@ -909,8 +909,8 @@ object HAMR {
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
       //
-      camkesOutputDir = o.camkesOutputDir,
-      camkesAuxCodeDirs = o.camkesAuxCodeDirs,
+      sel4OutputDir = o.sel4OutputDir,
+      sel4AuxCodeDirs = o.sel4AuxCodeDirs,
       workspaceRootDir = o.workspaceRootDir,
       //
       strictAadlMode = o.strictAadlMode,
@@ -1067,17 +1067,17 @@ object HAMR {
           i = i + 1
         }
         // camkes group options
-        else if (k == LongKeys.CAmkES_camkesOutputDir) {
-          ret = ret(camkesOutputDir = fileOptions.camkesOutputDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_camkesOutputDir
+        else if (k == LongKeys.CAmkES_Microkit_sel4OutputDir) {
+          ret = ret(sel4OutputDir = fileOptions.sel4OutputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4OutputDir
           i = i + 2
-        } else if (k == LongKeys.CAmkES_camkesAuxCodeDirs) {
-          ret = ret(camkesAuxCodeDirs = fileOptions.camkesAuxCodeDirs)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_camkesAuxCodeDirs
+        } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeDirs) {
+          ret = ret(sel4AuxCodeDirs = fileOptions.sel4AuxCodeDirs)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeDirs
           i = i + 2
-        } else if (k == ShortKeys.CAmkES_workspaceRootDir || k == LongKeys.CAmkES_workspaceRootDir) {
+        } else if (k == ShortKeys.CAmkES_Microkit_workspaceRootDir || k == LongKeys.CAmkES_Microkit_workspaceRootDir) {
           ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_workspaceRootDir
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_workspaceRootDir
           i = i + 2
         }
         // ros2 group options
@@ -1210,11 +1210,11 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.runTranspiler) {
       ret = ret :+ ("--run-transpiler", None())
     }
-    if (o.camkesOutputDir.nonEmpty) {
-      ret = ret :+ ("--camkes-output-dir", Some(st"${(o.camkesOutputDir, Os.pathSep)}".render))
+    if (o.sel4OutputDir.nonEmpty) {
+      ret = ret :+ ("--sel4-output-dir", Some(st"${(o.sel4OutputDir, Os.pathSep)}".render))
     }
-    if (o.camkesAuxCodeDirs.nonEmpty) {
-      ret = ret :+ ("--camkes-aux-code-dirs", Some(st"${(o.camkesAuxCodeDirs, Os.pathSep)}".render))
+    if (o.sel4AuxCodeDirs.nonEmpty) {
+      ret = ret :+ ("--sel4-aux-code-dirs", Some(st"${(o.sel4AuxCodeDirs, Os.pathSep)}".render))
     }
     if (o.workspaceRootDir.nonEmpty) {
       ret = ret :+ ("--workspace-root-dir", Some(st"${(o.workspaceRootDir, Os.pathSep)}".render))
@@ -1311,11 +1311,11 @@ object SireumHamrCodegenOptionUtil {
     if (o.runTranspiler) {
       ret = ret :+ ("--run-transpiler", None())
     }
-    if (o.camkesOutputDir.nonEmpty) {
-      ret = ret :+ ("--camkes-output-dir", Some(st"${(o.camkesOutputDir, Os.pathSep)}".render))
+    if (o.sel4OutputDir.nonEmpty) {
+      ret = ret :+ ("--sel4-output-dir", Some(st"${(o.sel4OutputDir, Os.pathSep)}".render))
     }
-    if (o.camkesAuxCodeDirs.nonEmpty) {
-      ret = ret :+ ("--camkes-aux-code-dirs", Some(st"${(o.camkesAuxCodeDirs, Os.pathSep)}".render))
+    if (o.sel4AuxCodeDirs.nonEmpty) {
+      ret = ret :+ ("--sel4-aux-code-dirs", Some(st"${(o.sel4AuxCodeDirs, Os.pathSep)}".render))
     }
     if (o.workspaceRootDir.nonEmpty) {
       ret = ret :+ ("--workspace-root-dir", Some(st"${(o.workspaceRootDir, Os.pathSep)}".render))
