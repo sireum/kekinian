@@ -99,7 +99,7 @@ echo.
 echo Please wait while downloading https://github.com/sireum/rolling/releases/download/misc/7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com to %USERPROFILE%\Downloads ...
 curl -JLso "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" https://github.com/sireum/rolling/releases/download/misc/7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com || goto :error
 echo.
-cd /d "%PDIR"
+cd /d "%PDIR%"
 echo Extracting sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z ...
 "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" x "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul || goto :error
 echo.
