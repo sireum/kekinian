@@ -77,7 +77,7 @@ exit 0                                                                          
 setlocal
 set errorlevel=
 set "P7ZZ_V=24.08"
-set "COSMOCC_V=3.9.6"
+set "COSMOCC_V=4.0.2"
 if not defined SIREUM_V set "SIREUM_V=dev"
 if not defined DISTRO set "DISTRO=ive"
 if not defined DIR set "DIR=%USERPROFILE%\Applications\Sireum"
