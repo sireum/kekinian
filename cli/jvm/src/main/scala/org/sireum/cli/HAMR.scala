@@ -779,7 +779,9 @@ object HAMR {
       rwTrace = o.rwTrace,
       rwMax = o.rwMax,
       rwPar = o.rwPar,
-      rwEvalTrace = o.rwEvalTrace
+      rwEvalTrace = o.rwEvalTrace,
+      branchParPredNum = o.branchPredNum,
+      branchParPredComp = o.branchPredComplexity
     )
     val plugins = logika.Logika.defaultPlugins
 

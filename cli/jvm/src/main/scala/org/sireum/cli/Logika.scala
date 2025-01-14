@@ -227,7 +227,9 @@ object Logika {
           rwTrace = o.rwTrace,
           rwMax = o.rwMax,
           rwPar = o.rwPar,
-          rwEvalTrace = o.rwEvalTrace
+          rwEvalTrace = o.rwEvalTrace,
+          branchParPredNum = o.branchPredNum,
+          branchParPredComp = o.branchPredComplexity
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -378,7 +380,9 @@ object Logika {
         rwTrace = o.rwTrace,
         rwMax = o.rwMax,
         rwPar = o.rwPar,
-        rwEvalTrace = o.rwEvalTrace
+        rwEvalTrace = o.rwEvalTrace,
+        branchParPredNum = o.branchPredNum,
+        branchParPredComp = o.branchPredComplexity
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())

@@ -231,6 +231,8 @@ object Cli {
     val par: Option[Z],
     val branchPar: B,
     val branchParReturn: B,
+    val branchPredNum: Z,
+    val branchPredComplexity: Z,
     val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -329,6 +331,8 @@ object Cli {
     val par: Option[Z],
     val branchPar: B,
     val branchParReturn: B,
+    val branchPredNum: Z,
+    val branchPredComplexity: Z,
     val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -587,6 +591,8 @@ object Cli {
     val par: Option[Z],
     val branchPar: B,
     val branchParReturn: B,
+    val branchPredNum: Z,
+    val branchPredComplexity: Z,
     val rwPar: B,
     val dontSplitFunQuant: B,
     val splitAll: B,
@@ -2310,6 +2316,13 @@ import Cli._
           |                           100; default is 100)
           |    --par-branch         Enable branch parallelization
           |    --par-branch-return  Only use branch parallelization if all branches return
+          |    --par-branch-pred-num
+          |                          Branch parallelization prediction number of branches
+          |                           (expects an integer; min is 2; default is 2)
+          |    --par-branch-pred-complexity
+          |                          Branch parallelization prediction statement
+          |                           complexity (expects an integer; min is 0; default is
+          |                           10)
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -2375,6 +2388,8 @@ import Cli._
     var par: Option[Z] = None()
     var branchPar: B = false
     var branchParReturn: B = false
+    var branchPredNum: Z = 2
+    var branchPredComplexity: Z = 10
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -2585,6 +2600,18 @@ import Cli._
              case Some(v) => branchParReturn = v
              case _ => return None()
            }
+         } else if (arg == "--par-branch-pred-num") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(2), None())
+           o match {
+             case Some(v) => branchPredNum = v
+             case _ => return None()
+           }
+         } else if (arg == "--par-branch-pred-complexity") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => branchPredComplexity = v
+             case _ => return None()
+           }
          } else if (arg == "--par-rw") {
            val o: Option[B] = { j = j - 1; Some(!rwPar) }
            o match {
@@ -2708,7 +2735,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, feedback, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, feedback, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, branchPredNum, branchPredComplexity, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumHamrSysmlTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -3026,6 +3053,13 @@ import Cli._
           |                           100; default is 100)
           |    --par-branch         Enable branch parallelization
           |    --par-branch-return  Only use branch parallelization if all branches return
+          |    --par-branch-pred-num
+          |                          Branch parallelization prediction number of branches
+          |                           (expects an integer; min is 2; default is 2)
+          |    --par-branch-pred-complexity
+          |                          Branch parallelization prediction statement
+          |                           complexity (expects an integer; min is 0; default is
+          |                           10)
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -3093,6 +3127,8 @@ import Cli._
     var par: Option[Z] = None()
     var branchPar: B = false
     var branchParReturn: B = false
+    var branchPredNum: Z = 2
+    var branchPredComplexity: Z = 10
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -3315,6 +3351,18 @@ import Cli._
              case Some(v) => branchParReturn = v
              case _ => return None()
            }
+         } else if (arg == "--par-branch-pred-num") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(2), None())
+           o match {
+             case Some(v) => branchPredNum = v
+             case _ => return None()
+           }
+         } else if (arg == "--par-branch-pred-complexity") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => branchPredComplexity = v
+             case _ => return None()
+           }
          } else if (arg == "--par-rw") {
            val o: Option[B] = { j = j - 1; Some(!rwPar) }
            o match {
@@ -3438,7 +3486,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), feedback, manual, noRuntime, parseableMessages, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumLogikaVerifierOption(help, parseArguments(args, j), feedback, manual, noRuntime, parseableMessages, sourcepath, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, branchPredNum, branchPredComplexity, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumParser(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -5090,6 +5138,13 @@ import Cli._
           |                           100; default is 100)
           |    --par-branch         Enable branch parallelization
           |    --par-branch-return  Only use branch parallelization if all branches return
+          |    --par-branch-pred-num
+          |                          Branch parallelization prediction number of branches
+          |                           (expects an integer; min is 2; default is 2)
+          |    --par-branch-pred-complexity
+          |                          Branch parallelization prediction statement
+          |                           complexity (expects an integer; min is 0; default is
+          |                           10)
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -5173,6 +5228,8 @@ import Cli._
     var par: Option[Z] = None()
     var branchPar: B = false
     var branchParReturn: B = false
+    var branchPredNum: Z = 2
+    var branchPredComplexity: Z = 10
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -5491,6 +5548,18 @@ import Cli._
              case Some(v) => branchParReturn = v
              case _ => return None()
            }
+         } else if (arg == "--par-branch-pred-num") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(2), None())
+           o match {
+             case Some(v) => branchPredNum = v
+             case _ => return None()
+           }
+         } else if (arg == "--par-branch-pred-complexity") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => branchPredComplexity = v
+             case _ => return None()
+           }
          } else if (arg == "--par-rw") {
            val o: Option[B] = { j = j - 1; Some(!rwPar) }
            o match {
@@ -5614,7 +5683,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumProyekLogikaOption(help, parseArguments(args, j), all, strictAliasing, verbose, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories, infoFlow, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, branchPredNum, branchPredComplexity, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumProyekPublishTargetH(arg: String): Option[SireumProyekPublishTarget.Type] = {
