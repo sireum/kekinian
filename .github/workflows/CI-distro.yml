@@ -24,8 +24,8 @@ jobs:
           git fetch --tags
       - name: Build Jar & m2
         run: |
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli'
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status'
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli' || true
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status' || true
           cd "$GITHUB_WORKSPACE/Sireum"
           git submodule update --init --recursive
           cd "$GITHUB_WORKSPACE"
@@ -587,8 +587,8 @@ jobs:
     steps:
       - name: Disable binfmt
         run: |
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli'
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status'
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli' || true
+          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status' || true
       - name: Test CodeIVE
         run: |
           rm -fR ~/.m2 logika-examples
@@ -618,8 +618,8 @@ jobs:
         run: |
           sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
           sudo chmod +x /usr/bin/ape
-          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
-          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Test CodeIVE
         run: |
           rm -fR ~/.m2 logika-examples
