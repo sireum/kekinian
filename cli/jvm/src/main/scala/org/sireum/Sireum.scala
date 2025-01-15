@@ -35,9 +35,10 @@ import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
-  class Rep(feedbackDirOpt: Option[Os.Path], logPc: B, logRawPc: B, logVc: B, logDetailedInfo: B, stats: B)
-    extends logika.ReporterImpl(logPc, logRawPc, logVc, logDetailedInfo, F, ISZ(), stats,
-    new AtomicLong(0), new AtomicLong(0), new AtomicLong(0), new AtomicLong(0)) {
+  class Rep(feedbackDirOpt: Option[Os.Path], logPc: B, logRawPc: B, logVc: B, logDetailedInfo: B, stats: B,
+            nv: AtomicLong = new AtomicLong(0), ns: AtomicLong = new AtomicLong(0), vm: AtomicLong = new AtomicLong(0),
+            nm: AtomicLong = new AtomicLong(0))
+    extends logika.ReporterImpl(logPc, logRawPc, logVc, logDetailedInfo, F, ISZ(), stats, nv, ns, vm, nm) {
     val sha3 = MessageDigest.getInstance("SHA3-512")
     def write(d: Os.Path, content: String): Unit = {
       val f = d / st"${(ISZ(sha3.digest(content.value.getBytes("UTF-8")).take(8).map(U8(_)).toSeq: _*), "")}.json".render
@@ -45,7 +46,9 @@ object Sireum {
     }
 
     override def empty: logika.Logika.Reporter = {
-      new Rep(feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats)
+      val r = new Rep(feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, nv, ns, vm, nm)
+      r.collectStats = stats
+      r
     }
 
     override def state(plugins: ISZ[ClaimPlugin], posOpt: Option[Position], context: ISZ[String], th: TypeHierarchy, s: State, atLinesFresh: B, atRewrite: B): Unit = {
@@ -103,6 +106,7 @@ object Sireum {
       }
     }
     override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
+      super.query(pos, title, isSat, time, forceReport, detailElided, r)
       feedbackDirOpt match {
         case Some(d) =>
           val content = server.protocol.JSON.fromLogikaVerifySmt2Query(
