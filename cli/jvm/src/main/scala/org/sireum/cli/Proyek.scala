@@ -852,8 +852,8 @@ object Proyek {
       rwMax = 100,
       rwPar = T,
       rwEvalTrace = T,
-      branchParPredNum = 2,
-      branchParPredComp = 10
+      branchParPredNum = 3,
+      branchParPredComp = 16
     )
     val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
     val lcode = org.sireum.proyek.Analysis.run(
@@ -1565,8 +1565,8 @@ object Proyek {
       rwMax = 100,
       rwPar = T,
       rwEvalTrace = T,
-      branchParPredNum = 2,
-      branchParPredComp = 10
+      branchParPredNum = 3,
+      branchParPredComp = 16
     )
     val lcode = Analysis.run(
       root = path,

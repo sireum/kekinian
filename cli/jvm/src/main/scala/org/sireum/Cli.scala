@@ -2317,12 +2317,13 @@ import Cli._
           |    --par-branch         Enable branch parallelization
           |    --par-branch-return  Only use branch parallelization if all branches return
           |    --par-branch-pred-num
-          |                          Branch parallelization prediction number of branches
-          |                           (expects an integer; min is 2; default is 2)
+          |                          Branch parallelization prediction minimum number of
+          |                           branches (expects an integer; min is 3; default is
+          |                           2)
           |    --par-branch-pred-complexity
           |                          Branch parallelization prediction statement
           |                           complexity (expects an integer; min is 0; default is
-          |                           10)
+          |                           16)
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -2389,7 +2390,7 @@ import Cli._
     var branchPar: B = false
     var branchParReturn: B = false
     var branchPredNum: Z = 2
-    var branchPredComplexity: Z = 10
+    var branchPredComplexity: Z = 16
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -2601,7 +2602,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--par-branch-pred-num") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(2), None())
+           val o: Option[Z] = parseNum(args, j + 1, Some(3), None())
            o match {
              case Some(v) => branchPredNum = v
              case _ => return None()
@@ -3054,12 +3055,13 @@ import Cli._
           |    --par-branch         Enable branch parallelization
           |    --par-branch-return  Only use branch parallelization if all branches return
           |    --par-branch-pred-num
-          |                          Branch parallelization prediction number of branches
-          |                           (expects an integer; min is 2; default is 2)
+          |                          Branch parallelization prediction minimum number of
+          |                           branches (expects an integer; min is 3; default is
+          |                           2)
           |    --par-branch-pred-complexity
           |                          Branch parallelization prediction statement
           |                           complexity (expects an integer; min is 0; default is
-          |                           10)
+          |                           16)
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -3128,7 +3130,7 @@ import Cli._
     var branchPar: B = false
     var branchParReturn: B = false
     var branchPredNum: Z = 2
-    var branchPredComplexity: Z = 10
+    var branchPredComplexity: Z = 16
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -3352,7 +3354,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--par-branch-pred-num") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(2), None())
+           val o: Option[Z] = parseNum(args, j + 1, Some(3), None())
            o match {
              case Some(v) => branchPredNum = v
              case _ => return None()
@@ -5139,12 +5141,13 @@ import Cli._
           |    --par-branch         Enable branch parallelization
           |    --par-branch-return  Only use branch parallelization if all branches return
           |    --par-branch-pred-num
-          |                          Branch parallelization prediction number of branches
-          |                           (expects an integer; min is 2; default is 2)
+          |                          Branch parallelization prediction minimum number of
+          |                           branches (expects an integer; min is 3; default is
+          |                           2)
           |    --par-branch-pred-complexity
           |                          Branch parallelization prediction statement
           |                           complexity (expects an integer; min is 0; default is
-          |                           10)
+          |                           16)
           |    --par-rw             Enable rewriting parallelization
           |
           |Path Splitting Options:
@@ -5229,7 +5232,7 @@ import Cli._
     var branchPar: B = false
     var branchParReturn: B = false
     var branchPredNum: Z = 2
-    var branchPredComplexity: Z = 10
+    var branchPredComplexity: Z = 16
     var rwPar: B = true
     var dontSplitFunQuant: B = false
     var splitAll: B = false
@@ -5549,7 +5552,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--par-branch-pred-num") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(2), None())
+           val o: Option[Z] = parseNum(args, j + 1, Some(3), None())
            o match {
              case Some(v) => branchPredNum = v
              case _ => return None()
