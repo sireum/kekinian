@@ -44,6 +44,12 @@ jobs:
         with:
           path: Sireum/bin/linux/osate
           key: ${{ runner.os }}-${{ hashFiles('Sireum/hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
+      - name: Setup APE binfmt
+        run: |
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Test
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/Sireum/cache/coursier

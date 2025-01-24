@@ -22,10 +22,14 @@ jobs:
           cd "$GITHUB_WORKSPACE/Sireum"
           git push --force origin HEAD:refs/tags/dev
           git fetch --tags
+      - name: Setup APE binfmt
+        run: |
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Build Jar & m2
         run: |
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli' || true
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status' || true
           cd "$GITHUB_WORKSPACE/Sireum"
           git submodule update --init --recursive
           cd "$GITHUB_WORKSPACE"
@@ -585,10 +589,12 @@ jobs:
     needs: build-linux-amd64
     runs-on: ubuntu-22.04
     steps:
-      - name: Disable binfmt
+      - name: Setup APE binfmt
         run: |
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/cli' || true
-          sudo sh -c 'echo -1 > /proc/sys/fs/binfmt_misc/status' || true
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Test CodeIVE
         run: |
           rm -fR ~/.m2 logika-examples
