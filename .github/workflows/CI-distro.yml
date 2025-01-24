@@ -564,6 +564,12 @@ jobs:
     needs: build-linux-amd64
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup APE binfmt
+        run: |
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Test CodeIVE
         run: |
           rm -fR ~/.m2 logika-examples
