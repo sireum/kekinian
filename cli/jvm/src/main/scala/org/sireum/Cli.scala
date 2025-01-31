@@ -1164,6 +1164,25 @@ object Cli {
     val name: Option[String],
     val outputDir: Option[String]
   ) extends SireumTopOption
+
+  @datatype class SireumXAnvilOption(
+    val help: String,
+    val args: ISZ[String],
+    val sourcepath: ISZ[String],
+    val strictAliasing: B,
+    val output: Option[String],
+    val verbose: B,
+    val bitWidth: Z,
+    val projectName: Option[String],
+    val customArraySizes: ISZ[String],
+    val maxArraySize: Z,
+    val maxStringSize: Z,
+    val plugins: ISZ[String],
+    val save: Option[String],
+    val load: Option[String],
+    val customConstants: ISZ[String],
+    val forwarding: ISZ[String]
+  ) extends SireumTopOption
 }
 
 import Cli._
@@ -9778,14 +9797,182 @@ import Cli._
         st"""Sireum eXperimental
             |
             |Available modes:
-            """.render
+            |anvil                    High-level hardware synthesizer""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("x", args, i, ISZ(""))
+    val opt = select("x", args, i, ISZ("anvil"))
     opt match {
+      case Some(string"anvil") => return parseSireumXAnvil(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumXAnvil(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Anvil HLS
+          |
+          |Usage: <option>* <fully-qualified-method-name>
+          |
+          |Available Options:
+          |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
+          |                           strings)
+          |    --strict-aliasing    Enable strict aliasing check
+          |-o, --output-dir         Output directory synthesized files (expects a path;
+          |                           default is "out")
+          |    --verbose            Enable verbose mode
+          |-h, --help               Display this information
+          |
+          |Configuration Options:
+          |-b, --bits               Default bit-width for unbounded integer types (e.g.,
+          |                           Z) (expects one of { 64, 32, 16, 8 })
+          |-n, --name               Project name (expects a string; default is "main")
+          |
+          |Array Bounds Options:
+          |-q, --sequence           Custom maximum sequence sizes, each in the form of
+          |                           <type>=<size>, where <type> is either IS[,], MS[,],
+          |                           ISZ[], MSZ[], or ZS with fully qualified index and
+          |                           element types where applicable (expects a string
+          |                           separated by ";")
+          |    --sequence-size      Default maximum sequence size (expects an integer;
+          |                           default is 100)
+          |    --string-size        Maximum string size (expects an integer; default is
+          |                           100)
+          |
+          |Extensibility Options:
+          |-p, --plugins            Plugin fully qualified names (expects a string
+          |                           separated by ",")
+          |
+          |Persistence Options:
+          |    --save               Path to save type information to (outline should not
+          |                           be enabled) (expects a path)
+          |    --load               Path to load type information from (expects a path)
+          |
+          |Substitutions Options:
+          |-c, --constants          Custom constant for object variables, each in the form
+          |                           of <name>=<lit>, where <name> is a qualified name of
+          |                           an object var and <lit> is a Slang literal
+          |                           expression (expects a string separated by ";")
+          |-w, --forward            Object forwarding, each in form of <name>=<name>,
+          |                           where <name> is a fully qualified name of an object
+          |                           (expects a string separated by ",")""".render
+
+    var sourcepath: ISZ[String] = ISZ[String]()
+    var strictAliasing: B = false
+    var output: Option[String] = Some("out")
+    var verbose: B = false
+    var bitWidth: Z = 64
+    var projectName: Option[String] = Some("main")
+    var customArraySizes: ISZ[String] = ISZ[String]()
+    var maxArraySize: Z = 100
+    var maxStringSize: Z = 100
+    var plugins: ISZ[String] = ISZ[String]()
+    var save: Option[String] = None[String]()
+    var load: Option[String] = None[String]()
+    var customConstants: ISZ[String] = ISZ[String]()
+    var forwarding: ISZ[String] = ISZ[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-s" || arg == "--sourcepath") {
+           val o: Option[ISZ[String]] = parsePaths(args, j + 1)
+           o match {
+             case Some(v) => sourcepath = v
+             case _ => return None()
+           }
+         } else if (arg == "--strict-aliasing") {
+           val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
+           o match {
+             case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => output = v
+             case _ => return None()
+           }
+         } else if (arg == "--verbose") {
+           val o: Option[B] = { j = j - 1; Some(!verbose) }
+           o match {
+             case Some(v) => verbose = v
+             case _ => return None()
+           }
+         } else if (arg == "-b" || arg == "--bits") {
+           val o: Option[Z] = parseNumChoice(args, j + 1, ISZ(z"64", z"32", z"16", z"8"))
+           o match {
+             case Some(v) => bitWidth = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => projectName = v
+             case _ => return None()
+           }
+         } else if (arg == "-q" || arg == "--sequence") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => customArraySizes = v
+             case _ => return None()
+           }
+         } else if (arg == "--sequence-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxArraySize = v
+             case _ => return None()
+           }
+         } else if (arg == "--string-size") {
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
+           o match {
+             case Some(v) => maxStringSize = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--plugins") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => plugins = v
+             case _ => return None()
+           }
+         } else if (arg == "--save") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => save = v
+             case _ => return None()
+           }
+         } else if (arg == "--load") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => load = v
+             case _ => return None()
+           }
+         } else if (arg == "-c" || arg == "--constants") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
+           o match {
+             case Some(v) => customConstants = v
+             case _ => return None()
+           }
+         } else if (arg == "-w" || arg == "--forward") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => forwarding = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, plugins, save, load, customConstants, forwarding))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

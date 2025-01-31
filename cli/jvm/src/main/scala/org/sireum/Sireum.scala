@@ -891,6 +891,9 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
+          case Some(o: Cli.SireumXAnvilOption) =>
+            println("Coming soon!")
+            return 0
           case Some(_: Cli.HelpOption) =>
             if (args.isEmpty) {
               printAdditionalHelp()

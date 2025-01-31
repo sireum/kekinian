@@ -275,6 +275,9 @@ def regenSlang(): Unit = {
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", astPackagePath.string, "-n", "CoreExp", s"${astPackagePath / "CoreExp.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", astPackagePath.string, "-n", "IR", s"${astPackagePath / "IR.scala"}",
+    s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
     s"${home / "license.txt"}", "-m", "json,msgpack", "-o", tipePath.string,
     s"${slangPackagePath / "symbol" / "Info.scala"}", s"${astPackagePath / "AST.scala"}",

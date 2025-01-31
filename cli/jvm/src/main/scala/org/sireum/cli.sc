@@ -52,7 +52,7 @@ val x = Group(
   description = "Experimental",
   header = "Sireum eXperimental",
   unlisted = T,
-  subs = ISZ()
+  subs = ISZ(anvil.cli.anvil)
 )
 
 val text2speechTool: Tool = Tool(
