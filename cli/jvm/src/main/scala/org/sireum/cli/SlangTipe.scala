@@ -415,6 +415,7 @@ object SlangTipe {
       Parser.parseTopUnit[TopUnit](slangFile._2._2, T, F, slangFile._2._1, reporter) match {
         case Some(p: TopUnit.Program) =>
           val p2 = FrontEnd.checkWorksheet(0, thOpt, p, reporter)
+          th = p2._1
           if (reporter.hasError) {
             if (o.parseableMessages) {
               Os.printParseableMessages(reporter)
