@@ -1177,7 +1177,6 @@ object Cli {
     val customArraySizes: ISZ[String],
     val maxArraySize: Z,
     val maxStringSize: Z,
-    val plugins: ISZ[String],
     val save: Option[String],
     val load: Option[String],
     val customConstants: ISZ[String],
@@ -9812,7 +9811,7 @@ import Cli._
     val help =
       st"""Anvil HLS
           |
-          |Usage: <option>* <fully-qualified-method-name>
+          |Usage: <option>* <fully-qualified-method-name> [ <slang-file.sc> ]
           |
           |Available Options:
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
@@ -9839,10 +9838,6 @@ import Cli._
           |    --string-size        Maximum string size (expects an integer; default is
           |                           100)
           |
-          |Extensibility Options:
-          |-p, --plugins            Plugin fully qualified names (expects a string
-          |                           separated by ",")
-          |
           |Persistence Options:
           |    --save               Path to save type information to (outline should not
           |                           be enabled) (expects a path)
@@ -9866,7 +9861,6 @@ import Cli._
     var customArraySizes: ISZ[String] = ISZ[String]()
     var maxArraySize: Z = 100
     var maxStringSize: Z = 100
-    var plugins: ISZ[String] = ISZ[String]()
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
     var customConstants: ISZ[String] = ISZ[String]()
@@ -9933,12 +9927,6 @@ import Cli._
              case Some(v) => maxStringSize = v
              case _ => return None()
            }
-         } else if (arg == "-p" || arg == "--plugins") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => plugins = v
-             case _ => return None()
-           }
          } else if (arg == "--save") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -9972,7 +9960,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, plugins, save, load, customConstants, forwarding))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants, forwarding))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
