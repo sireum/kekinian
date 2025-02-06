@@ -892,8 +892,9 @@ object Sireum {
                 return exitCode
             }
           case Some(o: Cli.SireumXAnvilOption) =>
-            println("Coming soon!")
-            return 0
+            init.basicDeps()
+            init.installMill(F)
+            return cli.Anvil.run(o, message.Reporter.create)
           case Some(_: Cli.HelpOption) =>
             if (args.isEmpty) {
               printAdditionalHelp()
