@@ -158,26 +158,13 @@ object Anvil {
       }
     }
 
-    var forwardingMap = HashMap.empty[ISZ[String], ISZ[String]]
-    for (p <- o.forwarding) {
-      split(p, '=') match {
-        case ISZ(key, value) =>
-          forwardingMap = forwardingMap + split(key, '.') ~> split(value, '.')
-        case _ =>
-          eprintln(s"Could not parse forwarding config $p")
-          return AnvilError
-      }
-    }
-
     val config = anvil.Anvil.Config(
       projectName = o.projectName.getOrElse("main"),
       defaultBitWidth = o.bitWidth,
       maxStringSize = o.maxStringSize,
       maxArraySize = o.maxArraySize,
       customArraySizes = customArraySizes,
-      customConstants = customConstants,
-      excludedNames = HashSet.empty,
-      forwarding = forwardingMap)
+      customConstants = customConstants)
 
     val m = anvil.Anvil.synthesize(th, owner, id, config, reporter)
     if (reporter.hasError) {

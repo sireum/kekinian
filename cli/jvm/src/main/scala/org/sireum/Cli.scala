@@ -1179,8 +1179,7 @@ object Cli {
     val maxStringSize: Z,
     val save: Option[String],
     val load: Option[String],
-    val customConstants: ISZ[String],
-    val forwarding: ISZ[String]
+    val customConstants: ISZ[String]
   ) extends SireumTopOption
 }
 
@@ -9847,10 +9846,7 @@ import Cli._
           |-c, --constants          Custom constant for object variables, each in the form
           |                           of <name>=<lit>, where <name> is a qualified name of
           |                           an object var and <lit> is a Slang literal
-          |                           expression (expects a string separated by ";")
-          |-w, --forward            Object forwarding, each in form of <name>=<name>,
-          |                           where <name> is a fully qualified name of an object
-          |                           (expects a string separated by ",")""".render
+          |                           expression (expects a string separated by ";")""".render
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
@@ -9864,7 +9860,6 @@ import Cli._
     var save: Option[String] = None[String]()
     var load: Option[String] = None[String]()
     var customConstants: ISZ[String] = ISZ[String]()
-    var forwarding: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -9945,12 +9940,6 @@ import Cli._
              case Some(v) => customConstants = v
              case _ => return None()
            }
-         } else if (arg == "-w" || arg == "--forward") {
-           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
-           o match {
-             case Some(v) => forwarding = v
-             case _ => return None()
-           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -9960,7 +9949,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants, forwarding))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
