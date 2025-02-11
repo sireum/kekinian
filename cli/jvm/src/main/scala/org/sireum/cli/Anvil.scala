@@ -26,7 +26,7 @@
 package org.sireum.cli
 
 import org.sireum._
-import org.sireum.lang.{ast => AST}
+import org.sireum.lang.{IRTranslatorFreshAtomic, ast => AST}
 import org.sireum.lang.tipe.TypeHierarchy
 
 object Anvil {
@@ -166,7 +166,7 @@ object Anvil {
       customArraySizes = customArraySizes,
       customConstants = customConstants)
 
-    val m = anvil.Anvil.synthesize(th, owner, id, config, reporter)
+    val m = anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, owner, id, config, reporter)
     if (reporter.hasError) {
       reporter.printMessages()
       return AnvilError
