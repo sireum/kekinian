@@ -1170,6 +1170,7 @@ object Cli {
     val args: ISZ[String],
     val sourcepath: ISZ[String],
     val strictAliasing: B,
+    val memory: Z,
     val output: Option[String],
     val verbose: B,
     val bitWidth: Z,
@@ -9816,6 +9817,8 @@ import Cli._
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --strict-aliasing    Enable strict aliasing check
+          |-m, --memory             Memory size in bytes (expects an integer; min is
+          |                           65536; default is 524288)
           |-o, --output-dir         Output directory synthesized files (expects a path;
           |                           default is "out")
           |    --verbose            Enable verbose mode
@@ -9850,6 +9853,7 @@ import Cli._
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
+    var memory: Z = 524288
     var output: Option[String] = Some("out")
     var verbose: B = false
     var bitWidth: Z = 64
@@ -9878,6 +9882,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!strictAliasing) }
            o match {
              case Some(v) => strictAliasing = v
+             case _ => return None()
+           }
+         } else if (arg == "-m" || arg == "--memory") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(65536), None())
+           o match {
+             case Some(v) => memory = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--output-dir") {
@@ -9949,7 +9959,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
