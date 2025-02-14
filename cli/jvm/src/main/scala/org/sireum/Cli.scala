@@ -90,6 +90,7 @@ object Cli {
     val ros2Dir: Option[String],
     val ros2NodesLanguage: SireumHamrCodegenNodesCodeLanguage.Type,
     val ros2LaunchLanguage: SireumHamrCodegenLaunchCodeLanguage.Type,
+    val invertTopicBinding: B,
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -170,6 +171,7 @@ object Cli {
     val ros2Dir: Option[String],
     val ros2NodesLanguage: SireumHamrSysmlCodegenNodesCodeLanguage.Type,
     val ros2LaunchLanguage: SireumHamrSysmlCodegenLaunchCodeLanguage.Type,
+    val invertTopicBinding: B,
     val experimentalOptions: ISZ[String]
   ) extends SireumTopOption
 
@@ -1379,6 +1381,10 @@ import Cli._
           |-p, --ros2-launch-language    
           |                          The programming language for the launch file (expects
           |                           one of { Python, Xml }; default: Python)
+          |    --invert-topic-binding
+          |                          By default, topic names are based on in ports, and fan
+          |                           out ports would have multiple publishers.  This option
+          |                           inverts that behavior
           |
           |Experimental Options:
           |-x, --experimental-options    
@@ -1411,6 +1417,7 @@ import Cli._
     var ros2Dir: Option[String] = None[String]()
     var ros2NodesLanguage: SireumHamrCodegenNodesCodeLanguage.Type = SireumHamrCodegenNodesCodeLanguage.Python
     var ros2LaunchLanguage: SireumHamrCodegenLaunchCodeLanguage.Type = SireumHamrCodegenLaunchCodeLanguage.Python
+    var invertTopicBinding: B = false
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -1582,7 +1589,13 @@ import Cli._
              case Some(v) => ros2LaunchLanguage = v
              case _ => return None()
            }
-         } else if (arg == "-x" || arg == "--experimental-options") {
+         } else if (arg == "--invert-topic-binding") {
+          val o: Option[B] = { j = j - 1; Some(!invertTopicBinding) }
+          o match {
+            case Some(v) => invertTopicBinding = v
+            case _ => return None()
+          }
+        } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => experimentalOptions = v
@@ -1597,7 +1610,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1928,6 +1941,10 @@ import Cli._
           |-p, --ros2-launch-language    
           |                          The programming language for the launch file (expects
           |                           one of { Python, Xml }; default: Python)
+          |    --invert-topic-binding
+          |                          By default, topic names are based on in ports, and fan
+          |                           out ports would have multiple publishers.  This option
+          |                           inverts that behavior
           |
           |Experimental Options:
           |-x, --experimental-options    
@@ -1962,6 +1979,7 @@ import Cli._
     var ros2Dir: Option[String] = None[String]()
     var ros2NodesLanguage: SireumHamrSysmlCodegenNodesCodeLanguage.Type = SireumHamrSysmlCodegenNodesCodeLanguage.Python
     var ros2LaunchLanguage: SireumHamrSysmlCodegenLaunchCodeLanguage.Type = SireumHamrSysmlCodegenLaunchCodeLanguage.Python
+    var invertTopicBinding: B = false
     var experimentalOptions: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -2145,7 +2163,13 @@ import Cli._
              case Some(v) => ros2LaunchLanguage = v
              case _ => return None()
            }
-         } else if (arg == "-x" || arg == "--experimental-options") {
+         } else if (arg == "--invert-topic-binding") {
+          val o: Option[B] = { j = j - 1; Some(!invertTopicBinding) }
+          o match {
+            case Some(v) => invertTopicBinding = v
+            case _ => return None()
+          }
+        } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => experimentalOptions = v
@@ -2160,7 +2184,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {
