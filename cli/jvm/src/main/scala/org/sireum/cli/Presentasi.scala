@@ -867,7 +867,7 @@ object Presentasi {
         }
         for (line <- inputFile.readLineStream if ops.StringOps(line).trim.size > 0) {
           val out = outputFile(output, inputFile.name, i, line, ext)
-          if (!out.exists || o.force) {
+          if (!out.exists || o.force || out.size == 0) {
             println(s"Synthesizing: $line")
             tmp.writeOver(
               st"""$echoOffOpt
