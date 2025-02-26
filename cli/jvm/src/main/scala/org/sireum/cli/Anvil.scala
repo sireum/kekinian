@@ -172,7 +172,8 @@ object Anvil {
       customArraySizes = customArraySizes,
       customConstants = customConstants,
       bigEndian = o.big,
-      maxExpDepth = o.depth
+      maxExpDepth = o.depth,
+      runtimeCheck = o.runtimeCheck
     )
 
     val m = anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, owner, id, config, reporter)

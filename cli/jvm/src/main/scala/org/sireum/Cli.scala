@@ -1174,6 +1174,7 @@ object Cli {
     val strictAliasing: B,
     val memory: Z,
     val depth: Z,
+    val runtimeCheck: B,
     val big: B,
     val output: Option[String],
     val verbose: B,
@@ -1382,9 +1383,9 @@ import Cli._
           |                          The programming language for the launch file (expects
           |                           one of { Python, Xml }; default: Python)
           |    --invert-topic-binding
-          |                          By default, topic names are based on in ports, and fan
-          |                           out ports would have multiple publishers.  This option
-          |                           inverts that behavior
+          |                          By default, topic names are based on in ports, and
+          |                           fan out ports would have multiple publishers.  This
+          |                           option inverts that behavior.
           |
           |Experimental Options:
           |-x, --experimental-options    
@@ -1590,12 +1591,12 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--invert-topic-binding") {
-          val o: Option[B] = { j = j - 1; Some(!invertTopicBinding) }
-          o match {
-            case Some(v) => invertTopicBinding = v
-            case _ => return None()
-          }
-        } else if (arg == "-x" || arg == "--experimental-options") {
+           val o: Option[B] = { j = j - 1; Some(!invertTopicBinding) }
+           o match {
+             case Some(v) => invertTopicBinding = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => experimentalOptions = v
@@ -1942,9 +1943,9 @@ import Cli._
           |                          The programming language for the launch file (expects
           |                           one of { Python, Xml }; default: Python)
           |    --invert-topic-binding
-          |                          By default, topic names are based on in ports, and fan
-          |                           out ports would have multiple publishers.  This option
-          |                           inverts that behavior
+          |                          By default, topic names are based on in ports, and
+          |                           fan out ports would have multiple publishers.  This
+          |                           option inverts that behavior.
           |
           |Experimental Options:
           |-x, --experimental-options    
@@ -2164,12 +2165,12 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--invert-topic-binding") {
-          val o: Option[B] = { j = j - 1; Some(!invertTopicBinding) }
-          o match {
-            case Some(v) => invertTopicBinding = v
-            case _ => return None()
-          }
-        } else if (arg == "-x" || arg == "--experimental-options") {
+           val o: Option[B] = { j = j - 1; Some(!invertTopicBinding) }
+           o match {
+             case Some(v) => invertTopicBinding = v
+             case _ => return None()
+           }
+         } else if (arg == "-x" || arg == "--experimental-options") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ';')
            o match {
              case Some(v) => experimentalOptions = v
@@ -9849,6 +9850,7 @@ import Cli._
           |-d, --depth              Maximum expression depth to coalesce (0 means
           |                           unbounded) (expects an integer; min is 0; default is
           |                           1)
+          |-r, --runtime-check      Enable implicit runtime assertion checking
           |    --big                Use big-endian byte encoding instead of little-endian
           |                           encoding
           |-o, --output-dir         Output directory synthesized files (expects a path;
@@ -9887,6 +9889,7 @@ import Cli._
     var strictAliasing: B = false
     var memory: Z = 524288
     var depth: Z = 1
+    var runtimeCheck: B = false
     var big: B = false
     var output: Option[String] = Some("out")
     var verbose: B = false
@@ -9928,6 +9931,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
            o match {
              case Some(v) => depth = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--runtime-check") {
+           val o: Option[B] = { j = j - 1; Some(!runtimeCheck) }
+           o match {
+             case Some(v) => runtimeCheck = v
              case _ => return None()
            }
          } else if (arg == "--big") {
@@ -10005,7 +10014,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, big, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, big, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
