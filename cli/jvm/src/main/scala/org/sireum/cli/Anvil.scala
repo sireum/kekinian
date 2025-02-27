@@ -158,14 +158,9 @@ object Anvil {
       }
     }
 
-    var memory = o.memory
-    if (memory % 8 != 0) {
-      memory = memory + memory % 8
-    }
-
     val config = anvil.Anvil.Config(
       projectName = o.projectName.getOrElse("main"),
-      memory = memory,
+      memory = o.memory * 1024,
       defaultBitWidth = o.bitWidth,
       maxStringSize = o.maxStringSize,
       maxArraySize = o.maxArraySize,
@@ -173,7 +168,9 @@ object Anvil {
       customConstants = customConstants,
       bigEndian = o.big,
       maxExpDepth = o.depth,
-      runtimeCheck = o.runtimeCheck
+      runtimeCheck = o.runtimeCheck,
+      assertion = o.assertion,
+      printSize = o.printSize.getOrElse(0) * 1024
     )
 
     val m = anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, owner, id, config, reporter)

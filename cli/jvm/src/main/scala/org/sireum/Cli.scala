@@ -1175,6 +1175,8 @@ object Cli {
     val memory: Z,
     val depth: Z,
     val runtimeCheck: B,
+    val assertion: B,
+    val printSize: Option[Z],
     val big: B,
     val output: Option[String],
     val verbose: B,
@@ -9844,13 +9846,15 @@ import Cli._
           |-s, --sourcepath         Sourcepath of Slang .scala files (expects path
           |                           strings)
           |    --strict-aliasing    Enable strict aliasing check
-          |-m, --memory             Memory size in bytes (rounded up to multiple of 8
-          |                           bytes) (expects an integer; min is 65536; default is
-          |                           524288)
+          |-m, --memory             Memory size in kilobytes (expects an integer; min is
+          |                           64; default is 512)
           |-d, --depth              Maximum expression depth to coalesce (0 means
           |                           unbounded) (expects an integer; min is 0; default is
           |                           1)
           |-r, --runtime-check      Enable implicit runtime assertion checking
+          |-a, --assertion          Enable assertion checking
+          |-p, --print              Printing console buffer size in kilobytes (accepts an
+          |                           optional integer; min is 4; default is 0)
           |    --big                Use big-endian byte encoding instead of little-endian
           |                           encoding
           |-o, --output-dir         Output directory synthesized files (expects a path;
@@ -9887,9 +9891,11 @@ import Cli._
 
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
-    var memory: Z = 524288
+    var memory: Z = 512
     var depth: Z = 1
     var runtimeCheck: B = false
+    var assertion: B = false
+    var printSize: Option[Z] = None()
     var big: B = false
     var output: Option[String] = Some("out")
     var verbose: B = false
@@ -9922,7 +9928,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "-m" || arg == "--memory") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(65536), None())
+           val o: Option[Z] = parseNum(args, j + 1, Some(64), None())
            o match {
              case Some(v) => memory = v
              case _ => return None()
@@ -9937,6 +9943,21 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!runtimeCheck) }
            o match {
              case Some(v) => runtimeCheck = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--assertion") {
+           val o: Option[B] = { j = j - 1; Some(!assertion) }
+           o match {
+             case Some(v) => assertion = v
+             case _ => return None()
+           }
+         } else if (arg == "-p" || arg == "--print") {
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(4), None()) match {
+             case o@Some(None()) => j = j - 1; Some(Some(0))
+             case o => o
+           }
+           o match {
+             case Some(v) => printSize = v
              case _ => return None()
            }
          } else if (arg == "--big") {
@@ -10014,7 +10035,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, big, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, assertion, printSize, big, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
