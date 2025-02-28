@@ -166,7 +166,7 @@ object Anvil {
       maxArraySize = o.maxArraySize,
       customArraySizes = customArraySizes,
       customConstants = customConstants,
-      bigEndian = o.big,
+      stackTrace = o.stackTrace,
       maxExpDepth = o.depth,
       runtimeCheck = o.runtimeCheck,
       assertion = o.assertion,

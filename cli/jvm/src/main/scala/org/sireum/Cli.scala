@@ -1175,9 +1175,9 @@ object Cli {
     val memory: Z,
     val depth: Z,
     val runtimeCheck: B,
+    val stackTrace: B,
     val assertion: B,
     val printSize: Option[Z],
-    val big: B,
     val output: Option[String],
     val verbose: B,
     val bitWidth: Z,
@@ -9852,11 +9852,10 @@ import Cli._
           |                           unbounded) (expects an integer; min is 0; default is
           |                           1)
           |-r, --runtime-check      Enable implicit runtime assertion checking
+          |-t, --stack-trace        Enable call stack tracing
           |-a, --assertion          Enable assertion checking
           |-p, --print              Printing console buffer size in kilobytes (accepts an
           |                           optional integer; min is 4; default is 0)
-          |    --big                Use big-endian byte encoding instead of little-endian
-          |                           encoding
           |-o, --output-dir         Output directory synthesized files (expects a path;
           |                           default is "out")
           |    --verbose            Enable verbose mode
@@ -9894,9 +9893,9 @@ import Cli._
     var memory: Z = 512
     var depth: Z = 1
     var runtimeCheck: B = false
+    var stackTrace: B = false
     var assertion: B = false
     var printSize: Option[Z] = None()
-    var big: B = false
     var output: Option[String] = Some("out")
     var verbose: B = false
     var bitWidth: Z = 64
@@ -9945,6 +9944,12 @@ import Cli._
              case Some(v) => runtimeCheck = v
              case _ => return None()
            }
+         } else if (arg == "-t" || arg == "--stack-trace") {
+           val o: Option[B] = { j = j - 1; Some(!stackTrace) }
+           o match {
+             case Some(v) => stackTrace = v
+             case _ => return None()
+           }
          } else if (arg == "-a" || arg == "--assertion") {
            val o: Option[B] = { j = j - 1; Some(!assertion) }
            o match {
@@ -9958,12 +9963,6 @@ import Cli._
            }
            o match {
              case Some(v) => printSize = v
-             case _ => return None()
-           }
-         } else if (arg == "--big") {
-           val o: Option[B] = { j = j - 1; Some(!big) }
-           o match {
-             case Some(v) => big = v
              case _ => return None()
            }
          } else if (arg == "-o" || arg == "--output-dir") {
@@ -10035,7 +10034,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, assertion, printSize, big, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, stackTrace, assertion, printSize, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
