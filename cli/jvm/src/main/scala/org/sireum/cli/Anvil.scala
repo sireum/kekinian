@@ -34,6 +34,17 @@ object Anvil {
   val InvalidArgs: Z = -6
   val AnvilError: Z = -12
 
+  @datatype class Output(val out: Os.Path) extends anvil.Anvil.Output {
+    override def add(isFinal: B, path: => ISZ[String], content: => ST): Unit = {
+      if (isFinal) {
+        val f = out /+ path
+        f.up.mkdirAll()
+        f.writeOver(content.render)
+        println(s"Wrote $f")
+      }
+    }
+  }
+
   def run(o: Cli.SireumXAnvilOption, reporter: message.Reporter): Z = {
     @pure def split(text: String, char: C): ISZ[String] = {
       return for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
@@ -173,7 +184,14 @@ object Anvil {
       printSize = o.printSize.getOrElse(0) * 1024
     )
 
-    val m = anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, owner, id, config, reporter)
+
+    val dir: Os.Path = o.output match {
+      case Some(d) => Os.path(d)
+      case _ => Os.cwd
+    }
+
+    anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, owner, id, config, Output(dir), reporter)
+
     if (reporter.hasError) {
       reporter.printMessages()
       return AnvilError
@@ -181,16 +199,6 @@ object Anvil {
 
     reporter.printMessages()
 
-    val dir: Os.Path = o.output match {
-      case Some(d) => Os.path(d)
-      case _ => Os.cwd
-    }
-
-    for (p <- m.entries) {
-      val f = dir /+ p._1
-      f.writeOver(p._2.render)
-      println(s"Wrote $f")
-    }
     return 0
   }
 }
