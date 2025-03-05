@@ -26,7 +26,8 @@ def usage(): Unit = {
         |       | regen-slang-ll2  | regen-parser        | regen-parser-antlr3
         |       | regen-server     | regen-cliopt        | regen-cli
         |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
-        |       | regen-slang-tt   | regen-reflect       | forms
+        |       | regen-slang-tt   | regen-reflect       | regen-anvil
+        |       | forms
         |       | cvc              | z3                  | m2[-lib[-js] | -scalac]
         |       | mill             | jitpack             | ghpack            | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
@@ -405,6 +406,16 @@ def regenReflect(): Unit = {
   println()
 }
 
+def regenAnvil(): Unit = {
+  val astPackagePath = home / "slang" / "ast" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "lang" / "ast"
+  val anvilPackagePath = home / "anvil" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "anvil"
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
+    "immutable,mutable", "-o", anvilPackagePath.string, "-n", "AnvilIR",
+    s"${anvilPackagePath / "Intrinsic.scala"}",
+    s"${astPackagePath / "IR.scala"}"
+  )).console, message.Reporter.create)
+}
+
 
 def m2Version: String = {
   for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c == '\n')) {
@@ -729,6 +740,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-json" => regenJson()
       case string"regen-slang-tt" => regenSlangTTLl1()
       case string"regen-reflect" => regenReflect()
+      case string"regen-anvil" => regenAnvil()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)
