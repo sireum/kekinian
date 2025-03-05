@@ -180,7 +180,6 @@ object Anvil {
       stackTrace = o.stackTrace,
       maxExpDepth = o.depth,
       runtimeCheck = o.runtimeCheck,
-      assertion = o.assertion,
       printSize = o.printSize.getOrElse(0) * 1024
     )
 
