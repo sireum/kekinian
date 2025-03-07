@@ -1173,6 +1173,7 @@ object Cli {
     val sourcepath: ISZ[String],
     val strictAliasing: B,
     val memory: Z,
+    val erase: B,
     val depth: Z,
     val runtimeCheck: B,
     val stackTrace: B,
@@ -9848,6 +9849,7 @@ import Cli._
           |    --strict-aliasing    Enable strict aliasing check
           |-m, --memory             Memory size in kilobytes (expects an integer; min is
           |                           64; default is 512)
+          |-e, --erase              Securely erase memory chunks as they are reclaimed
           |-d, --depth              Maximum expression depth to coalesce (0 means
           |                           unbounded) (expects an integer; min is 0; default is
           |                           1)
@@ -9895,6 +9897,7 @@ import Cli._
     var sourcepath: ISZ[String] = ISZ[String]()
     var strictAliasing: B = false
     var memory: Z = 512
+    var erase: B = false
     var depth: Z = 1
     var runtimeCheck: B = false
     var stackTrace: B = false
@@ -9934,6 +9937,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, Some(64), None())
            o match {
              case Some(v) => memory = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--erase") {
+           val o: Option[B] = { j = j - 1; Some(!erase) }
+           o match {
+             case Some(v) => erase = v
              case _ => return None()
            }
          } else if (arg == "-d" || arg == "--depth") {
@@ -10038,7 +10047,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, stackTrace, copy, printSize, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, erase, depth, runtimeCheck, stackTrace, copy, printSize, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

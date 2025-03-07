@@ -181,7 +181,8 @@ object Anvil {
       maxExpDepth = o.depth,
       runtimeCheck = o.runtimeCheck,
       printSize = o.printSize.getOrElse(0) * 1024,
-      copySize = o.copy
+      copySize = o.copy,
+      erase = o.erase
     )
 
 
