@@ -180,7 +180,8 @@ object Anvil {
       stackTrace = o.stackTrace,
       maxExpDepth = o.depth,
       runtimeCheck = o.runtimeCheck,
-      printSize = o.printSize.getOrElse(0) * 1024
+      printSize = o.printSize.getOrElse(0) * 1024,
+      copySize = o.copy
     )
 
 

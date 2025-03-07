@@ -1176,6 +1176,7 @@ object Cli {
     val depth: Z,
     val runtimeCheck: B,
     val stackTrace: B,
+    val copy: Z,
     val printSize: Option[Z],
     val output: Option[String],
     val verbose: B,
@@ -9853,6 +9854,9 @@ import Cli._
           |-r, --runtime-check      Enable implicit and explicit runtime assertion
           |                           checking
           |-t, --stack-trace        Enable call stack tracing
+          |    --copy               The maximum number of bytes per cycle for memory copy
+          |                           operation (expects an integer; min is 8; default is
+          |                           8)
           |-p, --print              Printing console buffer size in kilobytes (rounded up
           |                           to a power of 2) (accepts an optional integer; min
           |                           is 4; default is 0)
@@ -9894,6 +9898,7 @@ import Cli._
     var depth: Z = 1
     var runtimeCheck: B = false
     var stackTrace: B = false
+    var copy: Z = 8
     var printSize: Option[Z] = None()
     var output: Option[String] = Some("out")
     var verbose: B = false
@@ -9947,6 +9952,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!stackTrace) }
            o match {
              case Some(v) => stackTrace = v
+             case _ => return None()
+           }
+         } else if (arg == "--copy") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(8), None())
+           o match {
+             case Some(v) => copy = v
              case _ => return None()
            }
          } else if (arg == "-p" || arg == "--print") {
@@ -10027,7 +10038,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, stackTrace, printSize, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, depth, runtimeCheck, stackTrace, copy, printSize, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {
