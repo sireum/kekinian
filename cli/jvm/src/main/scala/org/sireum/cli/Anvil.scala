@@ -189,7 +189,7 @@ object Anvil {
       case _ => Os.cwd
     }
 
-    anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, mfqname, config, Output(dir), reporter)
+    anvil.Anvil.synthesize(F, lang.IRTranslator.createFresh, th, mfqname, config, Output(dir), reporter)
 
     if (reporter.hasError) {
       reporter.printMessages()
