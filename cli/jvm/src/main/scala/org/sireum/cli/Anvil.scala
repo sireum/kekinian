@@ -61,8 +61,6 @@ object Anvil {
         return InvalidArgs
     }
 
-    val (owner, id) = (ops.ISZOps(mfqname).dropRight(1), mfqname(mfqname.size - 1))
-
     val tipeCliOpt = Cli.SireumSlangTipeOption(
       help = o.help,
       args = args,
@@ -191,7 +189,7 @@ object Anvil {
       case _ => Os.cwd
     }
 
-    anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, owner, id, config, Output(dir), reporter)
+    anvil.Anvil.synthesize(lang.IRTranslator.createFresh, th, mfqname, config, Output(dir), reporter)
 
     if (reporter.hasError) {
       reporter.printMessages()
