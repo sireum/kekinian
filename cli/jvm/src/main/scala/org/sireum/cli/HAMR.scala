@@ -30,6 +30,7 @@ import org.sireum._
 import org.sireum.LibUtil.FileOptionMap
 import org.sireum.Os.Path
 import org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin
+import org.sireum.hamr.codegen.common.CommonUtil.Store
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
@@ -266,7 +267,7 @@ object HAMR {
                reporter: Reporter
               ): Z = {
 
-    return codeGenP(
+    val results = codeGenP(
       model = model,
       verbose = verbose,
       runtimeMonitoring = runtimeMonitoring,
@@ -294,7 +295,10 @@ object HAMR {
       //
       experimentalOptions = experimentalOptions,
       plugins = ArsitPlugin.gumboEnhancedPlugins,
-      reporter = reporter)
+      store = Map.empty,
+      reporter = reporter)._1
+
+    return if(reporter.hasError) 1 else 0
   }
 
   /** JAVA/OSATE interface with Plugins
@@ -303,12 +307,10 @@ object HAMR {
     *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
     *        so place plugins that override default behavior before the default plugins.
     *
-    *        Note that MS operations like ++ may clone elements before placing them in the new sequence so updates may
-    *        be performed on the clone rather than the original. You could do one of the following if you want to
-    *        retrieve info from the plugin's state after codegen returns:
-    *          - (preferred) fetch/use the version from the new sequence
-    *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
-    *            its $owned method always return false
+    *        Plugins created in Slang are immutable and can use the passed in store to maintain state if needed.
+    *        Plugins created outside of Slang can violate the immutability property (eg. they can implement @datatype
+    *        but also maintain a state by customizing their $clone method (e.g. just return 'this') or by having their
+    *        $owned method always return false.
     *
     * @deprecated this will be deleted at some point, but leaving it as old versions of the OSATE plugin
     * call this
@@ -341,10 +343,11 @@ object HAMR {
                //
                experimentalOptions: ISZ[String],
                //
-               plugins: MSZ[Plugin],
+               plugins: ISZ[Plugin],
+               store: Store,
                //
                reporter: Reporter
-              ): Z = {
+              ): (CodeGenResults, Store) = {
 
     val o = Cli.SireumHamrCodegenOption(
       help = "",
@@ -386,13 +389,11 @@ object HAMR {
       experimentalOptions = experimentalOptions
     )
 
-    codeGenReporterP(model, o, plugins, reporter)
-
-    return if (reporter.hasError) 1 else 0
+    return codeGenReporterP(model, o, plugins, store, reporter)
   }
 
-  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): CodeGenResults = {
-    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins, reporter)
+  def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): (CodeGenResults, Store) = {
+    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins, Map.empty, reporter)
   }
 
   /**
@@ -400,14 +401,12 @@ object HAMR {
     *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
     *        so place plugins that override default behavior before the default plugins.
     *
-    *        Note that MS operations like ++ may clone elements before placing them in the new sequence so updates may
-    *        be performed on the clone rather than the original. You could do one of the following if you want to
-    *        retrieve info from the plugin's state after codegen returns:
-    *          - (preferred) fetch/use the version from the new sequence
-    *          - define the plugin outside of Slang and customize its $clone method (e.g. just return 'this') or have
-    *            its $owned method always return false
+    *        Plugins created in Slang are immutable and can use the passed in store to maintain state if needed.
+    *        Plugins created outside of Slang can violate the immutability property (eg. they can implement @datatype
+    *        but also maintain a state by customizing their $clone method (e.g. just return 'this') or by having their
+    *        $owned method always return false.
     */
-  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: MSZ[Plugin], reporter: Reporter): CodeGenResults = {
+  def codeGenReporterP(model: Aadl, o: Cli.SireumHamrCodegenOption, plugins: ISZ[Plugin], store: Store, reporter: Reporter): (CodeGenResults, Store) = {
 
     // call back function. CTranspiler prints all the messages in the
     // passed in reporter so don't use codegen's primary reporter as
@@ -529,7 +528,7 @@ object HAMR {
 
     val cgops = toCodeGenOptions(o)
 
-    return SireumApi.hamrCodeGen(model, T, cgops, plugins, reporter,
+    return SireumApi.hamrCodeGen(model, T, cgops, plugins, store, reporter,
       transpile _, proyekIve _, sergen _, slangCheck _)
   }
 

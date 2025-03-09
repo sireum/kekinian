@@ -94,12 +94,13 @@ import org.sireum.message.Reporter
   def hamrCodeGen(model: hamr.ir.Aadl,
                   shouldWriteOutResources: B,
                   options: hamr.codegen.common.util.HamrCli.CodegenOption,
-                  plugins: MSZ[hamr.codegen.common.plugin.Plugin],
+                  plugins: ISZ[hamr.codegen.common.plugin.Plugin],
+                  store: hamr.codegen.common.CommonUtil.Store,
                   reporter: message.Reporter,
                   transpilerCallback: (hamr.codegen.common.containers.SireumSlangTranspilersCOption, message.Reporter) => Z,
                   proyekIveCallback: hamr.codegen.common.containers.SireumProyekIveOption => Z,
                   sergenCallback: (hamr.codegen.common.containers.SireumToolsSergenOption, message.Reporter) => Z,
-                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): hamr.codegen.common.util.CodeGenResults = $
+                  slangCheckCallback: (hamr.codegen.common.containers.SireumToolsSlangcheckGeneratorOption, message.Reporter) => Z): (hamr.codegen.common.util.CodeGenResults, hamr.codegen.common.CommonUtil.Store) = $
 
   def run(args: ISZ[String]): Z = $
 
