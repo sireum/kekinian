@@ -1180,6 +1180,8 @@ object Cli {
     val copy: Z,
     val printSize: Option[Z],
     val output: Option[String],
+    val axi4: B,
+    val customDivRem: B,
     val verbose: B,
     val bitWidth: Z,
     val projectName: Option[String],
@@ -9864,6 +9866,8 @@ import Cli._
           |                           is 4; default is 0)
           |-o, --output-dir         Output directory synthesized files (expects a path;
           |                           default is "out")
+          |    --axi4               Enable AXI4 interface
+          |    --custom-div-rem     Enable custom division and remainder implementations
           |    --verbose            Enable verbose mode
           |-h, --help               Display this information
           |
@@ -9904,6 +9908,8 @@ import Cli._
     var copy: Z = 8
     var printSize: Option[Z] = None()
     var output: Option[String] = Some("out")
+    var axi4: B = false
+    var customDivRem: B = false
     var verbose: B = false
     var bitWidth: Z = 64
     var projectName: Option[String] = Some("main")
@@ -9984,6 +9990,18 @@ import Cli._
              case Some(v) => output = v
              case _ => return None()
            }
+         } else if (arg == "--axi4") {
+           val o: Option[B] = { j = j - 1; Some(!axi4) }
+           o match {
+             case Some(v) => axi4 = v
+             case _ => return None()
+           }
+         } else if (arg == "--custom-div-rem") {
+           val o: Option[B] = { j = j - 1; Some(!customDivRem) }
+           o match {
+             case Some(v) => customDivRem = v
+             case _ => return None()
+           }
          } else if (arg == "--verbose") {
            val o: Option[B] = { j = j - 1; Some(!verbose) }
            o match {
@@ -10047,7 +10065,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, erase, depth, runtimeCheck, stackTrace, copy, printSize, output, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
+    return Some(SireumXAnvilOption(help, parseArguments(args, j), sourcepath, strictAliasing, memory, erase, depth, runtimeCheck, stackTrace, copy, printSize, output, axi4, customDivRem, verbose, bitWidth, projectName, customArraySizes, maxArraySize, maxStringSize, save, load, customConstants))
   }
 
   def parseArguments(args: ISZ[String], i: Z): ISZ[String] = {

@@ -180,7 +180,9 @@ object Anvil {
       runtimeCheck = o.runtimeCheck,
       printSize = o.printSize.getOrElse(0) * 1024,
       copySize = o.copy,
-      erase = o.erase
+      erase = o.erase,
+      axi4 = o.axi4,
+      customDivRem = o.customDivRem
     )
 
 
