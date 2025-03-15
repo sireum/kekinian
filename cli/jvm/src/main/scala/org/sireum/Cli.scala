@@ -9874,7 +9874,7 @@ import Cli._
           |Configuration Options:
           |-b, --bits               Default bit-width for unbounded integer types (e.g.,
           |                           Z) (expects one of { 64, 32, 16, 8 })
-          |-n, --name               Project name (expects a string; default is "main")
+          |-n, --name               Project name (expects a string)
           |
           |Array Bounds Options:
           |-q, --sequence           Custom maximum sequence sizes, each in the form of
@@ -9912,7 +9912,7 @@ import Cli._
     var customDivRem: B = false
     var verbose: B = false
     var bitWidth: Z = 64
-    var projectName: Option[String] = Some("main")
+    var projectName: Option[String] = None[String]()
     var customArraySizes: ISZ[String] = ISZ[String]()
     var maxArraySize: Z = 100
     var maxStringSize: Z = 100
