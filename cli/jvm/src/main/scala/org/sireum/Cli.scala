@@ -1084,6 +1084,15 @@ object Cli {
     val width: ISZ[Z]
   ) extends SireumTopOption
 
+  @datatype class SireumToolsJsonsOption(
+    val help: String,
+    val args: ISZ[String],
+    val packageName: ISZ[String],
+    val name: Option[String],
+    val license: Option[String],
+    val outputDir: Option[String]
+  ) extends SireumTopOption
+
   @datatype class SireumToolsOpgenOption(
     val help: String,
     val args: ISZ[String],
@@ -8790,6 +8799,7 @@ import Cli._
             |bcgen                    Bit encoder/decoder generator
             |checkstack               Native function stack size check tool
             |cligen                   Command-line interface (CLI) generator
+            |jsons                    JSON schema to slang binding generator
             |opgen                    Object printer meta-generator
             |sergen                   De/Serializer generator
             |slangcheck               SlangCheck tools
@@ -8797,11 +8807,12 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "opgen", "sergen", "slangcheck", "trafo"))
+    val opt = select("tools", args, i, ISZ("bcgen", "checkstack", "cligen", "jsons", "opgen", "sergen", "slangcheck", "trafo"))
     opt match {
       case Some(string"bcgen") => return parseSireumToolsBcgen(args, i + 1)
       case Some(string"checkstack") => return parseSireumToolsCheckstack(args, i + 1)
       case Some(string"cligen") => return parseSireumToolsCligen(args, i + 1)
+      case Some(string"jsons") => return parseSireumToolsJsons(args, i + 1)
       case Some(string"opgen") => return parseSireumToolsOpgen(args, i + 1)
       case Some(string"sergen") => return parseSireumToolsSergen(args, i + 1)
       case Some(string"slangcheck") => return parseSireumToolsSlangcheck(args, i + 1)
@@ -9181,6 +9192,71 @@ import Cli._
       }
     }
     return Some(SireumToolsCligenOption(help, parseArguments(args, j), license, name, outputDir, packageName, reporter, script, width))
+  }
+
+  def parseSireumToolsJsons(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum JSON Schema to Slang Binding Generator
+          |
+          |Usage: <option>* <json-schema-file>
+          |
+          |Available Options:
+          |-p, --package            Package name for the binding (expects a string
+          |                           separated by ".")
+          |-n, --name               Type simple name for the binding (default is based on
+          |                           the JSON schema filename) (expects a string)
+          |-l, --license            License file to be inserted in the file header
+          |                           (expects a path)
+          |-o, --output-dir         Output directory for the generated Slang files
+          |                           (expects a path; default is ".")
+          |-h, --help               Display this information""".render
+
+    var packageName: ISZ[String] = ISZ[String]()
+    var name: Option[String] = None[String]()
+    var license: Option[String] = None[String]()
+    var outputDir: Option[String] = Some(".")
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "-p" || arg == "--package") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
+           o match {
+             case Some(v) => packageName = v
+             case _ => return None()
+           }
+         } else if (arg == "-n" || arg == "--name") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => name = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--license") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => license = v
+             case _ => return None()
+           }
+         } else if (arg == "-o" || arg == "--output-dir") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumToolsJsonsOption(help, parseArguments(args, j), packageName, name, license, outputDir))
   }
 
   def parseSireumToolsOpgen(args: ISZ[String], i: Z): Option[SireumTopOption] = {

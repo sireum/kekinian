@@ -687,6 +687,9 @@ object Sireum {
           case Some(o: Cli.SireumToolsBcgenOption) =>
             init.basicDeps()
             return cli.GenTools.bcGen(o, reporter)
+          case Some(o: Cli.SireumToolsJsonsOption) =>
+            init.basicDeps()
+            return cli.GenTools.jsonSchema2SlangGen(o, reporter)
           case Some(o: Cli.SireumToolsCheckstackOption) =>
             init.installCheckStack()
             return cli.CheckStack.run(o, init.checkstack)

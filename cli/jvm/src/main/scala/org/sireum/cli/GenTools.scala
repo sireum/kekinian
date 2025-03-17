@@ -34,6 +34,7 @@ import org.sireum.message._
 import org.sireum.tools._
 import org.sireum.SireumApi._
 import org.sireum.lang.tipe.TypeHierarchy
+import org.sireum.parser.json.{AST, ParserUtil}
 
 object GenTools {
 
@@ -233,6 +234,53 @@ object GenTools {
       reporter.printMessages()
     }
 
+    return 0
+  }
+
+
+  def jsonSchema2SlangGen(o: Cli.SireumToolsJsonsOption, reporter: Reporter): Z = {
+    if (o.args.isEmpty) {
+      println(o.help)
+      return 0
+    }
+    val lOpt: Option[String] = path2fileOpt("license file", o.license, T) match {
+      case Some(f) => Some(
+        st"""/*
+            | ${ops.StringOps(f.read).trim}
+            | */""".render
+      )
+      case _ => None()
+    }
+    val srcs = paths2files("JSON schema file", o.args, T)
+    val destDir = path2fileOpt("output directory", o.outputDir, T).get
+    if (!destDir.isDir) {
+      eprintln(s"Path $destDir is not a directory")
+      return -1
+    }
+    val packageName: ISZ[String] = if (o.packageName.isEmpty) ISZ() else o.packageName
+    for (src <- srcs) {
+      val name: String = o.name match {
+        case Some(n) => n
+        case _ =>
+          val fn = src.name
+          val j = ops.StringOps(fn).lastIndexOf('.')
+          s"${ops.StringOps(if (j >= 0) ops.StringOps(fn).substring(0, j) else fn).firstToUpper}Binding"
+      }
+      val uriOpt = Option.some(src.toUri)
+      val tree: AST.Obj = ParserUtil.build(uriOpt, src.read, reporter) match {
+        case Some(t: AST.Obj) => t
+        case _ =>
+          return -1
+      }
+      JsonSchema2SlangGen.gen(uriOpt, lOpt, packageName, name, tree, reporter) match {
+        case Some(r) =>
+          val f = destDir / s"$name.scala"
+          f.up.mkdirAll()
+          f.writeOver(r.render)
+          println(s"Wrote $f")
+        case _ =>
+      }
+    }
     return 0
   }
 

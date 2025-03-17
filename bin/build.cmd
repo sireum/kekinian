@@ -27,7 +27,7 @@ def usage(): Unit = {
         |       | regen-server     | regen-cliopt        | regen-cli
         |       | regen-fmide-cli  | regen-vscodium-cli  | regen-json
         |       | regen-slang-tt   | regen-reflect       | regen-anvil
-        |       | forms
+        |       | regen-dap        | forms
         |       | cvc              | z3                  | m2[-lib[-js] | -scalac]
         |       | mill             | jitpack             | ghpack            | ram
         |       | distro ( --linux | --linux-arm         | --mac             | --win
@@ -416,6 +416,17 @@ def regenAnvil(): Unit = {
   )).console, message.Reporter.create)
 }
 
+def regenDap(): Unit = {
+  val schema = Os.tempFix("dap-schema", ".json")
+  val dapVersion = versions.get("org.sireum.version.dap").get
+  val url = s"https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/refs/tags/v$dapVersion/debugAdapterProtocol.json"
+  schema.downloadFrom(url)
+  val dapPackagePath = home / "server" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "server" / "protocol" / "dap"
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "jsons", "-l", s"${home / "license.txt"}", "-p",
+    "org.sireum.server.protocol.dap", "-n", "DapBinding", "-o", dapPackagePath.string, schema.string
+  )).console, message.Reporter.create)
+  schema.removeAll()
+}
 
 def m2Version: String = {
   for (line <- ops.StringOps(proc"$sireum --version".runCheck().out).split((c: C) => c == '\n')) {
@@ -741,6 +752,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-slang-tt" => regenSlangTTLl1()
       case string"regen-reflect" => regenReflect()
       case string"regen-anvil" => regenAnvil()
+      case string"regen-dap" => regenDap()
       case string"m2" => m2()
       case string"m2-lib" => m2Lib(F)
       case string"m2-lib-js" => m2Lib(T)
