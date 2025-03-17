@@ -386,14 +386,8 @@ object Proyek {
 
     var millGenerated = F
 
-    val keywords = HashSet ++ ISZ[String]("abstract", "case", "catch", "class", "def", "do", "else", "extends",
-      "false", "final", "finally", "for", "forSome", "if", "implicit", "import", "lazy", "match", "new", "null",
-      "object", "override", "package", "private", "protected", "return", "sealed", "super", "this", "throw",
-      "trait", "try", "true", "type", "val", "var", "while", "with", "yield", "export", "given", "as", "derives",
-      "end", "extension", "infix", "inline", "opaque", "open", "transparent", "using")
-
     @pure def quote(name: String): String = {
-      if (keywords.contains(name) || !ops.StringOps(name).isJavaId) {
+      if (ops.StringOps.scalaKeywords.contains(name) || !ops.StringOps(name).isJavaId) {
         return s"`$name`"
       } else {
         return name
