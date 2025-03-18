@@ -417,15 +417,21 @@ def regenAnvil(): Unit = {
 }
 
 def regenDap(): Unit = {
-  val schema = Os.tempFix("dap-schema", ".json")
+  val dir = Os.tempDir()
   val dapVersion = versions.get("org.sireum.version.dap").get
+  val schema = dir / s"debugAdapterProtocol-v$dapVersion.json"
   val url = s"https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/refs/tags/v$dapVersion/debugAdapterProtocol.json"
-  schema.downloadFrom(url)
-  val dapPackagePath = home / "server" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "server" / "protocol" / "dap"
-  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "jsons", "-l", s"${home / "license.txt"}", "-p",
-    "org.sireum.server.protocol.dap", "-n", "DapBinding", "-o", dapPackagePath.string, schema.string
-  )).console, message.Reporter.create)
-  schema.removeAll()
+  if (schema.downloadFrom(url)) {
+    val dapPackagePath = home / "server" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "server" / "protocol" / "dap"
+    dapPackagePath.mkdirAll()
+    Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "jsons", "-l", s"${home / "license.txt"}", "-p",
+      "org.sireum.server.protocol.dap", "-n", "DapBinding", "-o", dapPackagePath.string, schema.string)).
+      console, message.Reporter.create)
+  } else {
+    eprintln(s"Could not download $url")
+  }
+  dir.removeAll()
+
 }
 
 def m2Version: String = {
