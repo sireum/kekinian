@@ -47,6 +47,7 @@
 /resources/vagrant/.vagrant
 out
 project.json
+project.svg
 project.csv
 project.pdf
 project.numbers
@@ -64,3 +65,4 @@ stale_outputs_checked
 /logika-examples
 7za
 7za.exe
+*.bom.json

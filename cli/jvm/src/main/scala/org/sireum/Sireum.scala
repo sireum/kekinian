@@ -528,6 +528,7 @@ object Sireum {
            |                             [-nik/jdk force-initializes Liberica NIK/JDK]
            |    --install-fonts        Install Sireum fonts
            |    --native               Build native executable
+           |    --sbom                 Generate software bill of materials
            |    --sha                  Print Sireum build SHA commit tip
            |    --test-cli             Test CLI arguments (expects strings)
            |-v, --version              Print version information""".stripMargin)
@@ -559,6 +560,37 @@ object Sireum {
       case ISZ(string"--native") =>
         init.deps()
         nativ()
+        return 0
+      case ISZ(string"--sbom") =>
+        init.basicDeps()
+        init.installSbt()
+        val latest = GitHub.repo("sireum", "kekinian").latestRelease.tagName
+        val sbomVersion = SireumApi.versions.get("org.sireum.version.sbt.sbom").get
+        val dir = Os.tempDir() / "sireum"
+        (dir / "project").mkdirAll()
+        val buildSbt = dir / "build.sbt"
+        buildSbt.writeOver(
+          st"""ThisBuild / scalaVersion := "${SireumApi.scalaVer}"
+              |ThisBuild / version := "$latest"
+              |ThisBuild / resolvers += "jitpack" at "https://jitpack.io"
+              |ThisBuild / libraryDependencies += "org.sireum.kekinian" %% "cli" % "$latest"""".render)
+        val pluginsSbt = dir / "project" / "plugins.sbt"
+        pluginsSbt.writeOver(s"""addSbtPlugin("com.github.sbt" %% "sbt-sbom" % "$sbomVersion")""")
+
+        val sbt: Os.Path = SireumApi.homeOpt.get / "bin" / "sbt" / "bin" / (if (Os.isWin) "sbt.bat" else "sbt")
+
+        println(s"Please wait while generating Sireum v$latest SBOM ...")
+        Os.proc(ISZ(sbt.string, "makeBom")).env(ISZ(
+          "JAVACMD" ~> (SireumApi.javaHomeOpt.get / "bin" / (if (Os.isWin) "java.exe" else "java")).string,
+          "JAVA_OPTS" ~> "--enable-native-access=ALL-UNNAMED",
+          "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
+        )).at(dir).runCheck()
+        println()
+
+        val output = dir / "target" / "sireum-4.20250211.0cf652c.bom.json"
+        output.copyOverTo(Os.cwd / output.name)
+        dir.removeAll()
+        println(s"Sireum v$latest SBOM is available at: ${Os.cwd / output.name}")
         return 0
       case ISZ(string"--sha") =>
         println(commitSha)
@@ -898,6 +930,7 @@ object Sireum {
           case Some(o: Cli.SireumXAnvilOption) =>
             init.basicDeps()
             init.installMill(F)
+            init.installSbt()
             return cli.Anvil.run(o, message.Reporter.create)
           case Some(_: Cli.HelpOption) =>
             if (args.isEmpty) {
