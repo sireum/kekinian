@@ -563,7 +563,7 @@ object Sireum {
         return 0
       case ISZ(string"--sbom") =>
         init.basicDeps()
-        init.installSbt()
+        init.installSbt(F)
         val latest = GitHub.repo("sireum", "kekinian").latestRelease.tagName
         val sbomVersion = SireumApi.versions.get("org.sireum.version.sbt.sbom").get
         val dir = Os.tempDir() / "sireum"
@@ -930,7 +930,7 @@ object Sireum {
           case Some(o: Cli.SireumXAnvilOption) =>
             init.basicDeps()
             init.installMill(F)
-            init.installSbt()
+            init.installSbt(F)
             return cli.Anvil.run(o, message.Reporter.create)
           case Some(_: Cli.HelpOption) =>
             if (args.isEmpty) {
