@@ -422,10 +422,10 @@ def regenDap(): Unit = {
   val schema = dir / s"debugAdapterProtocol-v$dapVersion.json"
   val url = s"https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/refs/tags/v$dapVersion/debugAdapterProtocol.json"
   if (schema.downloadFrom(url)) {
-    val dapPackagePath = home / "server" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "server" / "protocol" / "dap"
+    val dapPackagePath = home / "protocol" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "protocol" / "dap"
     dapPackagePath.mkdirAll()
     Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "jsons", "-l", s"${home / "license.txt"}", "-p",
-      "org.sireum.server.protocol.dap", "-n", "DapBinding", "-o", dapPackagePath.string, schema.string)).
+      "org.sireum.protocol.dap", "-n", "DapBinding", "-o", dapPackagePath.string, schema.string)).
       console, message.Reporter.create)
   } else {
     eprintln(s"Could not download $url")

@@ -52,3 +52,6 @@
 [submodule "anvil"]
 	path = anvil
 	url = https://github.com/sireum/anvil.git
+[submodule "protocol"]
+	path = protocol
+	url = https://github.com/sireum/protocol
