@@ -31,39 +31,23 @@ object Presentasi_Ext {
 
   ###("true" == System.getenv("PROYEK_JFX") || scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess) {
 
-    def initJavaFX(): Unit = NativeUtil.nonNative((), {
-      def initJavaFXH(): java.util.function.Supplier[Unit] = () => {
-        presentasi.PresentasiJFX.initJavaFX()
-      }
+    def initJavaFX(): Unit = NativeUtil.nonNative((), { () => presentasi.PresentasiJFX.initJavaFX() })
 
-      initJavaFXH()
+    def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), { () =>
+      val r = Z(presentasi.PresentasiJFX.getSoundDuration(uri.value))
+      if (r < 0) None[Z]() else Some(r)
     })
 
-    def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), {
-      def getSoundDurationH(uri: String): java.util.function.Supplier[Option[Z]] = () => {
-        val r = presentasi.PresentasiJFX.getSoundDuration(uri.value)
-        if (r < 0) None() else Some(r)
-      }
-
-      getSoundDurationH(uri)
+    def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), { () =>
+      val r = Z(presentasi.PresentasiJFX.getVideoDuration(uri.value))
+      if (r < 0) None[Z]() else Some(r)
     })
 
-    def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), {
-      def getVideoDurationH(uri: String): java.util.function.Supplier[Option[Z]] = () => {
-        val r = presentasi.PresentasiJFX.getVideoDuration(uri.value)
-        if (r < 0) None() else Some(r)
-      }
-
-      getVideoDurationH(uri)
+    def checkImage(uri: String): B = NativeUtil.nonNative(F, { () =>
+      B(presentasi.PresentasiJFX.checkImage(uri.value))
     })
 
-    def checkImage(uri: String): B = NativeUtil.nonNative(F, {
-      def checkImageH(uri: String): java.util.function.Supplier[B] = () => presentasi.PresentasiJFX.checkImage(uri.value)
-
-      checkImageH(uri)
-    })
-
-    def shutdown(): Unit = NativeUtil.nonNative[Unit]((), () => presentasi.PresentasiJFX.shutdown())
+    def shutdown(): Unit = NativeUtil.nonNative((), { () => presentasi.PresentasiJFX.shutdown() })
   }
 
   ###(!("true" == System.getenv("PROYEK_JFX") || scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess)) {

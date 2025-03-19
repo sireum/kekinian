@@ -138,8 +138,11 @@ object SlangRunner {
       case Some(scalaHome) => env = env :+ "SCALA_HOME" ~> scalaHome.string
       case _ =>
     }
-    if (Os.env("JAVA_OPTS").isEmpty) {
-      env = env :+ "JAVA_OPTS" ~> " "
+    Os.env("JAVA_OPTS") match {
+      case Some(v) =>
+        env = env :+ "JAVA_OPTS" ~> s"--enable-native-access=ALL-UNNAMED $v"
+      case _ =>
+        env = env :+ "JAVA_OPTS" ~> "--enable-native-access=ALL-UNNAMED"
     }
     var p = Os.proc(command).at(Os.cwd).env(env).standard
     if (jarFile.exists) {
