@@ -183,6 +183,8 @@ object Anvil {
       erase = o.erase,
       axi4 = o.axi4,
       customDivRem = o.customDivRem,
+      splitTempSizes = T,
+      tempLocal = T,
       indexingIntrinsic = F
     )
 
