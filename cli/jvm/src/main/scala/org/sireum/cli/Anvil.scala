@@ -182,7 +182,8 @@ object Anvil {
       copySize = o.copy,
       erase = o.erase,
       axi4 = o.axi4,
-      customDivRem = o.customDivRem
+      customDivRem = o.customDivRem,
+      indexingIntrinsic = F
     )
 
 
