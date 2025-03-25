@@ -929,8 +929,7 @@ object Sireum {
             }
           case Some(o: Cli.SireumXAnvilOption) =>
             init.basicDeps()
-            init.installMill(F)
-            init.installSbt(F)
+            init.anvilDeps()
             return cli.Anvil.run(o, message.Reporter.create)
           case Some(_: Cli.HelpOption) =>
             if (args.isEmpty) {
