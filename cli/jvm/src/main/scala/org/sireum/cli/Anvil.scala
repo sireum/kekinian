@@ -185,7 +185,8 @@ object Anvil {
       customDivRem = o.customDivRem,
       splitTempSizes = T,
       tempLocal = T,
-      indexingIntrinsic = F,
+      alu = F,
+      indexing = F,
       genVerilog = F,
       simOpt = None()
     )
