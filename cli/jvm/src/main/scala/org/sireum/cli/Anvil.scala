@@ -187,7 +187,7 @@ object Anvil {
     }
 
     anvil.Anvil.synthesize(F, lang.IRTranslator.createFresh, th, mfqname, config,
-      anvil.AnvilOutput(SireumApi.versions.get("org.sireum.version.sbt").get, dir), reporter)
+      anvil.AnvilOutput(T, SireumApi.versions.get("org.sireum.version.sbt").get, dir), reporter)
 
     if (reporter.hasError) {
       reporter.printMessages()
