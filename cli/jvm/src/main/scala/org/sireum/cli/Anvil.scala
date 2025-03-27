@@ -34,17 +34,6 @@ object Anvil {
   val InvalidArgs: Z = -6
   val AnvilError: Z = -12
 
-  @datatype class Output(val out: Os.Path) extends anvil.Anvil.Output {
-    override def add(isFinal: B, path: => ISZ[String], content: => ST): Unit = {
-      if (isFinal) {
-        val f = out /+ path
-        f.up.mkdirAll()
-        f.writeOver(content.render)
-        println(s"Wrote $f")
-      }
-    }
-  }
-
   def run(o: Cli.SireumXAnvilOption, reporter: message.Reporter): Z = {
     @pure def split(text: String, char: C): ISZ[String] = {
       return for (s <- ops.StringOps(text).split((c: C) => c == char)) yield ops.StringOps(s).trim
@@ -197,7 +186,8 @@ object Anvil {
       case _ => Os.cwd
     }
 
-    anvil.Anvil.synthesize(F, lang.IRTranslator.createFresh, th, mfqname, config, Output(dir), reporter)
+    anvil.Anvil.synthesize(F, lang.IRTranslator.createFresh, th, mfqname, config,
+      anvil.AnvilOutput(SireumApi.versions.get("org.sireum.version.sbt").get, dir), reporter)
 
     if (reporter.hasError) {
       reporter.printMessages()
