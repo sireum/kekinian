@@ -555,7 +555,7 @@ object Sireum {
         init.deps()
         return 0
       case ISZ(string"--install-fonts") =>
-        init.installFonts(F)
+        init.installFonts(T)
         return 0
       case ISZ(string"--native") =>
         init.deps()
