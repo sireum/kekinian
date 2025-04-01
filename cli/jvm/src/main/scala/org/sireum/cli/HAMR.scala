@@ -36,6 +36,7 @@ import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
 import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption}
 import org.sireum.hamr.codegen.common.util._
+import org.sireum.hamr.codegen.microkit.plugins.MicrokitPlugin
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
@@ -294,7 +295,7 @@ object HAMR {
       workspaceRootDir = workspaceRootDir,
       //
       experimentalOptions = experimentalOptions,
-      plugins = ArsitPlugin.gumboEnhancedPlugins,
+      plugins = ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugin.defaultMicrokitPlugins,
       store = Map.empty,
       reporter = reporter)._1
 
@@ -393,7 +394,7 @@ object HAMR {
   }
 
   def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): (CodeGenResults, Store) = {
-    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins, Map.empty, reporter)
+    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugin.defaultMicrokitPlugins, Map.empty, reporter)
   }
 
   /**
