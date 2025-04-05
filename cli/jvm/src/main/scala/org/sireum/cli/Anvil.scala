@@ -176,6 +176,7 @@ object Anvil {
       tempLocal = T,
       alu = F,
       indexing = F,
+      mux = F,
       genVerilog = F,
       simOpt = None()
     )
