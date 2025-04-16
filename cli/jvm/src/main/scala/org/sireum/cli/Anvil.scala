@@ -175,6 +175,7 @@ object Anvil {
       splitTempSizes = T,
       tempLocal = T,
       ipMax = 0,
+      cpMax = 0,
       mux = F,
       genVerilog = F,
       simOpt = None()
