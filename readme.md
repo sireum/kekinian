@@ -81,7 +81,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
 | [ACL2](https://www.cs.utexas.edu/~moore/acl2/) | [BSD3](https://www.cs.utexas.edu/~moore/acl2/v8-5/HTML/LICENSE) |
 | [Alt-Ergo](https://alt-ergo.ocamlpro.com/) | [OCamlPro-Non-Commercial-License](https://github.com/OCamlPro/alt-ergo/blob/next/licenses/OCamlPro-Non-Commercial-License.pdf) |
-| [Brave Browser](https://brave.com/) | [MPL 2.0](https://github.com/brave/brave-browser/blob/master/LICENSE) |
 | [CompCert](https://compcert.org/) | [INRIA Non-Commercial License Agreement](https://compcert.org/doc/LICENSE.txt) |
 | [Cosmopolitan](https://github.com/jart/cosmopolitan) | [ISC](https://github.com/jart/cosmopolitan/blob/master/LICENSE) |
 | [Cosmos](https://cosmo.zip/) | Open Source |
@@ -120,7 +119,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Terminal](https://plugins.jetbrains.com/plugin/13123-terminal) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [TeXiFy IDEA](https://plugins.jetbrains.com/plugin/9473-texify-idea) | [MIT](https://github.com/Hannah-Sten/TeXiFy-IDEA/blob/master/LICENSE) |
 | [Toml](https://plugins.jetbrains.com/plugin/8195-toml) | [MIT](https://github.com/intellij-rust/intellij-toml/blob/master/LICENSE) |
-| [ZigBrains](https://plugins.jetbrains.com/plugin/22456-zigbrains) | [Apache 2.0](https://github.com/FalsePattern/ZigBrains/blob/master/LICENSE) |
 
 
 | VSCodium Extension | License |
