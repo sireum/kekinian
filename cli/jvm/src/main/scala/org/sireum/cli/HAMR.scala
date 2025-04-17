@@ -216,6 +216,13 @@ object HAMR {
 
           codeGenReporter(modelElement.model, convertSysmlOptions(mergedOptions), reporter)
           if (!reporter.hasError) {
+            mergedOptions.workspaceRootDir match {
+              case Some(p) if Os.path(p).exists =>
+                val sout = Os.path(p) / ".slang" / st"${(modelElement.model.components(0).identifier.name, "_")}.json".render
+                sout.writeOver(irJSON.fromAadl(modelElement.model, F))
+                println(s"Wrote: $sout")
+              case _ =>
+            }
             reporter.info(None(), "codegen", "Code generation successful!")
           } else {
             reporter.info(None(), "codegen", "Code generation failed")
