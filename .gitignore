@@ -26,6 +26,7 @@
 !/bin/slang-run.sh
 /bsp.log
 /build.mill
+/codium-post.cmd
 /distro/config.txt
 /distro/setup.bat
 /distro/setup
