@@ -105,7 +105,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 |  :---  | :---: |
 | [ANTLR4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) | [BSD3](https://github.com/antlr/intellij-plugin-v4/blob/master/LICENSE) |
 | [ASM](https://github.com/sireum/intellij-asm) | [Apache 2.0](https://github.com/sireum/intellij-asm/blob/master/LICENSE) |
-| [Diagrams.net Integration](https://plugins.jetbrains.com/plugin/15635-diagrams-net-integration) | [Apache 2.0](https://github.com/docToolchain/diagrams.net-intellij-plugin/blob/main/LICENSE) |
+| [GitHub](https://plugins.jetbrains.com/plugin/13115-github) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [GitLab](https://plugins.jetbrains.com/plugin/22857-gitlab) | [JetBrains User Agreement (Free)](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
 | [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) | [EPL 2.0](https://github.com/redhat-developer/lsp4ij/blob/main/LICENSE) |
