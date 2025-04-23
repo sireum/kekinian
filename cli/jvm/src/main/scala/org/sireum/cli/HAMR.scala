@@ -47,6 +47,8 @@ object HAMR {
 
   val toolName: String = "HAMR"
 
+  val defaultCodegenPlugins: ISZ[Plugin] = ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugin.defaultMicrokitPlugins
+
   val ERROR_URL: Z = -1
   //val PARSING_FAILED: Z = -2 // used by SysMLGrammar
   val FILE_DOES_NOT_EXIST: Z = -3
@@ -302,7 +304,7 @@ object HAMR {
       workspaceRootDir = workspaceRootDir,
       //
       experimentalOptions = experimentalOptions,
-      plugins = ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugin.defaultMicrokitPlugins,
+      plugins = defaultCodegenPlugins,
       store = Map.empty,
       reporter = reporter)._1
 
@@ -311,7 +313,7 @@ object HAMR {
 
   /** JAVA/OSATE interface with Plugins
     *
-    * @param plugins should at least include those in org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin.defaultPlugins.
+    * @param plugins should at least include those in defaultCodegenPlugins.
     *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
     *        so place plugins that override default behavior before the default plugins.
     *
@@ -405,7 +407,7 @@ object HAMR {
   }
 
   /**
-    * @param plugins should at least include those in org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin.defaultPlugins.
+    * @param plugins should at least include those in defaultCodegenPlugins.
     *        Most plugin usage is based on a first-come, first-and-potentially-only-one-served basis
     *        so place plugins that override default behavior before the default plugins.
     *
