@@ -116,7 +116,7 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
             else sireumHome
           if (Os.isWin) (Some(cacheLoc / "bin" / "win" / "osate"), ISZ(pv))
           else if (Os.isMac) (Some(cacheLoc / "bin" / "mac" / "osate.app"), ISZ("Contents", "Eclipse", pv))
-          else if (Os.isLinux) (Some(cacheLoc / "bin" / "linux" / "osate"), ISZ(pv))
+          else if (Os.isLinux || Os.isLinuxArm) (Some(cacheLoc / "bin" / "linux" / "osate"), ISZ(pv))
           else (None(), ISZ())
         }
 
