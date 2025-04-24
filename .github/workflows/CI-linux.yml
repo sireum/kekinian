@@ -9,7 +9,7 @@ on:
 
 jobs:
 
-  ci:
+  ci-amd64:
     runs-on: ubuntu-latest
     steps:
       - name: Clean
@@ -69,3 +69,56 @@ jobs:
           cd $GITHUB_WORKSPACE/Sireum
           .ci/linux-native.sh
           rm bin/linux/sireum
+
+  ci-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE/Sireum"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: Sireum
+          submodules: recursive
+      - name: Cache Java
+        id: cache-java
+        uses: actions/cache@v4
+        with:
+          path: Sireum/bin/linux/arm/java
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-java
+      - name: Cache Scala
+        id: cache-scala
+        uses: actions/cache@v4
+        with:
+          path: Sireum/bin/scala
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-scala
+      - name: Cache Coursier
+        id: cache-coursier
+        uses: actions/cache@v4
+        with:
+          path: Sireum/cache/coursier
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/versions.properties') }}-coursier
+      - name: Cache OSATE
+        id: cache-osate
+        uses: actions/cache@v4
+        with:
+          path: Sireum/bin/linux/arm/osate
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
+      - name: Setup APE binfmt
+        run: |
+          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+          sudo chmod +x /usr/bin/ape
+          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
+      - name: Test
+        run: |
+          export COURSIER_CACHE=$GITHUB_WORKSPACE/Sireum/cache/coursier
+          cd $GITHUB_WORKSPACE/Sireum
+          .ci/build.sh && .ci/build.sh test-verify
+      - name: Cache Graal
+        id: cache-graal
+        uses: actions/cache@v4
+        with:
+          path: Sireum/bin/linux/arm/graal
+          key: ${{ runner.os }}-${{ hashFiles('Sireum/bin/install/graal.cmd') }}-graal

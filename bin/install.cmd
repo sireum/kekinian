@@ -23,8 +23,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                       
   OS=linux                                                                                                                                                                                  #
   if [ "$(uname -m)" = "aarch64" ]; then                                                                                                                                                    #
     ARCH=arm64                                                                                                                                                                              #
-    echo "Unsupported Linux architecture aarch64"                                                                                                                                           #
-    exit -1                                                                                                                                                                                 #
+    echo "Sireum's Linux arm64 platform support is experimental"                                                                                                                                 #
   else                                                                                                                                                                                      #
     ARCH=amd64                                                                                                                                                                              #
   fi                                                                                                                                                                                        #
@@ -84,7 +83,7 @@ if not defined DIR set "DIR=%USERPROFILE%\Applications\Sireum"
   for %%a in ("%DIR%") do set "PDIR=%%~dpa"
 if not "%DISTRO%" == "cli" if not "%DISTRO%" == "codeive" if not "%DISTRO%" == "ive" echo DISTRO has to be either cli, codeive, or ive && exit /b -3
 set "ARCH=amd64"
-if "%PROCESSOR_ARCHITECTURE%" == "ARM64" set "ARCH=arm64" && echo Unsupported Windows architecture ARM64 && exit /b -2
+if "%PROCESSOR_ARCHITECTURE%" == "ARM64" set "ARCH=arm64" && echo Sireum's Windows arm64 support is experimental
 rmdir /s/q "%DIR%" 2> null
 if exist %USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z del /q/f "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul 2>&1
 if exist %USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip del /q/f "%USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip" >nul 2>&1
