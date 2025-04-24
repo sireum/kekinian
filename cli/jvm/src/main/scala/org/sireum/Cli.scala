@@ -1009,7 +1009,8 @@ object Cli {
     val args: ISZ[String],
     val existingInstall: Option[String],
     val extensions: ISZ[String],
-    val extensionsDir: Option[String]
+    val extensionsDir: Option[String],
+    val vscode: B
   ) extends SireumTopOption
 
   @enum object SireumToolsBcgenBitCodecMode {
@@ -8747,11 +8748,13 @@ import Cli._
           |                           hediet.vscode-drawio")
           |    --extensions-dir     Custom VSCodium/VSCode extensions directory (expects a
           |                           path)
+          |    --vscode-marketplace Use VSCode Marketplace
           |-h, --help               Display this information""".render
 
     var existingInstall: Option[String] = None[String]()
     var extensions: ISZ[String] = ISZ("llvm-vs-code-extensions.vscode-clangd", "mike-lischke.vscode-antlr4", "mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "mhutchie.git-graph", "ecmel.vscode-html-css", "kofuk.hugo-utils", "redhat.java", "langium.langium-vscode", "James-Yu.latex-workshop", "jebbs.plantuml", "esbenp.prettier-vscode", "ms-python.python", "rust-lang.rust-analyzer", "scalameta.metals", "mshr-h.veriloghdl", "redhat.vscode-xml", "redhat.vscode-yaml", "adamraichu.zip-viewer", "hediet.vscode-drawio")
     var extensionsDir: Option[String] = None[String]()
+    var vscode: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -8778,6 +8781,12 @@ import Cli._
              case Some(v) => extensionsDir = v
              case _ => return None()
            }
+         } else if (arg == "--vscode-marketplace") {
+           val o: Option[B] = { j = j - 1; Some(!vscode) }
+           o match {
+             case Some(v) => vscode = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -8787,7 +8796,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumSetupVscodeOption(help, parseArguments(args, j), existingInstall, extensions, extensionsDir))
+    return Some(SireumSetupVscodeOption(help, parseArguments(args, j), existingInstall, extensions, extensionsDir, vscode))
   }
 
   def parseSireumTools(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -9198,7 +9207,7 @@ import Cli._
     val help =
       st"""Sireum JSON Schema to Slang Binding Generator
           |
-          |Usage: <option>* <json-schema-file>
+          |Usage: <option>* <json-schema-file>+
           |
           |Available Options:
           |-p, --package            Package name for the binding (expects a string

@@ -653,6 +653,7 @@ object Sireum {
             init.deps()
             init.installMill(T)
             init.installVSCodium(
+              o.vscode,
               path2fileOpt("existing VSCode/VSCodium", o.existingInstall, T),
               path2fileOpt("extensions directory", o.extensionsDir, F),
               o.extensions

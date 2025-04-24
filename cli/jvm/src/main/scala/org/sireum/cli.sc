@@ -189,7 +189,10 @@ val vscodeSetup: Tool = Tool(
       description = "List of extensions to be installed (excluding Sireum and SysIDE)"),
     Opt(name = "extensionsDir", longKey = "extensions-dir", shortKey = None(),
       tpe = Type.Path(multiple = F, default = None()),
-      description = "Custom VSCodium/VSCode extensions directory")
+      description = "Custom VSCodium/VSCode extensions directory"),
+    Opt(name = "vscode", longKey = "vscode-marketplace", shortKey = None(),
+      tpe = Type.Flag(default = F),
+      description = "Use VSCode Marketplace")
   ),
   groups = ISZ()
 )
