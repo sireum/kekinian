@@ -59,12 +59,16 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
 
       val aadlDir = resourceDir / projName / "aadl"
 
-      oldOut.println(s"Regenerating AIR/JSON via Phantom using ${osateHome.get} ...")
-      (aadlDir / ".slang").removeAll()
-      val ocmd = ISZ[String]("hamr", "phantom", "-o", osateHome.get.value, aadlDir.value)
-      val oresult = Sireum.run(ocmd, reporter)
+      if (osateHome.nonEmpty) {
+        oldOut.println(s"Regenerating AIR/JSON via Phantom using ${osateHome.get} ...")
+        (aadlDir / ".slang").removeAll()
+        val ocmd = ISZ[String]("hamr", "phantom", "-o", osateHome.get.value, aadlDir.value)
+        val oresult = Sireum.run(ocmd, reporter)
 
-      check("Phantom", oresult)
+        check("Phantom", oresult)
+      } else {
+        oldOut.println("OSATE not found, using json file")
+      }
 
       val json = (aadlDir / ".slang").list.filter(p => p.ext == string"json")
       assert(json.size == 1, s"Expecting a single AIR/JSON file but found ${json.size}")
@@ -101,7 +105,7 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
   }
 
   override def beforeAll(): Unit = {
-    if (!willingToWait || osateHome.nonEmpty) {
+    if (Os.isWinArm || !willingToWait || osateHome.nonEmpty) {
       return
     }
     Os.env("SIREUM_HOME") match {
@@ -119,7 +123,6 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
           else if (Os.isLinux || Os.isLinuxArm) (Some(cacheLoc / "bin" / "linux" / "osate"), ISZ(pv))
           else (None(), ISZ())
         }
-
 
         if (loc._1.isEmpty) {
           assert(F, s"Unsupported operating system: ${Os.kind}")
