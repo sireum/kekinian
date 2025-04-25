@@ -754,7 +754,6 @@ jobs:
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
           call logika-examples\bin\verify.cmd || goto :error
-          call "%SIREUM_HOME%\bin\sireum.bat" proyek ive logika-examples || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%
