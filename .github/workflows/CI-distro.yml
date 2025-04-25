@@ -126,7 +126,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           timeout 10s "$SIREUM_HOME/bin/build.cmd" jitpack || true
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "scala-lang.scala"
+          "$SIREUM_HOME/bin/sireum" setup vscode --vscode-marketplace --extensions "scala-lang.scala"
           "$SIREUM_HOME/bin/build.cmd" native distro --linux --pack --vscodium
           echo "" >  Sireum/bin/.binfmt
           tar -cJf sireum-cli-linux-amd64.tar.xz \
@@ -209,7 +209,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/build.cmd"
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "scala-lang.scala"
+          "$SIREUM_HOME/bin/sireum" setup vscode --vscode-marketplace --extensions "scala-lang.scala"
           "$SIREUM_HOME/bin/build.cmd" distro --linux-arm --pack --vscodium
           echo "" >  Sireum/bin/.binfmt
           tar -cJf sireum-cli-linux-arm64.tar.xz \
@@ -286,7 +286,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/build.cmd"
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "scala-lang.scala"
+          "$SIREUM_HOME/bin/sireum" setup vscode --vscode-marketplace --extensions "scala-lang.scala"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           tar -cJf sireum-cli-mac-arm64.tar.xz \
             Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install Sireum/bin/7zz \
@@ -362,7 +362,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/build.cmd"
-          "$SIREUM_HOME/bin/sireum" setup vscode --extensions "scala-lang.scala"
+          "$SIREUM_HOME/bin/sireum" setup vscode --vscode-marketplace --extensions "scala-lang.scala"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           tar -cJf sireum-cli-mac-amd64.tar.xz \
             Sireum/bin/sireum Sireum/bin/slang-run.sh Sireum/bin/mac/sireum Sireum/bin/install Sireum/bin/7zz \
@@ -449,7 +449,7 @@ jobs:
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set errorlevel=
           call "%SIREUM_HOME%\bin\build.cmd" || goto :error
-          call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --extensions "scala-lang.scala" || goto :error
+          call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --vscode-marketplace --extensions "scala-lang.scala" || goto :error
           del "%SIREUM_HOME%\bin\.sireum-win.jar" || goto :error
           call "%SIREUM_HOME%\bin\build.cmd" native distro --win --pack --vscodium || goto :error
           copy C:\Windows\System32\vcruntime140.dll Sireum\bin\win\ || goto :error
@@ -527,12 +527,6 @@ jobs:
         with:
           path: Sireum
           submodules: recursive
-      - name: Configure Pagefile
-        uses: al-cheb/configure-pagefile-action@v1.4
-        with:
-          minimum-size: 8GB
-          maximum-size: 16GB
-          disk-root: "C:"
       - name: Build
         shell: cmd
         run: |
@@ -540,7 +534,7 @@ jobs:
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set errorlevel=
           call "%SIREUM_HOME%\bin\build.cmd" || goto :error
-          call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --extensions "scala-lang.scala" || goto :error
+          call "%SIREUM_HOME%\bin\sireum.bat" setup vscode --vscode-marketplace --extensions "scala-lang.scala" || goto :error
           del "%SIREUM_HOME%\bin\.sireum-win.jar" || goto :error
           call "%SIREUM_HOME%\bin\build.cmd" distro --win --pack --vscodium || goto :error
           copy C:\Windows\System32\vcruntime140.dll Sireum\bin\win\ || goto :error
