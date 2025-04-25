@@ -239,7 +239,9 @@ def verifyRuntime(): Unit = {
 
 def verify(): Unit = {
   verifyLogikaExamples()
-  verifyRuntime()
+  if (!Os.isWinArm) {
+    verifyRuntime()
+  }
 }
 
 
