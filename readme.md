@@ -86,6 +86,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Cosmos](https://cosmo.zip/) | Open Source |
 | [Coq](https://coq.inria.fr/) | [LGPL 2.1](https://github.com/coq/coq/blob/master/LICENSE) |
 | [CLion](https://www.jetbrains.com/clion/) | Commercial |
+| [Fleet](https://www.jetbrains.com/fleet/) | Public Preview |
 | [FM Workbench](https://github.com/loonwerks/formal-methods-workbench) | [BSD3](https://github.com/loonwerks/formal-methods-workbench/blob/master/LICENSE) |
 | [GraalVM (OpenJDK)](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
 | [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
