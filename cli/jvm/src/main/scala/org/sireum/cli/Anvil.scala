@@ -171,7 +171,7 @@ object Anvil {
       copySize = o.copy,
       erase = o.erase,
       axi4 = o.axi4,
-      customDivRem = o.customDivRem,
+      noXilinxIp = o.customDivRem,
       splitTempSizes = T,
       tempLocal = T,
       memoryAccess = anvil.Anvil.Config.MemoryAccess.Default,
