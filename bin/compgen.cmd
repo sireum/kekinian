@@ -68,7 +68,7 @@ def getCliOptScriptPath(): Os.Path = {
  */
 def run(script: Os.Path): Os.Proc.Result = {
   val home = Os.slashDir.canon
-  val prefix: ISZ[String] = if (Os.kind == Os.Kind.Win) ISZ("cmd", "/c") else ISZ[String]()
+  val prefix: ISZ[String] = if (Os.kind == Os.Kind.Win) ISZ("cmd", "/c") else ISZ("sh")
   val proc: ISZ[String] = ISZ("sireum", "slang", "run", script.value)
   return Os.proc(prefix ++ proc).at(home).runCheck()
 }
