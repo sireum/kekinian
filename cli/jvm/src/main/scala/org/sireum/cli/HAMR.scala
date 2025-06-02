@@ -156,11 +156,11 @@ object HAMR {
         return INVALID_OPTIONS
     }
 
-    val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = sysmlRun(tipeOpts, reporter)
+    val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], Store, B), Z] = sysmlRun(tipeOpts, reporter)
 
     if (!reporter.hasError) {
       results match {
-        case Either.Left((th, models, inputs, _)) =>
+        case Either.Left((th, models, inputs, store, _)) =>
 
           var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
           for (input <- inputs) {
@@ -578,7 +578,8 @@ object HAMR {
     return SysMLGrammar.translate(content, uri, o.keywords, outFile)
   }
 
-  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption, reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = {
+  def sysmlRun(o: Cli.SireumHamrSysmlTipeOption,
+               reporter: Reporter): Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], Store, B), Z] = {
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
       println(o.help)
       return Either.Right(0)
@@ -606,8 +607,9 @@ object HAMR {
 
     val inputs: ISZ[FrontEnd.Input] = for (f <- sysmlFiles) yield FrontEnd.Input(content = f.read, fileUri = Some(f.toUri))
 
-    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], B), Z] = FrontEnd.typeCheck(0, inputs, reporter) match {
-      case (Some(th), aadls) => Either.Left((th, aadls, inputs, reporter.hasError))
+    var store: Store = Map.empty
+    val ret: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], Store, B), Z] = FrontEnd.typeCheck(0, inputs, store, reporter) match {
+      case (Some(th), aadls, s) => Either.Left((th, aadls, inputs, s, reporter.hasError))
       case _ => Either.Right(1)
     }
 
@@ -650,7 +652,7 @@ object HAMR {
     var connections = ISZ[(lang.tipe.TypeHierarchy, hamr.sysml.FrontEnd.IntegerationConnection)]()
     var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
     sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath, o.parseableMessages), reporter) match {
-      case Either.Left((_, models, inputs, hasError)) =>
+      case Either.Left((_, models, inputs, store, hasError)) =>
         if (hasError) {
           return -1
         }

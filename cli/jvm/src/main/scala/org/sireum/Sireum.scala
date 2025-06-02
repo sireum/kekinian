@@ -794,7 +794,7 @@ object Sireum {
             }
             cli.HAMR.sysmlRun(o, reporter) match {
               case Either.Right(code) => return code
-              case Either.Left((_, _, _, hasError)) =>
+              case Either.Left((_, _, _, _, hasError)) =>
                 if (!hasError) {
                   println("Well-formed!")
                 }
