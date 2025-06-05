@@ -1687,7 +1687,7 @@ import Cli._
           |                           Sireum plugins installed if not provided (expects a
           |                           string separated by ";")
           |    --version            OSATE version (expects a string; default is
-          |                           "2.15.0-vfinal")
+          |                           "2.16.0-vfinal")
           |    --sireum-home        Change the location of the Sireum home installation
           |                           directory that OSATE uses (expects a path)""".render
 
@@ -1701,7 +1701,7 @@ import Cli._
     var osate: Option[String] = None[String]()
     var update: B = false
     var features: ISZ[String] = ISZ[String]()
-    var version: Option[String] = Some("2.15.0-vfinal")
+    var version: Option[String] = Some("2.16.0-vfinal")
     var sireum: Option[String] = None[String]()
     var j = i
     var isOption = T
