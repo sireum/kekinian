@@ -470,7 +470,7 @@ object Presentasi {
     }
 
     val spec: Presentation = org.sireum.presentasi.JSON.toPresentation(outTemp.read) match {
-      case Either.Left(o) => o
+      case Either.Left(obj) => obj
       case _ =>
         eprintln(s"Failed to process $path")
         return INVALID_SPEC
@@ -555,9 +555,9 @@ object Presentasi {
         ))
         temp.removeAll()
         println(s"Loading $p ...")
-        val dur = Ext.getSoundDuration(p.toUri)
+        val durOpt = Ext.getSoundDuration(p.toUri)
         println()
-        dur match {
+        durOpt match {
           case Some(dur) if code == 0 => return sound(filepath = p, duration = dur)
           case _ =>
             reporter.error(None(), "presentasi", s"""Failed to load: "${sound.text}"""")
@@ -692,9 +692,9 @@ object Presentasi {
             println()
           }
           println(s"Loading $p ...")
-          val dur = Ext.getVideoDuration(p.toUri)
+          val durOpt = Ext.getVideoDuration(p.toUri)
           println()
-          dur match {
+          durOpt match {
             case Some(dur) =>
               val durR = conversions.Z.toR(dur)
               val start: F64 = if (entry.start < 0.0) {

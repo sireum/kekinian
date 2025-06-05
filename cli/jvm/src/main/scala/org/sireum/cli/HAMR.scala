@@ -456,8 +456,8 @@ object HAMR {
     val (proxyHost, proxyProtocol, proxyPort, proxyUser, proxyPassword, proxyNonHosts): (Option[String], Option[String], Option[String], Option[String], Option[String], Option[String]) = {
       ExperimentalOptions.proyekIveOptions(o.experimentalOptions) match {
         case Some(opts) => Cli(Os.pathSepChar).parseSireumProyekIve(opts, 0) match {
-          case Some(o: Cli.SireumProyekIveOption) =>
-            (o.proxyHost, o.proxyProtocol, o.proxyPort, o.proxyUser, o.proxyPassword, o.proxyNonHosts)
+          case Some(opt: Cli.SireumProyekIveOption) =>
+            (opt.proxyHost, opt.proxyProtocol, opt.proxyPort, opt.proxyUser, opt.proxyPassword, opt.proxyNonHosts)
           case _ => (None(), None(), None(), None(), None(), None())
         }
         case _ => (None(), None(), None(), None(), None(), None())
@@ -964,7 +964,7 @@ object HAMR {
             case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
               if (fileOptions.platform == o.platform) {
                 mergeOptionsM(o, fileOptions, str) match {
-                  case Either.Left((o, _)) => return Some(o)
+                  case Either.Left((opt, _)) => return Some(opt)
                   case Either.Right(msg) =>
                     eprintln(msg)
                     return None()
