@@ -647,9 +647,9 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
 
-  test-windows-amd64-2019:
+  test-windows-amd64-2022:
     needs: [build-linux-amd64, build-windows-amd64]
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Test CodeIVE
         shell: cmd
