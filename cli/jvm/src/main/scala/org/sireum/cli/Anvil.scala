@@ -171,6 +171,7 @@ object Anvil {
       erase = o.erase,
       noXilinxIp = o.customDivRem,
       splitTempSizes = T,
+      tempGlobal = T,
       tempLocal = T,
       memoryAccess = anvil.Anvil.Config.MemoryAccess.Default,
       ipMax = 0,
