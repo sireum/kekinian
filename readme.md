@@ -108,7 +108,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [GitHub](https://plugins.jetbrains.com/plugin/13115-github) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [GitLab](https://plugins.jetbrains.com/plugin/22857-gitlab) | [JetBrains User Agreement (Free)](https://www.jetbrains.com/legal/docs/toolbox/user/) |
 | [JDT AstView](https://plugins.jetbrains.com/plugin/9345-jdt-astview) | [BSD2](https://github.com/ksu-cis-706/jdt-astview/blob/master/license.md) |
-| [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) | [EPL 2.0](https://github.com/redhat-developer/lsp4ij/blob/main/LICENSE) |
 | [Native Debugging Support](https://plugins.jetbrains.com/plugin/12775-native-debugging-support) | Commercial (Ultimate only) |
 | [PDF Viewer](https://plugins.jetbrains.com/plugin/14494-pdf-viewer) | [MIT](https://github.com/FirstTimeInForever/intellij-pdf-viewer/blob/master/LICENSE) |
 | [Rust](https://plugins.jetbrains.com/plugin/22407-rust) | Ultimate/Commercial/Non-Commercial |
