@@ -615,7 +615,7 @@ object Sireum {
                 if ((init.home / "bin" / "project.cmd").exists) {
                   run(ISZ("proyek", "ive", init.home.string), reporter)
                 }
-                proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, F),
+                proyek.Ive.IVE.writeApplicationConfigs(T, T, init.home, init.ideaDirPath(F, F),
                   Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
                   init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
                 println()
@@ -628,7 +628,7 @@ object Sireum {
                 if ((init.home / "bin" / "project.cmd").exists) {
                   run(ISZ("proyek", "ive", "--edition", "ultimate", init.home.string), reporter)
                 }
-                proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(T, F),
+                proyek.Ive.IVE.writeApplicationConfigs(T, F, init.home, init.ideaDirPath(T, F),
                   Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
                   init.ideaConfig(T, F, T, None()), init.ideaSandbox(F))
                 println()
@@ -641,7 +641,7 @@ object Sireum {
                 if ((init.home / "bin" / "project.cmd").exists) {
                   run(ISZ("proyek", "ive", "--edition", "server", init.home.string), reporter)
                 }
-                proyek.Ive.IVE.writeApplicationConfigs(T, init.home, init.ideaDirPath(F, T),
+                proyek.Ive.IVE.writeApplicationConfigs(T, F, init.home, init.ideaDirPath(F, T),
                   Os.javaHomeOpt(init.kind, Some(init.home)).get, init.javaVersion, F,
                   init.ideaConfig(T, F, F, None()), init.ideaSandbox(F))
                 println()

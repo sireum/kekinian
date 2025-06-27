@@ -763,6 +763,7 @@ object Proyek {
       ideaDir = ideaDir.canon,
       isDev = SireumApi.isDev,
       force = o.force,
+      isCommunity = o.edition == Cli.SireumProyekIveEdition.Community,
       javacOptions = o.javac,
       scalacOptions = o.scalac,
       configPath = configPath,
