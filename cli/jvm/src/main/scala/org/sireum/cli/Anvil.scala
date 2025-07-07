@@ -174,6 +174,7 @@ object Anvil {
       tempGlobal = T,
       tempLocal = T,
       memoryAccess = anvil.Anvil.Config.MemoryAccess.Default,
+      baseAddress = 0,
       ipMax = 0,
       cpMax = 0,
       genVerilog = F,
