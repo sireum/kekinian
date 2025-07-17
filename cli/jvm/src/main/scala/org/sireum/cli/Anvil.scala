@@ -175,7 +175,9 @@ object Anvil {
       tempLocal = T,
       memoryAccess = anvil.Anvil.Config.MemoryAccess.Default,
       baseAddress = 0,
+      alignAxi4 = F,
       ipMax = 0,
+      ipSubroutine = F,
       cpMax = 0,
       genVerilog = F,
       simOpt = None()
