@@ -33,10 +33,12 @@ import org.sireum.hamr.codegen.arsit.plugin.ArsitPlugin
 import org.sireum.hamr.codegen.common.CommonUtil.Store
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
+import org.sireum.hamr.codegen.common.reporting.CodegenReporting
+import org.sireum.hamr.codegen.common.reporting.ToolReport
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
 import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption}
 import org.sireum.hamr.codegen.common.util._
-import org.sireum.hamr.codegen.microkit.plugins.MicrokitPlugin
+import org.sireum.hamr.codegen.microkit.plugins.MicrokitPlugins
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
@@ -47,7 +49,7 @@ object HAMR {
 
   val toolName: String = "HAMR"
 
-  val defaultCodegenPlugins: ISZ[Plugin] = ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugin.defaultMicrokitPlugins
+  val defaultCodegenPlugins: ISZ[Plugin] = ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugins.defaultMicrokitPlugins
 
   val ERROR_URL: Z = -1
   //val PARSING_FAILED: Z = -2 // used by SysMLGrammar
@@ -216,7 +218,13 @@ object HAMR {
             }
           }
 
-          codeGenReporter(modelElement.model, convertSysmlOptions(mergedOptions), reporter)
+          val dummyToolReport = CodegenReporting.emptyToolReport
+
+          val localStore: Store = CodegenReporting.addCodegenReport(CodegenReporting.KEY_TOOL_REPORT,
+            dummyToolReport(commandLineArgs = SireumHamrSysmlCodegenOptionUtil.optionsToString(mergedOptions, F)), store)
+
+          codeGenReporterS(modelElement.model, convertSysmlOptions(mergedOptions), localStore, reporter)
+
           if (!reporter.hasError) {
             mergedOptions.workspaceRootDir match {
               case Some(p) if Os.path(p).exists =>
@@ -403,7 +411,11 @@ object HAMR {
   }
 
   def codeGenReporter(model: Aadl, o: Cli.SireumHamrCodegenOption, reporter: Reporter): (CodeGenResults, Store) = {
-    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugin.defaultMicrokitPlugins, Map.empty, reporter)
+    return codeGenReporterS(model, o, Map.empty, reporter)
+  }
+
+  def codeGenReporterS(model: Aadl, o: Cli.SireumHamrCodegenOption, store: Store, reporter: Reporter): (CodeGenResults, Store) = {
+    return codeGenReporterP(model, o, ArsitPlugin.gumboEnhancedPlugins ++ MicrokitPlugins.defaultMicrokitPlugins, store, reporter)
   }
 
   /**
@@ -505,6 +517,7 @@ object HAMR {
       }
     }
 
+    // call back function
     def sergen(stso: SireumToolsSergenOption, sreporter: Reporter): Z = {
       val cstso = Cli.SireumToolsSergenOption(
         help = stso.help,
@@ -521,6 +534,7 @@ object HAMR {
       return GenTools.serGen(cstso, sreporter)
     }
 
+    // call back function
     def slangCheck(stsgo: SireumToolsSlangcheckGeneratorOption, sreporter: Reporter): Z = {
       val cstsgo = Cli.SireumToolsSlangcheckGeneratorOption(
         help = stsgo.help,
@@ -538,7 +552,18 @@ object HAMR {
 
     val cgops = toCodeGenOptions(o)
 
-    return SireumApi.hamrCodeGen(model, T, cgops, plugins, store, reporter,
+    val localStore: Store = {
+      CodegenReporting.getCodegenReport(CodegenReporting.KEY_TOOL_REPORT, store) match {
+        case Some(_) => store
+        case _ =>
+          val dummyToolReport = CodegenReporting.emptyToolReport
+
+          CodegenReporting.addCodegenReport(CodegenReporting.KEY_TOOL_REPORT,
+            dummyToolReport(commandLineArgs =SireumHamrCodegenOptionUtil.optionsToString(o, F)), store)
+      }
+    }
+
+    return SireumApi.hamrCodeGen(model, T, cgops, plugins, localStore, reporter,
       transpile _, proyekIve _, sergen _, slangCheck _)
   }
 
