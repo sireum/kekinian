@@ -506,15 +506,7 @@ object HAMR {
         proxyPassword = proxyPassword,
         proxyNonHosts = proxyNonHosts
       )
-      Proyek.ive(spivo) match {
-        case 0 =>
-          Cli(Os.pathSepChar).parseSireumProyekExport(po.args, 0) match {
-            case Some(exportOpts: Cli.SireumProyekExportOption) =>
-              return Proyek.exprt(exportOpts)
-            case x => return INVALID_OPTIONS
-          }
-        case errCode => return errCode
-      }
+      return Proyek.ive(spivo)
     }
 
     // call back function
