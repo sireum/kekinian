@@ -563,15 +563,6 @@ object Proyek {
 
     def bloopGen(): Unit = {
       println("Generating Bloop configuration ...")
-      val javaHome: Os.Path = {
-        val versions: Map[String, String] = (Os.sireumHomeOpt.get / "versions.properties").properties
-        val d = (SireumApi.javaHomeOpt.get.up / "java-17").canon
-        val vs = versions + "org.sireum.version.java" ~> "17.0.16+12"
-        val i = Init(d, Os.kind, vs)
-        i.installJava(i.versions, F, F)
-        i.homeBinPlatform / "java"
-      }
-
       val pr: OsProto.Proc = if (Os.isWin) {
         proc"cmd /C ${SireumApi.homeOpt.get / "bin" / "mill.bat"} --ticker false --color false --import ivy:com.lihaoyi::mill-contrib-bloop: mill.contrib.bloop.Bloop/install"
       } else {
@@ -579,8 +570,8 @@ object Proyek {
       }
       (root / ".bloop").removeAll()
       val env = ISZ(
-        "JAVA_HOME" ~> javaHome.string,
-        "PATH" ~> s"${javaHome / "bin"}${Os.pathSep}${Os.env("PATH").get}",
+        "JAVA_HOME" ~> SireumApi.javaHomeOpt.get.string,
+        "PATH" ~> s"${SireumApi.javaHomeOpt.get / "bin"}${Os.pathSep}${Os.env("PATH").get}",
         "COURSIER_CACHE" ~> Coursier.defaultCacheDir.string
       )
       pr.console.at(root).env(env).runCheck()
