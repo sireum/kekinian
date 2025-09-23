@@ -608,7 +608,7 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
-          # "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
+          "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
           rm -fR ~/.m2 logika-examples
@@ -633,7 +633,7 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
-          # "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
+          "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
           rm -fR ~/.m2 logika-examples
@@ -660,7 +660,7 @@ jobs:
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
           call logika-examples\bin\verify.cmd || goto :error
-          rem call "%SIREUM_HOME%\bin\sireum.bat" proyek export logika-examples || goto :error
+          call "%SIREUM_HOME%\bin\sireum.bat" proyek export logika-examples || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%
@@ -701,7 +701,7 @@ jobs:
           set SIREUM_HOME=%USERPROFILE%\Applications\Sireum
           git clone https://github.com/sireum/logika-examples
           call logika-examples\bin\verify.cmd || goto :error
-          rem call "%SIREUM_HOME%\bin\sireum.bat" proyek export logika-examples || goto :error
+          call "%SIREUM_HOME%\bin\sireum.bat" proyek export logika-examples || goto :error
           goto :EOF
           :error
           exit /b %errorlevel%
@@ -775,7 +775,7 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
-          # "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
+          "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
           rm -fR ~/.m2 logika-examples
@@ -806,7 +806,7 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
-          # "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
+          "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
           rm -fR ~/.m2 logika-examples
@@ -837,7 +837,7 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           git clone https://github.com/sireum/logika-examples
           logika-examples/bin/verify.cmd
-          # "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
+          "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
       - name: Test IVE
         run: |
           rm -fR ~/.m2 logika-examples
