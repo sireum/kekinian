@@ -24,7 +24,7 @@ jobs:
             echo "SHA=${{ inputs.sha }}" >> $GITHUB_ENV
           fi
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ env.SHA }}
           path: Sireum

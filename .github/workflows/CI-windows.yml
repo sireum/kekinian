@@ -19,7 +19,7 @@ jobs:
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
@@ -70,7 +70,7 @@ jobs:
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
@@ -127,7 +127,7 @@ jobs:
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive

@@ -14,7 +14,7 @@ jobs:
         run: |
           rm -fR "$GITHUB_WORKSPACE/Sireum" "$GITHUB_WORKSPACE/Cache"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
       - name: Update dev tag
@@ -194,7 +194,7 @@ jobs:
         run: |
           rm -fR "$GITHUB_WORKSPACE/Sireum" "$GITHUB_WORKSPACE/Cache"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
@@ -277,7 +277,7 @@ jobs:
         run: |
           rm -fR "$GITHUB_WORKSPACE/Sireum" ~/Downloads/sireum
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
@@ -353,7 +353,7 @@ jobs:
         run: |
           rm -fR "$GITHUB_WORKSPACE/Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
@@ -432,7 +432,7 @@ jobs:
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
@@ -523,7 +523,7 @@ jobs:
         run: |
           if exist "%GITHUB_WORKSPACE%\Sireum" rmdir /s/q "%GITHUB_WORKSPACE%\Sireum"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: Sireum
           submodules: recursive
