@@ -158,6 +158,7 @@ object Anvil {
 
     val config = anvil.Anvil.Config(
       nameOpt = o.projectName,
+      isFirstGen = T,
       memory = o.memory * 1024,
       defaultBitWidth = o.bitWidth,
       maxStringSize = o.maxStringSize,
