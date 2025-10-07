@@ -105,7 +105,7 @@ class SlangCheckHAMRIntegrationTest extends TestSuite with TestUtil with BeforeA
   }
 
   override def beforeAll(): Unit = {
-    if (Os.isWinArm || !willingToWait || osateHome.nonEmpty) {
+    if (!willingToWait || osateHome.nonEmpty) {
       return
     }
     Os.env("SIREUM_HOME") match {
