@@ -346,7 +346,7 @@ jobs:
           overwrite: true
 
   build-macos-amd64:
-    runs-on: macOS-13
+    runs-on: macos-15-intel
     if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
       - name: Clean
@@ -624,7 +624,7 @@ jobs:
 
   test-mac-amd64:
     needs: [build-linux-amd64, build-macos-amd64]
-    runs-on: macOS-13
+    runs-on: macos-15-intel
     steps:
       - name: Test CodeIVE
         run: |
