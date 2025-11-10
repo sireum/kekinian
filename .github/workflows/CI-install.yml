@@ -41,7 +41,7 @@ jobs:
           "logika examples/bin/verify.cmd"
 
   ci-install-macos-amd64:
-    runs-on: macOS-13
+    runs-on: macos-15-intel
     steps:
       - name: Test
         run: |
