@@ -222,9 +222,6 @@ def test(): Unit = {
 }
 
 def verifyLogikaExamples(): Unit = {
-  if (Os.env("GITHUB_ACTION").nonEmpty && (Os.isWinArm || Os.isLinuxArm)) {
-    return
-  }
   println("Verifying https://github.com/sireum/logika-examples ...")
   val logikaExamples = home / "logika-examples"
   logikaExamples.removeAll()
