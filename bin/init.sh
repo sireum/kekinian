@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 #
 # Copyright (c) 2017-2025, Robby, Kansas State University
 # All rights reserved.
@@ -73,7 +73,6 @@ getVersion() {
 }
 
 download() {
-  echo "Downloading $2 ..."
   if hash curl 2>/dev/null; then
     curl -c /dev/null -JLo "$1" $2
   elif hash wget 2>/dev/null; then
