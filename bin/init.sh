@@ -82,6 +82,10 @@ download() {
     >&2 echo "Either curl or wget is required, but none found."
     exit 1
   fi
+  if [[ ! -f "$1" ]]; then
+      echo "Could not download $2"
+      exit 1
+  fi
 }
 
 uncompress() {
