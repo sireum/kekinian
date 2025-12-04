@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (c) 2017-2025, Robby, Kansas State University
 # All rights reserved.
