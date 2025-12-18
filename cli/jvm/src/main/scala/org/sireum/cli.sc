@@ -143,9 +143,6 @@ val iveSetup: Tool = Tool(
   usage = "<options>*",
   usageDescOpt = None(),
   opts = ISZ(
-    Opt(name = "mode", longKey = "mode", shortKey = Some('m'),
-      tpe = Type.Choice(name = "iveMode", sep = None(), elements = ISZ("community", "ultimate", "server")),
-      description = "Setup version mode")
   ),
   groups = ISZ()
 )
