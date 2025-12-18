@@ -992,9 +992,16 @@ object Cli {
     val workers: Z
   ) extends SireumTopOption
 
+  @enum object SireumSetupIveIveMode {
+    "Community"
+    "Ultimate"
+    "Server"
+  }
+
   @datatype class SireumSetupIveOption(
     val help: String,
-    val args: ISZ[String]
+    val args: ISZ[String],
+    val mode: SireumSetupIveIveMode.Type
   ) extends SireumTopOption
 
   @datatype class SireumSetupVscodeOption(
@@ -8658,6 +8665,26 @@ import Cli._
     }
   }
 
+  def parseSireumSetupIveIveModeH(arg: String): Option[SireumSetupIveIveMode.Type] = {
+    arg.native match {
+      case "community" => return Some(SireumSetupIveIveMode.Community)
+      case "ultimate" => return Some(SireumSetupIveIveMode.Ultimate)
+      case "server" => return Some(SireumSetupIveIveMode.Server)
+      case s =>
+        eprintln(s"Expecting one of the following: { community, ultimate, server }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumSetupIveIveMode(args: ISZ[String], i: Z): Option[SireumSetupIveIveMode.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { community, ultimate, server }, but none found.")
+      return None()
+    }
+    val r = parseSireumSetupIveIveModeH(args(i))
+    return r
+  }
+
   def parseSireumSetupIve(args: ISZ[String], i: Z): Option[SireumTopOption] = {
     val help =
       st"""Sireum IVE Setup
@@ -8665,9 +8692,12 @@ import Cli._
           |Usage: <options>*
           |
           |Available Options:
+          |-m, --mode               Setup version mode (expects one of { community,
+          |                           ultimate, server }; default: community)
           |-h, --help               Display this information""".render
 
-    val j = i
+    var mode: SireumSetupIveIveMode.Type = SireumSetupIveIveMode.Community
+    var j = i
     var isOption = T
     while (j < args.size && isOption) {
       val arg = args(j)
@@ -8675,16 +8705,22 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else {
+        } else if (arg == "-m" || arg == "--mode") {
+           val o: Option[SireumSetupIveIveMode.Type] = parseSireumSetupIveIveMode(args, j + 1)
+           o match {
+             case Some(v) => mode = v
+             case _ => return None()
+           }
+         } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
         }
-
+        j = j + 2
       } else {
         isOption = F
       }
     }
-    return Some(SireumSetupIveOption(help, parseArguments(args, j)))
+    return Some(SireumSetupIveOption(help, parseArguments(args, j), mode))
   }
 
   def parseSireumSetupVscode(args: ISZ[String], i: Z): Option[SireumTopOption] = {
