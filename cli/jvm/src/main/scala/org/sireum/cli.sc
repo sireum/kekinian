@@ -142,11 +142,7 @@ val iveSetup: Tool = Tool(
   header = "Sireum IVE Setup",
   usage = "<options>*",
   usageDescOpt = None(),
-  opts = ISZ(
-    Opt(name = "mode", longKey = "mode", shortKey = Some('m'),
-      tpe = Type.Choice(name = "iveMode", sep = None(), elements = ISZ("community", "ultimate", "server")),
-      description = "Setup version mode")
-  ),
+  opts = ISZ(),
   groups = ISZ()
 )
 
