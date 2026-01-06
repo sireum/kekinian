@@ -17,7 +17,7 @@ import org.sireum.project.DependencyManager
 def usage(): Unit = {
   println(
     st"""Sireum /build
-        |Usage: ( setup[-ultimate  | -server]            | project[-ultimate | -server]
+        |Usage: ( setup            | project
         |       | jar              | fresh               | uber
         |       | tipe             | compile[-js]        | native
         |       | test             | verify              | test-verify
