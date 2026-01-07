@@ -55,7 +55,7 @@ object Presentasi_Ext {
       System.err.println("JavaFX is not available under this setup")
       System.err.flush()
       System.exit(-1)
-      halt("")
+      throw new RuntimeException("")
     }
 
     def initJavaFX(): Unit = err()
@@ -171,5 +171,231 @@ object Presentasi_Ext {
 
     val f = new java.io.File(path.canon.value.value)
     rawToWave(f, f)
+  }
+
+  def parseMarkdowns(args: ISZ[String], path: Os.Path): ISZ[presentasi.Presentation] = {
+    val argsKey = st"${(args, "")}".render.value
+    val parser = org.commonmark.parser.Parser.builder().
+      extensions(java.util.List.of(org.commonmark.ext.front.matter.YamlFrontMatterExtension.create)).build()
+    var substs = HashSMap.empty[String, String]
+    var entries = ISZ[presentasi.Presentation.Entry]()
+
+    def document(f: Os.Path): presentasi.Presentation = {
+      var r = presentasi.Presentation.empty(name = "Presentasi", args = args)
+      val dir = new java.io.File(f.value.value).getParentFile
+      import org.commonmark.node._
+      import org.commonmark.ext.front.matter._
+      def getTexts(node: Node): ISZ[String] = {
+        var r = ISZ[String]()
+
+        def rec(n: Node): Unit = {
+          var child = n.getFirstChild
+          while (child != null) {
+            child match {
+              case child: Text =>
+                var content: String = child.getLiteral
+                for (p <- substs.entries) {
+                  content = ops.StringOps(content).replaceAllLiterally(s"$$${p._1}", p._2)
+                }
+                r = r :+ content
+              case _ => rec(child)
+            }
+            child = child.getNext
+          }
+        }
+
+        rec(node)
+        r
+      }
+
+      val d = parser.parse(f.read.value).asInstanceOf[Document]
+      var child = d.getFirstChild
+      child match {
+        case yaml: YamlFrontMatterBlock =>
+          var yamlChild = yaml.getFirstChild
+          while (yamlChild != null) {
+            yamlChild match {
+              case yamlChild: YamlFrontMatterNode =>
+                yamlChild.getKey match {
+                  case "name" if yamlChild.getValues.size == 1 =>
+                    val idPattern = "^([a-zA-Z_$][a-zA-Z\\d_$]*)$".r
+                    yamlChild.getValues.get(0) match {
+                      case name@idPattern(_*) => r = r(name = name)
+                      case name => throw new RuntimeException(s"Invalid Java identifier for name: $name")
+                    }
+                  case "delay" if yamlChild.getValues.size == 1 =>
+                    Z(yamlChild.getValues.get(0)) match {
+                      case Some(n) => r = r(delay = n)
+                      case _ => throw new RuntimeException(s"Could not parse delay: ${yamlChild.getValues.get(0)}")
+                    }
+                  case "textDelay" if yamlChild.getValues.size == 1 =>
+                    Z(yamlChild.getValues.get(0)) match {
+                      case Some(n) => r = r(textDelay = n)
+                      case _ => throw new RuntimeException(s"Could not parse textDelay: ${yamlChild.getValues.get(0)}")
+                    }
+                  case "vseekDelay" if yamlChild.getValues.size == 1 =>
+                    Z(yamlChild.getValues.get(0)) match {
+                      case Some(n) => r = r(vseekDelay = n)
+                      case _ => throw new RuntimeException(s"Could not parse vseekDelay: ${yamlChild.getValues.get(0)}")
+                    }
+                  case "textVolume" if yamlChild.getValues.size == 1 =>
+                    F64(yamlChild.getValues.get(0)) match {
+                      case Some(n) => r = r(textVolume = n)
+                      case _ => throw new RuntimeException(s"Could not parse textVolume: ${yamlChild.getValues.get(0)}")
+                    }
+                  case "trailing" if yamlChild.getValues.size == 1 =>
+                    Z(yamlChild.getValues.get(0)) match {
+                      case Some(n) => r = r(trailing = n)
+                      case _ => throw new RuntimeException(s"Could not parse trailing: ${yamlChild.getValues.get(0)}")
+                    }
+                  case "granularity" if yamlChild.getValues.size == 1 =>
+                    Z(yamlChild.getValues.get(0)) match {
+                      case Some(n) => r = r(granularity = n)
+                      case _ => throw new RuntimeException(s"Could not parse granularity: ${yamlChild.getValues.get(0)}")
+                    }
+                  case "audio" =>
+                    for (v <- yamlChild.getValues.toArray) {
+                      v.toString.split(':') match {
+                        case Array(key, value) =>
+                          val audio = Os.path(new java.io.File(dir, value.trim).getCanonicalPath)
+                          if (!audio.exists) throw new RuntimeException(s"Non-existing audio substitution path: $audio")
+                          substs = substs + String(key.trim) ~> audio.value
+                        case _ => throw new RuntimeException(s"Expecting <key>: <path> pair but found: $v")
+                      }
+                    }
+                  case key if key.startsWith("subst") =>
+                    def parseSubst(): Unit = for (v <- yamlChild.getValues.toArray) {
+                      v.toString.split(':') match {
+                        case Array(key, value) => substs = substs + String(key.trim) ~> String(value.trim)
+                        case _ => throw new RuntimeException(s"Expecting <key>: <path> pair but found: $v")
+                      }
+                    }
+
+                    val substKey = key.substring("subst".length)
+                    if (argsKey.startsWith(substKey)) parseSubst()
+                }
+              case _ =>
+            }
+            yamlChild = yamlChild.getNext
+          }
+          child = child.getNext
+        case _ =>
+      }
+      while (child != null) {
+        child match {
+          case _: Heading =>
+            child = child.getNext
+            var media = ""
+            var code = ""
+            var hasText = false
+            var text: ST = st""
+            while (child != null && !child.isInstanceOf[Heading]) {
+              child match {
+                case child: Paragraph if child.getFirstChild.isInstanceOf[Code] && child.getFirstChild.getNext == null =>
+                  code = child.getFirstChild.asInstanceOf[Code].getLiteral
+                case child: Paragraph if child.getFirstChild.isInstanceOf[Image] && child.getFirstChild.getNext == null =>
+                  media = new java.io.File(dir, child.getFirstChild.asInstanceOf[Image].getDestination).getCanonicalPath
+                case child: BulletList =>
+                  var listItem = child.getFirstChild.asInstanceOf[ListItem]
+                  while (listItem != null) {
+                    val texts = getTexts(listItem)
+                    if (!hasText) text = st"${(texts, "\n")}"
+                    else text =
+                      st"""$text
+                          |
+                          |${(texts, "\n")}"""
+                    hasText = true
+                    listItem = listItem.getNext.asInstanceOf[ListItem]
+                  }
+                case _ =>
+                  if (child.getSourceSpans.size > 0) {
+                    val first = child.getSourceSpans.get(0)
+                    throw new RuntimeException(s"Unrecognized structure at [${first.getLineIndex}, ${first.getColumnIndex}]")
+                  } else {
+                    throw new RuntimeException(s"Unrecognized structure ${child.getClass}: ${child.toString}")
+                  }
+              }
+              child = child.getNext
+            }
+            if (media.isEmpty) throw new RuntimeException("Missing image/video path")
+            if (!Os.path(media).exists) throw new RuntimeException(s"Non-existent image/video path: $media")
+            if (Os.path(media).ext.value == "mp4") {
+              var delay: Z = 0
+              var volume: F64 = 0d
+              var rate: F64 = 0d
+              var start: F64 = 0d
+              var end: F64 = 0d
+              var useVideoDuration: B = false
+              for (property <- code.split(',')) {
+                property.split('=') match {
+                  case Array(key, value) =>
+                    val v = value.trim
+                    key.trim match {
+                      case "delay" => Z(v) match {
+                        case Some(n) => delay = n
+                        case _ => throw new RuntimeException(s"Invalid delay property value: $v")
+                      }
+                      case "volume" => F64(v) match {
+                        case Some(n) => volume = n
+                        case _ => throw new RuntimeException(s"Invalid volume property value: $v")
+                      }
+                      case "rate" => F64(v) match {
+                        case Some(n) => rate = n
+                        case _ => throw new RuntimeException(s"Invalid rate property value: $v")
+                      }
+                      case "start" => F64(v) match {
+                        case Some(n) => start = n
+                        case _ => throw new RuntimeException(s"Invalid start property value: $v")
+                      }
+                      case "end" => F64(v) match {
+                        case Some(n) => end = n
+                        case _ => throw new RuntimeException(s"Invalid end property value: $v")
+                      }
+                      case "useVideoDuration" =>
+                        if (v == "T" || v == "true") useVideoDuration = T
+                        else if (v == "F" || v == "false") useVideoDuration = F
+                        else throw new RuntimeException(s"Invalid useVideoDuration property value: $v")
+                      case _ => throw new RuntimeException(s"Invalid video code key: $key")
+                    }
+                  case _ => throw new RuntimeException(s"Invalid video code property: $property")
+                }
+              }
+              entries = entries :+ presentasi.Presentation.VideoEntry(media, delay, volume, rate, start, end,
+                useVideoDuration, if (hasText) Some(text.render) else None())
+            } else {
+              var delay: Z = 0
+              for (property <- code.split(',')) {
+                property.split('=') match {
+                  case Array(key, value) => key.trim match {
+                    case "delay" => Z(value.trim) match {
+                      case Some(n) => delay = n
+                      case _ => throw new RuntimeException(s"Invalid delay property value: $value")
+                    }
+                    case _ => throw new RuntimeException(s"Invalid image code key: $key")
+                  }
+                  case _ => throw new RuntimeException(s"Invalid image code property: $property")
+                }
+              }
+              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, text.render)
+            }
+          case _ =>
+            val first = child.getSourceSpans.get(0)
+            throw new RuntimeException(s"Expecting a new heading # at [${first.getLineIndex}, ${first.getColumnIndex}]")
+        }
+      }
+      r(entries = entries)
+    }
+
+    def rec(f: Os.Path): ISZ[presentasi.Presentation] =
+      if (f.isFile && f.ext.value == "md" && f.name.value != "readme.md")
+        try ISZ(document(f))
+        catch {
+          case t: Throwable =>
+            eprintln(s"Could not recognize $f (ignored): ${t.getMessage}")
+            ISZ()
+        }
+      else if (f.isDir) for (sub <- f.list; r <- rec(sub)) yield r
+      else ISZ()
+    rec(path)
   }
 }

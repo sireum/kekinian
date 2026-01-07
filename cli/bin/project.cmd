@@ -30,7 +30,9 @@ val cliJvm = moduleJvmPub(
   id = cli,
   baseDir = homeDir,
   jvmDeps = ISZ(server),
-  jvmIvyDeps = ISZ(),
+  jvmIvyDeps = ISZ(
+    "org.commonmark:commonmark-ext-yaml-front-matter:"
+  ),
   pubOpt = pub(
     desc = "Sireum Command Line Interface (CLI)",
     url = "github.com/sireum/kekinian",

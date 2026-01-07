@@ -187,14 +187,16 @@ object Presentasi {
           |    public final static class Sound implements Media {
           |        public final String uri;
           |        private final long timeline;
+          |        private final String text;
           |        public MediaPlayer mediaPlayer;
           |        private boolean ready = false;
           |        private boolean error = false;
           |        private long duration = 0L;
           |
-          |        public Sound(final String path, final long timeline) {
+          |        public Sound(final String path, final long timeline, final String text) {
           |            this.uri = getResourceUri(path);
           |            this.timeline = timeline;
+          |            this.text = text;
           |            try {
           |              this.mediaPlayer = new MediaPlayer(getJfxMedia(this.uri));
           |              this.mediaPlayer.setOnReady(() -> {
@@ -226,6 +228,10 @@ object Presentasi {
           |
           |        public long getTimeline() {
           |            return this.timeline;
+          |        }
+          |
+          |        public String getText() {
+          |            return this.text;
           |        }
           |    }
           |
@@ -456,24 +462,23 @@ object Presentasi {
       case ISZ(p, _*) => Os.path(p).canon
     }
     val presentasi = path / "bin" / "presentasi.cmd"
-    if (!presentasi.exists) {
-      eprintln(s"$presentasi does not exists")
-      return INVALID_PATH
-    }
-
-    val outTemp = Os.temp()
-    val r = SlangRunner.run(Cli.SireumSlangRunOption("", ISZ(presentasi.string, o.service.string,
-      o.voice.getOrElseEager("default")) ++ ops.ISZOps(o.args).drop(1), F, None(), Some(outTemp.string), F, F))
-    if (r != 0) {
-      eprintln(outTemp.read)
-      return INVALID_SPEC
-    }
-
-    val spec: Presentation = org.sireum.presentasi.JSON.toPresentation(outTemp.read) match {
-      case Either.Left(obj) => obj
-      case _ =>
-        eprintln(s"Failed to process $path")
+    val args = ISZ(presentasi.string, o.service.string, o.voice.getOrElseEager("default")) ++ ops.ISZOps(o.args).drop(1)
+    val specs: ISZ[Presentation] = if (presentasi.exists) {
+      val outTemp = Os.temp()
+      val r = SlangRunner.run(Cli.SireumSlangRunOption("", args, F, None(), Some(outTemp.string), F, F))
+      if (r != 0) {
+        eprintln(outTemp.read)
         return INVALID_SPEC
+      }
+
+      org.sireum.presentasi.JSON.toPresentation(outTemp.read) match {
+        case Either.Left(obj) => ISZ(obj)
+        case _ =>
+          eprintln(s"Failed to process $path")
+          return INVALID_SPEC
+      }
+    } else {
+      Presentasi.Ext.parseMarkdowns(args, path)
     }
 
     val resources = path / "jvm" / "src" / "main" / "resources"
@@ -518,269 +523,275 @@ object Presentasi {
       case _ => (Cli.SireumPresentasiText2speechOutputFormat.Wav, "wav")
     }
 
-    def processText(text: String, start: Z): (ISZ[Media], Z) = {
-      def fingerprint(t: String): String = {
-        val c = crypto.SHA3.init256
-        c.update(conversions.String.toU8is(t))
-        return st"${(ops.ISZOps(c.finalise()).take(3), "")}".render
-      }
-      def process(sound: Sound): Sound = {
-        val sub = conversions.String.fromCis(
-          for (c <- conversions.String.toCis(
-            if (sound.text.size > 15) ops.StringOps(sound.text).substring(0, 15) else sound.text)) yield
-            if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) c else '_')
-        val filename = s"${fingerprint(sound.text)}-$sub.$ext"
-        val p = audio / filename
-        val temp = Os.tempFix("", ".txt")
-        temp.writeOver(sound.text)
-        val engine: Cli.SireumPresentasiText2speechEngine.Type = o.engine match {
-          case Cli.SireumPresentasiGenEngine.Neural => Cli.SireumPresentasiText2speechEngine.Neural
-          case Cli.SireumPresentasiGenEngine.Standard => Cli.SireumPresentasiText2speechEngine.Standard
-        }
-        val code = text2speech(Cli.SireumPresentasiText2speechOption(
-          help = "",
-          args = ISZ(temp.string),
-          force = F,
-          output = Some(p.string),
-          service = service,
-          voice = o.voice,
-          awsPath = o.awsPath,
-          gender = o.gender,
-          key = o.key,
-          lang = o.lang,
-          outputFormat = format,
-          region = o.region,
-          voiceLang = o.voiceLang,
-          engine = engine
-        ))
-        temp.removeAll()
-        println(s"Loading $p ...")
-        val durOpt = Ext.getSoundDuration(p.toUri)
-        println()
-        durOpt match {
-          case Some(dur) if code == 0 => return sound(filepath = p, duration = dur)
-          case _ =>
-            reporter.error(None(), "presentasi", s"""Failed to load: "${sound.text}"""")
-            return sound
+    for (spec <- specs) {
+      def processText(text: String, start: Z): (ISZ[Media], Z) = {
+        def fingerprint(t: String): String = {
+          val c = crypto.SHA3.init256
+          c.update(conversions.String.toU8is(t))
+          return st"${(ops.ISZOps(c.finalise()).take(3), "")}".render
         }
 
-      }
-
-      var sounds = ISZ[Media]()
-      def newSound(curr: Z): Sound = {
-        return Sound(Os.path(""), "", 0, curr)
-      }
-
-      def parseVolume(vol: String, vpath: String): F64 = {
-        F64(vol) match {
-          case Some(v) if 0.0 <= v && v <= 1.0 =>
-            return v
-          case _ =>
-            reporter.error(None(), "presentasi", s"Invalid volume for $vpath [0.0 .. 1.0]: $vol")
-            return 1.0
-        }
-      }
-
-      var currSound = newSound(start)
-      def storeSound(): Unit = {
-        if (currSound.text != "") {
-          val sound = process(currSound)
-          sounds = sounds :+ sound
-          currSound = newSound(sound.timeline + sound.duration)
-        } else {
-          currSound = newSound(currSound.timeline)
-        }
-      }
-      for (l <- ops.StringOps(text).split((c: C) => c == '\n')) {
-        ops.StringOps(l).trim match {
-          case string"" =>
-            storeSound()
-            currSound = currSound(timeline = currSound.timeline + spec.textDelay)
-          case line =>
-            val lineOps = ops.StringOps(line)
-            if (lineOps.startsWith("[") && lineOps.endsWith("]")) {
-              val dir = ops.StringOps(lineOps.substring(1, line.size - 1)).trim
-              Z(dir) match {
-                case Some(n) =>
-                  storeSound()
-                  currSound = currSound(timeline = currSound.timeline + n)
-                case _ =>
-                  var volume: F64 = 0.0
-                  val apath: Os.Path = if (ops.StringOps(dir).indexOf(';') >= 0) {
-                    ops.StringOps(dir).split((c: C) => c == ';') match {
-                      case ISZ(vol, p) =>
-                        volume = parseVolume(ops.StringOps(vol).trim, p)
-                        Os.path(ops.StringOps(p).trim)
-                      case _ =>
-                        reporter.error(None(), "presentasi", s"Could not parse: $line (expecting [ <volume> ; ] <audio-path> )")
-                        Os.path("")
-                    }
-                  } else {
-                    Os.path(dir)
-                  }
-                  if (apath.string == "") {
-                    // skip
-                  } else if (apath.exists) {
-                    val target = audio / apath.name
-                    if (target.string != apath.string) {
-                      apath.copyOverTo(target)
-                      println(s"Wrote $target")
-                      println()
-                    }
-                    Ext.getSoundDuration(apath.toUri) match {
-                      case Some(dur) =>
-                        if (currSound.text != "") {
-                          storeSound()
-                          currSound = currSound(timeline = currSound.timeline + spec.textDelay)
-                        }
-                        currSound = currSound(filepath = target, duration = dur)
-                        sounds = sounds :+ currSound
-                        currSound = newSound(currSound.timeline + dur)
-                      case _ => reporter.error(None(), "presentasi", s"Failed to load: $apath")
-                    }
-                  } else {
-                    reporter.error(None(), "presentasi", s"$apath does not exist")
-                  }
-              }
-            } else {
-              currSound = currSound(text = if (currSound.text == "") line else s"${currSound.text} $line")
-            }
-        }
-      }
-
-      storeSound()
-
-      if (sounds.isEmpty) {
-        return (sounds, start)
-      } else {
-        val last = sounds(sounds.size - 1)
-        return (sounds, last.timeline + last.duration)
-      }
-    }
-
-    var medias = ISZ[Media]()
-    var curr: Z = 0
-    var first = T
-    for (entry <- spec.entries) {
-      entry match {
-        case entry: Presentation.Slide =>
-          val p = Os.path(entry.path)
-          val target = image / p.name
-          if (target.canon.string != p.canon.string) {
-            p.copyOverTo(target)
-            println(s"Wrote $target")
-            println()
+        def process(sound: Sound): Sound = {
+          val sub = conversions.String.fromCis(
+            for (c <- conversions.String.toCis(
+              if (sound.text.size > 15) ops.StringOps(sound.text).substring(0, 15) else sound.text)) yield
+              if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) c else '_')
+          val filename = s"${fingerprint(sound.text)}-$sub.$ext"
+          val p = audio / filename
+          val temp = Os.tempFix("", ".txt")
+          temp.writeOver(sound.text)
+          val engine: Cli.SireumPresentasiText2speechEngine.Type = o.engine match {
+            case Cli.SireumPresentasiGenEngine.Neural => Cli.SireumPresentasiText2speechEngine.Neural
+            case Cli.SireumPresentasiGenEngine.Standard => Cli.SireumPresentasiText2speechEngine.Standard
           }
+          val code = text2speech(Cli.SireumPresentasiText2speechOption(
+            help = "",
+            args = ISZ(temp.string),
+            force = F,
+            output = Some(p.string),
+            service = service,
+            voice = o.voice,
+            awsPath = o.awsPath,
+            gender = o.gender,
+            key = o.key,
+            lang = o.lang,
+            outputFormat = format,
+            region = o.region,
+            voiceLang = o.voiceLang,
+            engine = engine
+          ))
+          temp.removeAll()
           println(s"Loading $p ...")
-          val ok = Ext.checkImage(p.toUri)
-          println()
-          if (ok) {
-            val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
-            medias = medias :+ Image(target.name, curr + gap)
-            val (sounds, last) = processText(entry.text, curr)
-            medias = medias ++ sounds
-            curr = last
-          } else {
-            reporter.error(None(), "presentasi", s"Could not load image ${entry.path}")
-          }
-        case entry: Presentation.Video =>
-          val p = Os.path(entry.path)
-          val target = video / p.name
-          if (target.canon.string != p.canon.string) {
-            p.copyOverTo(target)
-            println(s"Wrote $target")
-            println()
-          }
-          println(s"Loading $p ...")
-          val durOpt = Ext.getVideoDuration(p.toUri)
+          val durOpt = Ext.getSoundDuration(p.toUri)
           println()
           durOpt match {
-            case Some(dur) =>
-              val durR = conversions.Z.toR(dur)
-              val start: F64 = if (entry.start < 0.0) {
-                0.0
-              } else if (conversions.F64.toR(entry.start) > durR) {
-                reporter.error(None(), "presentasi", s"Invalid start for video ${entry.path}: ${entry.start}")
-                0.0
-              } else {
-                entry.start
-              }
-              val end: F64 = if (entry.end == 0.0 || conversions.F64.toR(entry.end) > durR) {
-                0.0
-              } else if (entry.end < start) {
-                reporter.error(None(), "presentasi", s"Invalid end for video ${entry.path}: ${entry.end}")
-                0.0
-              } else {
-                entry.end
-              }
-              val volume: F64 = if (0.0 <= entry.volume && entry.volume <= 1.0) {
-                entry.volume
-              } else {
-                reporter.error(None(), "presentasi", s"Invalid volume for video ${entry.path} [0.0 .. 1.0]: ${entry.volume}")
-                1.0
-              }
-              val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
-              val rate: F64 = if (0.0 < entry.rate && entry.rate <= 8.0) {
-                entry.rate
-              } else {
-                reporter.error(None(), "presentasi", s"Invalid rate for video ${entry.path} (0.0 .. 8.0]: ${entry.volume}")
-                1.0
-              }
-              medias = medias :+ Video(target.name, dur, curr + gap, start, end, entry.textOpt.nonEmpty, volume, rate)
-              val newCurr = curr + gap + (
-                if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
-                else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
-              entry.textOpt match {
-                case Some(text) =>
-                  val (sounds, last) = processText(text, curr)
-                  medias = medias ++ sounds
-                  curr = if (entry.useVideoDuration) newCurr else last
-                case _ =>
-                  curr = newCurr
-              }
+            case Some(dur) if code == 0 => return sound(filepath = p, duration = dur)
             case _ =>
-              reporter.error(None(), "presentasi", s"Could not load video ${entry.path}")
+              reporter.error(None(), "presentasi", s"""Failed to load: "${sound.text}"""")
+              return sound
           }
+
+        }
+
+        var sounds = ISZ[Media]()
+
+        def newSound(curr: Z): Sound = {
+          return Sound(Os.path(""), "", 0, curr)
+        }
+
+        def parseVolume(vol: String, vpath: String): F64 = {
+          F64(vol) match {
+            case Some(v) if 0.0 <= v && v <= 1.0 =>
+              return v
+            case _ =>
+              reporter.error(None(), "presentasi", s"Invalid volume for $vpath [0.0 .. 1.0]: $vol")
+              return 1.0
+          }
+        }
+
+        var currSound = newSound(start)
+
+        def storeSound(): Unit = {
+          if (currSound.text != "") {
+            val sound = process(currSound)
+            sounds = sounds :+ sound
+            currSound = newSound(sound.timeline + sound.duration)
+          } else {
+            currSound = newSound(currSound.timeline)
+          }
+        }
+
+        for (l <- ops.StringOps(text).split((c: C) => c == '\n')) {
+          ops.StringOps(l).trim match {
+            case string"" =>
+              storeSound()
+              currSound = currSound(timeline = currSound.timeline + spec.textDelay)
+            case line =>
+              val lineOps = ops.StringOps(line)
+              if (lineOps.startsWith("[") && lineOps.endsWith("]")) {
+                val dir = ops.StringOps(lineOps.substring(1, line.size - 1)).trim
+                Z(dir) match {
+                  case Some(n) =>
+                    storeSound()
+                    currSound = currSound(timeline = currSound.timeline + n)
+                  case _ =>
+                    var volume: F64 = 0.0
+                    val apath: Os.Path = if (ops.StringOps(dir).indexOf(';') >= 0) {
+                      ops.StringOps(dir).split((c: C) => c == ';') match {
+                        case ISZ(vol, p) =>
+                          volume = parseVolume(ops.StringOps(vol).trim, p)
+                          Os.path(ops.StringOps(p).trim)
+                        case _ =>
+                          reporter.error(None(), "presentasi", s"Could not parse: $line (expecting [ <volume> ; ] <audio-path> )")
+                          Os.path("")
+                      }
+                    } else {
+                      Os.path(dir)
+                    }
+                    if (apath.string == "") {
+                      // skip
+                    } else if (apath.exists) {
+                      val target = audio / apath.name
+                      if (target.string != apath.string) {
+                        apath.copyOverTo(target)
+                        println(s"Wrote $target")
+                        println()
+                      }
+                      Ext.getSoundDuration(apath.toUri) match {
+                        case Some(dur) =>
+                          if (currSound.text != "") {
+                            storeSound()
+                            currSound = currSound(timeline = currSound.timeline + spec.textDelay)
+                          }
+                          currSound = currSound(filepath = target, duration = dur)
+                          sounds = sounds :+ currSound
+                          currSound = newSound(currSound.timeline + dur)
+                        case _ => reporter.error(None(), "presentasi", s"Failed to load: $apath")
+                      }
+                    } else {
+                      reporter.error(None(), "presentasi", s"$apath does not exist")
+                    }
+                }
+              } else {
+                currSound = currSound(text = if (currSound.text == "") line else s"${currSound.text} $line")
+              }
+          }
+        }
+
+        storeSound()
+
+        if (sounds.isEmpty) {
+          return (sounds, start)
+        } else {
+          val last = sounds(sounds.size - 1)
+          return (sounds, last.timeline + last.duration)
+        }
       }
-      first = F
-    }
 
-    reporter.printMessages()
-    if (reporter.hasIssue) {
-      return INVALID_RESOURCE
-    }
-
-    var mediaSTs = ISZ[ST]()
-    var previousTimelineOpt: Option[Z] = None()
-    val audioDirUriSize = audioDir.toUri.size
-    var n = 0
-    for (i <- medias.indices) {
-      medias(i) match {
-        case media: Image =>
-          mediaSTs = mediaSTs :+ imageTemplate(media.filename, media.timeline, i, previousTimelineOpt, n)
-          n = n + 1
-        case media: Video =>
-          mediaSTs = mediaSTs :+ videoTemplate(media.filename, media.timeline, media.muted,
-            media.rate, media.start, media.end, i, previousTimelineOpt, n)
-          n = n + 1
-        case media: Sound =>
-          val mediaUri = media.filepath.toUri
-          mediaSTs = mediaSTs :+ soundTemplate(ops.StringOps(mediaUri).substring(audioDirUriSize, mediaUri.size),
-            media.timeline, i, previousTimelineOpt)
+      var medias = ISZ[Media]()
+      var curr: Z = 0
+      var first = T
+      for (entry <- spec.entries) {
+        entry match {
+          case entry: Presentation.Slide =>
+            val p = Os.path(entry.path)
+            val target = image / p.name
+            if (target.canon.string != p.canon.string) {
+              p.copyOverTo(target)
+              println(s"Wrote $target")
+              println()
+            }
+            println(s"Loading $p ...")
+            val ok = Ext.checkImage(p.toUri)
+            println()
+            if (ok) {
+              val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
+              medias = medias :+ Image(target.name, curr + gap)
+              val (sounds, last) = processText(entry.text, curr)
+              medias = medias ++ sounds
+              curr = last
+            } else {
+              reporter.error(None(), "presentasi", s"Could not load image ${entry.path}")
+            }
+          case entry: Presentation.Video =>
+            val p = Os.path(entry.path)
+            val target = video / p.name
+            if (target.canon.string != p.canon.string) {
+              p.copyOverTo(target)
+              println(s"Wrote $target")
+              println()
+            }
+            println(s"Loading $p ...")
+            val durOpt = Ext.getVideoDuration(p.toUri)
+            println()
+            durOpt match {
+              case Some(dur) =>
+                val durR = conversions.Z.toR(dur)
+                val start: F64 = if (entry.start < 0.0) {
+                  0.0
+                } else if (conversions.F64.toR(entry.start) > durR) {
+                  reporter.error(None(), "presentasi", s"Invalid start for video ${entry.path}: ${entry.start}")
+                  0.0
+                } else {
+                  entry.start
+                }
+                val end: F64 = if (entry.end == 0.0 || conversions.F64.toR(entry.end) > durR) {
+                  0.0
+                } else if (entry.end < start) {
+                  reporter.error(None(), "presentasi", s"Invalid end for video ${entry.path}: ${entry.end}")
+                  0.0
+                } else {
+                  entry.end
+                }
+                val volume: F64 = if (0.0 <= entry.volume && entry.volume <= 1.0) {
+                  entry.volume
+                } else {
+                  reporter.error(None(), "presentasi", s"Invalid volume for video ${entry.path} [0.0 .. 1.0]: ${entry.volume}")
+                  1.0
+                }
+                val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
+                val rate: F64 = if (0.0 < entry.rate && entry.rate <= 8.0) {
+                  entry.rate
+                } else {
+                  reporter.error(None(), "presentasi", s"Invalid rate for video ${entry.path} (0.0 .. 8.0]: ${entry.volume}")
+                  1.0
+                }
+                medias = medias :+ Video(target.name, dur, curr + gap, start, end, entry.textOpt.nonEmpty, volume, rate)
+                val newCurr = curr + gap + (
+                  if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
+                  else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
+                entry.textOpt match {
+                  case Some(text) =>
+                    val (sounds, last) = processText(text, curr)
+                    medias = medias ++ sounds
+                    curr = if (entry.useVideoDuration) newCurr else last
+                  case _ =>
+                    curr = newCurr
+                }
+              case _ =>
+                reporter.error(None(), "presentasi", s"Could not load video ${entry.path}")
+            }
+        }
+        first = F
       }
-      previousTimelineOpt = Some(medias(i).timeline)
-    }
 
-    val f = source / s"${spec.name}.java"
-    val end: Z = if (medias.size > 0) {
-      val last = medias(medias.size - 1)
-      last.timeline + last.duration + spec.trailing
-    } else {
-      0
-    }
+      reporter.printMessages()
+      if (reporter.hasIssue) {
+        return INVALID_RESOURCE
+      }
 
-    f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
-    println(s"Wrote $f")
+      var mediaSTs = ISZ[ST]()
+      var previousTimelineOpt: Option[Z] = None()
+      val audioDirUriSize = audioDir.toUri.size
+      var n = 0
+      for (i <- medias.indices) {
+        medias(i) match {
+          case media: Image =>
+            mediaSTs = mediaSTs :+ imageTemplate(media.filename, media.timeline, i, previousTimelineOpt, n)
+            n = n + 1
+          case media: Video =>
+            mediaSTs = mediaSTs :+ videoTemplate(media.filename, media.timeline, media.muted,
+              media.rate, media.start, media.end, i, previousTimelineOpt, n)
+            n = n + 1
+          case media: Sound =>
+            val mediaUri = media.filepath.toUri
+            mediaSTs = mediaSTs :+ soundTemplate(ops.StringOps(mediaUri).substring(audioDirUriSize, mediaUri.size),
+              media.timeline, i, previousTimelineOpt)
+        }
+        previousTimelineOpt = Some(medias(i).timeline)
+      }
+
+      val f = source / s"${spec.name}.java"
+      val end: Z = if (medias.size > 0) {
+        val last = medias(medias.size - 1)
+        last.timeline + last.duration + spec.trailing
+      } else {
+        0
+      }
+
+      f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
+      println(s"Wrote $f")
+    }
     return 0
   }
 
@@ -955,5 +966,7 @@ object Presentasi {
     def pcm2wav(path: Os.Path, srate: Z): Unit = $
 
     def shutdown(): Unit = $
+
+    def parseMarkdowns(args: ISZ[String], path: Os.Path): ISZ[presentasi.Presentation] = $
   }
 }
