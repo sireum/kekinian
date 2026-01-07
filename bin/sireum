@@ -43,5 +43,5 @@ NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
 if [[ -f ${NATIVE} ]]; then
   exec "${NATIVE}" "$@"
 else
-  exec "${JAVA}" --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
+  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
 fi

@@ -12,7 +12,7 @@ if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not defined SIREUM_PROVIDED_SCALA set SCALA_HOME=%SIREUM_HOME%/bin/scala
 if not defined SIREUM_PROVIDED_JAVA set JAVA=%JAVA_HOME%\bin\java.exe
 copy /Y "%~dp0sireum.jar" "%~dp0.sireum-win.jar" > nul 2>&1
-"%JAVA%" --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JAVA_OPTS% -jar "%~dp0.sireum-win.jar" %*
+"%JAVA%" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JAVA_OPTS% -jar "%~dp0.sireum-win.jar" %*
 exit /B %errorlevel%
 
 :native

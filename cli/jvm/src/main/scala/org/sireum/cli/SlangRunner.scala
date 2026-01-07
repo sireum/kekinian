@@ -140,9 +140,9 @@ object SlangRunner {
     }
     Os.env("JAVA_OPTS") match {
       case Some(v) =>
-        env = env :+ "JAVA_OPTS" ~> s"--enable-native-access=ALL-UNNAMED $v"
+        env = env :+ "JAVA_OPTS" ~> s"--enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED $v"
       case _ =>
-        env = env :+ "JAVA_OPTS" ~> "--enable-native-access=ALL-UNNAMED"
+        env = env :+ "JAVA_OPTS" ~> "--enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED"
     }
     var p = Os.proc(command).at(Os.cwd).env(env).standard
     if (jarFile.exists) {
