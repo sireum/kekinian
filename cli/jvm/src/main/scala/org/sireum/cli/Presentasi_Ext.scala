@@ -26,6 +26,7 @@ package org.sireum.cli
 
 import org.sireum.$internal.###
 import org.sireum._
+import org.sireum.U64._
 
 object Presentasi_Ext {
 
@@ -173,7 +174,7 @@ object Presentasi_Ext {
     rawToWave(f, f)
   }
 
-  def parseMarkdowns(args: ISZ[String], path: Os.Path): ISZ[presentasi.Presentation] = {
+  def parseMarkdowns(args: ISZ[String], path: Os.Path, reporter: message.Reporter): ISZ[presentasi.Presentation] = {
     val argsKey = st"${(args, "")}".render.value
     val parser = org.commonmark.parser.Parser.builder().
       extensions(java.util.List.of(org.commonmark.ext.front.matter.YamlFrontMatterExtension.create)).build()
@@ -181,10 +182,24 @@ object Presentasi_Ext {
     var entries = ISZ[presentasi.Presentation.Entry]()
 
     def document(f: Os.Path): presentasi.Presentation = {
+      val fContent = f.read.value
+      val uriOpt = Option.some(f.toUri)
+      val docInfo = message.DocInfo.create(uriOpt, fContent)
       var r = presentasi.Presentation.empty(name = "Presentasi", args = args)
       val dir = new java.io.File(f.value.value).getParentFile
       import org.commonmark.node._
       import org.commonmark.ext.front.matter._
+      def getPosOpt(node: Node): Option[message.Position] = {
+        val li = node.getSourceSpans
+        if (li.isEmpty) {
+          return Some(message.PosInfo(docInfo, u64"0"))
+        } else {
+          val offset = li.get(0).getInputIndex
+          val last = li.get(li.size - 1)
+          val length = last.getInputIndex + last.getLength - offset + 1
+          return Some(message.PosInfo(docInfo, conversions.Z.toU64(offset) << u64"32" + conversions.Z.toU64(length)))
+        }
+      }
       def getTexts(node: Node): ISZ[String] = {
         var r = ISZ[String]()
 
@@ -208,7 +223,7 @@ object Presentasi_Ext {
         r
       }
 
-      val d = parser.parse(f.read.value).asInstanceOf[Document]
+      val d = parser.parse(fContent).asInstanceOf[Document]
       var child = d.getFirstChild
       child match {
         case yaml: YamlFrontMatterBlock =>
@@ -221,53 +236,53 @@ object Presentasi_Ext {
                     val idPattern = "^([a-zA-Z_$][a-zA-Z\\d_$]*)$".r
                     yamlChild.getValues.get(0) match {
                       case name@idPattern(_*) => r = r(name = name)
-                      case name => throw new RuntimeException(s"Invalid Java identifier for name: $name")
+                      case name => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Invalid Java identifier for name: $name")
                     }
                   case "delay" if yamlChild.getValues.size == 1 =>
                     Z(yamlChild.getValues.get(0)) match {
                       case Some(n) => r = r(delay = n)
-                      case _ => throw new RuntimeException(s"Could not parse delay: ${yamlChild.getValues.get(0)}")
+                      case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Could not parse delay: ${yamlChild.getValues.get(0)}")
                     }
                   case "textDelay" if yamlChild.getValues.size == 1 =>
                     Z(yamlChild.getValues.get(0)) match {
                       case Some(n) => r = r(textDelay = n)
-                      case _ => throw new RuntimeException(s"Could not parse textDelay: ${yamlChild.getValues.get(0)}")
+                      case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Could not parse textDelay: ${yamlChild.getValues.get(0)}")
                     }
                   case "vseekDelay" if yamlChild.getValues.size == 1 =>
                     Z(yamlChild.getValues.get(0)) match {
                       case Some(n) => r = r(vseekDelay = n)
-                      case _ => throw new RuntimeException(s"Could not parse vseekDelay: ${yamlChild.getValues.get(0)}")
+                      case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Could not parse vseekDelay: ${yamlChild.getValues.get(0)}")
                     }
                   case "textVolume" if yamlChild.getValues.size == 1 =>
                     F64(yamlChild.getValues.get(0)) match {
                       case Some(n) => r = r(textVolume = n)
-                      case _ => throw new RuntimeException(s"Could not parse textVolume: ${yamlChild.getValues.get(0)}")
+                      case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Could not parse textVolume: ${yamlChild.getValues.get(0)}")
                     }
                   case "trailing" if yamlChild.getValues.size == 1 =>
                     Z(yamlChild.getValues.get(0)) match {
                       case Some(n) => r = r(trailing = n)
-                      case _ => throw new RuntimeException(s"Could not parse trailing: ${yamlChild.getValues.get(0)}")
+                      case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Could not parse trailing: ${yamlChild.getValues.get(0)}")
                     }
                   case "granularity" if yamlChild.getValues.size == 1 =>
                     Z(yamlChild.getValues.get(0)) match {
                       case Some(n) => r = r(granularity = n)
-                      case _ => throw new RuntimeException(s"Could not parse granularity: ${yamlChild.getValues.get(0)}")
+                      case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Could not parse granularity: ${yamlChild.getValues.get(0)}")
                     }
                   case "audio" =>
                     for (v <- yamlChild.getValues.toArray) {
                       v.toString.split(':') match {
                         case Array(key, value) =>
                           val audio = Os.path(new java.io.File(dir, value.trim).getCanonicalPath)
-                          if (!audio.exists) throw new RuntimeException(s"Non-existing audio substitution path: $audio")
+                          if (!audio.exists) reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Non-existing audio substitution path: $audio")
                           substs = substs + String(key.trim) ~> audio.value
-                        case _ => throw new RuntimeException(s"Expecting <key>: <path> pair but found: $v")
+                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <path> pair but found: $v")
                       }
                     }
                   case key if key.startsWith("subst") =>
                     def parseSubst(): Unit = for (v <- yamlChild.getValues.toArray) {
                       v.toString.split(':') match {
                         case Array(key, value) => substs = substs + String(key.trim) ~> String(value.trim)
-                        case _ => throw new RuntimeException(s"Expecting <key>: <path> pair but found: $v")
+                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <path> pair but found: $v")
                       }
                     }
 
@@ -281,20 +296,26 @@ object Presentasi_Ext {
           child = child.getNext
         case _ =>
       }
+      var prevChild: Node = d
       while (child != null) {
         child match {
-          case _: Heading =>
+          case heading: Heading =>
+            if (!child.getSourceSpans.isEmpty) prevChild = child
             child = child.getNext
             var media = ""
+            var mediaNode: Node = null
             var code = ""
+            var codeNode: Node = null
             var hasText = false
             var text: ST = st""
             while (child != null && !child.isInstanceOf[Heading]) {
               child match {
                 case child: Paragraph if child.getFirstChild.isInstanceOf[Code] && child.getFirstChild.getNext == null =>
-                  code = child.getFirstChild.asInstanceOf[Code].getLiteral
+                  codeNode = child.getFirstChild
+                  code = codeNode.asInstanceOf[Code].getLiteral
                 case child: Paragraph if child.getFirstChild.isInstanceOf[Image] && child.getFirstChild.getNext == null =>
-                  media = new java.io.File(dir, child.getFirstChild.asInstanceOf[Image].getDestination).getCanonicalPath
+                  mediaNode = child.getFirstChild
+                  media = new java.io.File(dir, mediaNode.asInstanceOf[Image].getDestination).getCanonicalPath
                 case child: BulletList =>
                   var listItem = child.getFirstChild.asInstanceOf[ListItem]
                   while (listItem != null) {
@@ -308,17 +329,13 @@ object Presentasi_Ext {
                     listItem = listItem.getNext.asInstanceOf[ListItem]
                   }
                 case _ =>
-                  if (child.getSourceSpans.size > 0) {
-                    val first = child.getSourceSpans.get(0)
-                    throw new RuntimeException(s"Unrecognized structure at [${first.getLineIndex}, ${first.getColumnIndex}]")
-                  } else {
-                    throw new RuntimeException(s"Unrecognized structure ${child.getClass}: ${child.toString}")
-                  }
+                  reporter.error(getPosOpt(child), Presentasi.kind, s"Unrecognized structure ${child.getClass}: ${child.toString}")
               }
+              if (!child.getSourceSpans.isEmpty) prevChild = child
               child = child.getNext
             }
-            if (media.isEmpty) throw new RuntimeException("Missing image/video path")
-            if (!Os.path(media).exists) throw new RuntimeException(s"Non-existent image/video path: $media")
+            if (media.isEmpty) reporter.error(getPosOpt(heading), Presentasi.kind, "Missing image/video path")
+            if (!Os.path(media).exists) reporter.error(getPosOpt(mediaNode), Presentasi.kind, s"Non-existent image/video path: $media")
             if (Os.path(media).ext.value == "mp4") {
               var delay: Z = 0
               var volume: F64 = 0d
@@ -333,31 +350,31 @@ object Presentasi_Ext {
                     key.trim match {
                       case "delay" => Z(v) match {
                         case Some(n) => delay = n
-                        case _ => throw new RuntimeException(s"Invalid delay property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value: $v")
                       }
                       case "volume" => F64(v) match {
                         case Some(n) => volume = n
-                        case _ => throw new RuntimeException(s"Invalid volume property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid volume property value: $v")
                       }
                       case "rate" => F64(v) match {
                         case Some(n) => rate = n
-                        case _ => throw new RuntimeException(s"Invalid rate property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid rate property value: $v")
                       }
                       case "start" => F64(v) match {
                         case Some(n) => start = n
-                        case _ => throw new RuntimeException(s"Invalid start property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid start property value: $v")
                       }
                       case "end" => F64(v) match {
                         case Some(n) => end = n
-                        case _ => throw new RuntimeException(s"Invalid end property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid end property value: $v")
                       }
                       case "useVideoDuration" =>
                         if (v == "T" || v == "true") useVideoDuration = T
                         else if (v == "F" || v == "false") useVideoDuration = F
-                        else throw new RuntimeException(s"Invalid useVideoDuration property value: $v")
-                      case _ => throw new RuntimeException(s"Invalid video code key: $key")
+                        else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid useVideoDuration property value: $v")
+                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video code key: $key")
                     }
-                  case _ => throw new RuntimeException(s"Invalid video code property: $property")
+                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video code property: $property")
                 }
               }
               entries = entries :+ presentasi.Presentation.VideoEntry(media, delay, volume, rate, start, end,
@@ -369,18 +386,21 @@ object Presentasi_Ext {
                   case Array(key, value) => key.trim match {
                     case "delay" => Z(value.trim) match {
                       case Some(n) => delay = n
-                      case _ => throw new RuntimeException(s"Invalid delay property value: $value")
+                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value: $value")
                     }
-                    case _ => throw new RuntimeException(s"Invalid image code key: $key")
+                    case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image code key: $key")
                   }
-                  case _ => throw new RuntimeException(s"Invalid image code property: $property")
+                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image code property: $property")
                 }
               }
               entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, text.render)
             }
           case _ =>
-            val first = child.getSourceSpans.get(0)
-            throw new RuntimeException(s"Expecting a new heading # at [${first.getLineIndex}, ${first.getColumnIndex}]")
+            if (child.getSourceSpans.isEmpty) {
+              reporter.error(getPosOpt(prevChild), Presentasi.kind, s"Expecting a new heading (#) next, but found: ${child.getClass}")
+            } else {
+              reporter.error(getPosOpt(child), Presentasi.kind, s"Expecting a new heading (#), but found: ${child.getClass}")
+            }
         }
       }
       r(entries = entries)

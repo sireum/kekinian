@@ -54,6 +54,7 @@ object Presentasi {
   val INVALID_PATH: Z = -3
   val INVALID_SPEC: Z = -4
   val INVALID_RESOURCE: Z = -4
+  val kind: String = "Presentasi"
 
   def printHelp(help: String): Z = {
     println(help)
@@ -478,7 +479,11 @@ object Presentasi {
           return INVALID_SPEC
       }
     } else {
-      Presentasi.Ext.parseMarkdowns(args, path)
+      Presentasi.Ext.parseMarkdowns(args, path, reporter)
+    }
+    if (reporter.hasIssue) {
+      reporter.printMessages()
+      return INVALID_SPEC
     }
 
     val resources = path / "jvm" / "src" / "main" / "resources"
@@ -567,7 +572,7 @@ object Presentasi {
           durOpt match {
             case Some(dur) if code == 0 => return sound(filepath = p, duration = dur)
             case _ =>
-              reporter.error(None(), "presentasi", s"""Failed to load: "${sound.text}"""")
+              reporter.error(None(), kind, s"""Failed to load: "${sound.text}"""")
               return sound
           }
 
@@ -584,7 +589,7 @@ object Presentasi {
             case Some(v) if 0.0 <= v && v <= 1.0 =>
               return v
             case _ =>
-              reporter.error(None(), "presentasi", s"Invalid volume for $vpath [0.0 .. 1.0]: $vol")
+              reporter.error(None(), kind, s"Invalid volume for $vpath [0.0 .. 1.0]: $vol")
               return 1.0
           }
         }
@@ -622,7 +627,7 @@ object Presentasi {
                           volume = parseVolume(ops.StringOps(vol).trim, p)
                           Os.path(ops.StringOps(p).trim)
                         case _ =>
-                          reporter.error(None(), "presentasi", s"Could not parse: $line (expecting [ <volume> ; ] <audio-path> )")
+                          reporter.error(None(), kind, s"Could not parse: $line (expecting [ <volume> ; ] <audio-path> )")
                           Os.path("")
                       }
                     } else {
@@ -646,10 +651,10 @@ object Presentasi {
                           currSound = currSound(filepath = target, duration = dur)
                           sounds = sounds :+ currSound
                           currSound = newSound(currSound.timeline + dur)
-                        case _ => reporter.error(None(), "presentasi", s"Failed to load: $apath")
+                        case _ => reporter.error(None(), kind, s"Failed to load: $apath")
                       }
                     } else {
-                      reporter.error(None(), "presentasi", s"$apath does not exist")
+                      reporter.error(None(), kind, s"$apath does not exist")
                     }
                 }
               } else {
@@ -672,17 +677,21 @@ object Presentasi {
       var curr: Z = 0
       var first = T
       for (entry <- spec.entries) {
+        def processTarget(d: Os.Path, entry: Presentation.Entry): (String, Os.Path) = {
+          val p = Os.path(entry.path)
+          val target = d / p.name
+          if (target.canon.string != p.canon.string) {
+            p.copyOverTo(target)
+            println(s"Wrote $target")
+            println()
+          }
+          println(s"Loading $p ...")
+          return (p.toUri, target)
+        }
         entry match {
           case entry: Presentation.Slide =>
-            val p = Os.path(entry.path)
-            val target = image / p.name
-            if (target.canon.string != p.canon.string) {
-              p.copyOverTo(target)
-              println(s"Wrote $target")
-              println()
-            }
-            println(s"Loading $p ...")
-            val ok = Ext.checkImage(p.toUri)
+            val (uri, target) = processTarget(image, entry)
+            val ok = Ext.checkImage(uri)
             println()
             if (ok) {
               val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
@@ -691,18 +700,11 @@ object Presentasi {
               medias = medias ++ sounds
               curr = last
             } else {
-              reporter.error(None(), "presentasi", s"Could not load image ${entry.path}")
+              reporter.error(None(), kind, s"Could not load image ${entry.path}")
             }
           case entry: Presentation.Video =>
-            val p = Os.path(entry.path)
-            val target = video / p.name
-            if (target.canon.string != p.canon.string) {
-              p.copyOverTo(target)
-              println(s"Wrote $target")
-              println()
-            }
-            println(s"Loading $p ...")
-            val durOpt = Ext.getVideoDuration(p.toUri)
+            val (uri, target) = processTarget(video, entry)
+            val durOpt = Ext.getVideoDuration(uri)
             println()
             durOpt match {
               case Some(dur) =>
@@ -710,7 +712,7 @@ object Presentasi {
                 val start: F64 = if (entry.start < 0.0) {
                   0.0
                 } else if (conversions.F64.toR(entry.start) > durR) {
-                  reporter.error(None(), "presentasi", s"Invalid start for video ${entry.path}: ${entry.start}")
+                  reporter.error(None(), kind, s"Invalid start for video ${entry.path}: ${entry.start}")
                   0.0
                 } else {
                   entry.start
@@ -718,7 +720,7 @@ object Presentasi {
                 val end: F64 = if (entry.end == 0.0 || conversions.F64.toR(entry.end) > durR) {
                   0.0
                 } else if (entry.end < start) {
-                  reporter.error(None(), "presentasi", s"Invalid end for video ${entry.path}: ${entry.end}")
+                  reporter.error(None(), kind, s"Invalid end for video ${entry.path}: ${entry.end}")
                   0.0
                 } else {
                   entry.end
@@ -726,14 +728,14 @@ object Presentasi {
                 val volume: F64 = if (0.0 <= entry.volume && entry.volume <= 1.0) {
                   entry.volume
                 } else {
-                  reporter.error(None(), "presentasi", s"Invalid volume for video ${entry.path} [0.0 .. 1.0]: ${entry.volume}")
+                  reporter.error(None(), kind, s"Invalid volume for video ${entry.path} [0.0 .. 1.0]: ${entry.volume}")
                   1.0
                 }
                 val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
                 val rate: F64 = if (0.0 < entry.rate && entry.rate <= 8.0) {
                   entry.rate
                 } else {
-                  reporter.error(None(), "presentasi", s"Invalid rate for video ${entry.path} (0.0 .. 8.0]: ${entry.volume}")
+                  reporter.error(None(), kind, s"Invalid rate for video ${entry.path} (0.0 .. 8.0]: ${entry.volume}")
                   1.0
                 }
                 medias = medias :+ Video(target.name, dur, curr + gap, start, end, entry.textOpt.nonEmpty, volume, rate)
@@ -749,7 +751,7 @@ object Presentasi {
                     curr = newCurr
                 }
               case _ =>
-                reporter.error(None(), "presentasi", s"Could not load video ${entry.path}")
+                reporter.error(None(), kind, s"Could not load video ${entry.path}")
             }
         }
         first = F
@@ -967,6 +969,6 @@ object Presentasi {
 
     def shutdown(): Unit = $
 
-    def parseMarkdowns(args: ISZ[String], path: Os.Path): ISZ[presentasi.Presentation] = $
+    def parseMarkdowns(args: ISZ[String], path: Os.Path, reporter: message.Reporter): ISZ[presentasi.Presentation] = $
   }
 }
