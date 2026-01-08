@@ -677,8 +677,8 @@ object Presentasi {
       var curr: Z = 0
       var first = T
       for (entry <- spec.entries) {
-        def processTarget(d: Os.Path, entry: Presentation.Entry): (String, Os.Path) = {
-          val p = Os.path(entry.path)
+        def processTarget(d: Os.Path, e: Presentation.Entry): (String, Os.Path) = {
+          val p = Os.path(e.path)
           val target = d / p.name
           if (target.canon.string != p.canon.string) {
             p.copyOverTo(target)
