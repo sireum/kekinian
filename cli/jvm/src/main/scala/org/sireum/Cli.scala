@@ -928,6 +928,7 @@ object Cli {
   @datatype class SireumPresentasiGenOption(
     val help: String,
     val args: ISZ[String],
+    val slice: ISZ[String],
     val force: B,
     val lang: Option[String],
     val outputFormat: SireumPresentasiGenOutputFormat.Type,
@@ -8221,6 +8222,8 @@ import Cli._
           |Usage: <option>* <path> <arg>*
           |
           |Available Options:
+          |    --slice              Slide indices to keep (expects a string separated by
+          |                           ",")
           |    --force              Overwrite output file(s)
           |-l, --lang               Speech language (for AWS or Azure) (expects a string;
           |                           default is "en-US")
@@ -8246,6 +8249,7 @@ import Cli._
           |                           "centralus")
           |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
 
+    var slice: ISZ[String] = ISZ[String]()
     var force: B = false
     var lang: Option[String] = Some("en-US")
     var outputFormat: SireumPresentasiGenOutputFormat.Type = SireumPresentasiGenOutputFormat.Mp3
@@ -8265,7 +8269,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--force") {
+        } else if (arg == "--slice") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--force") {
            val o: Option[B] = { j = j - 1; Some(!force) }
            o match {
              case Some(v) => force = v
@@ -8340,7 +8350,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), slice, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {

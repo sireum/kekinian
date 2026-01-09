@@ -116,7 +116,10 @@ val pgenTool: Tool = Tool(
   header = "Sireum Presentasi Generator",
   usage = "<option>* <path> <arg>*",
   usageDescOpt = None(),
-  opts = (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
+  opts = ISZ[Opt](
+    Opt(name = "slice", longKey = "slice", shortKey = None(),
+      tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
+  ) ++ (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
       tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
         "mp3", "wav")),

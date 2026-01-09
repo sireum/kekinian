@@ -538,7 +538,25 @@ object Presentasi {
       case _ => (Cli.SireumPresentasiText2speechOutputFormat.Wav, "wav")
     }
 
-    for (spec <- specs) {
+    for (spc <- specs) {
+      var spec = spc
+      if (o.slice.nonEmpty) {
+        var entries = ISZ[org.sireum.presentasi.Presentation.Entry]()
+        var indices = HashSet.empty[Z]
+        for (i <- o.slice) {
+          Z(ops.StringOps(i).trim) match {
+            case Some(n) => indices = indices + n
+            case _ =>
+              reporter.error(None(), kind, s"Invalid slice argument: $i")
+              reporter.printMessages()
+              return INVALID_ARGS
+          }
+        }
+        for (i <- spec.entries.indices if indices.contains(i)) {
+          entries = entries :+ spec.entries(i)
+        }
+        spec = spec(entries = entries)
+      }
       def processText(text: String, start: Z): (ISZ[Media], Z) = {
         def fingerprint(t: String): String = {
           val c = crypto.SHA3.init256
