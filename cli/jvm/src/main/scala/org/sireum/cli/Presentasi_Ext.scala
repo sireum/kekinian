@@ -331,8 +331,8 @@ object Presentasi_Ext {
             if (!Os.path(media).exists) reporter.error(getPosOpt(mediaNode), Presentasi.kind, s"Non-existent image/video path: $media")
             if (Os.path(media).ext.value == "mp4") {
               var delay: Z = 0
-              var volume: F64 = 0d
-              var rate: F64 = 0d
+              var volume: F64 = 1d
+              var rate: F64 = 1d
               var start: F64 = 0d
               var end: F64 = 0d
               var useVideoDuration: B = false

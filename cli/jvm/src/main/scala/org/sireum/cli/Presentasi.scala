@@ -465,7 +465,7 @@ object Presentasi {
       case ISZ(p, _*) => Os.path(p).canon
     }
     val presentasi = path / "bin" / "presentasi.cmd"
-    val voice: String = o.voice match {
+    val voiceArg: String = o.voice match {
       case Some(v) => v
       case _ => o.service match {
         case Cli.SireumPresentasiGenService.Mary => "dfki-spike-hsmm"
@@ -473,7 +473,7 @@ object Presentasi {
         case Cli.SireumPresentasiGenService.Azure => "en-GB-RyanNeural"
       }
     }
-    val args = ISZ(presentasi.string, o.service.string, voice) ++ ops.ISZOps(o.args).drop(1)
+    val args = ISZ(presentasi.string, o.service.string, voiceArg) ++ ops.ISZOps(o.args).drop(1)
     val specs: ISZ[Presentation] = if (presentasi.exists) {
       val outTemp = Os.temp()
       val r = SlangRunner.run(Cli.SireumSlangRunOption("", args, F, None(), Some(outTemp.string), F, F))
