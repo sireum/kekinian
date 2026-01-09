@@ -391,9 +391,10 @@ object Presentasi {
           |                final Media media = medias.get(i);
           |                while (System.currentTimeMillis() - start <= media.getTimeline()) Presentasi.sleep(TIMELINE_GRANULARITY);
           |                if (media instanceof Sound) {
-          |                    final MediaPlayer mediaPlayer = ((Sound) media).mediaPlayer;
-          |                    mediaPlayer.setVolume(TEXT_VOLUME);
-          |                    mediaPlayer.play();
+          |                    final MediaPlayer player = ((Sound) media).mediaPlayer;
+          |                    player.setVolume(TEXT_VOLUME);
+          |                    player.setOnEndOfMedia(() -> player.dispose());
+          |                    player.play();
           |                } else if (media instanceof Image) {
           |                    final Image graphic = (Image) media;
           |                    final StackPane root = new StackPane();
@@ -417,6 +418,7 @@ object Presentasi {
           |                    final MediaPlayer player = mediaView.getMediaPlayer();
           |                    player.setStartTime(Duration.millis(video.startMillis));
           |                    player.setRate(video.rate);
+          |                    player.setOnEndOfMedia(() -> player.dispose());
           |                    if (video.endMillis > 0.0) player.setStopTime(Duration.millis(video.endMillis));
           |                    player.setVolume(1.0);
           |                    player.setMute(video.muted);
@@ -479,7 +481,7 @@ object Presentasi {
           return INVALID_SPEC
       }
     } else {
-      Presentasi.Ext.parseMarkdowns(args, path, reporter)
+      Presentasi.Ext.parseMarkdowns(ops.ISZOps(args).drop(1), path, reporter)
     }
     if (reporter.hasIssue) {
       reporter.printMessages()

@@ -200,19 +200,19 @@ object Presentasi_Ext {
           return Some(message.PosInfo(docInfo, conversions.Z.toU64(offset) << u64"32" + conversions.Z.toU64(length)))
         }
       }
-      def getTexts(node: Node): ISZ[String] = {
-        var r = ISZ[String]()
+      def getTexts(node: Node): Vector[Predef.String] = {
+        var r = Vector[Predef.String]()
 
         def rec(n: Node): Unit = {
           var child = n.getFirstChild
           while (child != null) {
             child match {
               case child: Text =>
-                var content: String = child.getLiteral
+                var content = child.getLiteral
                 for (p <- substs.entries) {
-                  content = ops.StringOps(content).replaceAllLiterally(s"$$${p._1}", p._2)
+                  content = content.replace(s"$$${p._1}$$", p._2.value)
                 }
-                r = r :+ content
+                r = r :+ content.trim
               case _ => rec(child)
             }
             child = child.getNext
@@ -306,8 +306,7 @@ object Presentasi_Ext {
             var mediaNode: Node = null
             var code = ""
             var codeNode: Node = null
-            var hasText = false
-            var text: ST = st""
+            var text = Vector[Predef.String]()
             while (child != null && !child.isInstanceOf[Heading]) {
               child match {
                 case child: Paragraph if child.getFirstChild.isInstanceOf[Code] && child.getFirstChild.getNext == null =>
@@ -319,13 +318,7 @@ object Presentasi_Ext {
                 case child: BulletList =>
                   var listItem = child.getFirstChild.asInstanceOf[ListItem]
                   while (listItem != null) {
-                    val texts = getTexts(listItem)
-                    if (!hasText) text = st"${(texts, "\n")}"
-                    else text =
-                      st"""$text
-                          |
-                          |${(texts, "\n")}"""
-                    hasText = true
+                    text = (text :+ "") ++ getTexts(listItem)
                     listItem = listItem.getNext.asInstanceOf[ListItem]
                   }
                 case _ =>
@@ -378,7 +371,7 @@ object Presentasi_Ext {
                 }
               }
               entries = entries :+ presentasi.Presentation.VideoEntry(media, delay, volume, rate, start, end,
-                useVideoDuration, if (hasText) Some(text.render) else None())
+                useVideoDuration, if (text.nonEmpty) Some((text :+ "").mkString("\r\n")) else None())
             } else {
               var delay: Z = 0
               for (property <- code.split(',')) {
@@ -393,7 +386,7 @@ object Presentasi_Ext {
                   case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image code property: $property")
                 }
               }
-              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, text.render)
+              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, (text :+ "").mkString("\r\n"))
             }
           case _ =>
             if (child.getSourceSpans.isEmpty) {
