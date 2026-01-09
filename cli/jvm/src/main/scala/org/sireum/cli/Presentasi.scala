@@ -98,9 +98,9 @@ object Presentasi {
       }
     }
 
-    @strictpure def soundTemplate(filepath:String, timeline: Z, i: Z, prevTimelineOpt: Option[Z]): ST =
+    @strictpure def soundTemplate(filepath:String, timeline: Z, i: Z, prevTimelineOpt: Option[Z], text: String): ST =
       st"""${localTemplate(timeline, i, prevTimelineOpt)}
-          |medias.add(new Sound("/audio/$filepath", t_$i));"""
+          |medias.add(new Sound("/audio/$filepath", t_$i, "${ops.StringOps(text).escapeST}"));"""
 
     @strictpure def imageTemplate(filename: String, timeline: Z, i: Z, prevTimelineOpt: Option[Z], n: Z): ST =
       st"""${localTemplate(timeline, i, prevTimelineOpt)}
@@ -778,7 +778,7 @@ object Presentasi {
           case media: Sound =>
             val mediaUri = media.filepath.toUri
             mediaSTs = mediaSTs :+ soundTemplate(ops.StringOps(mediaUri).substring(audioDirUriSize, mediaUri.size),
-              media.timeline, i, previousTimelineOpt)
+              media.timeline, i, previousTimelineOpt, media.text)
         }
         previousTimelineOpt = Some(medias(i).timeline)
       }
