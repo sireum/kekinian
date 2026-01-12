@@ -181,7 +181,8 @@ object Anvil {
       ipSubroutine = F,
       cpMax = 0,
       genVerilog = F,
-      simOpt = None()
+      simOpt = None(),
+      recursiveDepthMax = 8
     )
 
 
