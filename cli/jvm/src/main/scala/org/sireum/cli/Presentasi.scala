@@ -794,6 +794,7 @@ object Presentasi {
       var previousTimelineOpt: Option[Z] = None()
       val audioDirUriSize = audioDir.toUri.size
       var n = 0
+      var cc = ISZ[ST]()
       for (i <- medias.indices) {
         medias(i) match {
           case media: Image =>
@@ -805,13 +806,23 @@ object Presentasi {
             n = n + 1
           case media: Sound =>
             val mediaUri = media.filepath.toUri
+            val ccText = spec.cc.get(media.text).getOrElse(media.text)
             mediaSTs = mediaSTs :+ soundTemplate(ops.StringOps(mediaUri).substring(audioDirUriSize, mediaUri.size),
-              media.timeline, i, previousTimelineOpt, media.text)
+              media.timeline, i, previousTimelineOpt, ccText)
+            if (ccText.size > 0) {
+              val startTime = Ext.formatCcTime(o.srt, media.timeline + o.cc)
+              val endTime = Ext.formatCcTime(o.srt, media.timeline + o.cc + media.duration)
+              cc = cc :+
+                st"""${cc.size + 1}
+                    |$startTime --> $endTime
+                    |$ccText"""
+            }
         }
         previousTimelineOpt = Some(medias(i).timeline)
       }
 
       val f = source / s"${spec.name}.java"
+      val ccFile = resources / s"${spec.name}.${if (o.srt) "srt" else "vtt"}"
       val end: Z = if (medias.size > 0) {
         val last = medias(medias.size - 1)
         last.timeline + last.duration + spec.trailing
@@ -821,6 +832,15 @@ object Presentasi {
 
       f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
       println(s"Wrote $f")
+      if (o.srt) {
+        ccFile.writeOver(st"${(cc, "\n\n")}".render)
+      } else {
+        ccFile.writeOver(
+          st"""WEBVTT
+              |${(cc, "\n\n")}""".render
+        )
+      }
+      println(s"Wrote $ccFile")
     }
     return 0
   }
@@ -998,5 +1018,7 @@ object Presentasi {
     def shutdown(): Unit = $
 
     def parseMarkdowns(args: ISZ[String], path: Os.Path, reporter: message.Reporter): ISZ[presentasi.Presentation] = $
+
+    def formatCcTime(isSrt: B, ms: Z): String = $
   }
 }

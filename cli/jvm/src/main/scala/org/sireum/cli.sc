@@ -117,8 +117,13 @@ val pgenTool: Tool = Tool(
   usage = "<option>* <path> <arg>*",
   usageDescOpt = None(),
   opts = ISZ[Opt](
+    Opt(name = "cc", longKey = "cc", shortKey = None(),
+      tpe = Type.Num(sep = None(), default = 0, min = Some(0), max = None()),
+      description = "Additional time shift (ms) for close-captioning subtitle"),
     Opt(name = "slice", longKey = "slice", shortKey = None(),
       tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
+    Opt(name = "srt", longKey = "srt", shortKey = None(),
+      tpe = Type.Flag(default = F), description = "Generate .srt instead of .vtt subtitle file")
   ) ++ (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
       tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(

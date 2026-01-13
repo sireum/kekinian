@@ -178,7 +178,9 @@ object Presentasi_Ext {
     val argsKey = st"${(args, "")}".render.value
     val parser = org.commonmark.parser.Parser.builder().
       extensions(java.util.List.of(org.commonmark.ext.front.matter.YamlFrontMatterExtension.create)).build()
+    var audioSubst = HashSMap.empty[String, String]
     var substs = HashSMap.empty[String, String]
+    var ccs = HashSMap.empty[String, String]
     var entries = ISZ[presentasi.Presentation.Entry]()
 
     def document(f: Os.Path): presentasi.Presentation = {
@@ -187,6 +189,7 @@ object Presentasi_Ext {
       val docInfo = message.DocInfo.create(uriOpt, fContent)
       var r = presentasi.Presentation.empty(name = "Presentasi", args = args)
       val dir = new java.io.File(f.value.value).getParentFile
+      var ccMap = HashSMap.empty[String, String]
       import org.commonmark.node._
       import org.commonmark.ext.front.matter._
       def getPosOpt(node: Node): Option[message.Position] = {
@@ -209,7 +212,7 @@ object Presentasi_Ext {
             child match {
               case child: Text =>
                 var content = child.getLiteral
-                for (p <- substs.entries) {
+                for (p <- audioSubst.entries) {
                   content = content.replace(s"$$${p._1}$$", p._2.value)
                 }
                 r = r :+ content.trim
@@ -274,7 +277,15 @@ object Presentasi_Ext {
                         case Array(key, value) =>
                           val audio = Os.path(new java.io.File(dir, value.trim).getCanonicalPath)
                           if (!audio.exists) reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Non-existing audio substitution path: $audio")
-                          substs = substs + String(key.trim) ~> audio.value
+                          audioSubst = audioSubst + String(key.trim) ~> audio.value
+                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <path> pair but found: $v")
+                      }
+                    }
+                  case "cc" =>
+                    for (v <- yamlChild.getValues.toArray) {
+                      v.toString.split(':') match {
+                        case Array(key, value) =>
+                          ccs = ccs + String(key.trim) ~> value.trim
                         case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <path> pair but found: $v")
                       }
                     }
@@ -329,6 +340,11 @@ object Presentasi_Ext {
             }
             if (media.isEmpty) reporter.error(getPosOpt(heading), Presentasi.kind, "Missing image/video path")
             if (!Os.path(media).exists) reporter.error(getPosOpt(mediaNode), Presentasi.kind, s"Non-existent image/video path: $media")
+            def substText(m: HashSMap[String, String], v: Vector[Predef.String]): Vector[Predef.String] = {
+              var r = v
+              for (subst <- m.entries) r = r.map(_.replace(s"$$${subst._1.value}$$", subst._2.value))
+              r
+            }
             if (Os.path(media).ext.value == "mp4") {
               var delay: Z = 0
               var volume: F64 = 1d
@@ -370,8 +386,11 @@ object Presentasi_Ext {
                   case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video code property: $property")
                 }
               }
+              val voiceText = substText(substs, text :+ "")
+              val ccText = substText(ccs, text :+ "")
+              for ((voicet, cct) <- voiceText.zip(ccText) if voicet.nonEmpty && !voicet.contains('[')) ccMap = ccMap + voicet ~> cct
               entries = entries :+ presentasi.Presentation.VideoEntry(media, delay, volume, rate, start, end,
-                useVideoDuration, if (text.nonEmpty) Some((text :+ "").mkString("\r\n")) else None())
+                useVideoDuration, if (text.nonEmpty) Some(voiceText.mkString("\r\n")) else None())
             } else {
               var delay: Z = 0
               for (property <- code.split(',')) {
@@ -386,7 +405,10 @@ object Presentasi_Ext {
                   case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image code property: $property")
                 }
               }
-              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, (text :+ "").mkString("\r\n"))
+              val voiceText = substText(substs, text :+ "")
+              val ccText = substText(ccs, text :+ "")
+              for ((voicet, cct) <- voiceText.zip(ccText) if voicet.nonEmpty && !voicet.contains('[')) ccMap = ccMap + voicet ~> cct
+              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, voiceText.mkString("\r\n"))
             }
           case _ =>
             if (child.getSourceSpans.isEmpty) {
@@ -396,7 +418,7 @@ object Presentasi_Ext {
             }
         }
       }
-      r(entries = entries)
+      r(entries = entries, cc = ccMap)
     }
 
     def rec(f: Os.Path): ISZ[presentasi.Presentation] =
@@ -410,5 +432,15 @@ object Presentasi_Ext {
       else if (f.isDir) for (sub <- f.list; r <- rec(sub)) yield r
       else ISZ()
     rec(path)
+  }
+
+  def formatCcTime(isSrt: B, ms: Z): String = {
+    import java.util.concurrent.TimeUnit
+    val n = ms.toLong
+    java.lang.String.format(s"%02d:%02d:%02d${if (isSrt) "," else "."}%03d",
+      TimeUnit.MILLISECONDS.toHours(n),
+      TimeUnit.MILLISECONDS.toMinutes(n),
+      TimeUnit.MILLISECONDS.toSeconds(n),
+      n % 1000)
   }
 }
