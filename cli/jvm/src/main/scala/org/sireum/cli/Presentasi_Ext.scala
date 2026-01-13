@@ -407,7 +407,7 @@ object Presentasi_Ext {
               }
               val voiceText = substText(substs, text :+ "")
               val ccText = substText(ccs, text :+ "")
-              for ((voicet, cct) <- voiceText.zip(ccText) if voicet.nonEmpty && !voicet.contains('[')) ccMap = ccMap + voicet ~> cct
+              for ((voicet, cct) <- voiceText.zip(ccText) if voicet.nonEmpty && !voicet.startsWith("[")) ccMap = ccMap + voicet ~> cct
               entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, voiceText.mkString("\r\n"))
             }
           case _ =>
@@ -416,12 +416,13 @@ object Presentasi_Ext {
             } else {
               reporter.error(getPosOpt(child), Presentasi.kind, s"Expecting a new heading (#), but found: ${child.getClass}")
             }
+            child = child.getNext
         }
       }
       r(entries = entries, cc = ccMap)
     }
 
-    def rec(f: Os.Path): ISZ[presentasi.Presentation] =
+    def processFile(f: Os.Path): ISZ[presentasi.Presentation] =
       if (f.isFile && f.ext.value == "md" && f.name.value != "readme.md")
         try ISZ(document(f))
         catch {
@@ -429,9 +430,10 @@ object Presentasi_Ext {
             eprintln(s"Could not recognize $f (ignored): ${t.getMessage}")
             ISZ()
         }
-      else if (f.isDir) for (sub <- f.list; r <- rec(sub)) yield r
       else ISZ()
-    rec(path)
+
+    if (path.isDir) for (sub <- path.list; r <- processFile(sub)) yield r
+    else processFile(path)
   }
 
   def formatCcTime(isSrt: B, ms: Z): String = {

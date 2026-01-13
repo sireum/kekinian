@@ -557,6 +557,7 @@ object Presentasi {
         }
         spec = spec(entries = entries)
       }
+
       def processText(text: String, start: Z): (ISZ[Media], Z) = {
         def fingerprint(t: String): String = {
           val c = crypto.SHA3.init256
@@ -704,6 +705,7 @@ object Presentasi {
       var medias = ISZ[Media]()
       var curr: Z = 0
       var first = T
+      var transcript = ISZ[ST]()
       for (entry <- spec.entries) {
         def processTarget(d: Os.Path, e: Presentation.Entry): (String, Os.Path) = {
           val p = Os.path(e.path)
@@ -716,6 +718,19 @@ object Presentasi {
           println(s"Loading $p ...")
           return (p.toUri, target)
         }
+        def addTranscriptEntry(p: Os.Path, sounds: ISZ[Media]): Unit = {
+          var transcriptItems = ISZ[ST]()
+          for (sound <- sounds) {
+            val text = sound.asInstanceOf[Sound].text
+            if (text.size > 0) {
+              transcriptItems = transcriptItems :+ st"* ${spec.cc.get(text).getOrElse(text)}"
+            }
+          }
+          transcript = transcript :+
+            st"""![${p.name}](${resources.relativize(p)})
+                |
+                |${(transcriptItems, "\n\n")}"""
+        }
         entry match {
           case entry: Presentation.Slide =>
             val (uri, target) = processTarget(image, entry)
@@ -725,6 +740,7 @@ object Presentasi {
               val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
               medias = medias :+ Image(target.name, curr + gap)
               val (sounds, last) = processText(entry.text, curr)
+              addTranscriptEntry(Os.path(entry.path), sounds)
               medias = medias ++ sounds
               curr = last
             } else {
@@ -773,9 +789,11 @@ object Presentasi {
                 entry.textOpt match {
                   case Some(text) =>
                     val (sounds, last) = processText(text, curr)
+                    addTranscriptEntry(Os.path(entry.path), sounds)
                     medias = medias ++ sounds
                     curr = if (entry.useVideoDuration) newCurr else last
                   case _ =>
+                    addTranscriptEntry(Os.path(entry.path), ISZ())
                     curr = newCurr
                 }
               case _ =>
@@ -822,6 +840,7 @@ object Presentasi {
       }
 
       val f = source / s"${spec.name}.java"
+      val transcriptFile = resources / s"${spec.name}.md"
       val ccFile = resources / s"${spec.name}.${if (o.srt) "srt" else "vtt"}"
       val end: Z = if (medias.size > 0) {
         val last = medias(medias.size - 1)
@@ -841,6 +860,8 @@ object Presentasi {
         )
       }
       println(s"Wrote $ccFile")
+      transcriptFile.writeOver(st"${(transcript, "\n\n----\n\n")}".render)
+      println(s"Wrote $transcriptFile")
     }
     return 0
   }
