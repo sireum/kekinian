@@ -54,6 +54,7 @@ object Presentasi {
   val INVALID_PATH: Z = -3
   val INVALID_SPEC: Z = -4
   val INVALID_RESOURCE: Z = -4
+  val NO_FFMPEG: Z = -5
   val kind: String = "Presentasi"
 
   def printHelp(help: String): Z = {
@@ -460,6 +461,13 @@ object Presentasi {
           |
           |}"""
 
+    if (o.videoHeight > 0) {
+      if (!proc"ffmpeg -h".run().ok) {
+        eprintln("ffmpeg is required when using --video-height")
+        return NO_FFMPEG
+      }
+    }
+
     val path: Os.Path = o.args match {
       case ISZ() => return printHelp(o.help)
       case ISZ(p, _*) => Os.path(p).canon
@@ -500,6 +508,7 @@ object Presentasi {
     val source = path / "jvm" / "src" / "main" / "java"
     val image = resources / "image"
     val video = resources / "video"
+    val slides = resources / "slides"
     image.mkdirAll()
     video.mkdirAll()
 
@@ -706,6 +715,7 @@ object Presentasi {
       var curr: Z = 0
       var first = T
       var transcript = ISZ[ST]()
+      val hasCWebP = proc"cwebp -h".run().ok
       for (entry <- spec.entries) {
         def processTarget(d: Os.Path, e: Presentation.Entry): (String, Os.Path) = {
           val p = Os.path(e.path)
@@ -740,7 +750,14 @@ object Presentasi {
               val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
               medias = medias :+ Image(target.name, curr + gap)
               val (sounds, last) = processText(entry.text, curr)
-              addTranscriptEntry(Os.path(entry.path), sounds)
+              var p = Os.path(entry.path)
+              if (hasCWebP && p.ext == "png") {
+                slides.mkdirAll()
+                val out = slides / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.webp"
+                Os.proc(ISZ("cwebp", "-lossless", p.string, "-o", out.string)).console.runCheck()
+                p = out
+              }
+              addTranscriptEntry(p, sounds)
               medias = medias ++ sounds
               curr = last
             } else {
@@ -786,14 +803,31 @@ object Presentasi {
                 val newCurr = curr + gap + (
                   if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
                   else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
+                var p = Os.path(entry.path)
+                if (o.videoHeight > 0) {
+                  val ss = entry.start / 1000d
+                  val t: ISZ[String] =
+                    if (entry.end > 0d) ISZ[String]("-t", ((entry.end - entry.start) / 1000d).string)
+                    else ISZ[String]()
+                  val out = slides / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.$ss${if (t.isEmpty) "" else s"-${t(1)}"}.gif"
+                  if (!out.exists || out.lastModified < p.lastModified) {
+                    println(s"Generating $out ...")
+                    Os.proc(ISZ[String]("ffmpeg", "-y", "-i", p.value, "-ss", ss.string) ++ t ++ ISZ[String]("-loop", "0", "-filter_complex",
+                      s"fps=${o.videoFps}, scale=-1:${o.videoHeight}[s]; [s]split[a][b]; [a]palettegen[palette]; [b][palette]paletteuse",
+                      out.string
+                    )).console.runCheck()
+                    println()
+                  }
+                  p = out
+                }
                 entry.textOpt match {
                   case Some(text) =>
                     val (sounds, last) = processText(text, curr)
-                    addTranscriptEntry(Os.path(entry.path), sounds)
+                    addTranscriptEntry(p, sounds)
                     medias = medias ++ sounds
                     curr = if (entry.useVideoDuration) newCurr else last
                   case _ =>
-                    addTranscriptEntry(Os.path(entry.path), ISZ())
+                    addTranscriptEntry(p, ISZ())
                     curr = newCurr
                 }
               case _ =>

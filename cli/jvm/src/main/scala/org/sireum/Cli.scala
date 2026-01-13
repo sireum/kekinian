@@ -931,6 +931,8 @@ object Cli {
     val cc: Z,
     val slice: ISZ[String],
     val srt: B,
+    val videoFps: Z,
+    val videoHeight: Z,
     val force: B,
     val lang: Option[String],
     val outputFormat: SireumPresentasiGenOutputFormat.Type,
@@ -8224,11 +8226,17 @@ import Cli._
           |Usage: <option>* <path> <arg>*
           |
           |Available Options:
-          |    --cc                 Additional time shift for close-captioning subtitle
-          |                           (expects an integer; min is 0; default is 0)
+          |    --cc                 Additional time shift (ms) for close-captioning
+          |                           subtitle (expects an integer; min is 0; default is
+          |                           0)
           |    --slice              Slide indices to keep (expects a string separated by
           |                           ",")
           |    --srt                Generate .srt instead of .vtt subtitle file
+          |    --video-fps          Animated video frames-per-second when generating
+          |                           markdown slides (expects an integer; min is 5;
+          |                           default is 5)
+          |    --video-height       Animated video height when generating markdown slides
+          |                           (expects an integer; min is 0; default is 0)
           |    --force              Overwrite output file(s)
           |-l, --lang               Speech language (for AWS or Azure) (expects a string;
           |                           default is "en-US")
@@ -8257,6 +8265,8 @@ import Cli._
     var cc: Z = 0
     var slice: ISZ[String] = ISZ[String]()
     var srt: B = false
+    var videoFps: Z = 5
+    var videoHeight: Z = 0
     var force: B = false
     var lang: Option[String] = Some("en-US")
     var outputFormat: SireumPresentasiGenOutputFormat.Type = SireumPresentasiGenOutputFormat.Mp3
@@ -8292,6 +8302,18 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!srt) }
            o match {
              case Some(v) => srt = v
+             case _ => return None()
+           }
+         } else if (arg == "--video-fps") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(5), None())
+           o match {
+             case Some(v) => videoFps = v
+             case _ => return None()
+           }
+         } else if (arg == "--video-height") {
+           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           o match {
+             case Some(v) => videoHeight = v
              case _ => return None()
            }
          } else if (arg == "--force") {
@@ -8369,7 +8391,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, slice, srt, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, slice, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {

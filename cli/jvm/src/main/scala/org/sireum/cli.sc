@@ -123,7 +123,13 @@ val pgenTool: Tool = Tool(
     Opt(name = "slice", longKey = "slice", shortKey = None(),
       tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
     Opt(name = "srt", longKey = "srt", shortKey = None(),
-      tpe = Type.Flag(default = F), description = "Generate .srt instead of .vtt subtitle file")
+      tpe = Type.Flag(default = F), description = "Generate .srt instead of .vtt subtitle file"),
+    Opt(name = "videoFps", longKey = "video-fps", shortKey = None(),
+      tpe = Type.Num(sep = None(), default = 5, min = Some(5), max = None()),
+      description = "Animated video frames-per-second when generating markdown slides"),
+    Opt(name = "videoHeight", longKey = "video-height", shortKey = None(),
+      tpe = Type.Num(sep = None(), default = 0, min = Some(0), max = None()),
+      description = "Animated video height when generating markdown slides")
   ) ++ (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
       tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
