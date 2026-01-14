@@ -8236,7 +8236,7 @@ import Cli._
           |                           markdown slides (expects an integer; min is 5;
           |                           default is 5)
           |    --video-height       Animated video height when generating markdown slides
-          |                           (expects an integer; min is 0; default is 0)
+          |                           (expects an integer; min is 240; default is 1080)
           |    --force              Overwrite output file(s)
           |-l, --lang               Speech language (for AWS or Azure) (expects a string;
           |                           default is "en-US")
@@ -8266,7 +8266,7 @@ import Cli._
     var slice: ISZ[String] = ISZ[String]()
     var srt: B = false
     var videoFps: Z = 5
-    var videoHeight: Z = 0
+    var videoHeight: Z = 1080
     var force: B = false
     var lang: Option[String] = Some("en-US")
     var outputFormat: SireumPresentasiGenOutputFormat.Type = SireumPresentasiGenOutputFormat.Mp3
@@ -8311,7 +8311,7 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--video-height") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           val o: Option[Z] = parseNum(args, j + 1, Some(240), None())
            o match {
              case Some(v) => videoHeight = v
              case _ => return None()

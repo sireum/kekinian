@@ -461,13 +461,6 @@ object Presentasi {
           |
           |}"""
 
-    if (o.videoHeight > 0) {
-      if (!proc"ffmpeg -h".run().ok) {
-        eprintln("ffmpeg is required when using --video-height")
-        return NO_FFMPEG
-      }
-    }
-
     val path: Os.Path = o.args match {
       case ISZ() => return printHelp(o.help)
       case ISZ(p, _*) => Os.path(p).canon
@@ -508,7 +501,7 @@ object Presentasi {
     val source = path / "jvm" / "src" / "main" / "java"
     val image = resources / "image"
     val video = resources / "video"
-    val slides = resources / "slides"
+    val slide = resources / "slide"
     image.mkdirAll()
     video.mkdirAll()
 
@@ -716,6 +709,7 @@ object Presentasi {
       var first = T
       var transcript = ISZ[ST]()
       val hasCWebP = proc"cwebp -h".run().ok
+      val hasFFmpeg = proc"ffmpeg -h".run().ok
       for (entry <- spec.entries) {
         def processTarget(d: Os.Path, e: Presentation.Entry): (String, Os.Path) = {
           val p = Os.path(e.path)
@@ -752,9 +746,11 @@ object Presentasi {
               val (sounds, last) = processText(entry.text, curr)
               var p = Os.path(entry.path)
               if (hasCWebP && p.ext == "png") {
-                slides.mkdirAll()
-                val out = slides / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.webp"
-                Os.proc(ISZ("cwebp", "-lossless", p.string, "-o", out.string)).console.runCheck()
+                slide.mkdirAll()
+                val out = slide / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.webp"
+                if (!out.exists || out.lastModified < p.lastModified) {
+                  Os.proc(ISZ("cwebp", "-lossless", p.string, "-o", out.string)).console.runCheck()
+                }
                 p = out
               }
               addTranscriptEntry(p, sounds)
@@ -804,12 +800,12 @@ object Presentasi {
                   if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
                   else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
                 var p = Os.path(entry.path)
-                if (o.videoHeight > 0) {
+                if (hasFFmpeg) {
                   val ss = entry.start / 1000d
                   val t: ISZ[String] =
                     if (entry.end > 0d) ISZ[String]("-t", ((entry.end - entry.start) / 1000d).string)
                     else ISZ[String]()
-                  val out = slides / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.$ss${if (t.isEmpty) "" else s"-${t(1)}"}.gif"
+                  val out = slide / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.${o.videoHeight}.$ss${if (t.isEmpty) "" else s"-${t(1)}"}.gif"
                   if (!out.exists || out.lastModified < p.lastModified) {
                     println(s"Generating $out ...")
                     Os.proc(ISZ[String]("ffmpeg", "-y", "-i", p.value, "-ss", ss.string) ++ t ++ ISZ[String]("-loop", "0", "-filter_complex",

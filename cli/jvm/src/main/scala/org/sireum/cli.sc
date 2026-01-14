@@ -128,7 +128,7 @@ val pgenTool: Tool = Tool(
       tpe = Type.Num(sep = None(), default = 5, min = Some(5), max = None()),
       description = "Animated video frames-per-second when generating markdown slides"),
     Opt(name = "videoHeight", longKey = "video-height", shortKey = None(),
-      tpe = Type.Num(sep = None(), default = 0, min = Some(0), max = None()),
+      tpe = Type.Num(sep = None(), default = 1080, min = Some(240), max = None()),
       description = "Animated video height when generating markdown slides")
   ) ++ (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
     Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
