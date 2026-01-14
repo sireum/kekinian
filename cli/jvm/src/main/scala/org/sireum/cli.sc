@@ -122,6 +122,8 @@ val pgenTool: Tool = Tool(
       description = "Additional time shift (ms) for close-captioning subtitle"),
     Opt(name = "slice", longKey = "slice", shortKey = None(),
       tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
+    Opt(name = "slides", longKey = "slides", shortKey = None(),
+      tpe = Type.Flag(default = F), description = "Generate markdown slides"),
     Opt(name = "srt", longKey = "srt", shortKey = None(),
       tpe = Type.Flag(default = F), description = "Generate .srt instead of .vtt subtitle file"),
     Opt(name = "videoFps", longKey = "video-fps", shortKey = None(),

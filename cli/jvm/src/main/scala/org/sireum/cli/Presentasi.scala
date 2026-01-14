@@ -708,8 +708,8 @@ object Presentasi {
       var curr: Z = 0
       var first = T
       var transcript = ISZ[ST]()
-      val hasCWebP = proc"cwebp -h".run().ok
-      val hasFFmpeg = proc"ffmpeg -h".run().ok
+      val hasCWebP = o.slides && proc"cwebp -h".run().ok
+      val hasFFmpeg = o.slides && proc"ffmpeg -h".run().ok
       for (entry <- spec.entries) {
         def processTarget(d: Os.Path, e: Presentation.Entry): (String, Os.Path) = {
           val p = Os.path(e.path)
@@ -890,8 +890,10 @@ object Presentasi {
         )
       }
       println(s"Wrote $ccFile")
-      transcriptFile.writeOver(st"${(transcript, "\n\n----\n\n")}".render)
-      println(s"Wrote $transcriptFile")
+      if (o.slides) {
+        transcriptFile.writeOver(st"${(transcript, "\n\n----\n\n")}".render)
+        println(s"Wrote $transcriptFile")
+      }
     }
     return 0
   }

@@ -930,6 +930,7 @@ object Cli {
     val args: ISZ[String],
     val cc: Z,
     val slice: ISZ[String],
+    val slides: B,
     val srt: B,
     val videoFps: Z,
     val videoHeight: Z,
@@ -8231,6 +8232,7 @@ import Cli._
           |                           0)
           |    --slice              Slide indices to keep (expects a string separated by
           |                           ",")
+          |    --slides             Generate markdown slides
           |    --srt                Generate .srt instead of .vtt subtitle file
           |    --video-fps          Animated video frames-per-second when generating
           |                           markdown slides (expects an integer; min is 5;
@@ -8264,6 +8266,7 @@ import Cli._
 
     var cc: Z = 0
     var slice: ISZ[String] = ISZ[String]()
+    var slides: B = false
     var srt: B = false
     var videoFps: Z = 5
     var videoHeight: Z = 1080
@@ -8296,6 +8299,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => slice = v
+             case _ => return None()
+           }
+         } else if (arg == "--slides") {
+           val o: Option[B] = { j = j - 1; Some(!slides) }
+           o match {
+             case Some(v) => slides = v
              case _ => return None()
            }
          } else if (arg == "--srt") {
@@ -8391,7 +8400,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, slice, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, slice, slides, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {
