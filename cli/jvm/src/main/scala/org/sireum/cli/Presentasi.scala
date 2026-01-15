@@ -126,10 +126,24 @@ object Presentasi {
           |import javafx.stage.Stage;
           |import javafx.util.Duration;
           |
+          |import java.awt.GraphicsConfiguration;
+          |import java.awt.GraphicsEnvironment;
+          |import java.io.File;
           |import java.net.URL;
+          |import java.nio.ByteOrder;
+          |import java.time.LocalDateTime;
+          |import java.time.format.DateTimeFormatter;
           |import java.util.HashMap;
           |import java.util.LinkedList;
           |import java.util.List;
+
+          |import org.monte.media.av.Format;
+          |import org.monte.media.av.FormatKeys;
+          |import org.monte.media.av.codec.audio.AudioFormatKeys;
+          |import org.monte.media.av.codec.video.VideoFormatKeys;
+          |import org.monte.media.math.Rational;
+          |import org.monte.media.screenrecorder.ScreenRecorder;
+          |import org.monte.media.screenrecorder.MouseConfigs;
           |
           |public class $name extends Application {
           |
@@ -142,7 +156,7 @@ object Presentasi {
           |    public static javafx.scene.media.Media getJfxMedia(String uri) {
           |        javafx.scene.media.Media r = mediaMap.get(uri);
           |        if (r == null) {
-          |           r =  new javafx.scene.media.Media(uri);
+          |           r = new javafx.scene.media.Media(uri);
           |           mediaMap.put(uri, r);
           |        }
           |        return r;
@@ -300,7 +314,8 @@ object Presentasi {
           |    private boolean fullScreen = true;
           |    private double width = -1;
           |    private double height = -1;
-          |
+          |    private boolean record = false;
+          | 
           |    public static String getResourceUri(final String path) {
           |        try {
           |            final URL url = Presentasi.class.getResource(path);
@@ -322,7 +337,9 @@ object Presentasi {
           |            for (String arg : getParameters().getRaw()) {
           |                try {
           |                    int i = arg.indexOf('x');
-          |                    if (i >= 0) {
+          |                    if ("-r".equals(arg)) {
+          |                       record = true;
+          |                    } else if (i >= 0) {
           |                        width = Integer.parseInt(arg.substring(0, i));
           |                        height = Integer.parseInt(arg.substring(i + 1));
           |                        fullScreen = false;
@@ -366,8 +383,56 @@ object Presentasi {
           |            System.out.println("done");
           |            System.out.flush();
           |        }
+          |        
+          |        final GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+          |        ScreenRecorder recorderTemp = null;
+          |        final File dir = new File(new File(System.getProperty("user.home"), "Desktop"),
+          |                this.getClass().getSimpleName() + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd.HH.mm.ss")));
+          |        if (record) dir.mkdirs();
+          |        
+          |        try {
+          |            final int fps = 24;
+          |            final int bitDepth = 24;
+          |            final Format fileFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.FILE,
+          |                    VideoFormatKeys.MimeTypeKey, VideoFormatKeys.MIME_QUICKTIME);
+          |            final Format screenFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
+          |                    VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_QUICKTIME_ANIMATION,
+          |                    VideoFormatKeys.CompressorNameKey, VideoFormatKeys.COMPRESSOR_NAME_QUICKTIME_ANIMATION,
+          |                    VideoFormatKeys.DepthKey, bitDepth,
+          |                    VideoFormatKeys.FrameRateKey, Rational.valueOf(fps),
+          |                    VideoFormatKeys.QualityKey, 1.0f,
+          |                    VideoFormatKeys.KeyFrameIntervalKey, (fps * 5));
+          |            final Format mouseFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
+          |                    VideoFormatKeys.EncodingKey, MouseConfigs.ENCODING_BLACK_CURSOR,
+          |                    VideoFormatKeys.FrameRateKey, Rational.valueOf(fps));
+          |            final Format audioFormat = new Format(FormatKeys.MediaTypeKey, FormatKeys.MediaType.AUDIO, FormatKeys.EncodingKey, AudioFormatKeys.ENCODING_PCM_SIGNED,
+          |                    FormatKeys.FrameRateKey, new Rational(48000, 1), AudioFormatKeys.SampleSizeInBitsKey, 16, AudioFormatKeys.ChannelsKey, 2,
+          |                    AudioFormatKeys.SampleRateKey, new Rational(48000, 1), AudioFormatKeys.SignedKey, true, AudioFormatKeys.ByteOrderKey, ByteOrder.BIG_ENDIAN);
+          |        
+          |            recorderTemp = new ScreenRecorder(gc, null,
+          |                    fileFormat, screenFormat, mouseFormat,
+          |                    null, dir);
+          |        } catch (final Throwable t) {
+          |            t.printStackTrace();
+          |            System.exit(1);
+          |        }
+          |        
+          |        final ScreenRecorder recorder = recorderTemp;
+          |        final File audio = new File(dir, "audio.wav");
+          |        final ProcessBuilder pb = new ProcessBuilder("sox", "-t", "coreaudio", "-d", audio.getAbsolutePath());
+          |
           |        final Thread thread = new Thread(() -> {
           |            while (Presentasi.this.stage == null) Presentasi.sleep(100);
+          |            Process p = null;
+          |            if (record) {
+          |                try {
+          |                    recorder.start();
+          |                    p = pb.start();
+          |                } catch (final Throwable t) {
+          |                    t.printStackTrace();
+          |                    System.exit(1);
+          |                }
+          |            }
           |            final int size = medias.size();
           |            long start = System.currentTimeMillis();
           |            int i = 0;
@@ -435,6 +500,18 @@ object Presentasi {
           |                i++;
           |            }
           |            while (System.currentTimeMillis() - start <= end) Presentasi.sleep(TIMELINE_GRANULARITY);
+          |            if (record) {
+          |                try {
+          |                    recorder.stop();
+          |                    p.destroyForcibly();
+          |                    System.out.println("Wrote " + recorder.getCreatedMovieFiles().getFirst().getCanonicalPath());
+          |                    System.out.println("Wrote " + audio.getCanonicalPath());
+          |                    System.out.flush();
+          |                } catch (final Throwable t) {
+          |                    t.printStackTrace();
+          |                    System.exit(1);
+          |                }
+          |            }
           |            Platform.exit();
           |        });
           |        thread.setDaemon(true);
