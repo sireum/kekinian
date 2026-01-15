@@ -386,8 +386,7 @@ object Presentasi {
           |        
           |        final GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
           |        ScreenRecorder recorderTemp = null;
-          |        final File dir = new File(new File(System.getProperty("user.home"), "Desktop"),
-          |                this.getClass().getSimpleName() + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd.HH.mm.ss")));
+          |        final File dir = new File(new File("out"), "presentasi");
           |        if (record) dir.mkdirs();
           |        
           |        try {
@@ -418,7 +417,7 @@ object Presentasi {
           |        }
           |        
           |        final ScreenRecorder recorder = recorderTemp;
-          |        final File audio = new File(dir, "audio.wav");
+          |        final File audio = new File(dir, this.getClass().getSimpleName() + ".wav");
           |        final ProcessBuilder pb = new ProcessBuilder("sox", "-t", "coreaudio", "-d", audio.getAbsolutePath());
           |
           |        final Thread thread = new Thread(() -> {
