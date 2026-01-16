@@ -193,6 +193,7 @@ object Presentasi_Ext {
       import org.commonmark.node._
       import org.commonmark.ext.front.matter._
       def getPosOpt(node: Node): Option[message.Position] = {
+        if (node == null) return None()
         val li = node.getSourceSpans
         if (li.isEmpty) {
           return Some(message.PosInfo(docInfo, u64"0"))
@@ -203,6 +204,26 @@ object Presentasi_Ext {
           return Some(message.PosInfo(docInfo, conversions.Z.toU64(offset) << u64"32" + conversions.Z.toU64(length)))
         }
       }
+      def printTree(indent: String, node: org.commonmark.node.Node): Unit = {
+        print(indent)
+        print(node.getClass)
+        node match {
+          case node: org.commonmark.ext.front.matter.YamlFrontMatterNode =>
+            print(": ")
+            print(node.getKey)
+            print(" [")
+            print(node.getValues.toArray.map(_.toString).mkString(", "))
+            print("]")
+          case _ =>
+        }
+        println()
+        var child = node.getFirstChild
+        while (child != null) {
+          printTree(s"$indent  ", child)
+          child = child.getNext
+        }
+      }
+
       def getTexts(node: Node): Vector[Predef.String] = {
         var r = Vector[Predef.String]()
 
@@ -227,6 +248,7 @@ object Presentasi_Ext {
       }
 
       val d = parser.parse(fContent).asInstanceOf[Document]
+      //printTree("", d)
       var child = d.getFirstChild
       child match {
         case yaml: YamlFrontMatterBlock =>
@@ -381,9 +403,10 @@ object Presentasi_Ext {
                         if (v == "T" || v == "true") useVideoDuration = T
                         else if (v == "F" || v == "false") useVideoDuration = F
                         else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid useVideoDuration property value: $v")
-                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video code key: $key")
+                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code key: $key")
                     }
-                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video code property: $property")
+                  case Array("") =>
+                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code property: $property")
                 }
               }
               val voiceText = substText(substs, text :+ "")
@@ -400,9 +423,10 @@ object Presentasi_Ext {
                       case Some(n) => delay = n
                       case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value: $value")
                     }
-                    case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image code key: $key")
+                    case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code key: $key")
                   }
-                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image code property: $property")
+                  case Array("") =>
+                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code property: $code")
                 }
               }
               val voiceText = substText(substs, text :+ "")
