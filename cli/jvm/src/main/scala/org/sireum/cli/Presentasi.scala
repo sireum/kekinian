@@ -418,7 +418,8 @@ object Presentasi {
           |        
           |        final ScreenRecorder recorder = recorderTemp;
           |        final File audio = new File(dir, this.getClass().getSimpleName() + ".wav");
-          |        final ProcessBuilder pb = new ProcessBuilder("sox", "-t", "coreaudio", "-d", audio.getAbsolutePath());
+          |        final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+          |        final ProcessBuilder pb = new ProcessBuilder("sox", "-t", isWindows? "waveaudio" : "coreaudio", "-d", audio.getAbsolutePath());
           |
           |        final Thread thread = new Thread(() -> {
           |            while (Presentasi.this.stage == null) Presentasi.sleep(100);
