@@ -438,11 +438,9 @@ object Presentasi_Ext {
 
   def formatCcTime(isSrt: B, ms: Z): String = {
     import java.util.concurrent.TimeUnit
-    val n = ms.toLong
-    java.lang.String.format(s"%02d:%02d:%02d${if (isSrt) "," else "."}%03d",
-      TimeUnit.MILLISECONDS.toHours(n),
-      TimeUnit.MILLISECONDS.toMinutes(n),
-      TimeUnit.MILLISECONDS.toSeconds(n),
-      n % 1000)
+    val millis = ms.toLong
+    java.lang.String.format(s"%02d:%02d:%02d${if (isSrt) "," else "."}%03d", TimeUnit.MILLISECONDS.toHours(millis),
+      TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+      TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1), millis % 1000)
   }
 }
