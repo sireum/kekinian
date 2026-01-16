@@ -929,6 +929,7 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val cc: Z,
+    val record: B,
     val slice: ISZ[String],
     val slides: B,
     val srt: B,
@@ -8230,6 +8231,8 @@ import Cli._
           |    --cc                 Additional time shift (ms) for close-captioning
           |                           subtitle (expects an integer; min is 0; default is
           |                           0)
+          |    --record             Generates subtitle and audio files to combine with
+          |                           screen recording
           |    --slice              Slide indices to keep (expects a string separated by
           |                           ",")
           |    --slides             Generate markdown slides
@@ -8265,6 +8268,7 @@ import Cli._
           |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
 
     var cc: Z = 0
+    var record: B = false
     var slice: ISZ[String] = ISZ[String]()
     var slides: B = false
     var srt: B = false
@@ -8293,6 +8297,12 @@ import Cli._
            val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
            o match {
              case Some(v) => cc = v
+             case _ => return None()
+           }
+         } else if (arg == "--record") {
+           val o: Option[B] = { j = j - 1; Some(!record) }
+           o match {
+             case Some(v) => record = v
              case _ => return None()
            }
          } else if (arg == "--slice") {
@@ -8400,7 +8410,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, slice, slides, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, record, slice, slides, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {

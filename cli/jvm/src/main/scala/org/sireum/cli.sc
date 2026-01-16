@@ -120,6 +120,8 @@ val pgenTool: Tool = Tool(
     Opt(name = "cc", longKey = "cc", shortKey = None(),
       tpe = Type.Num(sep = None(), default = 0, min = Some(0), max = None()),
       description = "Additional time shift (ms) for close-captioning subtitle"),
+    Opt(name = "record", longKey = "record", shortKey = None(),
+      tpe = Type.Flag(default = F), description = "Generates subtitle and audio files to combine with screen recording"),
     Opt(name = "slice", longKey = "slice", shortKey = None(),
       tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
     Opt(name = "slides", longKey = "slides", shortKey = None(),

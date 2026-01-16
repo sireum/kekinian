@@ -922,14 +922,23 @@ object Presentasi {
       val soundDir = Os.tempDirFix("presentasi")
 
       def ffmpegSilentCommand(output: Os.Path, durationInMs: Z): Unit = {
+        if (!o.record) {
+          return
+        }
         Os.proc(ISZ("ffmpeg", "-f", "lavfi", "-fflags", "+genpts", "-i", "anullsrc=channel_layout=mono:sample_rate=8000", "-t", s"${durationInMs}ms", "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", "-y", output.string)).runCheck()
       }
 
       def ffmpegConvertAudio(input: Os.Path, output: Os.Path): Unit = {
+        if (!o.record) {
+          return
+        }
         Os.proc(ISZ[String]("ffmpeg", "-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
       }
 
       def ffmpegExtractVideoAudio(input: Os.Path, output: Os.Path, start: F64, end: F64): Unit = {
+        if (!o.record) {
+          return
+        }
         val t: ISZ[String] = if (end > 0d) ISZ[String]("-t", s"${end - start}ms") else ISZ[String]()
         Os.proc(ISZ[String]("ffmpeg", "-ss", s"${start}ms") ++ t ++ ISZ[String]("-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
       }
@@ -1002,7 +1011,7 @@ object Presentasi {
         0
       }
 
-      if (hasFFmpeg) {
+      if (hasFFmpeg && o.record) {
         ffmpegConcat(sounds, audioFile)
         println(s"Wrote $audioFile")
       }
@@ -1011,16 +1020,18 @@ object Presentasi {
 
       f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
       println(s"Wrote $f")
-      if (o.srt) {
-        ccFile.writeOver(st"${(cc, "\n\n")}".render)
-      } else {
-        ccFile.writeOver(
-          st"""WEBVTT
-              |
-              |${(cc, "\n\n")}""".render
-        )
+      if (o.record) {
+        if (o.srt) {
+          ccFile.writeOver(st"${(cc, "\n\n")}".render)
+        } else {
+          ccFile.writeOver(
+            st"""WEBVTT
+                |
+                |${(cc, "\n\n")}""".render
+          )
+        }
+        println(s"Wrote $ccFile")
       }
-      println(s"Wrote $ccFile")
       if (o.slides) {
         transcriptFile.writeOver(st"${(transcript, "\n\n----\n\n")}".render)
         println(s"Wrote $transcriptFile")
