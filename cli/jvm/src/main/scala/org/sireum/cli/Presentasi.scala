@@ -838,7 +838,7 @@ object Presentasi {
       val outDir = path / "out" / "presentasi" / spec.name
       val slides = outDir / "Slides"
       outDir.mkdirAll()
-      for (f <- outDir.list if !(f.ext == "mov" && ops.StringOps(f.name).startsWith("ScreenRecording"))) {
+      for (f <- outDir.list if !ops.StringOps(f.name).startsWith("ScreenRecording")) {
         f.removeAll()
       }
       slides.mkdirAll()
