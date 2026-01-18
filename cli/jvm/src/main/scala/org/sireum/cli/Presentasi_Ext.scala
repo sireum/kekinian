@@ -193,16 +193,18 @@ object Presentasi_Ext {
       import org.commonmark.node._
       import org.commonmark.ext.front.matter._
       def getPosOpt(node: Node): Option[message.Position] = {
-        if (node == null) return None()
-        val li = node.getSourceSpans
-        if (li.isEmpty) {
-          return Some(message.PosInfo(docInfo, u64"0"))
-        } else {
-          val offset = li.get(0).getInputIndex
-          val last = li.get(li.size - 1)
-          val length = last.getInputIndex + last.getLength - offset + 1
-          return Some(message.PosInfo(docInfo, conversions.Z.toU64(offset) << u64"32" + conversions.Z.toU64(length)))
+        var n = node
+        while (n != null && n.getSourceSpans.isEmpty) {
+          val prev = n.getPrevious
+          if (prev == null) n = n.getParent
+          else n = prev
         }
+        if (n == null) return None()
+        val li = n.getSourceSpans
+        val offset = li.get(0).getInputIndex
+        val last = li.get(li.size - 1)
+        val length = last.getInputIndex + last.getLength - offset + 1
+        return Some(message.PosInfo(docInfo, conversions.Z.toU64(offset) << u64"32" + conversions.Z.toU64(length)))
       }
       def printTree(indent: String, node: org.commonmark.node.Node): Unit = {
         print(indent)
@@ -245,6 +247,12 @@ object Presentasi_Ext {
 
         rec(node)
         r
+      }
+
+      def splitKeyValuePair(line: Predef.String): Array[Predef.String] = {
+        val i = line.indexOf(':')
+        if (i > 0) Array(line.substring(0, i).trim, line.substring(i + 1).trim)
+        else Array()
       }
 
       val d = parser.parse(fContent).asInstanceOf[Document]
@@ -295,7 +303,7 @@ object Presentasi_Ext {
                     }
                   case "audio" =>
                     for (v <- yamlChild.getValues.toArray) {
-                      v.toString.split(':') match {
+                      splitKeyValuePair(v.toString) match {
                         case Array(key, value) =>
                           val audio = Os.path(new java.io.File(dir, value.trim).getCanonicalPath)
                           if (!audio.exists) reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Non-existing audio substitution path: $audio")
@@ -305,17 +313,17 @@ object Presentasi_Ext {
                     }
                   case "cc" =>
                     for (v <- yamlChild.getValues.toArray) {
-                      v.toString.split(':') match {
+                      splitKeyValuePair(v.toString) match {
                         case Array(key, value) =>
                           ccs = ccs + String(key.trim) ~> value.trim
-                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <path> pair but found: $v")
+                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <value> pair but found: $v")
                       }
                     }
                   case key if key.startsWith("subst") =>
                     def parseSubst(): Unit = for (v <- yamlChild.getValues.toArray) {
-                      v.toString.split(':') match {
+                      splitKeyValuePair(v.toString) match {
                         case Array(key, value) => substs = substs + String(key.trim) ~> String(value.trim)
-                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <path> pair but found: $v")
+                        case _ => reporter.error(getPosOpt(yamlChild), Presentasi.kind, s"Expecting <key>: <value> pair but found: $v")
                       }
                     }
 
@@ -329,11 +337,10 @@ object Presentasi_Ext {
           child = child.getNext
         case _ =>
       }
-      var prevChild: Node = d
       while (child != null) {
         child match {
           case heading: Heading =>
-            if (!child.getSourceSpans.isEmpty) prevChild = child
+            val headingText = heading.getFirstChild.asInstanceOf[Text].getLiteral
             child = child.getNext
             var media = ""
             var mediaNode: Node = null
@@ -355,13 +362,12 @@ object Presentasi_Ext {
                     listItem = listItem.getNext.asInstanceOf[ListItem]
                   }
                 case _ =>
-                  reporter.error(getPosOpt(child), Presentasi.kind, s"Unrecognized structure ${child.getClass}: ${child.toString}")
+                  reporter.error(getPosOpt(child), Presentasi.kind, s"Unrecognized structure ${child.getClass} in '$headingText': ${child.toString}")
               }
-              if (!child.getSourceSpans.isEmpty) prevChild = child
               child = child.getNext
             }
-            if (media.isEmpty) reporter.error(getPosOpt(heading), Presentasi.kind, "Missing image/video path")
-            if (!Os.path(media).exists) reporter.error(getPosOpt(mediaNode), Presentasi.kind, s"Non-existent image/video path: $media")
+            if (media.isEmpty) reporter.error(getPosOpt(heading), Presentasi.kind, s"Missing image/video path in '$headingText'")
+            if (!Os.path(media).exists) reporter.error(getPosOpt(mediaNode), Presentasi.kind, s"Non-existent image/video path in '$headingText': $media")
             def substText(m: HashSMap[String, String], v: Vector[Predef.String]): Vector[Predef.String] = {
               var r = v
               for (subst <- m.entries) r = r.map(_.replace(s"$$${subst._1.value}$$", subst._2.value))
@@ -381,32 +387,32 @@ object Presentasi_Ext {
                     key.trim match {
                       case "delay" => Z(v) match {
                         case Some(n) => delay = n
-                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value in '$headingText': $v")
                       }
                       case "volume" => F64(v) match {
                         case Some(n) => volume = n
-                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid volume property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid volume property value in '$headingText': $v")
                       }
                       case "rate" => F64(v) match {
                         case Some(n) => rate = n
-                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid rate property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid rate property value in '$headingText': $v")
                       }
                       case "start" => F64(v) match {
                         case Some(n) => start = n
-                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid start property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid start property value in '$headingText': $v")
                       }
                       case "end" => F64(v) match {
                         case Some(n) => end = n
-                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid end property value: $v")
+                        case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid end property value in '$headingText': $v")
                       }
                       case "useVideoDuration" =>
                         if (v == "T" || v == "true") useVideoDuration = T
                         else if (v == "F" || v == "false") useVideoDuration = F
-                        else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid useVideoDuration property value: $v")
-                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code key: $key")
+                        else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid useVideoDuration property value in '$headingText': $v")
+                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code key in '$headingText': $key")
                     }
                   case Array("") =>
-                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code property: $property")
+                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code property in '$headingText': $property")
                 }
               }
               val voiceText = substText(substs, text :+ "")
@@ -421,12 +427,12 @@ object Presentasi_Ext {
                   case Array(key, value) => key.trim match {
                     case "delay" => Z(value.trim) match {
                       case Some(n) => delay = n
-                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value: $value")
+                      case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value in '$headingText': $value")
                     }
-                    case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code key: $key")
+                    case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code key in '$headingText': $key")
                   }
                   case Array("") =>
-                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code property: $code")
+                  case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code property in '$headingText': $code")
                 }
               }
               val voiceText = substText(substs, text :+ "")
@@ -435,11 +441,7 @@ object Presentasi_Ext {
               entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, voiceText.mkString("\r\n"))
             }
           case _ =>
-            if (child.getSourceSpans.isEmpty) {
-              reporter.error(getPosOpt(prevChild), Presentasi.kind, s"Expecting a new heading (#) next, but found: ${child.getClass}")
-            } else {
-              reporter.error(getPosOpt(child), Presentasi.kind, s"Expecting a new heading (#), but found: ${child.getClass}")
-            }
+            reporter.error(getPosOpt(child), Presentasi.kind, s"Expecting a new heading (#), but found: ${child.getClass}")
             child = child.getNext
         }
       }

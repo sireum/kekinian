@@ -133,11 +133,17 @@ object Presentasi {
           |import java.awt.GraphicsConfiguration;
           |import java.awt.GraphicsEnvironment;
           |import java.io.File;
+          |import java.io.FileWriter;
           |import java.net.URL;
+          |import java.util.ArrayList;
           |import java.util.HashMap;
           |import java.util.LinkedList;
           |import java.util.List;
-
+          |import java.util.concurrent.TimeUnit;
+          |import java.util.concurrent.Executors;
+          |import java.util.concurrent.ScheduledExecutorService;
+          |import java.util.stream.Collectors;
+          |
           |import org.monte.media.av.Format;
           |import org.monte.media.av.codec.video.VideoFormatKeys;
           |import org.monte.media.math.Rational;
@@ -273,11 +279,7 @@ object Presentasi {
           |              final MediaPlayer mediaPlayer = new MediaPlayer(getJfxMedia(this.uri));
           |              mediaPlayer.setOnReady(() -> {
           |                  this.ready = true;
-          |                  if (endMs > 0.0) {
-          |                      this.duration = (long) Math.ceil(endMs - startMs);
-          |                  } else {
-          |                      this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
-          |                  }
+          |                  this.duration = (long) Math.ceil(mediaPlayer.getTotalDuration().toMillis());
           |              });
           |              mediaPlayer.setOnError(() -> this.error = true);
           |              this.mediaView = new MediaView(mediaPlayer);
@@ -384,51 +386,12 @@ object Presentasi {
           |        }
           |        
           |        final GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-          |        ScreenRecorder recorderTemp = null;
-          |        final File dir = new File(new File("out"), "presentasi");
-          |        if (record) dir.mkdirs();
-          |        
-          |        try {
-          |            final int fps = 24;
-          |            final int bitDepth = 24;
-          |            final Format fileFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.FILE,
-          |                    VideoFormatKeys.MimeTypeKey, VideoFormatKeys.MIME_QUICKTIME);
-          |            final Format screenFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
-          |                    VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_QUICKTIME_ANIMATION,
-          |                    VideoFormatKeys.CompressorNameKey, VideoFormatKeys.COMPRESSOR_NAME_QUICKTIME_ANIMATION,
-          |                    VideoFormatKeys.DepthKey, bitDepth,
-          |                    VideoFormatKeys.FrameRateKey, Rational.valueOf(fps),
-          |                    VideoFormatKeys.QualityKey, 1.0f,
-          |                    VideoFormatKeys.KeyFrameIntervalKey, (fps * 5));
-          |            final Format mouseFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
-          |                    VideoFormatKeys.EncodingKey, MouseConfigs.ENCODING_BLACK_CURSOR,
-          |                    VideoFormatKeys.FrameRateKey, Rational.valueOf(fps));
           |
-          |            recorderTemp = new ScreenRecorder(gc, null,
-          |                    fileFormat, screenFormat, mouseFormat,
-          |                    null, dir);
-          |        } catch (final Throwable t) {
-          |            t.printStackTrace();
-          |            System.exit(1);
-          |        }
-          |        
-          |        final ScreenRecorder recorder = recorderTemp;
-          |        //final File audio = new File(dir, this.getClass().getSimpleName() + ".wav");
-          |        //final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-          |        //final ProcessBuilder pb = new ProcessBuilder("sox", "-t", isWindows? "waveaudio" : "coreaudio", "-d", audio.getAbsolutePath());
+          |        final File dir = new File(new File(new File("out"), "presentasi"), this.getClass().getSimpleName());
+          |        if (record) dir.mkdirs();
           |
           |        final Thread thread = new Thread(() -> {
           |            while (Presentasi.this.stage == null) Presentasi.sleep(100);
-          |            //Process p = null;
-          |            if (record) {
-          |                try {
-          |                    recorder.start();
-          |                    //p = pb.start();
-          |                } catch (final Throwable t) {
-          |                    t.printStackTrace();
-          |                    System.exit(1);
-          |                }
-          |            }
           |            final int size = medias.size();
           |            long start = System.currentTimeMillis();
           |            int i = 0;
@@ -449,12 +412,68 @@ object Presentasi {
           |                while (i < size && medias.get(i) instanceof Sound) i++;
           |                if (i < size) start = start - medias.get(i).getTimeline();
           |            }
+          |            final ArrayList<String> vtt = new ArrayList<>();
+          |            final ArrayList<String> sounds = new ArrayList<>();
+          |            vtt.add("WEBVTT");
+          |            final int[] vttIndex = new int[] { 1 };
+          |            final long[] soundBeginTime = new long[] { 0 };
+          |            ScreenRecorder recorderTemp = null;
+          |
+          |            try {
+          |                final int fps = 30;
+          |                final int bitDepth = 24;
+          |                final Format fileFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.FILE,
+          |                        VideoFormatKeys.MimeTypeKey, VideoFormatKeys.MIME_AVI);
+          |                final Format screenFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
+          |                        VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE,
+          |                        VideoFormatKeys.CompressorNameKey, VideoFormatKeys.COMPRESSOR_NAME_AVI_TECHSMITH_SCREEN_CAPTURE,
+          |                        VideoFormatKeys.DepthKey, bitDepth,
+          |                        VideoFormatKeys.FrameRateKey, Rational.valueOf(fps),
+          |                        VideoFormatKeys.QualityKey, 1.0f,
+          |                        VideoFormatKeys.KeyFrameIntervalKey, fps / 2);
+          |                final Format mouseFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
+          |                        VideoFormatKeys.EncodingKey, MouseConfigs.ENCODING_BLACK_CURSOR,
+          |                        VideoFormatKeys.FrameRateKey, Rational.valueOf(fps));
+          |    
+          |                recorderTemp = new ScreenRecorder(gc, null,
+          |                        fileFormat, screenFormat, mouseFormat,
+          |                        null, dir);
+          |            } catch (final Throwable t) {
+          |                t.printStackTrace();
+          |                System.exit(1);
+          |            }
+          |
+          |            final ScreenRecorder recorder = recorderTemp;
+          |            final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+          |            stage.setOnShown(event -> scheduler.schedule(() -> {
+          |                if (record) {
+          |                    try {
+          |                        recorder.start();
+          |                    } catch (final Throwable t) {
+          |                        t.printStackTrace();
+          |                        System.exit(1);
+          |                    }
+          |                }
+          |                soundBeginTime[0] = System.currentTimeMillis();
+          |            }, 1, TimeUnit.SECONDS));
           |            while (i < size) {
           |                final Media media = medias.get(i);
           |                while (System.currentTimeMillis() - start <= media.getTimeline()) Presentasi.sleep(TIMELINE_GRANULARITY);
           |                if (media instanceof Sound) {
-          |                    final MediaPlayer player = ((Sound) media).mediaPlayer;
+          |                    final Sound sound = ((Sound) media);
+          |                    final MediaPlayer player = sound.mediaPlayer;
           |                    player.setVolume(TEXT_VOLUME);
+          |                    player.setOnPlaying(() -> {
+          |                        final long soundBegin = System.currentTimeMillis() - soundBeginTime[0];
+          |                        final long soundEnd = soundBegin + sound.duration;
+          |                        sounds.add(soundBegin + "," + soundEnd + "," + sound.uri + "," + 0 + "," + 0);
+          |                        if (!sound.text.isEmpty()) {
+          |                            vtt.add("");
+          |                            vtt.add("" + vttIndex[0]++);
+          |                            vtt.add(formatCcTime(soundBegin) + " --> " + formatCcTime(soundEnd));
+          |                            vtt.add(sound.text);
+          |                        }
+          |                    });
           |                    player.setOnEndOfMedia(() -> player.dispose());
           |                    player.play();
           |                } else if (media instanceof Image) {
@@ -484,6 +503,14 @@ object Presentasi {
           |                    if (video.endMillis > 0.0) player.setStopTime(Duration.millis(video.endMillis));
           |                    player.setVolume(1.0);
           |                    player.setMute(video.muted);
+          |                    player.setOnPlaying(() -> {
+          |                        if (!video.muted) {
+          |                            final long soundBegin = System.currentTimeMillis() - soundBeginTime[0];
+          |                            final long soundEnd = soundBegin + video.duration;
+          |                            sounds.add(soundBegin + "," + soundEnd + "," + video.uri + "," + video.startMillis + "," + video.endMillis);
+          |                        }
+          |                    });
+          |                    player.setOnEndOfMedia(() -> player.dispose());
           |                    Platform.runLater(() -> {
           |                        player.play();
           |                        if (video.startMillis > 0) {
@@ -499,14 +526,28 @@ object Presentasi {
           |            if (record) {
           |                try {
           |                    recorder.stop();
-          |                    //p.destroyForcibly();
+          |                    File vttFile = new File(dir, this.getClass().getSimpleName() + ".vtt");
+          |                    if (vttFile.exists()) vttFile.delete();
+          |                    FileWriter fw = new FileWriter(vttFile);
+          |                    fw.write(vtt.stream().collect(Collectors.joining(System.lineSeparator())));
+          |                    fw.flush();
+          |                    fw.close();
+          |                    File csvFile = new File(dir, this.getClass().getSimpleName() + ".csv");
+          |                    if (csvFile.exists()) csvFile.delete();
+          |                    fw = new FileWriter(csvFile);
+          |                    fw.write(sounds.stream().collect(Collectors.joining(System.lineSeparator())));
+          |                    fw.flush();
+          |                    fw.close();
           |                    System.out.println("Wrote " + recorder.getCreatedMovieFiles().getFirst().getCanonicalPath());
+          |                    System.out.println("Wrote " + vttFile.getCanonicalPath());
+          |                    System.out.println("Wrote " + csvFile.getCanonicalPath());
           |                    System.out.flush();
           |                } catch (final Throwable t) {
           |                    t.printStackTrace();
           |                    System.exit(1);
           |                }
           |            }
+          |            scheduler.shutdown();
           |            Platform.exit();
           |        });
           |        thread.setDaemon(true);
@@ -519,6 +560,12 @@ object Presentasi {
           |        } catch (final Throwable t) {
           |            // skip
           |        }
+          |    }
+          |
+          |    public static String formatCcTime(final Long millis) {
+          |        return String.format("%02d:%02d:%02d.%03d", TimeUnit.MILLISECONDS.toHours(millis),
+          |                TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+          |                TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1), millis % 1000);
           |    }
           |
           |    @Override
@@ -537,6 +584,19 @@ object Presentasi {
       case ISZ() => return printHelp(o.help)
       case ISZ(p, _*) => Os.path(p).canon
     }
+
+    val hasFFmpeg = proc"ffmpeg -h".run().ok
+    if (o.slides && !hasFFmpeg) {
+      reporter.error(None(), kind, "FFmpeg is required when using --slides")
+    }
+//    if (o.record && !hasFFmpeg) {
+//      reporter.error(None(), kind, "FFmpeg is required when using --record")
+//    }
+    if (reporter.hasError) {
+      reporter.printMessages()
+      return NO_FFMPEG
+    }
+
     val presentasi = path / "bin" / "presentasi.cmd"
     val voiceArg: String = o.voice match {
       case Some(v) => v
@@ -571,10 +631,8 @@ object Presentasi {
 
     val resources = path / "jvm" / "src" / "main" / "resources"
     val source = path / "jvm" / "src" / "main" / "java"
-    val outDir = path / "out"
     val image = resources / "image"
     val video = resources / "video"
-    val slide = resources / "slide"
     image.mkdirAll()
     video.mkdirAll()
 
@@ -777,12 +835,18 @@ object Presentasi {
         }
       }
 
+      val outDir = path / "out" / "presentasi" / spec.name
+      val slides = outDir / "Slides"
+      outDir.mkdirAll()
+      for (f <- outDir.list if !(f.ext == "mov" && ops.StringOps(f.name).startsWith("ScreenRecording"))) {
+        f.removeAll()
+      }
+      slides.mkdirAll()
       var medias = ISZ[Media]()
       var curr: Z = 0
       var first = T
       var transcript = ISZ[ST]()
       val hasCWebP = proc"cwebp -h".run().ok
-      val hasFFmpeg = proc"ffmpeg -h".run().ok
 
       for (entry <- spec.entries) {
         def processTarget(d: Os.Path, e: Presentation.Entry): (String, Os.Path) = {
@@ -805,7 +869,7 @@ object Presentasi {
             }
           }
           transcript = transcript :+
-            st"""![${p.name}](${resources.relativize(p)})
+            st"""![${p.name}](${slides.relativize(p)})
                 |
                 |${(transcriptItems, "\n\n")}"""
         }
@@ -820,10 +884,9 @@ object Presentasi {
               val (sounds, last) = processText(entry.text, curr)
               var p = Os.path(entry.path)
               if (hasCWebP && o.slides && p.ext == "png") {
-                slide.mkdirAll()
-                val webp = slide / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.webp"
+                val webp = slides / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.webp"
                 if (!webp.exists || webp.lastModified < p.lastModified) {
-                  Os.proc(ISZ("cwebp", "-lossless", p.string, "-o", webp.string)).console.runCheck()
+                  Os.proc(ISZ("cwebp", "-lossless", p.string, "-o", webp.string)).runCheck()
                 }
                 p = webp
               }
@@ -874,14 +937,14 @@ object Presentasi {
                   if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
                   else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
                 var p = Os.path(entry.path)
-                if (hasFFmpeg && o.slides) {
+                if (o.slides) {
                   val ss = entry.start / 1000d
                   val t: ISZ[String] =
                     if (entry.end > 0d) ISZ[String]("-t", ((entry.end - entry.start) / 1000d).string)
                     else ISZ[String]()
-                  val gif = slide / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.${o.videoHeight}.$ss${if (t.isEmpty) "" else s"-${t(1)}"}.gif"
-                  if (!outDir.exists || outDir.lastModified < p.lastModified) {
-                    println(s"Generating $outDir ...")
+                  val gif = slides / s"${ops.StringOps(p.name).substring(0, p.name.size - p.ext.size - 1)}.${o.videoHeight}.$ss${if (t.isEmpty) "" else s"-${t(1)}"}.gif"
+                  if (!gif.exists || gif.lastModified < p.lastModified) {
+                    println(s"Generating $gif ...")
                     Os.proc(ISZ[String]("ffmpeg", "-y", "-i", p.value, "-ss", ss.string) ++ t ++ ISZ[String]("-loop", "0", "-filter_complex",
                       s"fps=${o.videoFps}, scale=-1:${o.videoHeight}[s]; [s]split[a][b]; [a]palettegen[palette]; [b][palette]paletteuse",
                       gif.string
@@ -921,44 +984,44 @@ object Presentasi {
       var sounds = ISZ[Os.Path]()
       val soundDir = Os.tempDirFix("presentasi")
 
-      def ffmpegSilentCommand(output: Os.Path, durationInMs: Z): Unit = {
-        if (!o.record) {
-          return
-        }
-        Os.proc(ISZ("ffmpeg", "-f", "lavfi", "-fflags", "+genpts", "-i", "anullsrc=channel_layout=mono:sample_rate=8000", "-t", s"${durationInMs}ms", "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", "-y", output.string)).runCheck()
-      }
-
-      def ffmpegConvertAudio(input: Os.Path, output: Os.Path): Unit = {
-        if (!o.record) {
-          return
-        }
-        Os.proc(ISZ[String]("ffmpeg", "-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
-      }
-
-      def ffmpegExtractVideoAudio(input: Os.Path, output: Os.Path, start: F64, end: F64): Unit = {
-        if (!o.record) {
-          return
-        }
-        val t: ISZ[String] = if (end > 0d) ISZ[String]("-t", s"${end - start}ms") else ISZ[String]()
-        Os.proc(ISZ[String]("ffmpeg", "-ss", s"${start}ms") ++ t ++ ISZ[String]("-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
-      }
-
-      def ffmpegConcat(inputs: ISZ[Os.Path], output: Os.Path): Unit = {
-        val filelist = Os.tempFix("filelist", ".txt")
-        filelist.writeOver(st"${(for (input <- inputs) yield st"file '$input'", "\n")}".render)
-        Os.proc(ISZ("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", filelist.string,
-          "-c:a", "copy", output.string)).runCheck()
-        filelist.removeAll()
-      }
-
-      def genSilence(timeline: Z, duration: Z): Unit = {
-        if (previousSoundTimeline < timeline) {
-          val silence = soundDir / s"silence-${sounds.size}.wav"
-          sounds = sounds :+ silence
-          ffmpegSilentCommand(silence, timeline - previousSoundTimeline)
-        }
-        previousSoundTimeline = timeline + duration
-      }
+//      def ffmpegSilentCommand(output: Os.Path, durationInMs: Z): Unit = {
+//        if (!o.record) {
+//          return
+//        }
+//        Os.proc(ISZ("ffmpeg", "-f", "lavfi", "-fflags", "+genpts", "-i", "anullsrc=channel_layout=mono:sample_rate=8000", "-t", s"${durationInMs}ms", "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", "-y", output.string)).runCheck()
+//      }
+//
+//      def ffmpegConvertAudio(input: Os.Path, output: Os.Path): Unit = {
+//        if (!o.record) {
+//          return
+//        }
+//        Os.proc(ISZ[String]("ffmpeg", "-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
+//      }
+//
+//      def ffmpegExtractVideoAudio(input: Os.Path, output: Os.Path, start: F64, end: F64): Unit = {
+//        if (!o.record) {
+//          return
+//        }
+//        val t: ISZ[String] = if (end > 0d) ISZ[String]("-t", s"${end - start}ms") else ISZ[String]()
+//        Os.proc(ISZ[String]("ffmpeg", "-ss", s"${start}ms") ++ t ++ ISZ[String]("-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
+//      }
+//
+//      def ffmpegConcat(inputs: ISZ[Os.Path], output: Os.Path): Unit = {
+//        val filelist = Os.tempFix("filelist", ".txt")
+//        filelist.writeOver(st"${(for (input <- inputs) yield st"file '$input'", "\n")}".render)
+//        Os.proc(ISZ("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", filelist.string,
+//          "-c:a", "copy", output.string)).runCheck()
+//        filelist.removeAll()
+//      }
+//
+//      def genSilence(timeline: Z, duration: Z): Unit = {
+//        if (previousSoundTimeline < timeline) {
+//          val silence = soundDir / s"silence-${sounds.size}.wav"
+//          sounds = sounds :+ silence
+//          ffmpegSilentCommand(silence, timeline - previousSoundTimeline)
+//        }
+//        previousSoundTimeline = timeline + duration
+//      }
 
       for (i <- medias.indices) {
         medias(i) match {
@@ -968,42 +1031,44 @@ object Presentasi {
           case media: Video =>
             mediaSTs = mediaSTs :+ videoTemplate(media.filename, media.timeline, media.muted,
               media.rate, media.start, media.end, i, previousTimelineOpt, n)
-            if (hasFFmpeg) {
-              genSilence(media.timeline, media.duration)
-              if (!media.muted) {
-                val wav = soundDir / s"video-${sounds.size}.wav"
-                sounds = sounds :+ wav
-                ffmpegExtractVideoAudio(media.filepath, wav, media.start, media.end)
-              }
-            }
+            val t = media.timeline + spec.vseekDelay
+//            if (o.record) {
+//              genSilence(t, media.duration)
+//              if (!media.muted) {
+//                val wav = soundDir / s"video-${sounds.size}.wav"
+//                sounds = sounds :+ wav
+//                ffmpegExtractVideoAudio(media.filepath, wav, media.start, media.end)
+//              }
+//            }
             n = n + 1
           case media: Sound =>
             val mediaUri = media.filepath.toUri
             val ccText = spec.cc.get(media.text).getOrElse(media.text)
             mediaSTs = mediaSTs :+ soundTemplate(ops.StringOps(mediaUri).substring(audioDirUriSize, mediaUri.size),
               media.timeline, i, previousTimelineOpt, ccText)
+            val t = media.timeline + spec.vseekDelay
             if (ccText.size > 0) {
-              val startTime = Ext.formatCcTime(o.srt, media.timeline + o.cc)
-              val endTime = Ext.formatCcTime(o.srt, media.timeline + o.cc + media.duration)
+              val startTime = Ext.formatCcTime(o.srt, t + o.cc)
+              val endTime = Ext.formatCcTime(o.srt, t + o.cc + media.duration)
               cc = cc :+
                 st"""${cc.size + 1}
                     |$startTime --> $endTime
                     |$ccText"""
             }
-            if (hasFFmpeg) {
-              genSilence(media.timeline, media.duration)
-              val audioSound = soundDir / s"audio-${sounds.size}.wav"
-              ffmpegConvertAudio(media.filepath, audioSound)
-              sounds = sounds :+ audioSound
-            }
+//            if (o.record) {
+//              genSilence(media.timeline, media.duration)
+//              val audioSound = soundDir / s"audio-${sounds.size}.wav"
+//              ffmpegConvertAudio(media.filepath, audioSound)
+//              sounds = sounds :+ audioSound
+//            }
         }
         previousTimelineOpt = Some(medias(i).timeline)
       }
 
       val f = source / s"${spec.name}.java"
-      val transcriptFile = resources / s"${spec.name}.md"
-      val ccFile = resources / s"${spec.name}.${if (o.srt) "srt" else "vtt"}"
-      val audioFile = outDir / "presentasi" / s"${spec.name}.wav"
+      val transcriptFile = slides / s"readme.md"
+      val ccFile = outDir / s"${spec.name}.${if (o.srt) "srt" else "vtt"}"
+//      val audioFile = outDir / s"${spec.name}.wav"
       val end: Z = if (medias.size > 0) {
         val last = medias(medias.size - 1)
         last.timeline + last.duration + spec.trailing
@@ -1011,12 +1076,12 @@ object Presentasi {
         0
       }
 
-      if (hasFFmpeg && o.record) {
-        ffmpegConcat(sounds, audioFile)
-        println(s"Wrote $audioFile")
-      }
+//      if (hasFFmpeg && o.record) {
+//        ffmpegConcat(sounds, audioFile)
+//        println(s"Wrote $audioFile")
+//      }
 
-      soundDir.removeAll()
+//      soundDir.removeAll()
 
       f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
       println(s"Wrote $f")

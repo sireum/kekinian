@@ -8229,8 +8229,7 @@ import Cli._
           |
           |Available Options:
           |    --cc                 Additional time shift (ms) for close-captioning
-          |                           subtitle (expects an integer; min is 0; default is
-          |                           0)
+          |                           subtitle (expects an integer; default is 0)
           |    --record             Generates subtitle and audio files to combine with
           |                           screen recording
           |    --slice              Slide indices to keep (expects a string separated by
@@ -8294,7 +8293,7 @@ import Cli._
           println(help)
           return Some(HelpOption())
         } else if (arg == "--cc") {
-           val o: Option[Z] = parseNum(args, j + 1, Some(0), None())
+           val o: Option[Z] = parseNum(args, j + 1, None(), None())
            o match {
              case Some(v) => cc = v
              case _ => return None()

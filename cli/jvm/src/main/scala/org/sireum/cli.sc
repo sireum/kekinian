@@ -118,7 +118,7 @@ val pgenTool: Tool = Tool(
   usageDescOpt = None(),
   opts = ISZ[Opt](
     Opt(name = "cc", longKey = "cc", shortKey = None(),
-      tpe = Type.Num(sep = None(), default = 0, min = Some(0), max = None()),
+      tpe = Type.Num(sep = None(), default = 0, min = None(), max = None()),
       description = "Additional time shift (ms) for close-captioning subtitle"),
     Opt(name = "record", longKey = "record", shortKey = None(),
       tpe = Type.Flag(default = F), description = "Generates subtitle and audio files to combine with screen recording"),
