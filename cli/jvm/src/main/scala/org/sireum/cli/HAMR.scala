@@ -34,7 +34,6 @@ import org.sireum.hamr.codegen.common.CommonUtil.Store
 import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumSlangTranspilersCOption, SireumToolsSergenOption, SireumToolsSlangcheckGeneratorOption}
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.reporting.CodegenReporting
-import org.sireum.hamr.codegen.common.reporting.ToolReport
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
 import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption}
 import org.sireum.hamr.codegen.common.util._
@@ -43,6 +42,7 @@ import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.logika.NoTransitionSmt2Cache
+import org.sireum.lang.{ast => AST}
 import org.sireum.message._
 
 object HAMR {
@@ -678,7 +678,7 @@ object HAMR {
           fileContentMap = fileContentMap + input.fileUri.get ~> input.content
         }
         for (ic <- hamr.sysml.FrontEnd.getIntegerationConstraints(models, reporter);
-             c <- ic.connections if c.srcConstraint.nonEmpty && c.dstConstraint.nonEmpty) {
+             c <- ic.connections if c.dstConstraint.nonEmpty) {
           var add = F
           for (posOpt <- c.connectionReferences.values) {
             posOpt match {
@@ -815,25 +815,28 @@ object HAMR {
     val plugins = logika.Logika.defaultPlugins
 
     val verifyingStartTime = extension.Time.currentMillis
-    val andResOpt = Option.some[lang.ast.ResolvedInfo](
-      lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryAnd))
-    val equivResOpt = Option.some[lang.ast.ResolvedInfo](
-      lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryEquiv))
-    val implyResOpt = Option.some[lang.ast.ResolvedInfo](
-      lang.ast.ResolvedInfo.BuiltIn(lang.ast.ResolvedInfo.BuiltIn.Kind.BinaryImply))
+    val andResOpt = Option.some[AST.ResolvedInfo](
+      AST.ResolvedInfo.BuiltIn(AST.ResolvedInfo.BuiltIn.Kind.BinaryAnd))
+    val equivResOpt = Option.some[AST.ResolvedInfo](
+      AST.ResolvedInfo.BuiltIn(AST.ResolvedInfo.BuiltIn.Kind.BinaryEquiv))
+    val implyResOpt = Option.some[AST.ResolvedInfo](
+      AST.ResolvedInfo.BuiltIn(AST.ResolvedInfo.BuiltIn.Kind.BinaryImply))
 
     var tasks = ISZ[logika.Task]()
     for (p <- connections) {
       val (th, c) = p
-      val src = c.srcConstraint.get
+      val src: AST.Exp = c.srcConstraint match {
+        case Some(e) => e
+        case _ => AST.Exp.LitB(T, AST.Attr(p._2.srcPort.feature.identifier.pos))
+      }
       val dst = c.dstConstraint.get
       val (ids, midPointPos) = p._2.connectionMidPoint
-      val portEquiv = lang.ast.Exp.Binary(p._2.srcPortExp, lang.ast.Exp.BinaryOp.Equiv, p._2.dstPortExp,
-        lang.ast.ResolvedAttr(midPointPos, equivResOpt, lang.ast.Typed.bOpt), midPointPos)
-      val lhs = lang.ast.Exp.Binary(portEquiv, lang.ast.Exp.BinaryOp.And, src,
-        lang.ast.ResolvedAttr(midPointPos, andResOpt, lang.ast.Typed.bOpt), midPointPos)
-      val claim = lang.ast.Exp.Binary(lhs, lang.ast.Exp.BinaryOp.Imply, dst,
-        lang.ast.ResolvedAttr(midPointPos, implyResOpt, lang.ast.Typed.bOpt), midPointPos)
+      val portEquiv = AST.Exp.Binary(p._2.srcPortExp, AST.Exp.BinaryOp.Equiv, p._2.dstPortExp,
+        AST.ResolvedAttr(midPointPos, equivResOpt, AST.Typed.bOpt), midPointPos)
+      val lhs = AST.Exp.Binary(portEquiv, AST.Exp.BinaryOp.And, src,
+        AST.ResolvedAttr(midPointPos, andResOpt, AST.Typed.bOpt), midPointPos)
+      val claim = AST.Exp.Binary(lhs, AST.Exp.BinaryOp.Imply, dst,
+        AST.ResolvedAttr(midPointPos, implyResOpt, AST.Typed.bOpt), midPointPos)
 
       println(st"Checking integration constraints of ${(ids, ".")}".render)
       var conf = config
@@ -867,7 +870,13 @@ object HAMR {
       cache = NoTransitionSmt2Cache.create,
       reporter = reporter,
       verifyingStartTime = verifyingStartTime)
-    Os.printParseableMessages(reporter)
+
+    if (o.parseableMessages) {
+      Os.printParseableMessages(reporter)
+    } else {
+      reporter.printMessages()
+    }
+
     if (reporter.hasError) {
       return ILL_FORMED
     } else {
