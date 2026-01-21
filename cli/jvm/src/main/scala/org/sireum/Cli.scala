@@ -2862,7 +2862,7 @@ import Cli._
           |
           |Available Options:
           |-v, --version            SysML v2 grammar version (expects a string; default is
-          |                           "2025-09")
+          |                           "2025-12")
           |-g, --grammar            File containing an ANTLR v3 grammar (expects a string)
           |-u, --url                URL of an ANTLR v3 grammar (%version is replaced with
           |                           --version option, if any) (expects a string)
@@ -2870,7 +2870,7 @@ import Cli._
           |                           operators (expects a string separated by ",")
           |-h, --help               Display this information""".render
 
-    var version: Option[String] = Some("2025-09")
+    var version: Option[String] = Some("2025-12")
     var grammar: Option[String] = None[String]()
     var url: Option[String] = None[String]()
     var keywords: ISZ[String] = ISZ[String]()
