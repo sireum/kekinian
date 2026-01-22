@@ -1,7 +1,7 @@
 ::/*#! 2> /dev/null                                            #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                    #
 export SIREUM_HOME=$(cd -P "$(dirname "$0")/.." && pwd -P)     #
-if [[ -z "$SIREUM_NO_INIT" ]]; then                            #
+if [ -z "${SIREUM_NO_INIT+set}" ]; then                        #
   "${SIREUM_HOME}/bin/init.sh" || exit $?                      #
 fi                                                             #
 exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"           #
