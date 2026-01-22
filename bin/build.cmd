@@ -3,7 +3,7 @@
 export SIREUM_HOME=$(cd -P "$(dirname "$0")/.." && pwd -P)     #
 if [[ -z "$SIREUM_NO_INIT" ]]; then                            #
   "${SIREUM_HOME}/bin/init.sh" || exit $?                      #
-fi
+fi                                                             #
 exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"           #
 :BOF
 setlocal
