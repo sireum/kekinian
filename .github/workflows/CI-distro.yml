@@ -362,6 +362,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           "$SIREUM_HOME/bin/build.cmd"
+          "$SIREUM_HOME/bin/sireum" --init-nik
           "$SIREUM_HOME/bin/sireum" setup vscode --extensions "scala-lang.scala"
           "$SIREUM_HOME/bin/build.cmd" native distro --mac --pack --vscodium
           tar -cJf sireum-cli-mac-amd64.tar.xz \
