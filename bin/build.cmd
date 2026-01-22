@@ -1,12 +1,14 @@
 ::/*#! 2> /dev/null                                            #
 @ 2>/dev/null # 2>nul & echo off & goto BOF                    #
 export SIREUM_HOME=$(cd -P "$(dirname "$0")/.." && pwd -P)     #
-"${SIREUM_HOME}/bin/init.sh" || exit $?                        #
+if [[ -z "$SIREUM_NO_INIT" ]]; then                            #
+  "${SIREUM_HOME}/bin/init.sh" || exit $?                      #
+fi
 exec "${SIREUM_HOME}/bin/sireum" slang run "$0" "$@"           #
 :BOF
 setlocal
 set SIREUM_HOME=%~dp0..
-call "%~dp0init.bat" || exit /B %errorlevel%
+IF [%$SIREUM_NO_INIT%] == [] (call "%~dp0init.bat" || exit /B %errorlevel%)
 call "%SIREUM_HOME%\bin\sireum.bat" slang run %0 %*
 exit /B %errorlevel%
 ::!#*/
@@ -523,21 +525,21 @@ def mill(): Unit = {
   init.installMill(T)
 }
 
-def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
+def setup(fresh: B): Unit = {
   println("Setup ...")
   build(fresh, F, F)
   val init = Init(home, Os.kind, versions)
   init.deps()
-  init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = isUltimate, isServer = isServer)
-  val suffix: String = if (isUltimate) "-ultimate" else if (isServer) "-server" else ""
-  project(T, isUltimate, isServer)
+  init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = F, isServer = F)
+  val suffix: String = ""
+  project(T)
   Os.kind match {
     case Os.Kind.Win =>
       println(s"Sireum IVE can now be launched by running ${homeBin / "win" / s"idea$suffix" / "bin" / "IVE.exe"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "win" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.Linux =>
-      println(s"Sireum IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / (if (isServer) "idea.sh" else "IVE.sh")}")
+      println(s"Sireum IVE can now be launched by running ${homeBin / "linux" / s"idea$suffix" / "bin" / "IVE.sh"}")
       println(s"Java Development Kit (JDK) is available at ${homeBin / "linux" / "java"}")
       println(s"Scala is available at ${homeBin / "scala"}")
     case Os.Kind.LinuxArm =>
@@ -552,12 +554,12 @@ def setup(fresh: B, isUltimate: B, isServer: B): Unit = {
   }
 }
 
-def project(skipBuild: B, isUltimate: B, isServer: B): Unit = {
+def project(skipBuild: B): Unit = {
   if (!skipBuild) {
     build(F, F, F)
   }
   println("Generating IVE project ...")
-  proc"$sireum proyek ive$proxyOpt --force${if (isUltimate) " --edition ultimate" else if (isServer) " --edition server" else ""} $home".console.runCheck()
+  proc"$sireum proyek ive$proxyOpt --force $home".console.runCheck()
 }
 
 def ram(): Unit = {
@@ -566,7 +568,7 @@ def ram(): Unit = {
       val ramdisk = Os.path("/Volumes") / "RAM"
       val ramdiskHome = ramdisk / home.name
       if (!(homeBin / "mac" / "idea" / "IVE.app").exists) {
-        setup(F, F, F)
+        setup(F)
       }
       if (ramdisk.exists) {
         proc"launchctl remove org.sireum.ram.rsync".echo.console.run()
@@ -642,8 +644,6 @@ if (!builtIn.exists) {
 if (Os.cliArgs.isEmpty) {
   val fresh: B = sireumJar.exists && builtIn.lastModified > sireumJar.lastModified
   val idea = homeBin / platform / "idea"
-  val ideaUlt = homeBin / platform / "idea-ultimate"
-  val ideaServer = homeBin / platform / "idea-server"
   val vscodium = homeBin / platform / "vscodium"
   val version: B = sireumJar.exists && (home / "versions.properties").lastModified > sireumJar.lastModified
   val vers = Sireum.versions
@@ -669,50 +669,25 @@ if (Os.cliArgs.isEmpty) {
     }
     r
   }
-  val isCommunity: B = rebuildIVE & idea.exists
-  val isUltimate: B = rebuildIVE & ideaUlt.exists
-  val isServer: B = rebuildIVE & ideaServer.exists
+  val isUltimate: B = rebuildIVE
 
   if (fresh) {
     println(s"Modifications to ${builtIn.name} detected ... ")
     println()
-  } else if (version & (isCommunity | isUltimate | isServer)) {
+  } else if (version & isUltimate) {
     println(s"Modifications to version.properties detected ... ")
     println()
   }
   if (rebuildIVE) {
-    (isCommunity, isUltimate, isServer) match {
-      case (T, T, T) => println(s"Rebuilding IVE, IVE Server, and IVE Ultimate  ...")
-      case (T, T, F) => println(s"Rebuilding IVE and IVE Ultimate ...")
-      case (T, F, T) => println(s"Rebuilding IVE and IVE Server ...")
-      case (T, F, F) => println(s"Rebuilding IVE ...")
-      case (F, T, T) => println(s"Rebuilding IVE Server and IVE Ultimate ...")
-      case (F, T, F) => println(s"Rebuilding IVE Ultimate ...")
-      case (F, F, T) => println(s"Rebuilding IVE Server ...")
-      case (F, F, F) => println(s"Forcing fresh compilation ...")
-    }
+    println(s"Rebuilding IVE ...")
     println()
   }
-  if (isCommunity || isUltimate || isServer) {
-    if (isCommunity) {
-      setup(fresh, F, F)
-    }
-    if (isUltimate) {
-      if (isCommunity) {
-        println()
-      }
-      setup(!isCommunity && fresh, T, F)
-    }
-    if (isServer) {
-      if (isCommunity || isUltimate) {
-        println()
-      }
-      setup(!isCommunity && !isUltimate && fresh, F, T)
-    }
+  if (isUltimate) {
+    setup(fresh)
   } else {
     build(fresh, F, F)
     if (version) {
-      project(T, isUltimate, isServer)
+      project(T)
     }
   }
   if (rebuildCodeIVE && vscodium.exists) {
@@ -730,12 +705,8 @@ if (Os.cliArgs.isEmpty) {
       case string"fresh" => build(T, F, F)
       case string"uber" => build(F, F, T)
       case string"native" => build(F, T, F)
-      case string"setup" => setup(F, F, F)
-      case string"setup-ultimate" => setup(F, T, F)
-      case string"setup-server" => setup(F, F, T)
-      case string"project" => project(F, F, F)
-      case string"project-ultimate" => project(F, T, F)
-      case string"project-server" => project(F, F, T)
+      case string"setup" => setup(F)
+      case string"project" => project(F)
       case string"tipe" => tipe()
       case string"compile" => compile(F)
       case string"compile-js" => compile(T)
