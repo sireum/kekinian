@@ -362,7 +362,9 @@ object Presentasi_Ext {
                     listItem = listItem.getNext.asInstanceOf[ListItem]
                   }
                 case _ =>
-                  reporter.error(getPosOpt(child), Presentasi.kind, s"Unrecognized structure ${child.getClass} in '$headingText': ${child.toString}")
+                  if (child.isInstanceOf[HtmlBlock]) {
+                    reporter.error(getPosOpt(child), Presentasi.kind, s"Unrecognized structure ${child.getClass} in '$headingText': ${child.toString}")
+                  }
               }
               child = child.getNext
             }
@@ -441,7 +443,9 @@ object Presentasi_Ext {
               entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, voiceText.mkString("\r\n"))
             }
           case _ =>
-            reporter.error(getPosOpt(child), Presentasi.kind, s"Expecting a new heading (#), but found: ${child.getClass}")
+            if (!child.isInstanceOf[HtmlBlock]) {
+              reporter.error(getPosOpt(child), Presentasi.kind, s"Expecting a new heading (#), but found: ${child.getClass}")
+            }
             child = child.getNext
         }
       }

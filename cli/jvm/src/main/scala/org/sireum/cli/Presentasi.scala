@@ -659,7 +659,9 @@ object Presentasi {
       for (p <- audio.list if p.ext == "wav" || p.ext == "mp3") {
         val cis = conversions.String.toCis(p.name)
         if (cis.size > 7 && cis(6) == '-' && ops.ISZOps(ops.ISZOps(cis).take(6)).
-          forall((c: C) => 'A' <= c && c <= 'Z' || '0' <= c && c <= '9')) {
+          forall((c: C) => 'A' <= c && c <= 'Z' || '0' <= c && c <= '9') ||
+          cis.size > 11 && cis(cis.size - 11) == '-' && ops.ISZOps(ops.ISZOps(ops.ISZOps(cis).drop(cis.size - 10)).dropRight(4)).
+            forall((c: C) => 'A' <= c && c <= 'Z' || '0' <= c && c <= '9')) {
           p.removeAll()
         }
       }
@@ -699,12 +701,20 @@ object Presentasi {
         }
 
         def process(sound: Sound): Sound = {
-          val sub = conversions.String.fromCis(
+          var sub = conversions.String.fromCis(
             for (c <- conversions.String.toCis(
               if (sound.text.size > 15) ops.StringOps(sound.text).substring(0, 15) else sound.text)) yield
               if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) c else '_')
-          val filename = s"${fingerprint(sound.text)}-$sub.$ext"
-          val p = audio / filename
+          var filename = s"${fingerprint(sound.text)}-$sub.$ext"
+          var p = audio / filename
+          if (!p.exists) {
+            sub = conversions.String.fromCis(
+              for (c <- conversions.String.toCis(
+                if (sound.text.size > 32) ops.StringOps(sound.text).substring(0, 32) else sound.text)) yield
+                if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) c else '_')
+            filename = s"$sub-${fingerprint(sound.text)}.$ext"
+            p = audio / filename
+          }
           val temp = Os.tempFix("", ".txt")
           temp.writeOver(sound.text)
           val engine: Cli.SireumPresentasiText2speechEngine.Type = o.engine match {
@@ -1124,7 +1134,7 @@ object Presentasi {
       if (output == Os.cwd) {
         var cis = ISZ[C]()
         for (c <- conversions.String.toCStream(line).take(16)) {
-          cis = cis :+ (if (c == '.' || c == ',' || c == '!' || c == ' ' || c == '*' || c == '+') '_' else c)
+          cis = cis :+ (if ('A' <= c && c <= 'Z' || '0' <= c && c <= '9') c else '_')
         }
         return output.canon / s"$num${conversions.String.fromCis(cis)}.$ext"
       } else if (isSoundFile(output)) {
