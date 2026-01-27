@@ -178,7 +178,7 @@ def build(fresh: B, isNative: B, isUber: B, isNativeScript: B): Unit = {
         case Os.Kind.Mac => homeBin / "mac" / jarName
         case _ => halt("Infeasible")
       }
-      if (exePath.exists) {
+      if (!isNativeScript) {
         (home / "out" / proyekName / "assemble" / exePath.name).copyOverTo(exePath)
       }
     }
