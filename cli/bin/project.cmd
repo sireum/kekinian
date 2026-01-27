@@ -31,7 +31,8 @@ val cliJvm = moduleJvmPub(
   baseDir = homeDir,
   jvmDeps = ISZ(server),
   jvmIvyDeps = ISZ(
-    "org.commonmark:commonmark-ext-yaml-front-matter:"
+    "org.commonmark:commonmark-ext-yaml-front-matter:",
+    "io.modelcontextprotocol.sdk:mcp:"
   ),
   pubOpt = pub(
     desc = "Sireum Command Line Interface (CLI)",

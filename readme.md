@@ -34,9 +34,10 @@ in [bin/install](https://github.com/sireum/bin-install/) scripts).
 | [Automaton](https://github.com/sireum/automaton) | [(link)](https://jitpack.io/#org.sireum/automaton) | [BSD3](https://github.com/sireum/automaton/blob/codepoint/COPYING) |
 | [fastutil](https://fastutil.di.unimi.it/) | [(link)](https://central.sonatype.com/artifact/it.unimi.dsi/fastutil) | [Apache 2.0](https://github.com/vigna/fastutil/blob/master/LICENSE-2.0) |
 | [GitHub API](https://github.com/hub4j/github-api) | [(link)](https://central.sonatype.com/artifact/org.kohsuke/github-api) | [MIT](https://github.com/hub4j/github-api/blob/main/LICENSE.txt) |
+| [JavaFX for Presentasi](https://github.com/sireum/presentasi-jfx) | [(link)](https://jitpack.io/#org.sireum/presentasi-jfx) | [BSD2](https://github.com/sireum/presentasi-jfx/blob/master/license.md) |
+| [MCP Java SDK](https://github.com/modelcontextprotocol/java-sdk) | [(link)](https://central.sonatype.com/artifact/io.modelcontextprotocol.sdk/mcp/) | [MIT](https://github.com/modelcontextprotocol/java-sdk/blob/main/LICENSE) |
 | [NuProcess](https://github.com/brettwooldridge/NuProcess) | [(link)](https://central.sonatype.com/artifact/com.zaxxer/nuprocess) | [Apache 2.0](https://github.com/brettwooldridge/NuProcess/blob/master/LICENSE) |
 | [OS-Lib](https://github.com/com-lihaoyi/os-lib) | [(link)](https://central.sonatype.com/artifact/com.lihaoyi/os-lib_2.13) | [MIT](https://github.com/com-lihaoyi/os-lib/blob/master/LICENSE) |
-| [JavaFX for Presentasi](https://github.com/sireum/presentasi-jfx) | [(link)](https://jitpack.io/#org.sireum/presentasi-jfx) | [BSD2](https://github.com/sireum/presentasi-jfx/blob/master/license.md) |
 | [Scala](https://github.com/scala/scala) | [(link)](https://central.sonatype.com/artifact/org.scala-lang/scala-library) | [Apache 2.0](https://github.com/scala/scala/blob/2.13.x/LICENSE) |
 | [Scalafmt](https://github.com/scalameta/scalafmt) | [(link)](https://central.sonatype.com/artifact/org.scalameta/scalafmt-cli_2.13) | [Apache 2.0](https://github.com/scalameta/scalafmt/blob/master/LICENCE.md) |
 | [Scalameta](https://github.com/scalameta/scalameta) | [(link)](https://central.sonatype.com/artifact/org.scalameta/scalameta_2.13) | [BSD3](https://github.com/scalameta/scalameta/blob/main/LICENSE.md) |
