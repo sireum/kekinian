@@ -21,7 +21,7 @@ def usage(): Unit = {
     st"""Sireum /build
         |Usage: ( setup            | project
         |       | jar              | fresh               | uber
-        |       | tipe             | compile[-js]        | native
+        |       | tipe             | compile[-js]        | native[-script]
         |       | test             | verify              | test-verify
         |       | regen-project    | regen-presentasi    | regen-slang
         |       | regen-logika     | regen-air           | regen-act
@@ -135,7 +135,7 @@ def cvc(): Unit = {
 }
 
 
-def build(fresh: B, isNative: B, isUber: B): Unit = {
+def build(fresh: B, isNative: B, isUber: B, isNativeScript: B): Unit = {
   println("Building ...")
 
   val recompile: String = if (fresh) {
@@ -152,7 +152,7 @@ def build(fresh: B, isNative: B, isUber: B): Unit = {
     }
     r
   }
-  val nativ: String = if (isNative) " --native" else ""
+  val nativ: String = if (isNativeScript) " --native-script" else if (isNative) " --native" else ""
   val uber: String = if (isUber) " --uber" else ""
 
   val includeSources: String = if (Os.env("INCLUDE_SOURCES").nonEmpty) "--include-sources " else ""
@@ -178,7 +178,9 @@ def build(fresh: B, isNative: B, isUber: B): Unit = {
         case Os.Kind.Mac => homeBin / "mac" / jarName
         case _ => halt("Infeasible")
       }
-      (home / "out" / proyekName / "assemble" / exePath.name).copyOverTo(exePath)
+      if (exePath.exists) {
+        (home / "out" / proyekName / "assemble" / exePath.name).copyOverTo(exePath)
+      }
     }
   } else {
     Os.exit(r.exitCode)
@@ -527,7 +529,7 @@ def mill(): Unit = {
 
 def setup(fresh: B): Unit = {
   println("Setup ...")
-  build(fresh, F, F)
+  build(fresh, F, F, F)
   val init = Init(home, Os.kind, versions)
   init.deps()
   init.distro(isDev = F, buildPackage = F, buildIve = T, buildVSCodePackage = F, isUltimate = F, isServer = F)
@@ -556,7 +558,7 @@ def setup(fresh: B): Unit = {
 
 def project(skipBuild: B): Unit = {
   if (!skipBuild) {
-    build(F, F, F)
+    build(F, F, F, F)
   }
   println("Generating IVE project ...")
   proc"$sireum proyek ive$proxyOpt --force $home".console.runCheck()
@@ -685,7 +687,7 @@ if (Os.cliArgs.isEmpty) {
   if (isUltimate) {
     setup(fresh)
   } else {
-    build(fresh, F, F)
+    build(fresh, F, F, F)
     if (version) {
       project(T)
     }
@@ -701,10 +703,11 @@ if (Os.cliArgs.isEmpty) {
   var i = 0
   while (i < size) {
     cliArgs(i) match {
-      case string"jar" => build(F, F, F)
-      case string"fresh" => build(T, F, F)
-      case string"uber" => build(F, F, T)
-      case string"native" => build(F, T, F)
+      case string"jar" => build(F, F, F, F)
+      case string"fresh" => build(T, F, F, F)
+      case string"uber" => build(F, F, T, F)
+      case string"native" => build(F, T, F, F)
+      case string"native-script" => build(F, T, F, T)
       case string"setup" => setup(F)
       case string"project" => project(F)
       case string"tipe" => tipe()

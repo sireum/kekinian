@@ -385,6 +385,7 @@ object Cli {
     val mainClass: Option[String],
     val meta: B,
     val isNative: B,
+    val isNativeScript: B,
     val uber: B,
     val ignoreRuntime: B,
     val json: Option[String],
@@ -3745,6 +3746,7 @@ import Cli._
           |-m, --main               The main class fully qualified name (expects a string)
           |    --meta               Generate Scalameta semanticdb
           |    --native             Generates native image
+          |    --native-script      Generates native image script
           |    --uber               Generates uber jar
           |-h, --help               Display this information
           |
@@ -3818,6 +3820,7 @@ import Cli._
     var mainClass: Option[String] = None[String]()
     var meta: B = false
     var isNative: B = false
+    var isNativeScript: B = false
     var uber: B = false
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
@@ -3898,6 +3901,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!isNative) }
            o match {
              case Some(v) => isNative = v
+             case _ => return None()
+           }
+         } else if (arg == "--native-script") {
+           val o: Option[B] = { j = j - 1; Some(!isNativeScript) }
+           o match {
+             case Some(v) => isNativeScript = v
              case _ => return None()
            }
          } else if (arg == "--uber") {
@@ -4068,7 +4077,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), excludeJarDeps, includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
+    return Some(SireumProyekAssembleOption(help, parseArguments(args, j), excludeJarDeps, includeSources, includeTests, jar, noDeps, mainClass, meta, isNative, isNativeScript, uber, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
   }
 
   def parseSireumProyekCompile(args: ISZ[String], i: Z): Option[SireumTopOption] = {

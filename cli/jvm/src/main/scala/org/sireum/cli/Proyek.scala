@@ -244,6 +244,7 @@ object Proyek {
       dm = dm,
       mainClassNameOpt = o.mainClass,
       isNative = o.isNative,
+      isNativeScript = o.isNativeScript,
       isUber = o.uber,
       includeSources = o.includeSources,
       includeTests = o.includeTests,

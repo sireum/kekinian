@@ -988,7 +988,7 @@ object Sireum {
     val d = Os.tempDir()
     val f = d / "sireum.jar"
     (homeBin / "sireum.jar").copyOverTo(f)
-    proyek.Assemble.nativ(homeOpt.get, f)
+    proyek.Assemble.nativ(homeOpt.get, f, F)
     (f.up / exePath.name).canon.moveOverTo(exePath)
     d.removeAll()
   }
