@@ -362,7 +362,7 @@ object Presentasi_Ext {
                     listItem = listItem.getNext.asInstanceOf[ListItem]
                   }
                 case _ =>
-                  if (child.isInstanceOf[HtmlBlock]) {
+                  if (!child.isInstanceOf[HtmlBlock]) {
                     reporter.error(getPosOpt(child), Presentasi.kind, s"Unrecognized structure ${child.getClass} in '$headingText': ${child.toString}")
                   }
               }
