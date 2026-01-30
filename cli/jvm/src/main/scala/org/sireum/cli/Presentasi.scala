@@ -655,15 +655,24 @@ object Presentasi {
     }
     audio.mkdirAll()
 
-    if (o.force) {
-      for (p <- audio.list if p.ext == "wav" || p.ext == "mp3") {
+    @pure def isGeneratedAudio(p: Os.Path): B = {
+      if (p.ext == "wav" || p.ext == "mp3") {
         val cis = conversions.String.toCis(p.name)
         if (cis.size > 7 && cis(6) == '-' && ops.ISZOps(ops.ISZOps(cis).take(6)).
           forall((c: C) => 'A' <= c && c <= 'Z' || '0' <= c && c <= '9') ||
           cis.size > 11 && cis(cis.size - 11) == '-' && ops.ISZOps(ops.ISZOps(ops.ISZOps(cis).drop(cis.size - 10)).dropRight(4)).
             forall((c: C) => 'A' <= c && c <= 'Z' || '0' <= c && c <= '9')) {
-          p.removeAll()
+          return T
         }
+      }
+      return F
+    }
+
+    var generatedAudioFiles = HashSSet.empty[Os.Path]
+    for (p <- audio.list if isGeneratedAudio(p)) {
+      generatedAudioFiles = generatedAudioFiles + p
+      if (o.force) {
+        p.removeAll()
       }
     }
 
@@ -741,13 +750,13 @@ object Presentasi {
           println(s"Loading $p ...")
           val durOpt = Ext.getSoundDuration(p.toUri)
           println()
+          generatedAudioFiles = generatedAudioFiles - p
           durOpt match {
             case Some(dur) if code == 0 => return sound(filepath = p, duration = dur)
             case _ =>
               reporter.error(None(), kind, s"""Failed to load: "${sound.text}"""")
               return sound
           }
-
         }
 
         var sounds = ISZ[Media]()
@@ -990,48 +999,6 @@ object Presentasi {
       val audioDirUriSize = audioDir.toUri.size
       var n = 0
       var cc = ISZ[ST]()
-      var previousSoundTimeline: Z = 0
-      var sounds = ISZ[Os.Path]()
-      val soundDir = Os.tempDirFix("presentasi")
-
-//      def ffmpegSilentCommand(output: Os.Path, durationInMs: Z): Unit = {
-//        if (!o.record) {
-//          return
-//        }
-//        Os.proc(ISZ("ffmpeg", "-f", "lavfi", "-fflags", "+genpts", "-i", "anullsrc=channel_layout=mono:sample_rate=8000", "-t", s"${durationInMs}ms", "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", "-y", output.string)).runCheck()
-//      }
-//
-//      def ffmpegConvertAudio(input: Os.Path, output: Os.Path): Unit = {
-//        if (!o.record) {
-//          return
-//        }
-//        Os.proc(ISZ[String]("ffmpeg", "-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
-//      }
-//
-//      def ffmpegExtractVideoAudio(input: Os.Path, output: Os.Path, start: F64, end: F64): Unit = {
-//        if (!o.record) {
-//          return
-//        }
-//        val t: ISZ[String] = if (end > 0d) ISZ[String]("-t", s"${end - start}ms") else ISZ[String]()
-//        Os.proc(ISZ[String]("ffmpeg", "-ss", s"${start}ms") ++ t ++ ISZ[String]("-i", input.string, "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", output.string)).runCheck()
-//      }
-//
-//      def ffmpegConcat(inputs: ISZ[Os.Path], output: Os.Path): Unit = {
-//        val filelist = Os.tempFix("filelist", ".txt")
-//        filelist.writeOver(st"${(for (input <- inputs) yield st"file '$input'", "\n")}".render)
-//        Os.proc(ISZ("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", filelist.string,
-//          "-c:a", "copy", output.string)).runCheck()
-//        filelist.removeAll()
-//      }
-//
-//      def genSilence(timeline: Z, duration: Z): Unit = {
-//        if (previousSoundTimeline < timeline) {
-//          val silence = soundDir / s"silence-${sounds.size}.wav"
-//          sounds = sounds :+ silence
-//          ffmpegSilentCommand(silence, timeline - previousSoundTimeline)
-//        }
-//        previousSoundTimeline = timeline + duration
-//      }
 
       for (i <- medias.indices) {
         medias(i) match {
@@ -1041,15 +1008,6 @@ object Presentasi {
           case media: Video =>
             mediaSTs = mediaSTs :+ videoTemplate(media.filename, media.timeline, media.muted,
               media.rate, media.start, media.end, i, previousTimelineOpt, n)
-            val t = media.timeline + spec.vseekDelay
-//            if (o.record) {
-//              genSilence(t, media.duration)
-//              if (!media.muted) {
-//                val wav = soundDir / s"video-${sounds.size}.wav"
-//                sounds = sounds :+ wav
-//                ffmpegExtractVideoAudio(media.filepath, wav, media.start, media.end)
-//              }
-//            }
             n = n + 1
           case media: Sound =>
             val mediaUri = media.filepath.toUri
@@ -1065,12 +1023,6 @@ object Presentasi {
                     |$startTime --> $endTime
                     |$ccText"""
             }
-//            if (o.record) {
-//              genSilence(media.timeline, media.duration)
-//              val audioSound = soundDir / s"audio-${sounds.size}.wav"
-//              ffmpegConvertAudio(media.filepath, audioSound)
-//              sounds = sounds :+ audioSound
-//            }
         }
         previousTimelineOpt = Some(medias(i).timeline)
       }
@@ -1078,20 +1030,12 @@ object Presentasi {
       val f = source / s"${spec.name}.java"
       val transcriptFile = slides / s"readme.md"
       val ccFile = outDir / s"${spec.name}.${if (o.srt) "srt" else "vtt"}"
-//      val audioFile = outDir / s"${spec.name}.wav"
       val end: Z = if (medias.size > 0) {
         val last = medias(medias.size - 1)
         last.timeline + last.duration + spec.trailing
       } else {
         0
       }
-
-//      if (hasFFmpeg && o.record) {
-//        ffmpegConcat(sounds, audioFile)
-//        println(s"Wrote $audioFile")
-//      }
-
-//      soundDir.removeAll()
 
       f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
       println(s"Wrote $f")
@@ -1110,6 +1054,12 @@ object Presentasi {
       if (o.slides) {
         transcriptFile.writeOver(st"${(transcript, "\n\n----\n\n")}".render)
         println(s"Wrote $transcriptFile")
+      }
+      if (o.clean) {
+        for (f <- generatedAudioFiles.elements) {
+          f.removeAll()
+          println(s"Removed $f")
+        }
       }
     }
     return 0

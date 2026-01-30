@@ -120,6 +120,8 @@ val pgenTool: Tool = Tool(
     Opt(name = "cc", longKey = "cc", shortKey = None(),
       tpe = Type.Num(sep = None(), default = 0, min = None(), max = None()),
       description = "Additional time shift (ms) for close-captioning subtitle"),
+    Opt(name = "clean", longKey = "clean", shortKey = None(),
+      tpe = Type.Flag(default = F), description = "Remove unused generated audio files"),
     Opt(name = "record", longKey = "record", shortKey = None(),
       tpe = Type.Flag(default = F), description = "Generates subtitle and audio files to combine with screen recording"),
     Opt(name = "slice", longKey = "slice", shortKey = None(),
