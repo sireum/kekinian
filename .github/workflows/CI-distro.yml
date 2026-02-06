@@ -270,7 +270,7 @@ jobs:
           overwrite: true
 
   build-macos-arm64:
-    runs-on: mac-mini-m1
+    runs-on: macos-latest-xlarge
     if: "contains(github.event.head_commit.message, '[distro]') || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'"
     steps:
       - name: Clean
