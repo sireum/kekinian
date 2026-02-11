@@ -47,6 +47,7 @@ in [bin/install](https://github.com/sireum/bin-install/) scripts).
 | [Scala.js](https://github.com/scala-js/scala-js) | [(link)](https://central.sonatype.com/artifact/org.scala-js/scalajs-compiler_2.13.14) | [Apache 2.0](https://github.com/scala-js/scala-js/blob/master/LICENSE) |
 | [Scala.js: DOM](https://github.com/scala-js/scala-js-dom) | [(link)](https://central.sonatype.com/artifact/org.scala-js/scalajs-dom_sjs1_2.13) | [MIT](https://github.com/scala-js/scala-js-dom/blob/master/LICENSE) |
 | [Scala.js: Scalatags](https://github.com/com-lihaoyi/scalatags) | [(link)](https://central.sonatype.com/artifact/com.lihaoyi/scalatags_2.13) | [MIT](https://github.com/com-lihaoyi/scalatags/blob/master/LICENSE) |
+| [SLF4J (nop)](https://github.com/qos-ch/slf4j/tree/master/slf4j-nop) | [(link)](https://central.sonatype.com/artifact/org.slf4j/slf4j-nop) | [MIT](https://github.com/qos-ch/slf4j/blob/master/slf4j-nop/LICENSE.txt) |
 | [SMT-LIB Parser](https://github.com/sireum/smtlib-parser) | [(link)](https://jitpack.io/#org.sireum/smtlib-parser) | [MIT](https://github.com/julianthome/smtlibv2-grammar/blob/master/LICENCE.md) |
 | [SysML v2 Parser for HAMR](https://github.com/sireum/hamr-sysml-parser) | [(link)](https://jitpack.io/#org.sireum/hamr-sysml-parser) | [LGPL3](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation/blob/master/LICENSE) |
 

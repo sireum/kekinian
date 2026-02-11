@@ -375,6 +375,10 @@ def regenCli(): Unit = {
   val sireumPackagePath = home / "cli" / "jvm" / "src" / "main" / "scala" / "org" / "sireum"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "cligen", "-p", "org.sireum", "-l", s"${home / "license.txt"}",
     "-o", sireumPackagePath.string, s"${sireumPackagePath / "cli.sc"}")).console, message.Reporter.create)
+  val f = sireumPackagePath / "sireum-cli-spec.json"
+  f.writeOver(Sireum.procCheck(Os.proc(ISZ(sireum.string, "slang", "run", (sireumPackagePath / "cli.sc").string)),
+    message.Reporter.create).out)
+  println(s"Wrote $f")
 }
 
 def regenFmideCli(): Unit = {

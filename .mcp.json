@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sireum": {
+      "type": "stdio",
+      "command": "bin/sireum-mcp.bat",
+      "args": []
+    }
+  }
+}

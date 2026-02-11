@@ -527,6 +527,7 @@ object Sireum {
            |    --init[-nik | -jdk]    Setup dependencies
            |                             [-nik/jdk force-initializes Liberica NIK/JDK]
            |    --install-fonts        Install Sireum fonts
+           |    --mcp                  Run Sireum MCP server
            |    --native               Build native executable
            |    --sbom                 Generate software bill of materials
            |    --sha                  Print Sireum build SHA commit tip
@@ -556,6 +557,10 @@ object Sireum {
         return 0
       case ISZ(string"--install-fonts") =>
         init.installFonts(T)
+        return 0
+      case ISZ(string"--mcp") =>
+        init.deps()
+        SireumMcpServer.run()
         return 0
       case ISZ(string"--native") =>
         init.deps()
