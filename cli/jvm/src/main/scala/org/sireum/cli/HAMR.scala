@@ -42,10 +42,14 @@ import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.logika.NoTransitionSmt2Cache
-import org.sireum.lang.{ast => AST}
 import org.sireum.message._
 
 object HAMR {
+
+  @ext object HAMR {
+    def getIntegrationConstraintReporter(connections: HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection],
+                                         reporter: Reporter): logika.Logika.Reporter = $
+  }
 
   val toolName: String = "HAMR"
 
@@ -666,7 +670,7 @@ object HAMR {
       eprintln(s"Line option cannot be provided without a file argument")
       return INVALID_OPTIONS
     }
-    var connections = ISZ[(lang.tipe.TypeHierarchy, hamr.sysml.FrontEnd.IntegerationConnection)]()
+    var connections: ISZ[(lang.tipe.TypeHierarchy, HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection])] = ISZ()
     var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
     sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath, o.parseableMessages), reporter) match {
       case Either.Left((_, models, inputs, store, hasError)) =>
@@ -677,26 +681,31 @@ object HAMR {
         for (input <- inputs) {
           fileContentMap = fileContentMap + input.fileUri.get ~> input.content
         }
-        for (ic <- hamr.sysml.FrontEnd.getIntegerationConstraints(models, reporter);
-             c <- ic.connections if c.dstConstraint.nonEmpty) {
-          var add = F
-          for (posOpt <- c.connectionReferences.values) {
-            posOpt match {
-              case Some(pos) => pos.uriOpt match {
-                case Some(uri) =>
-                  if (fileOptionMap.get(pos.uriOpt).isEmpty) {
-                    fileOptionMap = fileOptionMap + pos.uriOpt ~> LibUtil.mineOptions(fileContentMap.get(uri).get)
-                  }
-                  if (uris.isEmpty || (uris.contains(uri) && (o.line == 0 || (pos.beginLine <= o.line && o.line <= pos.endLine)))) {
-                    add = T
-                  }
+        for (ic <- hamr.sysml.FrontEnd.getIntegerationConstraints(models, reporter)) {
+          var h: HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection] = HashSMap.empty
+          for (c <- ic.connections.entries if c._2.dstConstraint.nonEmpty) {
+            var add = F
+            for (posOpt <- c._2.connectionReferences.values) {
+              posOpt match {
+                case Some(pos) => pos.uriOpt match {
+                  case Some(uri) =>
+                    if (fileOptionMap.get(pos.uriOpt).isEmpty) {
+                      fileOptionMap = fileOptionMap + pos.uriOpt ~> LibUtil.mineOptions(fileContentMap.get(uri).get)
+                    }
+                    if (uris.isEmpty || (uris.contains(uri) && (o.line == 0 || (pos.beginLine <= o.line && o.line <= pos.endLine)))) {
+                      add = T
+                    }
+                  case _ =>
+                }
                 case _ =>
               }
-              case _ =>
+            }
+            if (add) {
+              h = h + c
             }
           }
-          if (add) {
-            connections = connections :+ (ic.typeHierarchy, c)
+          if (h.nonEmpty) {
+            connections = connections :+ (ic.typeHierarchy, h)
           }
         }
       case Either.Right(ret) => return ret
@@ -815,51 +824,48 @@ object HAMR {
     val plugins = logika.Logika.defaultPlugins
 
     val verifyingStartTime = extension.Time.currentMillis
-    val andResOpt = Option.some[AST.ResolvedInfo](
-      AST.ResolvedInfo.BuiltIn(AST.ResolvedInfo.BuiltIn.Kind.BinaryAnd))
-    val equivResOpt = Option.some[AST.ResolvedInfo](
-      AST.ResolvedInfo.BuiltIn(AST.ResolvedInfo.BuiltIn.Kind.BinaryEquiv))
-    val implyResOpt = Option.some[AST.ResolvedInfo](
-      AST.ResolvedInfo.BuiltIn(AST.ResolvedInfo.BuiltIn.Kind.BinaryImply))
 
     var tasks = ISZ[logika.Task]()
     for (p <- connections) {
-      val (th, c) = p
-      val src: AST.Exp = c.srcConstraint match {
-        case Some(e) => e
-        case _ => AST.Exp.LitB(T, AST.Attr(p._2.srcPort.feature.identifier.pos))
-      }
-      val dst = c.dstConstraint.get
-      val (ids, midPointPos) = p._2.connectionMidPoint
-      val portEquiv = AST.Exp.Binary(p._2.srcPortExp, AST.Exp.BinaryOp.Equiv, p._2.dstPortExp,
-        AST.ResolvedAttr(midPointPos, equivResOpt, AST.Typed.bOpt), midPointPos)
-      val lhs = AST.Exp.Binary(portEquiv, AST.Exp.BinaryOp.And, src,
-        AST.ResolvedAttr(midPointPos, andResOpt, AST.Typed.bOpt), midPointPos)
-      val claim = AST.Exp.Binary(lhs, AST.Exp.BinaryOp.Imply, dst,
-        AST.ResolvedAttr(midPointPos, implyResOpt, AST.Typed.bOpt), midPointPos)
-
-      println(st"Checking integration constraints of ${(ids, ".")}".render)
-      var conf = config
-      midPointPos match {
-        case Some(pos) => fileOptionMap.get(pos.uriOpt) match {
-          case Some(m) => m.get(logika.options.OptionsUtil.logika) match {
-            case Some(options) => logika.options.OptionsUtil.toConfig(config, parCores, "file", nameExePathMap, options(0)) match {
-              case Either.Left(conf2) => conf = conf2
-              case Either.Right(msgs) =>
-                for (msg <- msgs) {
-                  reporter.error(None(), logika.Logika.kind, msg)
-                }
+      for (c <- p._2.values) {
+        val claim = c.claim
+        val (ids, midPointPos) = c.connectionMidPoint
+        println(st"Checking integration constraints of ${(ids, ".")}".render)
+        var conf = config
+        midPointPos match {
+          case Some(pos) => fileOptionMap.get(pos.uriOpt) match {
+            case Some(m) => m.get(logika.options.OptionsUtil.logika) match {
+              case Some(options) => logika.options.OptionsUtil.toConfig(config, parCores, "file", nameExePathMap, options(0)) match {
+                case Either.Left(conf2) => conf = conf2
+                case Either.Right(msgs) =>
+                  for (msg <- msgs) {
+                    reporter.error(None(), logika.Logika.kind, msg)
+                  }
+              }
+              case _ =>
             }
             case _ =>
           }
           case _ =>
         }
-        case _ =>
+        tasks = tasks :+ logika.Task.Claim(p._1, conf, c.title, claim, plugins)
       }
-      tasks = tasks :+ logika.Task.Claim(th, conf, st"Integration constraint of ${(ids, ".")}".render, claim, plugins)
     }
-    val smt2f = (th: lang.tipe.TypeHierarchy) => logika.Smt2Impl.create(config, logika.plugin.Plugin.claimPlugins(plugins),
-      th, reporter)
+
+    var conns: HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection] = HashSMap.empty
+    for (c <- connections) {
+      assert (ops.ISZOps(c._2.keys).forall(title => !conns.contains(title)), "Duplicate title detected")
+      conns = conns ++ c._2.entries
+    }
+    val hreporter = HAMR.getIntegrationConstraintReporter(conns, reporter)
+
+    val smt2f = (th: lang.tipe.TypeHierarchy) =>
+      logika.Smt2Impl.create(
+        config = config,
+        plugins = logika.plugin.Plugin.claimPlugins(plugins),
+        typeHierarchy = th,
+        reporter = hreporter)
+
     logika.Logika.checkTasks(
       tasks = tasks,
       par = parCores,
@@ -868,8 +874,10 @@ object HAMR {
       fileOptions = fileOptionMap,
       smt2f = smt2f,
       cache = NoTransitionSmt2Cache.create,
-      reporter = reporter,
+      reporter = hreporter,
       verifyingStartTime = verifyingStartTime)
+
+    reporter.reports(hreporter.messages)
 
     if (o.parseableMessages) {
       Os.printParseableMessages(reporter)

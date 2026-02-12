@@ -35,9 +35,16 @@ import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
 
 object Sireum {
-  class Rep(feedbackDirOpt: Option[Os.Path], logPc: B, logRawPc: B, logVc: B, logDetailedInfo: B, stats: B,
-            nv: AtomicLong = new AtomicLong(0), ns: AtomicLong = new AtomicLong(0), vm: AtomicLong = new AtomicLong(0),
-            nm: AtomicLong = new AtomicLong(0))
+  class Rep(val feedbackDirOpt: Option[Os.Path],
+            override val logPc: B,
+            val logRawPc: B,
+            override val logVc: B,
+            override val logDetailedInfo: B,
+            var stats: B,
+            val nv: AtomicLong = new AtomicLong(0),
+            val ns: AtomicLong = new AtomicLong(0),
+            val vm: AtomicLong = new AtomicLong(0),
+            val nm: AtomicLong = new AtomicLong(0))
     extends logika.ReporterImpl(logPc, logRawPc, logVc, logDetailedInfo, F, ISZ(), stats, nv, ns, vm, nm) {
     val sha3 = MessageDigest.getInstance("SHA3-512")
 
