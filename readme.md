@@ -100,7 +100,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Sbt](https://www.scala-sbt.org/) | [Apache 2.0](https://github.com/sbt/sbt/blob/1.10.x/LICENSE) |
 | [Verilator](https://www.veripool.org/verilator/) | [GPL 3.0](https://github.com/verilator/verilator/blob/master/LICENSE) |
 | [VSCodium](https://vscodium.com/) | [MIT](https://github.com/VSCodium/vscodium/blob/master/LICENSE) |
-| [Zig](https://ziglang.org) | [MIT (Expat)](https://github.com/ziglang/zig/blob/master/LICENSE) |
 
 
 | IntelliJ/CLion/RustRover Plugin | License |
