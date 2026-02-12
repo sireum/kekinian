@@ -56,7 +56,7 @@
 
 ### Common Options
 - IMPORTANT: Always supply `slice` with the relevant module ID for `sireum_proyek_tipe`, `sireum_proyek_compile`, and `sireum_proyek_test` to avoid unnecessary full-project processing and for quicker turnaround.
-- All three tools take the project root directory (`/Users/robby/Repositories/Sireum/kekinian`) as the positional argument.
+- All three tools take the project root directory as the positional argument.
 
 ### Finding Module IDs
 - Read the `project.json` in an ancestor folder of the source file and match the file path to a module's `basePath`/`subPathOpt`.
