@@ -1,5 +1,7 @@
 # Kekinian Project
 
+**Note:** This file is shared across contributors. Do not include machine-specific full paths (e.g., `/Users/someone/...`). Use relative paths or generic descriptions instead.
+
 ## Project Structure
 - Slang parser grammars are in `slang/parser/shared/src/main/resources/`
 - ANTLR v3 grammar: `SlangLl2.g` (LL(2))
