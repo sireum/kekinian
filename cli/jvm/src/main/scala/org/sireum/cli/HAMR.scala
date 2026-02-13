@@ -39,15 +39,17 @@ import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, Codegen
 import org.sireum.hamr.codegen.common.util._
 import org.sireum.hamr.codegen.microkit.plugins.MicrokitPlugins
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
+import org.sireum.hamr.sysml.integration.IntegrationConstraints.IntegrationConnection
 import org.sireum.hamr.sysml.parser.SysMLGrammar
 import org.sireum.hamr.sysml.stipe.{TypeHierarchy => sysmlTypeHierarchy}
 import org.sireum.logika.NoTransitionSmt2Cache
+import org.sireum.logika.Task.Claim
 import org.sireum.message._
 
 object HAMR {
 
   @ext object HAMR {
-    def getIntegrationConstraintReporter(connections: HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection],
+    def getIntegrationConstraintReporter(integrationConnection: IntegrationConnection,
                                          reporter: Reporter): logika.Logika.Reporter = $
   }
 
@@ -670,7 +672,7 @@ object HAMR {
       eprintln(s"Line option cannot be provided without a file argument")
       return INVALID_OPTIONS
     }
-    var connections: ISZ[(lang.tipe.TypeHierarchy, HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection])] = ISZ()
+    var connections: ISZ[(lang.tipe.TypeHierarchy, HashSMap[String, IntegrationConnection])] = ISZ()
     var fileOptionMap: LibUtil.FileOptionMap = HashMap.empty
     sysmlRun(Cli.SireumHamrSysmlTipeOption(o.help, o.args, o.exclude, o.sourcepath, o.parseableMessages), reporter) match {
       case Either.Left((_, models, inputs, store, hasError)) =>
@@ -681,8 +683,8 @@ object HAMR {
         for (input <- inputs) {
           fileContentMap = fileContentMap + input.fileUri.get ~> input.content
         }
-        for (ic <- hamr.sysml.FrontEnd.getIntegerationConstraints(models, reporter)) {
-          var h: HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection] = HashSMap.empty
+        for (ic <- hamr.sysml.FrontEnd.getIntegrationConstraints(models, reporter)) {
+          var h: HashSMap[String, IntegrationConnection] = HashSMap.empty
           for (c <- ic.connections.entries if c._2.dstConstraint.nonEmpty) {
             var add = F
             for (posOpt <- c._2.connectionReferences.values) {
@@ -831,6 +833,7 @@ object HAMR {
         val claim = c.claim
         val (ids, midPointPos) = c.connectionMidPoint
         println(st"Checking integration constraints of ${(ids, ".")}".render)
+
         var conf = config
         midPointPos match {
           case Some(pos) => fileOptionMap.get(pos.uriOpt) match {
@@ -852,32 +855,39 @@ object HAMR {
       }
     }
 
-    var conns: HashSMap[String, hamr.sysml.FrontEnd.IntegerationConnection] = HashSMap.empty
+    var conns: HashSMap[String, IntegrationConnection] = HashSMap.empty
     for (c <- connections) {
       assert (ops.ISZOps(c._2.keys).forall(title => !conns.contains(title)), "Duplicate title detected")
       conns = conns ++ c._2.entries
     }
-    val hreporter = HAMR.getIntegrationConstraintReporter(conns, reporter)
 
-    val smt2f = (th: lang.tipe.TypeHierarchy) =>
-      logika.Smt2Impl.create(
-        config = config,
-        plugins = logika.plugin.Plugin.claimPlugins(plugins),
-        typeHierarchy = th,
-        reporter = hreporter)
+    for (t <- tasks) {
+      val c = t.asInstanceOf[Claim]
+      val ic = conns.get(c.title).get
 
-    logika.Logika.checkTasks(
-      tasks = tasks,
-      par = parCores,
-      nameExePathMap = nameExePathMap,
-      maxCores = Os.numOfProcessors,
-      fileOptions = fileOptionMap,
-      smt2f = smt2f,
-      cache = NoTransitionSmt2Cache.create,
-      reporter = hreporter,
-      verifyingStartTime = verifyingStartTime)
+      val hreporter = HAMR.getIntegrationConstraintReporter(ic, reporter)
 
-    reporter.reports(hreporter.messages)
+      val smt2f = (th: lang.tipe.TypeHierarchy) =>
+        logika.Smt2Impl.create(
+          config = config,
+          plugins = logika.plugin.Plugin.claimPlugins(plugins),
+          typeHierarchy = th,
+          reporter = hreporter)
+
+      logika.Logika.checkTasks(
+        tasks = ISZ(t),
+        par = parCores,
+        nameExePathMap = nameExePathMap,
+        maxCores = Os.numOfProcessors,
+        fileOptions = fileOptionMap,
+        smt2f = smt2f,
+        cache = NoTransitionSmt2Cache.create,
+        reporter = hreporter,
+        verifyingStartTime = verifyingStartTime
+
+      )
+      reporter.reports(hreporter.messages)
+    }
 
     if (o.parseableMessages) {
       Os.printParseableMessages(reporter)
