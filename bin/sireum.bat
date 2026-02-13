@@ -5,14 +5,17 @@ pushd %SIREUM_HOME%
 set SIREUM_HOME=%CD%
 popd
 set JAVA_HOME=%SIREUM_HOME%\bin\win\java
+set PROYEK_JFX=%JAVA_HOME%\lib\javafx.properties
 set NEWER=False
+if "%SIREUM_NATIVE%"=="false" goto jar
 if exist "%~dp0win\sireum.exe" goto native
+:jar
 set JAVA=java.exe
 if defined SIREUM_PROVIDED_SCALA set SIREUM_PROVIDED_JAVA=true
 if not defined SIREUM_PROVIDED_SCALA set SCALA_HOME=%SIREUM_HOME%/bin/scala
 if not defined SIREUM_PROVIDED_JAVA set JAVA=%JAVA_HOME%\bin\java.exe
 copy /Y "%~dp0sireum.jar" "%~dp0.sireum-win.jar" > nul 2>&1
-"%JAVA%" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JAVA_OPTS% -jar "%~dp0.sireum-win.jar" %*
+"%JAVA%" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JAVA_OPTS% -cp "%SCALA_HOME%\lib\*;%~dp0.sireum-win.jar" org.sireum.Sireum %*
 exit /B %errorlevel%
 
 :native

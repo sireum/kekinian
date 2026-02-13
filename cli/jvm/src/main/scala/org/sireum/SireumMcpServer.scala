@@ -31,8 +31,8 @@ import io.modelcontextprotocol.server.transport.StdioServerTransportProvider
 import io.modelcontextprotocol.spec.McpSchema
 import io.modelcontextprotocol.json.McpJsonMapper
 
-import java.io.{FilterInputStream, PrintWriter, StringWriter}
-import java.util.concurrent.CountDownLatch
+import java.io.{FileOutputStream, FilterInputStream, PrintWriter, StringWriter}
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 object SireumMcpServer {
 
@@ -50,17 +50,29 @@ object SireumMcpServer {
 
   def run(): Unit = {
     val stdinClosedLatch = new CountDownLatch(1)
-    val originalIn = System.in
-    System.setIn(new FilterInputStream(originalIn) {
+
+    System.setIn(new FilterInputStream(System.in) {
       override def read(): Int = {
-        val b = super.read()
-        if (b == -1) stdinClosedLatch.countDown()
-        b
+        try {
+          val b = super.read()
+          if (b == -1) stdinClosedLatch.countDown()
+          b
+        } catch {
+          case _: java.io.IOException =>
+            stdinClosedLatch.countDown()
+            -1
+        }
       }
       override def read(buf: Array[Byte], off: Int, len: Int): Int = {
-        val n = super.read(buf, off, len)
-        if (n == -1) stdinClosedLatch.countDown()
-        n
+        try {
+          val n = super.read(buf, off, len)
+          if (n == -1) stdinClosedLatch.countDown()
+          n
+        } catch {
+          case _: java.io.IOException =>
+            stdinClosedLatch.countDown()
+            -1
+        }
       }
     })
 
@@ -99,8 +111,22 @@ object SireumMcpServer {
       .tools(toolSpecs)
       .build()
 
+    // Monitor parent process — exit if parent dies
+    val parentPid = ProcessHandle.current().parent().map[Long](_.pid()).orElse(-1L)
+    val watchdog = new Thread(() => {
+      while (true) {
+        try { Thread.sleep(2000) } catch { case _: InterruptedException => return }
+        if (parentPid > 0 && !ProcessHandle.of(parentPid).isPresent) {
+          Runtime.getRuntime.halt(0)
+        }
+      }
+    })
+    watchdog.setDaemon(true)
+    watchdog.start()
+
+    // Wait for stdin EOF, then force exit
     stdinClosedLatch.await()
-    server.close()
+    Runtime.getRuntime.halt(0)
   }
 
   private def collectTools(node: JsonNode, path: List[JString],
@@ -410,6 +436,21 @@ object SireumMcpServer {
     if (stderrStr.nonEmpty) {
       if (sb.length() > 0) sb.append("\n")
       sb.append(stderrStr)
+    }
+
+    // Write stdout/stderr to .mcp.out in the working directory
+    try {
+      val mcpOut = new PrintWriter(new FileOutputStream(".mcp.out", false))
+      try {
+        mcpOut.println(s"=== sireum ${cliArgs.asScala.mkString(" ")} ===")
+        if (stdoutStr.nonEmpty) mcpOut.print(stdoutStr)
+        if (stderrStr.nonEmpty) mcpOut.print(stderrStr)
+        mcpOut.flush()
+      } finally {
+        mcpOut.close()
+      }
+    } catch {
+      case _: Throwable =>
     }
 
     val messages = reporter.messages

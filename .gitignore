@@ -68,3 +68,4 @@ stale_outputs_checked
 7za
 7za.exe
 *.bom.json
+.mcp.out

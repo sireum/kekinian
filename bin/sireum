@@ -39,9 +39,10 @@ fi
 if [[ -z ${SIREUM_PROVIDED_SCALA} ]]; then
   export SCALA_HOME=$SIREUM_HOME/bin/scala
 fi
+export PROYEK_JFX=${JAVA_HOME}/lib/javafx.properties
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
-if [[ -f ${NATIVE} ]]; then
+if [[ "${SIREUM_NATIVE}" != "false" && -f ${NATIVE} ]]; then
   exec "${NATIVE}" "$@"
 else
-  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -jar "${SIREUM_JAR}" "$@"
+  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}" org.sireum.Sireum "$@"
 fi
