@@ -48,16 +48,6 @@ object Sireum {
     extends logika.ReporterImpl(logPc, logRawPc, logVc, logDetailedInfo, F, ISZ(), stats, nv, ns, vm, nm) {
     val sha3 = MessageDigest.getInstance("SHA3-512")
 
-    feedbackDirOpt match {
-      case Some(d) =>
-        if (!server.Server.checkLinuxAPE(homeOpt.get)) {
-          write(d, server.protocol.JSON.fromReport(server.protocol.Report(ISZ(), message.Message(message.Level.Error,
-            None(), "Sireum", server.Server.apeMessage)), T))
-          Os.exit(-1)
-        }
-      case _ =>
-    }
-
     def write(d: Os.Path, content: String): Unit = {
       val f = d / st"${(ISZ(sha3.digest(content.value.getBytes("UTF-8")).take(8).map(U8(_)).toSeq: _*), "")}.json".render
       f.writeOver(content)
