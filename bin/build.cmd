@@ -397,8 +397,11 @@ def regenJson(): Unit = {
   val jsonPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "parser"
   val parserResourcesPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "resources"
   val license = home / "license.txt"
-  val input = parserResourcesPackagePath / "JSON.g"
-  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking -o $jsonPackagePath $input".console,
+  val jsonInput = parserResourcesPackagePath / "JSON.g"
+  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m slang -n Json --no-backtracking -o $jsonPackagePath $jsonInput".console,
+    message.Reporter.create)
+  val jsoncInput = parserResourcesPackagePath / "JSONC.g"
+  Sireum.procCheck(proc"$sireum parser gen -l $license -p org.sireum.parser -m slang -n Jsonc --no-backtracking -o $jsonPackagePath $jsoncInput".console,
     message.Reporter.create)
 }
 
