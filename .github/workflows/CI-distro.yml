@@ -760,37 +760,6 @@ jobs:
           :error
           exit /b %errorlevel%
 
-  test-linux-amd64-22-04:
-    needs: build-linux-amd64
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Setup APE binfmt
-        run: |
-          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
-          sudo chmod +x /usr/bin/ape
-          sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
-          sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
-      - name: Test CodeIVE
-        run: |
-          rm -fR ~/.m2 logika-examples
-          DISTRO=codeive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
-          export SIREUM_HOME=~/Applications/Sireum
-          git clone https://github.com/sireum/logika-examples
-          logika-examples/bin/verify.cmd
-          "${SIREUM_HOME}/bin/sireum" proyek export logika-examples
-      - name: Test IVE
-        run: |
-          rm -fR ~/.m2 logika-examples
-          DISTRO=ive sh -c "$(curl -fsSL https://github.com/sireum/kekinian/releases/download/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}/install.cmd)"
-          export SIREUM_HOME=~/Applications/Sireum
-          git clone https://github.com/sireum/logika-examples
-          logika-examples/bin/verify.cmd
-          "${SIREUM_HOME}/bin/sireum" proyek ive logika-examples
-      - name: Test FMIDE
-        run: |
-          export SIREUM_HOME=~/Applications/Sireum
-          "${SIREUM_HOME}/bin/install/fmide.cmd"
-
   test-linux-amd64-latest:
     needs: build-linux-amd64
     runs-on: ubuntu-latest
