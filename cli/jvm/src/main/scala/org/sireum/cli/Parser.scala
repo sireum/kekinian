@@ -80,20 +80,28 @@ object Parser {
     val fileInfo = st"""// This file is auto-generated from ${src.name}
                        |"""
 
+    val isLLk = o.predictive && !o.memoize && !o.backtracking && src.name != "SlangTruthTable.g"
     val rOpt: Option[parser.ParseTree] = o.mode match {
-      case Cli.SireumParserGenParserGenMode.Slang => parser.SireumGrammarParser.parse(Some(src.toUri), src.read, reporter)
+      case Cli.SireumParserGenParserGenMode.Slang =>
+        if (isLLk) parser.SireumGrammarParser.parse(Some(src.toUri), src.read, reporter)
+        else parser.SireumGrammarParserOld.parse(Some(src.toUri), src.read, reporter)
       case _ => SireumApi.parseGrammar(Some(src.toUri), src.read, reporter)
     }
     if (reporter.hasError) {
       reporter.printMessages()
       return INVALID_INPUT
     }
-    val ast = parser.GrammarAstBuilder(rOpt.get).build(reporter)
+    val ast: parser.GrammarAst.Grammar =
+      if (isLLk) parser.LLkGrammarAstBuilder(rOpt.get).build(reporter)
+      else parser.GrammarAstBuilder(rOpt.get).build(reporter)
     if (reporter.hasError) {
       reporter.printMessages()
       return INVALID_INPUT
     }
-    parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, o.predictive, o.backtracking, reporter) match {
+    val parserOpt: Option[ST] =
+      if (isLLk) parser.LLkParserGenerator.gen(licenseOpt, fileInfo, packageOpt, name, ast, reporter)
+      else parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, o.predictive, o.backtracking, reporter)
+    parserOpt match {
       case Some(out) =>
         dest.writeOver(out.render)
         println(s"Wrote $dest")
