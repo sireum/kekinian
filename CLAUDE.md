@@ -29,10 +29,12 @@
 - Function parameters expecting `@pure` callees need `@pure` on the function type (e.g., `((E, Z), (E, Z)) => B @pure`). Regular Scala lambdas satisfy this from non-Slang code.
 - Scala/Slang semicolon inference gotcha: `None()` followed by `{` on the next line is parsed as `None(){...}`. Insert an empty line (double newline) before bare `{` blocks to force semicolon inference. This applies to both `// #Sireum` files and plain Scala files.
 - Pattern matching on `Option` of tuples: `case Some(pair) =>` on `Option[(A, B)]` triggers a Scala deprecation warning ("crushing into 2-tuple") which fails under `-Werror`. Always destructure explicitly: `case Some((a, b)) =>`.
+- Slang does not support nested classes. All `@datatype`, `@record`, `@sig`, and `@enum` declarations must be at the top level or inside a top-level `object`.
 
 ### Types and Collections
 - `@datatype` = immutable, `@record` = mutable.
-- Collections: `ISZ` (immutable seq), `MSZ (mutable seq)`, `HashSMap` (sorted hash map), `HashSSet` (sorted hash set).
+- Mutable objects (`@record`) are deeply cloned on assignment to fields, local variables, or array elements (if the object was previously assigned). Parameter passing creates an alias, with the restriction that a mutable object and one of its substructures cannot be passed simultaneously as arguments. Hence, mutable object graphs are at most trees, while immutable ones (`@datatype`) can form DAGs.
+- Collections: `ISZ` (immutable seq), `MSZ (mutable seq)`, `HashSMap` (ordered hash map by insertion order), `HashSSet` (ordered hash set by insertion order).
 - Unsigned integer types (`U8`, `U16`, `U32`, `U64`) print as hex by default in string interpolation.
 - `Z` and `@range` class types do not support bitwise operations (`&`, `|`, `<<`, `>>`, `>>>`, `~`). Use unsigned integer types (`U8`, `U16`, `U32`, `U64`) for bitwise ops, converting via `conversions.Z.toU32`/`conversions.U32.toZ` etc.
 - Use `~>` for map entry creation with `+` to add to maps.
@@ -47,6 +49,15 @@
 - Example generating `u32"0"`: `st"""u32"${conversions.U32.toZ(v)}""""`  (the 4th `"` is content, the last `"""` closes).
 - `render` produces the full string; `renderCompact` collapses contiguous whitespace to single spaces.
 - `\` in `st"..."` is an escape character, same as in regular Scala strings. `st"\n"` produces a newline, `st"\\"` produces `\`.
+
+### Serialization (toCompact / fromCompact)
+- Slang `@datatype`/`@record`/`@sig`/`@msig` types can be serialized to compact base64 strings using `MessagePack` + LZ4 compression + Base64 encoding.
+- **`toCompact`**: serializes via `MessagePack.writer(T)`, writes fields with `w.writeZ`/`w.writeU32`/`w.writeString`/`w.writeB`/etc., then `ops.StringOps.toBase64(ops.ISZOps.lz4Compress(w.result))`. The uncompressed data adheres to the standard [MessagePack](https://msgpack.org) binary format (adapted from `msgpack4z-native`).
+- **`fromCompact`**: deserializes via `ops.ISZOps.lz4Decompress(ops.StringOps.fromBase64(s).left).left`, then `MessagePack.reader(data)` with `r.init()` and `r.readZ`/`r.readU32`/etc.
+- **`toCompactST`**: convenience method returning `st"""Xxx.fromCompact("${toCompact}")"""` — a Slang expression that reconstructs the object.
+- For `@sig` trait hierarchies, use integer tags to distinguish variants: write a tag via `w.writeZ(tag)` before fields, read it back to dispatch to the correct constructor.
+- Used by `NGrammar`, `PredictiveTable`, and `LexerDfas` to embed serialized data structures as string constants in generated parser source files.
+- **Auto-generated serializers**: `sireum tools sergen` generates `JSON` and `MsgPack` serializer objects for `@datatype`/`@record`/`@sig`/`@msig` types (e.g., `slang/tipe/shared/.../JSON.scala`, `MsgPack.scala`). These are higher-level than hand-written `toCompact`/`fromCompact` and support full type hierarchies automatically. Both use standard formats (JSON and MessagePack respectively). Limitations: does not work on generic types (all type parameters must be instantiated), and does not work with nested collection classes. The JSON de/serialization is strict — a `type` field is added to record the class simple name, and keys must be in the same order as the class fields.
 
 ### @ext Objects
 - `@ext("Foo_Ext") object Ext { def bar(x: String): Z = $ }` maps to `object Foo_Ext { def bar(...): Z = ... }` in a plain Scala file (same package). The argument is the exact implementation class name.
@@ -90,8 +101,7 @@
 - In JVM runtime, `ISZ` extends Scala's `IndexedSeq`, so `.size` returns Scala `Int`. Use plain `Int` literals (e.g., `== 1`) for size comparisons in test code, NOT `Z(1)` — `Int == Z` is always `false`.
 - CRITICAL: Comparing `org.sireum.String` fields (e.g., `.text`, `.ruleName`) with Scala string literals via `==` fails under `-Werror` ("unrelated types"). Wrap literals with `String("...")` (e.g., `assert(token.text == String("hello"))`).
 
-## Project Structure
-- Slang LL(2) parser grammars are in `slang/parser/shared/src/main/resources/`
-- ANTLR v3 grammar: `SlangLl2.g` (LL(2))
-- Tree-sitter grammar: `grammar.js` (created from SlangLl2.g)
-- Grammar-Kit BNF: `SlangLl2.bnf` (created from SlangLl2.g)
+## Module-Specific Documentation
+- `runtime/CLAUDE.md` — Parse tree structure (`ParseTree.Leaf`, `ParseTree.Node`, synthetic rules, `NGrammar.parse`)
+- `parser/CLAUDE.md` — LL(k) parser generator (`LLkParserGenerator`, DFA construction, generated parser structure)
+- `slang/CLAUDE.md` — Slang language construct mapping (Scala-based vs LL(2) syntax, AST node types)
