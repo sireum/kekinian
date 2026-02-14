@@ -34,6 +34,7 @@ object Parser {
   val INVALID_OPTIONS: Z = -1
   val INVALID_OUTDIR: Z = -2
   val INVALID_INPUT: Z = -3
+  val INVALID_GRAMMAR: Z = -4
 
   def gen(o: Cli.SireumParserGenOption, reporter: message.Reporter): Z = {
     if (o.args.isEmpty) {
@@ -105,10 +106,14 @@ object Parser {
       case Some(out) =>
         dest.writeOver(out.render)
         println(s"Wrote $dest")
+        return 0
       case _ =>
         reporter.printMessages()
+        if (isLLk) {
+          eprintln(s"The grammar is not LL(${ast.k})")
+        }
+        return INVALID_GRAMMAR
     }
-    return 0
   }
 
 }
