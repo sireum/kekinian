@@ -121,7 +121,16 @@ object Proyek {
     println("Loading project ...")
 
     prj = org.sireum.proyek.Proyek.getProject(SireumApi.homeOpt.get, path, jsonOpt, projectOpt) match {
-      case Some(pr) => pr.slice(slice)
+      case Some(pr) =>
+        if (slice.nonEmpty) {
+          val mids = pr.modules.keySet
+          val invalidIds: ISZ[String] = for (s <- slice if !mids.contains(s)) yield s
+          if (invalidIds.nonEmpty) {
+            eprintln(st"Invalid module id(s): ${(invalidIds, ", ")}".render)
+            return ret(INVALID_PROJECT)
+          }
+        }
+        pr.slice(slice)
       case _ => return ret(INVALID_PROJECT)
     }
 
