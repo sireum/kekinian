@@ -31,7 +31,6 @@ val cliJvm = moduleJvmPub(
   baseDir = homeDir,
   jvmDeps = ISZ(server),
   jvmIvyDeps = ISZ(
-    "org.commonmark:commonmark-ext-yaml-front-matter:",
     "io.modelcontextprotocol.sdk:mcp:",
     "org.slf4j:slf4j-nop:"
   ),

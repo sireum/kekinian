@@ -12,6 +12,13 @@
 - `import org.sireum._` must be the first import in any Slang file.
 - `u32"..."` interpolator requires `import org.sireum.U32._`. Same pattern for other fixed-width types (e.g., `U8._`, `U16._`, `U64._`).
 
+### Generated Slang Code
+- Generated Slang files MUST start with `// #Sireum` as the very first line. Without it, `@range`, `@record`, `@datatype`, `@pure`, and string interpolators like `state"..."` are not processed.
+- `@range` class string interpolators (e.g., `state"0"`) require `import State._` to be in scope. Code inside the companion object where `State` is defined does NOT automatically have the interpolator — use `State(0)` constructor instead.
+- `ops.COps` has `escapeString` (returns `String`); `ops.StringOps` has `escapeST` (returns `ST`). Don't confuse them.
+- JVM limits string constants to 65535 UTF-8 bytes. When generating large string literals (e.g., base64-encoded `NGrammar.toCompact`), split into chunks stored as separate `val`s and concatenate at runtime via `st"$s0$s1".render`.
+- CRITICAL: Slang `String` does NOT support `+` for concatenation in `// #Sireum` files. Use `st"$s1$s2".render` instead.
+
 ### Core Rules
 - CRITICAL: Non-`@strictpure` methods (including nested `def`s) must use explicit `return` keyword for every return path. Slang does not support implicit returns from match expressions or other blocks. Every branch in a `match` must have `return`.
 - `@strictpure` methods cannot have `return`, loops (`while`/`for` without `yield`), `var`, assignments other than `val` initialization, or nested `def`s. They must be single expressions. `for-yield` is allowed.
@@ -20,6 +27,8 @@
 - `for-yield` cannot have code blocks `{ ... }`. The yield body must be a single expression. Inline variable declarations directly into the expression (e.g., use `for (e <- xs) yield st"${f(e)}"` instead of `for (e <- xs) yield { val v = f(e); st"$v" }`).
 - `@memoize` methods cannot have empty parameter lists `()`. Use parameterless def syntax instead.
 - Function parameters expecting `@pure` callees need `@pure` on the function type (e.g., `((E, Z), (E, Z)) => B @pure`). Regular Scala lambdas satisfy this from non-Slang code.
+- Scala/Slang semicolon inference gotcha: `None()` followed by `{` on the next line is parsed as `None(){...}`. Insert an empty line (double newline) before bare `{` blocks to force semicolon inference. This applies to both `// #Sireum` files and plain Scala files.
+- Pattern matching on `Option` of tuples: `case Some(pair) =>` on `Option[(A, B)]` triggers a Scala deprecation warning ("crushing into 2-tuple") which fails under `-Werror`. Always destructure explicitly: `case Some((a, b)) =>`.
 
 ### Types and Collections
 - `@datatype` = immutable, `@record` = mutable.
@@ -57,6 +66,7 @@
 - **Updated `sireum.jar` needed**: run `bin/build.cmd` (compiles + assembles jar).
 
 ### Tools
+- IMPORTANT: Unless the Sireum MCP server is unavailable, always use the Sireum MCP tools (`sireum_proyek_tipe`, `sireum_proyek_compile`, `sireum_proyek_test`, etc.) instead of invoking CLI commands via Bash. If the Task agent API fails three times in a session, switch to using direct tool calls for the remainder of the session instead of Task agents.
 - **`sireum_proyek_tipe`**: Slang type checker. Only checks `// #Sireum` files — plain Scala files are not checked. Use `sireum_proyek_compile` to verify non-Slang Scala files compile.
 - **`sireum_proyek_compile`**: Full Scala compilation (Slang and non-Slang files).
 - **`sireum_proyek_test`**: Test runner. Provide `classes` option with comma-separated FQCNs. Optionally supply `coverage` with `<path>/<name>` where `<path>` is a temporary folder for JaCoCo coverage output and `<name>` is a session name.
@@ -78,6 +88,7 @@
 - Test files are plain Scala (not `// #Sireum`), using `TestSuite` from `org.sireum.test._`.
 - Pattern: `val tests = Tests { * - { ... } }`.
 - In JVM runtime, `ISZ` extends Scala's `IndexedSeq`, so `.size` returns Scala `Int`. Use plain `Int` literals (e.g., `== 1`) for size comparisons in test code, NOT `Z(1)` — `Int == Z` is always `false`.
+- CRITICAL: Comparing `org.sireum.String` fields (e.g., `.text`, `.ruleName`) with Scala string literals via `==` fails under `-Werror` ("unrelated types"). Wrap literals with `String("...")` (e.g., `assert(token.text == String("hello"))`).
 
 ## Project Structure
 - Slang LL(2) parser grammars are in `slang/parser/shared/src/main/resources/`
