@@ -51,10 +51,10 @@
 - `\` in `st"..."` is an escape character, same as in regular Scala strings. `st"\n"` produces a newline, `st"\\"` produces `\`.
 
 ### Serialization (toCompact / fromCompact)
-- Slang `@datatype`/`@record`/`@sig`/`@msig` types can be serialized to compact base64 strings using `MessagePack` + LZ4 compression + Base64 encoding.
+- Slang `@datatype`/`@record`/`@sig`/`@msig` types can be serialized to compact base64 strings using `MessagePack` + LZ4 compression + Base64 encoding by generating `fromCompact/toCompact'.
 - **`toCompact`**: serializes via `MessagePack.writer(T)`, writes fields with `w.writeZ`/`w.writeU32`/`w.writeString`/`w.writeB`/etc., then `ops.StringOps.toBase64(ops.ISZOps.lz4Compress(w.result))`. The uncompressed data adheres to the standard [MessagePack](https://msgpack.org) binary format (adapted from `msgpack4z-native`).
 - **`fromCompact`**: deserializes via `ops.ISZOps.lz4Decompress(ops.StringOps.fromBase64(s).left).left`, then `MessagePack.reader(data)` with `r.init()` and `r.readZ`/`r.readU32`/etc.
-- **`toCompactST`**: convenience method returning `st"""Xxx.fromCompact("${toCompact}")"""` — a Slang expression that reconstructs the object.
+- **`toCompactST`**: convenience method returning `st"""Xxx.fromCompact("${toCompact}")"""`
 - For `@sig` trait hierarchies, use integer tags to distinguish variants: write a tag via `w.writeZ(tag)` before fields, read it back to dispatch to the correct constructor.
 - Used by `NGrammar`, `PredictiveTable`, and `LexerDfas` to embed serialized data structures as string constants in generated parser source files.
 - **Auto-generated serializers**: `sireum tools sergen` generates `JSON` and `MsgPack` serializer objects for `@datatype`/`@record`/`@sig`/`@msig` types (e.g., `slang/tipe/shared/.../JSON.scala`, `MsgPack.scala`). These are higher-level than hand-written `toCompact`/`fromCompact` and support full type hierarchies automatically. Both use standard formats (JSON and MessagePack respectively). Limitations: does not work on generic types (all type parameters must be instantiated), and does not work with nested collection classes. The JSON de/serialization is strict — a `type` field is added to record the class simple name, and keys must be in the same order as the class fields.
@@ -65,7 +65,7 @@
 
 ### Plain Scala Files with `import org.sireum._`
 - `import org.sireum._` shadows `java.lang.String` with `org.sireum.String`. Use `.value` to convert to `java.lang.String` for Java API calls. Use `Predef.String` for explicit `java.lang.String` type positions (e.g., `HashMap[Predef.String, Predef.String]`).
-- `null` is not assignable to `org.sireum.String`. Use `Predef.String` for Java collections that need nulls.
+- `null` should not be assigned to Slang type. For strings, use `Predef.String` for Java collections that need nulls.
 - Wrap `java.lang.String` back to `org.sireum.String` via `String(javaString)` for return values.
 - Tuples work across Slang/Scala boundaries (e.g., `(Z, String, String)` return type).
 
