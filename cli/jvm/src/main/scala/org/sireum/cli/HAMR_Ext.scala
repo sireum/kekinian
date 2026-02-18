@@ -3,8 +3,6 @@ package org.sireum.cli
 import org.sireum._
 import org.sireum.hamr.codegen.common.reporting.IntegrationConstraintReporting.{GclIntegrationConstraint, Smt2QueryResult}
 import org.sireum.hamr.codegen.common.reporting.{IntegrationConstraintJSON, IntegrationConstraintReporting}
-import org.sireum.hamr.sysml.FrontEnd
-import org.sireum.hamr.sysml.integration.IntegrationConstraints
 import org.sireum.hamr.sysml.integration.IntegrationConstraints.IntegrationConnection
 import org.sireum.logika.{Logika, Smt2Query}
 import org.sireum.message.{Position, Reporter}
@@ -60,6 +58,10 @@ class HamrIntegrationConstraintReporter(val conn: IntegrationConnection,
   ns = ns,
   vm = vm,
   nm = nm) {
+
+
+  override def $clone: HamrIntegrationConstraintReporter = new HamrIntegrationConstraintReporter(
+    conn, integrationOnly, feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, nv, ns, vm, nm)
 
   override def empty: Logika.Reporter = {
     val r = new HamrIntegrationConstraintReporter(conn, integrationOnly, feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, nv, ns, vm, nm)

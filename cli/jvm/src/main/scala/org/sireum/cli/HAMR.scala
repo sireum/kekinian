@@ -831,12 +831,12 @@ object HAMR {
 
     val verifyingStartTime = extension.Time.currentMillis
 
-    var tasks = ISZ[logika.Task]()
+    var tasks = MSZ[(logika.Task, logika.Logika.Reporter)]()
     for (p <- connections) {
       for (c <- p._2.values) {
         val claim = c.claim
         val (ids, midPointPos) = c.connectionMidPoint
-        println(st"Checking integration constraints of ${(ids, ".")}".render)
+        println(s"Checking ${ops.StringOps(c.title).firstToLower}")
 
         var conf = config
         midPointPos match {
@@ -855,43 +855,29 @@ object HAMR {
           }
           case _ =>
         }
-        tasks = tasks :+ logika.Task.Claim(p._1, conf, c.title, claim, plugins)
+        tasks = tasks :+ (logika.Task.Claim(p._1, conf, c.title, claim, plugins),
+          HAMR.getIntegrationConstraintReporter(T, c, reporter))
       }
     }
 
-    var conns: HashSMap[String, IntegrationConnection] = HashSMap.empty
-    for (c <- connections) {
-      assert (ops.ISZOps(c._2.keys).forall(title => !conns.contains(title)), "Duplicate title detected")
-      conns = conns ++ c._2.entries
-    }
+    val smt2f = (th: lang.tipe.TypeHierarchy, r: logika.Logika.Reporter) =>
+      logika.Smt2Impl.create(
+        config = config,
+        plugins = logika.plugin.Plugin.claimPlugins(plugins),
+        typeHierarchy = th,
+        reporter = r)
 
-    for (t <- tasks) {
-      val c = t.asInstanceOf[Claim]
-      val ic = conns.get(c.title).get
-
-      val hreporter = HAMR.getIntegrationConstraintReporter(T, ic, reporter)
-
-      val smt2f = (th: lang.tipe.TypeHierarchy) =>
-        logika.Smt2Impl.create(
-          config = config,
-          plugins = logika.plugin.Plugin.claimPlugins(plugins),
-          typeHierarchy = th,
-          reporter = hreporter)
-
-      logika.Logika.checkTasks(
-        tasks = ISZ(t),
-        par = parCores,
-        nameExePathMap = nameExePathMap,
-        maxCores = Os.numOfProcessors,
-        fileOptions = fileOptionMap,
-        smt2f = smt2f,
-        cache = NoTransitionSmt2Cache.create,
-        reporter = hreporter,
-        verifyingStartTime = verifyingStartTime
-
-      )
-      reporter.reports(hreporter.messages)
-    }
+    logika.Logika.checkTasksH(
+      tasks = tasks,
+      par = parCores,
+      nameExePathMap = nameExePathMap,
+      maxCores = Os.numOfProcessors,
+      fileOptions = fileOptionMap,
+      smt2f = smt2f,
+      cache = NoTransitionSmt2Cache.create,
+      verifyingStartTime = verifyingStartTime,
+      reporter = reporter
+    )
 
     if (o.parseableMessages) {
       Os.printParseableMessages(reporter)
