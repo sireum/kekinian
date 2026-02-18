@@ -165,10 +165,14 @@ def build(fresh: B, isNative: B, isUber: B, isNativeScript: B): Unit = {
     } else {
       (homeBin / platform / "sireum").removeAll()
     }
-    (home / "out" / proyekName / "assemble" / sireumJar.name).copyOverTo(sireumJar)
+    val proyekSireumJar = home / "out" / proyekName / "assemble" / sireumJar.name
+    proyekSireumJar.copyOverTo(sireumJar)
+    println(s"Copied $proyekSireumJar to $sireumJar")
     if (isUber) {
       val uberJar = homeBin / s"${sireumJar.name}.bat"
-      (home / "out" / proyekName / "assemble" / uberJar.name).copyOverTo(uberJar)
+      val proyekUberJar = home / "out" / proyekName / "assemble" / uberJar.name
+      proyekUberJar.copyOverTo(uberJar)
+      println(s"Copied $proyekUberJar to $uberJar")
     }
     if (isNative) {
       val exePath: Os.Path = Os.kind match {
@@ -179,7 +183,9 @@ def build(fresh: B, isNative: B, isUber: B, isNativeScript: B): Unit = {
         case _ => halt("Infeasible")
       }
       if (!isNativeScript) {
-        (home / "out" / proyekName / "assemble" / exePath.name).copyOverTo(exePath)
+        val proyekExe = home / "out" / proyekName / "assemble" / exePath.name
+        proyekExe.copyOverTo(exePath)
+        println(s"Copied $proyekExe to $exePath")
       }
     }
   } else {
