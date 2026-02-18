@@ -860,6 +860,9 @@ object Proyek {
       rwEvalTrace = T,
       branchParPredNum = 3,
       branchParPredComp = 16
+//      undefined = F,
+//      useInt = F,
+//      branchSat = F
     )
     val mbox: MBox2[HashMap[String, HashMap[String, org.sireum.lang.FrontEnd.Input]], HashMap[String, TypeHierarchy]] = MBox2(HashMap.empty, HashMap.empty)
     val lcode = org.sireum.proyek.Analysis.run(
@@ -1110,6 +1113,9 @@ object Proyek {
       rwEvalTrace = o.rwEvalTrace,
       branchParPredNum = o.branchPredNum,
       branchParPredComp = o.branchPredComplexity
+//      undefined = F,
+//      useInt = F,
+//      branchSat = F
     )
 
     val (lcode, vtime) = Analysis.run(
@@ -1573,6 +1579,9 @@ object Proyek {
       rwEvalTrace = T,
       branchParPredNum = 3,
       branchParPredComp = 16
+//      undefined = F,
+//      useInt = F,
+//      branchSat = F
     )
     val lcode = Analysis.run(
       root = path,

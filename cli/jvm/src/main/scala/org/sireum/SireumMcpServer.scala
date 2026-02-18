@@ -41,6 +41,9 @@ object SireumMcpServer {
 
   private val mapper = new ObjectMapper()
 
+  @volatile private var terminalProcess: Process = _
+  @volatile private var mcpOutPath: JString = _
+
   private case class ToolInfo(commandParts: Seq[JString], opts: Seq[JsonNode], groups: Seq[JsonNode])
 
   val sireumCliSpec: JString = {
@@ -104,6 +107,24 @@ object SireumMcpServer {
         .build())
     }
 
+    // Add terminal toggle tool
+    val terminalProps = new java.util.LinkedHashMap[JString, AnyRef]()
+    val openProp = new java.util.LinkedHashMap[JString, AnyRef]()
+    openProp.put("type", "boolean")
+    openProp.put("description", "true to open the output terminal, false to close it")
+    terminalProps.put("open", openProp)
+    val terminalSchema = new McpSchema.JsonSchema("object", terminalProps,
+      java.util.Collections.emptyList[JString](), java.lang.Boolean.FALSE, null, null)
+    val terminalTool = McpSchema.Tool.builder()
+      .name("sireum_mcp_terminal")
+      .description("Toggle the MCP output terminal window that shows real-time command output")
+      .inputSchema(terminalSchema)
+      .build()
+    toolSpecs.add(McpServerFeatures.SyncToolSpecification.builder()
+      .tool(terminalTool)
+      .callHandler((_, request) => handleTerminalToggle(request.arguments()))
+      .build())
+
     val jsonMapper = McpJsonMapper.getDefault
     val transport = new StdioServerTransportProvider(jsonMapper)
     val server = McpServer.sync(transport)
@@ -127,6 +148,110 @@ object SireumMcpServer {
     // Wait for stdin EOF, then force exit
     stdinClosedLatch.await()
     Runtime.getRuntime.halt(0)
+  }
+
+  private def handleTerminalToggle(arguments: JMap[JString, AnyRef]): McpSchema.CallToolResult = {
+    try {
+      val open: Boolean =
+        if (arguments != null && arguments.containsKey("open"))
+          arguments.get("open") match {
+            case b: java.lang.Boolean => b
+            case _ => true
+          }
+        else true
+
+      val msg: JString = if (open) {
+        destroyTerminalProcess()
+        launchOutputTerminal()
+        if (terminalProcess != null) "Output terminal opened."
+        else "Failed to open output terminal."
+      } else {
+        if (terminalProcess != null) {
+          destroyTerminalProcess()
+          "Output terminal closed."
+        } else {
+          "Output terminal is not running."
+        }
+      }
+
+      McpSchema.CallToolResult.builder()
+        .addTextContent(msg)
+        .isError(java.lang.Boolean.FALSE)
+        .build()
+    } catch {
+      case t: Throwable =>
+        McpSchema.CallToolResult.builder()
+          .addTextContent(s"Terminal toggle failed: ${t.getMessage}")
+          .isError(java.lang.Boolean.TRUE)
+          .build()
+    }
+  }
+
+  private def destroyTerminalProcess(): Unit = {
+    val p = terminalProcess
+    terminalProcess = null
+    if (p != null) {
+      try { p.destroyForcibly() } catch { case _: Throwable => }
+    }
+    val path = mcpOutPath
+    if (path != null) {
+      try {
+        val osName: JString = System.getProperty("os.name", "").toLowerCase
+        if (osName.contains("mac")) {
+          new ProcessBuilder("osascript", "-e",
+            s"""tell application "Terminal"
+               |  repeat with w in windows
+               |    repeat with t in tabs of w
+               |      if processes of t contains "tail" and (name of w contains ".claude.out" or name of t contains ".claude.out") then
+               |        close w
+               |        exit repeat
+               |      end if
+               |    end repeat
+               |  end repeat
+               |end tell""".stripMargin
+          ).start().waitFor(5, TimeUnit.SECONDS)
+        }
+      } catch {
+        case _: Throwable =>
+      }
+    }
+  }
+
+  private def launchOutputTerminal(): Unit = {
+    try {
+      val mcpOutFile = new java.io.File(".claude.out")
+      mcpOutPath = mcpOutFile.getAbsolutePath
+      // Delete stale output, then touch so tail -f doesn't fail on non-existent file
+      mcpOutFile.delete()
+      new java.io.FileOutputStream(mcpOutFile).close()
+
+      val osName: JString = System.getProperty("os.name", "").toLowerCase
+      val proc: Process = if (osName.contains("mac")) {
+        new ProcessBuilder("osascript", "-e",
+          s"""tell application "Terminal" to do script "tail -f '$mcpOutPath'" """
+        ).start()
+      } else if (osName.contains("win")) {
+        new ProcessBuilder("cmd", "/c", "start", "powershell", "-NoExit", "-Command",
+          s"""Get-Content -Path '$mcpOutPath' -Wait -Tail 50"""
+        ).start()
+      } else {
+        // Linux: try common terminal emulators in preference order
+        val script: JString =
+          s"""if command -v x-terminal-emulator >/dev/null 2>&1; then
+             |  x-terminal-emulator -e tail -f "$mcpOutPath"
+             |elif command -v gnome-terminal >/dev/null 2>&1; then
+             |  gnome-terminal -- tail -f "$mcpOutPath"
+             |elif command -v konsole >/dev/null 2>&1; then
+             |  konsole -e tail -f "$mcpOutPath"
+             |elif command -v xterm >/dev/null 2>&1; then
+             |  xterm -e tail -f "$mcpOutPath"
+             |fi""".stripMargin
+        new ProcessBuilder("sh", "-c", script).start()
+      }
+      terminalProcess = proc
+    } catch {
+      case _: Throwable => // Silently ignore — non-critical
+    }
   }
 
   private def collectTools(node: JsonNode, path: List[JString],
@@ -328,7 +453,7 @@ object SireumMcpServer {
       java.lang.Boolean.FALSE, null, null)
   }
 
-  private def handleToolCall(info: ToolInfo, arguments: JMap[JString, AnyRef]): McpSchema.CallToolResult = {
+  private def buildCliArgs(info: ToolInfo, arguments: JMap[JString, AnyRef]): java.util.ArrayList[JString] = {
     val cliArgs = new java.util.ArrayList[JString]()
     for (part <- info.commandParts) {
       cliArgs.add(part)
@@ -414,43 +539,81 @@ object SireumMcpServer {
       }
     }
 
+    cliArgs
+  }
+
+  private def handleToolCall(info: ToolInfo, arguments: JMap[JString, AnyRef]): McpSchema.CallToolResult = {
+    val cliArgs = buildCliArgs(info, arguments)
+
     import scala.jdk.CollectionConverters._
     val sireumArgs = ISZ[String](cliArgs.asScala.toSeq.map(s => String(s)): _*)
 
+    // Open .claude.out for streaming output in real-time
+    val mcpOutStream = try {
+      val fos = new FileOutputStream(".claude.out", false)
+      val ps = new java.io.PrintStream(fos, true, "UTF-8")
+      ps.println(s"=== sireum ${cliArgs.asScala.mkString(" ")} ===")
+      ps
+    } catch {
+      case _: Throwable => null
+    }
+
+    // Create tee output streams that write to both a capture buffer and .claude.out
+    val bout = new java.io.ByteArrayOutputStream()
+    val berr = new java.io.ByteArrayOutputStream()
+
+    def makeTee(capture: java.io.ByteArrayOutputStream): java.io.PrintStream = {
+      new java.io.PrintStream(new java.io.OutputStream {
+        override def write(b: Int): Unit = {
+          capture.write(b)
+          if (mcpOutStream != null) { mcpOutStream.write(b); mcpOutStream.flush() }
+        }
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+          capture.write(b, off, len)
+          if (mcpOutStream != null) { mcpOutStream.write(b, off, len); mcpOutStream.flush() }
+        }
+        override def flush(): Unit = {
+          capture.flush()
+          if (mcpOutStream != null) mcpOutStream.flush()
+        }
+      }, true)
+    }
+
+    val oldOut = System.out
+    val oldErr = System.err
+    val teeOut = makeTee(bout)
+    val teeErr = makeTee(berr)
+    System.setOut(teeOut)
+    System.setErr(teeErr)
+
     val reporter = message.Reporter.create
-    val (exitCode, stdout, stderr) = try {
-      SireumApi.runWithReporter(sireumArgs, reporter)
+    val exitCode: Z = try {
+      Sireum.run(sireumArgs, reporter)
     } catch {
       case t: Throwable =>
         val sw = new StringWriter
         t.printStackTrace(new PrintWriter(sw))
-        (-1, String(""), String(sw.toString))
+        reporter.internalError(None(), "Sireum", sw.toString)
+        Z(-1)
+    } finally {
+      System.out.flush()
+      System.err.flush()
+      System.setOut(oldOut)
+      System.setErr(oldErr)
+      if (mcpOutStream != null) {
+        try { mcpOutStream.close() } catch { case _: Throwable => }
+      }
     }
 
     val sb = new java.lang.StringBuilder
-    val stdoutStr: JString = stdout.value
-    val stderrStr: JString = stderr.value
+    val stdoutStr: JString = bout.toString("UTF-8")
+    val stderrStr: JString = berr.toString("UTF-8")
     if (stdoutStr.nonEmpty) {
       sb.append(stdoutStr)
     }
     if (stderrStr.nonEmpty) {
       if (sb.length() > 0) sb.append("\n")
       sb.append(stderrStr)
-    }
-
-    // Write stdout/stderr to .mcp.out in the working directory
-    try {
-      val mcpOut = new PrintWriter(new FileOutputStream(".mcp.out", false))
-      try {
-        mcpOut.println(s"=== sireum ${cliArgs.asScala.mkString(" ")} ===")
-        if (stdoutStr.nonEmpty) mcpOut.print(stdoutStr)
-        if (stderrStr.nonEmpty) mcpOut.print(stderrStr)
-        mcpOut.flush()
-      } finally {
-        mcpOut.close()
-      }
-    } catch {
-      case _: Throwable =>
     }
 
     val messages = reporter.messages

@@ -230,6 +230,9 @@ object Logika {
           rwEvalTrace = o.rwEvalTrace,
           branchParPredNum = o.branchPredNum,
           branchParPredComp = o.branchPredComplexity
+//          undefined = o.undefined,
+//          useInt = o.useInt,
+//          branchSat = o.branchSat
         )
         val f = Os.path(arg)
         val ext = f.ext
@@ -383,6 +386,9 @@ object Logika {
         rwEvalTrace = o.rwEvalTrace,
         branchParPredNum = o.branchPredNum,
         branchParPredComp = o.branchPredComplexity
+//        undefined = o.undefined,
+//        useInt = o.useInt,
+//        branchSat = o.branchSat
       )
       val plugins = logika.Logika.defaultPlugins ++
         (if (o.infoFlow) logika.infoflow.InfoFlowPlugins.defaultPlugins else ISZ[logika.plugin.Plugin]())

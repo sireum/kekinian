@@ -203,6 +203,7 @@ object Cli {
   @datatype class SireumHamrSysmlLogikaOption(
     val help: String,
     val args: ISZ[String],
+    val integrationOnly: B,
     val exclude: ISZ[String],
     val feedback: Option[String],
     val sourcepath: ISZ[String],
@@ -2311,6 +2312,8 @@ import Cli._
           |Usage: <option>* <sysmlv2-file>*
           |
           |Available Options:
+          |    --integration-feedback-only
+          |                          Only output integration feedback
           |    --exclude            Sourcepath exclusion as URI segment (expects a string
           |                           separated by ",")
           |    --feedback           Feedback output directory (expects a path)
@@ -2421,6 +2424,7 @@ import Cli._
           |    --search-pc          Search path conditions first before employing SMT2
           |                           solvers when discharging VCs""".render
 
+    var integrationOnly: B = false
     var exclude: ISZ[String] = ISZ[String]()
     var feedback: Option[String] = None[String]()
     var sourcepath: ISZ[String] = ISZ[String]()
@@ -2480,7 +2484,13 @@ import Cli._
         if (args(j) == "-h" || args(j) == "--help") {
           println(help)
           return Some(HelpOption())
-        } else if (arg == "--exclude") {
+        } else if (arg == "--integration-feedback-only") {
+           val o: Option[B] = { j = j - 1; Some(!integrationOnly) }
+           o match {
+             case Some(v) => integrationOnly = v
+             case _ => return None()
+           }
+         } else if (arg == "--exclude") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => exclude = v
@@ -2798,7 +2808,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), exclude, feedback, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, branchPredNum, branchPredComplexity, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
+    return Some(SireumHamrSysmlLogikaOption(help, parseArguments(args, j), integrationOnly, exclude, feedback, sourcepath, parseableMessages, charBitWidth, fpRounding, useReal, intBitWidth, interprocedural, interproceduralContracts, strictPureMode, line, loopBound, callBound, patternExhaustive, pureFun, sat, skipMethods, skipTypes, logPc, logPcLines, logRawPc, logVc, logVcDir, logDetailedInfo, logAtRewrite, stats, par, branchPar, branchParReturn, branchPredNum, branchPredComplexity, rwPar, dontSplitFunQuant, splitAll, splitContract, splitIf, splitMatch, rwMax, rwTrace, rwEvalTrace, elideEncoding, rawInscription, rlimit, sequential, simplify, smt2SatConfigs, smt2ValidConfigs, satTimeout, timeout, searchPC))
   }
 
   def parseSireumHamrSysmlTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

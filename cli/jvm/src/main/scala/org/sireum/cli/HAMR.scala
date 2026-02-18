@@ -49,7 +49,8 @@ import org.sireum.message._
 object HAMR {
 
   @ext object HAMR {
-    def getIntegrationConstraintReporter(integrationConnection: IntegrationConnection,
+    def getIntegrationConstraintReporter(integrationOnly: B,
+                                         integrationConnection: IntegrationConnection,
                                          reporter: Reporter): logika.Logika.Reporter = $
   }
 
@@ -822,6 +823,9 @@ object HAMR {
       rwEvalTrace = o.rwEvalTrace,
       branchParPredNum = o.branchPredNum,
       branchParPredComp = o.branchPredComplexity
+      //          undefined = o.undefined,
+      //          useInt = o.useInt,
+      //          branchSat = o.branchSat
     )
     val plugins = logika.Logika.defaultPlugins
 
@@ -865,7 +869,7 @@ object HAMR {
       val c = t.asInstanceOf[Claim]
       val ic = conns.get(c.title).get
 
-      val hreporter = HAMR.getIntegrationConstraintReporter(ic, reporter)
+      val hreporter = HAMR.getIntegrationConstraintReporter(T, ic, reporter)
 
       val smt2f = (th: lang.tipe.TypeHierarchy) =>
         logika.Smt2Impl.create(

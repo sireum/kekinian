@@ -41,6 +41,10 @@ object Sireum {
             override val logVc: B,
             override val logDetailedInfo: B,
             var stats: B,
+            val stateFeedback: B,
+            val queryFeedback: B,
+            val coverageFeedback: B,
+            val informFeedback: B,
             val nv: AtomicLong = new AtomicLong(0),
             val ns: AtomicLong = new AtomicLong(0),
             val vm: AtomicLong = new AtomicLong(0),
@@ -54,12 +58,13 @@ object Sireum {
     }
 
     override def empty: logika.Logika.Reporter = {
-      val r = new Rep(feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, nv, ns, vm, nm)
+      val r = new Rep(feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, stateFeedback, queryFeedback, coverageFeedback, informFeedback, nv, ns, vm, nm)
       r.collectStats = stats
       r
     }
 
     override def state(plugins: ISZ[ClaimPlugin], posOpt: Option[Position], context: ISZ[String], th: TypeHierarchy, s: State, atLinesFresh: B, atRewrite: B): Unit = {
+      if (!stateFeedback) return
       feedbackDirOpt match {
         case Some(d) =>
           val at: String = if (s.ok) "at" else "after"
@@ -114,6 +119,7 @@ object Sireum {
       }
     }
     override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
+      if (!queryFeedback) return
       super.query(pos, title, isSat, time, forceReport, detailElided, r)
       feedbackDirOpt match {
         case Some(d) =>
@@ -125,6 +131,7 @@ object Sireum {
       }
     }
     override def coverage(setCache: B, cached: U64, pos: message.Position): Unit = {
+      if (!coverageFeedback) return
       feedbackDirOpt match {
         case Some(d) =>
           val content = server.protocol.JSON.fromAnalysisCoverage(
@@ -134,6 +141,7 @@ object Sireum {
       }
     }
     override def inform(pos: org.sireum.message.Position, kind: logika.Logika.Reporter.Info.Kind.Type, message: String): Unit = {
+      if (!informFeedback) return
       feedbackDirOpt match {
         case Some(d) =>
           val k: server.protocol.Logika.Verify.Info.Kind.Type = kind match {
@@ -755,7 +763,9 @@ object Sireum {
                   case Some(d) => Some(Os.path(d))
                   case _ => None()
                 }
-                val rep = new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats)
+                val rep =
+                  if (T) new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats, F, F, F, F)
+                  else new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats, T, T, T, T)
                 rep.collectStats = o.stats
                 val exitCode = cli.HAMR.sysmlLogika(o, rep)
                 reporter.reports(rep.messages)
@@ -800,7 +810,7 @@ object Sireum {
                   case Some(d) => Some(Os.path(d))
                   case _ => None()
                 }
-                val rep = new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats)
+                val rep = new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats, T, T, T, T)
                 rep.collectStats = o.stats
                 val exitCode = cli.Logika.run(o, rep)
                 reporter.reports(rep.messages)

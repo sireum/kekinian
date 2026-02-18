@@ -13,14 +13,15 @@ import java.util.concurrent.atomic.AtomicLong
 
 object HAMR_Ext {
 
-  def getIntegrationConstraintReporter(integrationConnection: IntegrationConnection,
+  def getIntegrationConstraintReporter(integrationOnly: B,
+                                       integrationConnection: IntegrationConnection,
                                        r: Reporter): logika.Logika.Reporter = {
     r match {
       case h: HamrIntegrationConstraintReporter => return h
       case l: Sireum.Rep =>
         return new org.sireum.cli.HamrIntegrationConstraintReporter(
           conn = integrationConnection,
-
+          integrationOnly = integrationOnly,
           feedbackDirOpt = l.feedbackDirOpt,
           logPc = l.logPc,
           logRawPc = l.logRawPc,
@@ -36,7 +37,7 @@ object HAMR_Ext {
 }
 
 class HamrIntegrationConstraintReporter(val conn: IntegrationConnection,
-
+                                        val integrationOnly: B,
                                         feedbackDirOpt: Option[Os.Path],
                                         logPc: B,
                                         logRawPc: B, logVc: B,
@@ -51,13 +52,17 @@ class HamrIntegrationConstraintReporter(val conn: IntegrationConnection,
   logVc = logVc,
   logDetailedInfo = logDetailedInfo,
   stats = stats,
+  stateFeedback = !integrationOnly,
+  queryFeedback = !integrationOnly,
+  coverageFeedback = !integrationOnly,
+  informFeedback = !integrationOnly,
   nv = nv,
   ns = ns,
   vm = vm,
   nm = nm) {
 
   override def empty: Logika.Reporter = {
-    val r = new HamrIntegrationConstraintReporter(conn, feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, nv, ns, vm, nm)
+    val r = new HamrIntegrationConstraintReporter(conn, integrationOnly, feedbackDirOpt, logPc, logRawPc, logVc, logDetailedInfo, stats, nv, ns, vm, nm)
     r.collectStats = stats
     r
   }
