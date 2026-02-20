@@ -563,6 +563,10 @@ object SireumMcpServer {
     override def write(d: Os.Path, content: String): Unit =
       shared.add(content.value)
 
+    override def query(pos: message.Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: logika.Smt2Query.Result): Unit = {
+      super.query(pos, title, isSat, time, forceReport, T, r(query = ""))
+    }
+
     override def empty: logika.Logika.Reporter = {
       val r = new McpRep(logPc, logRawPc, logVc, logDetailedInfo, stats, shared, nv, ns, vm, nm)
       r.collectStats = stats
