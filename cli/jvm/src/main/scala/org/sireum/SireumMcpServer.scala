@@ -33,6 +33,7 @@ import io.modelcontextprotocol.json.McpJsonMapper
 
 import java.io.{FileOutputStream, FilterInputStream, PrintWriter, StringWriter}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.atomic.AtomicLong
 
 object SireumMcpServer {
 
@@ -542,6 +543,36 @@ object SireumMcpServer {
     cliArgs
   }
 
+  // McpRep buffers Logika proof-state feedback in memory instead of writing to files.
+  // It extends Sireum.Rep with a fake feedbackDirOpt (path is never used — write() is overridden)
+  // and shares a ConcurrentLinkedQueue across all empty() clones created during parallel verification.
+  private class McpRep(
+      logPc: B, logRawPc: B, logVc: B, logDetailedInfo: B, stats: B,
+      val shared: java.util.concurrent.ConcurrentLinkedQueue[JString],
+      nv: AtomicLong, ns: AtomicLong, vm: AtomicLong, nm: AtomicLong)
+    extends Sireum.Rep(
+      Some(Os.cwd), logPc, logRawPc, logVc, logDetailedInfo, stats,
+      stateFeedback = T, queryFeedback = T, coverageFeedback = F, informFeedback = T,
+      nv, ns, vm, nm) {
+
+    def this(logPc: B, logRawPc: B, logVc: B, logDetailedInfo: B, stats: B) =
+      this(logPc, logRawPc, logVc, logDetailedInfo, stats,
+           new java.util.concurrent.ConcurrentLinkedQueue[JString](),
+           new AtomicLong(0), new AtomicLong(0), new AtomicLong(0), new AtomicLong(0))
+
+    override def write(d: Os.Path, content: String): Unit =
+      shared.add(content.value)
+
+    override def empty: logika.Logika.Reporter = {
+      val r = new McpRep(logPc, logRawPc, logVc, logDetailedInfo, stats, shared, nv, ns, vm, nm)
+      r.collectStats = stats
+      r
+    }
+  }
+
+  private val logikaToolPaths: scala.collection.immutable.Set[Seq[JString]] =
+    scala.collection.immutable.Set(Seq("logika", "verifier"), Seq("hamr", "sysml", "logika"))
+
   private def handleToolCall(info: ToolInfo, arguments: JMap[JString, AnyRef]): McpSchema.CallToolResult = {
     val cliArgs = buildCliArgs(info, arguments)
 
@@ -586,7 +617,9 @@ object SireumMcpServer {
     System.setOut(teeOut)
     System.setErr(teeErr)
 
-    val reporter = message.Reporter.create
+    var mcpRep: McpRep = null
+    if (logikaToolPaths.contains(info.commandParts)) mcpRep = new McpRep(F, F, F, F, T)
+    val reporter: message.Reporter = if (mcpRep != null) mcpRep else message.Reporter.create
     val exitCode: Z = try {
       Sireum.run(sireumArgs, reporter)
     } catch {
@@ -649,9 +682,21 @@ object SireumMcpServer {
       else sb.append("Command failed.")
     }
 
-    McpSchema.CallToolResult.builder()
+    val resultBuilder = McpSchema.CallToolResult.builder()
       .addTextContent(sb.toString)
       .isError(java.lang.Boolean.valueOf(exitCode != Z(0)))
-      .build()
+    if (mcpRep != null) {
+      import scala.jdk.CollectionConverters._
+      val items = mcpRep.shared.iterator().asScala.toList
+      if (items.nonEmpty) {
+        val arrNode = mapper.createArrayNode()
+        items.foreach { item =>
+          try arrNode.add(mapper.readTree(item))
+          catch { case _: Throwable => arrNode.add(item) }
+        }
+        resultBuilder.addTextContent(mapper.writeValueAsString(arrNode))
+      }
+    }
+    resultBuilder.build()
   }
 }
