@@ -48,7 +48,8 @@ done                                                                            
 if [[ "${SIREUM_NATIVE}" != "false" && -f ${NATIVE} ]]; then                                                                                                                                                                                 #
   exec "${NATIVE}" --mcp                                                                                                                                                                                                                      #
 else                                                                                                                                                                                                                                          #
-  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}${JVMCI_CP:+:${JVMCI_CP}}" org.sireum.Sireum --mcp  #
+#  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}${JVMCI_CP:+:${JVMCI_CP}}" org.sireum.Sireum --mcp  #
+  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}" org.sireum.Sireum --mcp  #
 fi                                                                                                                                                                                                                                            #
 :BOF
 setlocal
