@@ -499,7 +499,7 @@ object Sireum {
       val exitCode = run(args, reporter)
       System.out.flush()
       System.err.flush()
-      Os.Proc.Result.Normal(exitCode, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
+      Os.Proc.Result(Os.Proc.Result.Normal, exitCode, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
     } catch {
       case t: Throwable =>
         val sw = new java.io.PrintWriter(new java.io.StringWriter)
@@ -508,7 +508,7 @@ object Sireum {
         reporter.internalError(None(), "Sireum", sw.toString)
         System.out.flush()
         System.err.flush()
-        Os.Proc.Result.Normal(42, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
+        Os.Proc.Result(Os.Proc.Result.Normal, 42, bout.toString("UTF-8"), if (p.isErrAsOut) "" else berr.toString("UTF-8"))
     } finally {
       System.setErr(oldErr)
       System.setOut(oldOut)
