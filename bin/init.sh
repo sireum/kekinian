@@ -119,6 +119,31 @@ fi
 
 
 #
+# GraalVM JVMCI
+#
+GRAAL_VERSION=$(getVersion "org.graalvm.compiler%compiler%")
+mkdir -p lib
+for _mvn in \
+  "org.graalvm.sdk/collections" \
+  "org.graalvm.compiler/compiler" \
+  "org.graalvm.sdk/jniutils" \
+  "org.graalvm.sdk/nativeimage" \
+  "org.graalvm.truffle/truffle-compiler" \
+  "org.graalvm.sdk/word"; do
+  _group="${_mvn%%/*}"
+  _artifact="${_mvn##*/}"
+  _group_path="${_group//.//}"
+  if [[ ! -f "lib/${_artifact}-${GRAAL_VERSION}.jar" ]]; then
+    rm -f lib/"${_artifact}"-*.jar
+    echo "Please wait while downloading ${_artifact}-${GRAAL_VERSION}.jar ..."
+    download "lib/${_artifact}-${GRAAL_VERSION}.jar" \
+      "https://repo1.maven.org/maven2/${_group_path}/${_artifact}/${GRAAL_VERSION}/${_artifact}-${GRAAL_VERSION}.jar"
+    echo
+  fi
+done
+
+
+#
 # Java
 #
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then

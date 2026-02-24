@@ -89,6 +89,35 @@ foreach($line in $fileContents) {
 }
 
 
+#
+# GraalVM JVMCI
+#
+$graal_version = $properties["org.graalvm.compiler%compiler%"]
+$lib_dir = "$sireum_home\lib"
+New-Item -Type directory -Path "$lib_dir" -Force | Out-Null
+$graal_jars = @(
+  @("org.graalvm.sdk", "collections"),
+  @("org.graalvm.compiler", "compiler"),
+  @("org.graalvm.sdk", "jniutils"),
+  @("org.graalvm.sdk", "nativeimage"),
+  @("org.graalvm.truffle", "truffle-compiler"),
+  @("org.graalvm.sdk", "word")
+)
+foreach ($entry in $graal_jars) {
+  $group = $entry[0]
+  $artifact = $entry[1]
+  $jar = "$lib_dir\$artifact-$graal_version.jar"
+  if (!(Test-Path "$jar")) {
+    Remove-Item -Path "$lib_dir\$artifact-*.jar" -Force -ErrorAction SilentlyContinue
+    "Please wait while downloading $artifact-$graal_version.jar ..."
+    $group_path = $group.Replace(".", "/")
+    $url = "https://repo1.maven.org/maven2/$group_path/$artifact/$graal_version/$artifact-$graal_version.jar"
+    Invoke-WebRequest -Uri "$url" -OutFile "$jar"
+    ""
+  }
+}
+
+
 if ($Env:SIREUM_PROVIDED_JAVA) {
   $Global:ProgressPreference = $OriginalProgressPreference
   Exit
