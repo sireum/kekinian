@@ -1510,8 +1510,7 @@ object Proyek {
       suffixes = o.suffixes,
       packageNames = o.packages,
       names = ops.ISZOps(o.args).drop(1),
-      coverageOpt = o.coverage,
-      isJUnit5 = o.junit5
+      coverageOpt = o.coverage
     )
 
     return r
