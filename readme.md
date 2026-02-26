@@ -83,6 +83,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [checkstack.pl](https://github.com/torvalds/linux/blob/master/scripts/checkstack.pl) | [GPL v2](https://github.com/torvalds/linux/blob/master/COPYING) |
 | [ACL2](https://www.cs.utexas.edu/~moore/acl2/) | [BSD3](https://www.cs.utexas.edu/~moore/acl2/v8-5/HTML/LICENSE) |
 | [Alt-Ergo](https://alt-ergo.ocamlpro.com/) | [OCamlPro-Non-Commercial-License](https://github.com/OCamlPro/alt-ergo/blob/next/licenses/OCamlPro-Non-Commercial-License.pdf) |
+| [Binaryen](https://github.com/WebAssembly/binaryen) | [Apache 2.0](https://github.com/WebAssembly/binaryen/blob/main/LICENSE) |
 | [CompCert](https://compcert.org/) | [INRIA Non-Commercial License Agreement](https://compcert.org/doc/LICENSE.txt) |
 | [Cosmopolitan](https://github.com/jart/cosmopolitan) | [ISC](https://github.com/jart/cosmopolitan/blob/master/LICENSE) |
 | [Cosmos](https://cosmo.zip/) | Open Source |
@@ -100,6 +101,11 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Sbt](https://www.scala-sbt.org/) | [Apache 2.0](https://github.com/sbt/sbt/blob/1.10.x/LICENSE) |
 | [Verilator](https://www.veripool.org/verilator/) | [GPL 3.0](https://github.com/verilator/verilator/blob/master/LICENSE) |
 | [VSCodium](https://vscodium.com/) | [MIT](https://github.com/VSCodium/vscodium/blob/master/LICENSE) |
+| [WABT](https://github.com/WebAssembly/wabt) | [Apache 2.0](https://github.com/WebAssembly/wabt/blob/main/LICENSE) |
+| [WasmEdge](https://github.com/WasmEdge/WasmEdge) | [Apache 2.0](https://github.com/WasmEdge/WasmEdge/blob/master/LICENSE) |
+| [Wasmer](https://github.com/wasmerio/wasmer) | [MIT](https://github.com/wasmerio/wasmer/blob/main/LICENSE) |
+| [wasmtime](https://github.com/bytecodealliance/wasmtime) | [Apache 2.0](https://github.com/bytecodealliance/wasmtime/blob/main/LICENSE) |
+| [wasm-tools](https://github.com/bytecodealliance/wasm-tools) | [Apache 2.0](https://github.com/bytecodealliance/wasm-tools/blob/main/LICENSE) |
 
 
 | IntelliJ/CLion/RustRover Plugin | License |
