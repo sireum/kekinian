@@ -105,8 +105,7 @@
 
 ### Tools
 - IMPORTANT: Prefer Sireum MCP tools (`sireum_proyek_tipe`, `sireum_proyek_compile`, `sireum_proyek_test`) over CLI via Bash. If Task agent API fails 3 times, switch to direct tool calls.
-- Output goes to `.claude.out` (MCP) and `.claude.shell.out` (shell). User can `tail -f` both.
-- IMPORTANT: Tee shell output to `.claude.shell.out`: `command 2>&1 | tee <project-root>/.claude.shell.out`.
+- Output goes to `.claude.out` (MCP). User can `tail -f`.
 - **`sireum_proyek_tipe`**: Slang type checker. Only checks `// #Sireum` files — plain Scala files are not checked. Use `sireum_proyek_compile` to verify non-Slang Scala files compile.
 - **`sireum_proyek_compile`**: Full Scala compilation (Slang and non-Slang files).
 - **`sireum_proyek_test`**: Test runner. Provide `classes` option with comma-separated FQCNs. Optionally supply `coverage` with `<path>/<name>` where `<path>` is a temporary folder for JaCoCo coverage output and `<name>` is a session name.
@@ -133,9 +132,6 @@
 - Pattern: `val tests = Tests { * - { ... } }`.
 - In JVM runtime, `ISZ` extends Scala's `IndexedSeq`, so `.size` returns Scala `Int`. Use plain `Int` literals (e.g., `== 1`) for size comparisons in test code, NOT `Z(1)` — `Int == Z` is always `false`.
 - CRITICAL: Comparing `org.sireum.String` fields (e.g., `.text`, `.ruleName`) with Scala string literals via `==` fails under `-Werror` ("unrelated types"). Wrap literals with `String("...")` (e.g., `assert(token.text == String("hello"))`).
-
-### Temporary Directory Convention
-- Temp output → `<project-root>/tmp/<session-id>/`. Prune to ≤42: `cd tmp && ls -1dt */ | tail -n +43 | xargs rm -rf`
 
 ## JVM Profiling
 
