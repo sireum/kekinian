@@ -69,7 +69,11 @@ object Presentasi {
           |
           |For AWS, please refer to https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
           |
-          |For Azure, please refer to https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/rest-text-to-speech""".render)
+          |For Azure, please refer to https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/rest-text-to-speech
+          |
+          |For ElevenLabs, please refer to https://elevenlabs.io/docs/api-reference/text-to-speech
+          |
+          |For Google Cloud, please refer to https://cloud.google.com/text-to-speech/docs/voices""".render)
     return 0
   }
 
@@ -604,6 +608,8 @@ object Presentasi {
         case Cli.SireumPresentasiGenService.Mary => "dfki-spike-hsmm"
         case Cli.SireumPresentasiGenService.Aws => "Amy"
         case Cli.SireumPresentasiGenService.Azure => "en-GB-RyanNeural"
+        case Cli.SireumPresentasiGenService.Elevenlabs => "Rachel"
+        case Cli.SireumPresentasiGenService.Google => "en-GB-Chirp3-HD-Umbriel"
       }
     }
     val args = ISZ(presentasi.string, o.service.string, voiceArg) ++ ops.ISZOps(o.args).drop(1)
@@ -645,6 +651,12 @@ object Presentasi {
       case Cli.SireumPresentasiGenService.Aws =>
         audio = audio / "aws"
         Cli.SireumPresentasiText2speechService.Aws
+      case Cli.SireumPresentasiGenService.Elevenlabs =>
+        audio = audio / "elevenlabs"
+        Cli.SireumPresentasiText2speechService.Elevenlabs
+      case Cli.SireumPresentasiGenService.Google =>
+        audio = audio / "google"
+        Cli.SireumPresentasiText2speechService.Google
       case Cli.SireumPresentasiGenService.Mary =>
         audio = audio / "marytts"
         Cli.SireumPresentasiText2speechService.Mary
@@ -744,7 +756,10 @@ object Presentasi {
             outputFormat = format,
             region = o.region,
             voiceLang = o.voiceLang,
-            engine = engine
+            engine = engine,
+            elevenLabsKey = o.elevenLabsKey,
+            elevenLabsModel = o.elevenLabsModel,
+            googleKey = o.googleKey
           ))
           temp.removeAll()
           println(s"Loading $p ...")
@@ -1065,6 +1080,69 @@ object Presentasi {
     return 0
   }
 
+  // Premade voice name-to-ID mappings from https://elevenlabs-sdk.mintlify.app/voices/premade-voices
+  val elevenLabsVoiceMap: HashMap[String, String] = HashMap.empty[String, String] ++ ISZ(
+    "Adam" ~> "pNInz6obpgDQGcFmaJgB", "Alice" ~> "Xb7hH8MSUJpSbSDYk0k2",
+    "Antoni" ~> "ErXwobaYiN019PkySvjV", "Arnold" ~> "VR6AewLTigWG4xSOukaG",
+    "Bill" ~> "pqHfZKP75CvOlQylNhV4", "Brian" ~> "nPczCjzI2devNBz1zQrb",
+    "Callum" ~> "N2lVS1w4EtoT3dr4eOWO", "Charlie" ~> "IKne3meq5aSn9XLyUdCD",
+    "Charlotte" ~> "XB0fDUnXU5powFXDhCwa", "Chris" ~> "iP95p4xoKVk53GoZ742B",
+    "Clyde" ~> "2EiwWnXFnvU5JabPnv8n", "Daniel" ~> "onwK4e9ZLuTAKqWW03F9",
+    "Dave" ~> "CYw3kZ02Hs0563khs1Fj", "Domi" ~> "AZnzlk1XvdvUeBnXmlld",
+    "Dorothy" ~> "ThT5KcBeYPX3keUQqHPh", "Drew" ~> "29vD33N1CtxCmqQRPOHJ",
+    "Emily" ~> "LcfcDJNUP1GQjkzn1xUU", "Ethan" ~> "g5CIjZEefAph4nQFvHAz",
+    "Fin" ~> "D38z5RcWu1voky8WS1ja", "Freya" ~> "jsCqWAovK2LkecY7zXl4",
+    "George" ~> "JBFqnCBsd6RMkjVDRZzb", "Gigi" ~> "jBpfuIE2acCO8z3wKNLl",
+    "Giovanni" ~> "zcAOhNBS3c14rBihAFp1", "Glinda" ~> "z9fAnlkpzviPz146aGWa",
+    "Grace" ~> "oWAxZDx7w5VEj9dCyTzz", "Harry" ~> "SOYHLrjzK2X1ezoPC6cr",
+    "James" ~> "ZQe5CZNOzWyzPSCn5a3c", "Jeremy" ~> "bVMeCyTHy58xNoL34h3p",
+    "Jessie" ~> "t0jbNlBVZ17f02VDIeMI", "Joseph" ~> "Zlb1dXrM653N07WRdFW3",
+    "Josh" ~> "TxGEqnHWrfWFTfGW9XjX", "Liam" ~> "TX3LPaxmHKxFdv7VOQHJ",
+    "Lily" ~> "pFZP5JQG7iQjIQuC4Bku", "Matilda" ~> "XrExE9yKIg1WjnnlVkGX",
+    "Michael" ~> "flq6f7yk4E4fJM5XTYuZ", "Mimi" ~> "zrHiDhphv9ZnVXBqCLjz",
+    "Nigel" ~> "l9yjqAhh8GXv7ZJxsLZO", "Nicole" ~> "piTKgcLEGmPE4e6mEKli",
+    "Patrick" ~> "ODq5zmih8GrVes37Dizd",
+    "Paul" ~> "5Q0t7uMcjvnagumLfvZi", "Rachel" ~> "21m00Tcm4TlvDq8ikWAM",
+    "Sam" ~> "yoZ06aMxZJJ28mfd3POQ", "Sarah" ~> "EXAVITQu4vr4xnSDxMaL",
+    "Serena" ~> "pMsXgVXv3BLzUgSXRplE", "Sophie" ~> "khYwAWwYSjlxlcrwGQ16",
+    "Thomas" ~> "GBv7mTt0atIp3Br8iCZE"
+  )
+
+  def elevenLabsResolveVoiceId(voice: String, key: String): String = {
+    elevenLabsVoiceMap.get(voice) match {
+      case Some(id) => return id
+      case _ =>
+    }
+    // If it looks like an ID already (contains digits and uppercase), use as-is
+    if (ops.StringOps(voice).size > 15) {
+      return voice
+    }
+    // Runtime lookup via API
+    println(s"Looking up ElevenLabs voice: $voice")
+    Os.proc(ISZ("curl", "-s",
+      s"https://api.elevenlabs.io/v2/voices?search=$voice",
+      "--header", s"xi-api-key: $key")).redirectErr.run().out match {
+      case out if ops.StringOps(out).contains("voice_id") =>
+        // Extract first voice_id from JSON response
+        val so = ops.StringOps(out)
+        val i = so.stringIndexOf("\"voice_id\"")
+        if (i >= 0) {
+          val rest = ops.StringOps(so.substring(i + 12, out.size))
+          val j = rest.stringIndexOf("\"")
+          if (j >= 0) {
+            val id = rest.substring(0, j)
+            println(s"  Resolved '$voice' -> $id")
+            return id
+          }
+        }
+        eprintln(s"Could not parse voice ID from ElevenLabs API response for: $voice")
+        return voice
+      case _ =>
+        eprintln(s"Could not resolve ElevenLabs voice: $voice")
+        return voice
+    }
+  }
+
   def text2speech(o: Cli.SireumPresentasiText2speechOption): Z = {
 
     def maryTTS(javaHome: Os.Path, maryTtsJar: Os.Path, voice: String, input: Os.Path, output: Os.Path): OsProto.Proc.Result = {
@@ -1196,6 +1274,129 @@ object Presentasi {
             if (ext == "wav") {
               Ext.pcm2wav(out, 16000)
             }
+            println()
+          } else {
+            println(s"Skipping already generated: $line")
+            println()
+          }
+          i = i + 1
+        }
+      case Cli.SireumPresentasiText2speechService.Elevenlabs =>
+        val key: String = o.elevenLabsKey match {
+          case Some(k) => k
+          case _ =>
+            Os.env("ELEVENLABS_API_KEY") match {
+              case Some(k) => k
+              case _ =>
+                eprintln("Please supply your ElevenLabs API key via CLI option --elevenlabs-key or via the ELEVENLABS_API_KEY env var")
+                Os.exit(-1)
+                halt("")
+            }
+        }
+        var i = 1
+        val tmp = Os.tempFix("", if (Os.isWin) ".bat" else "")
+        val echoOffOpt: Option[String] = if (Os.isWin) Some("@echo off") else None()
+        tmp.removeOnExit()
+        val voiceName = o.voice.getOrElseEager("Daniel")
+        val voiceId = elevenLabsResolveVoiceId(voiceName, key)
+        val model = o.elevenLabsModel.getOrElseEager("eleven_multilingual_v2")
+        val (accept, ext): (String, String) = o.outputFormat match {
+          case Cli.SireumPresentasiText2speechOutputFormat.Mp3 => ("audio/mpeg", "mp3")
+          case Cli.SireumPresentasiText2speechOutputFormat.Wav => ("audio/wav", "wav")
+          case Cli.SireumPresentasiText2speechOutputFormat.Ogg => ("audio/ogg", "ogg")
+          case Cli.SireumPresentasiText2speechOutputFormat.Webm => ("audio/webm", "webm")
+        }
+        for (line <- inputFile.readLineStream if ops.StringOps(line).trim.size > 0) {
+          val out = outputFile(output, inputFile.name, i, line, ext)
+          if (!out.exists || o.force || out.size == 0) {
+            println(s"Synthesizing: $line")
+            val escapedLine = ops.StringOps(ops.StringOps(line).replaceAllLiterally("\\", "\\\\")).replaceAllLiterally("\"", "\\\"")
+            tmp.writeOver(
+              st"""$echoOffOpt
+                  |curl -s --location --request POST "https://api.elevenlabs.io/v1/text-to-speech/$voiceId" --header "xi-api-key: $key" --header "Content-Type: application/json" --data-raw "{\"text\":\"$escapedLine\",\"model_id\":\"$model\"}" --output "$out" --header "Accept: $accept"""".render)
+            tmp.chmod("+x")
+            proc"$tmp".console.runCheck()
+            if (out.exists && ops.StringOps(out.read).startsWith("{\"detail\"")) {
+              eprintln(s"ElevenLabs API error: ${out.read}")
+              out.removeAll()
+            }
+            println()
+          } else {
+            println(s"Skipping already generated: $line")
+            println()
+          }
+          i = i + 1
+        }
+      case Cli.SireumPresentasiText2speechService.Google =>
+        val key: String = o.googleKey match {
+          case Some(k) => k
+          case _ =>
+            Os.env("GOOGLE_API_KEY") match {
+              case Some(k) => k
+              case _ =>
+                eprintln("Please supply your Google Cloud API key via CLI option --google-key or via the GOOGLE_API_KEY env var")
+                Os.exit(-1)
+                halt("")
+            }
+        }
+        var i = 1
+        val tmp = Os.tempFix("", if (Os.isWin) ".bat" else "")
+        val echoOffOpt: Option[String] = if (Os.isWin) Some("@echo off") else None()
+        tmp.removeOnExit()
+        val voice = o.voice.getOrElseEager("en-GB-Chirp3-HD-Umbriel")
+        val langCode = ops.StringOps(voice).substring(0, 5)
+        val (audioEncoding, ext): (String, String) = o.outputFormat match {
+          case Cli.SireumPresentasiText2speechOutputFormat.Mp3 => ("MP3", "mp3")
+          case Cli.SireumPresentasiText2speechOutputFormat.Wav => ("LINEAR16", "wav")
+          case Cli.SireumPresentasiText2speechOutputFormat.Ogg => ("OGG_OPUS", "ogg")
+          case Cli.SireumPresentasiText2speechOutputFormat.Webm => ("WEBM_OPUS", "webm")
+        }
+        for (line <- inputFile.readLineStream if ops.StringOps(line).trim.size > 0) {
+          val out = outputFile(output, inputFile.name, i, line, ext)
+          if (!out.exists || o.force || out.size == 0) {
+            println(s"Synthesizing: $line")
+            val trimmed = ops.StringOps(line).trim
+            val lastChar: String = if (trimmed.size > 0) ops.StringOps(trimmed).substring(trimmed.size - 1, trimmed.size) else ""
+            val textLine: String = if (lastChar != "" && !ops.StringOps(".!?").contains(lastChar)) s"$line." else line
+            val escapedLine = ops.StringOps(ops.StringOps(textLine).replaceAllLiterally("\\", "\\\\")).replaceAllLiterally("\"", "\\\"")
+            val jsonTmp = Os.temp()
+            jsonTmp.removeOnExit()
+            val b64Tmp = Os.temp()
+            b64Tmp.removeOnExit()
+            jsonTmp.writeOver(
+              s"""{"input":{"text":"$escapedLine"},"voice":{"languageCode":"$langCode","name":"$voice"},"audioConfig":{"audioEncoding":"$audioEncoding"}}""")
+            tmp.writeOver(
+              st"""$echoOffOpt
+                  |curl -s -X POST "https://texttospeech.googleapis.com/v1/text:synthesize?key=$key" -H "Content-Type: application/json" -d @$jsonTmp -o $b64Tmp""".render)
+            tmp.chmod("+x")
+            proc"$tmp".console.runCheck()
+            if (b64Tmp.exists && b64Tmp.size > 0) {
+              val response = b64Tmp.read
+              if (ops.StringOps(response).contains("\"audioContent\"")) {
+                // Extract base64 audio content and decode
+                val so = ops.StringOps(response)
+                val startIdx = so.stringIndexOf("\"audioContent\": \"")
+                if (startIdx >= 0) {
+                  val afterKey = ops.StringOps(so.substring(startIdx + 17, response.size))
+                  val endIdx = afterKey.stringIndexOf("\"")
+                  if (endIdx >= 0) {
+                    val b64 = afterKey.substring(0, endIdx)
+                    conversions.String.fromBase64(b64) match {
+                      case Either.Left(u8s) =>
+                        out.writeOverU8s(u8s)
+                        if (ext == "wav") {
+                          Ext.pcm2wav(out, 24000)
+                        }
+                      case _ =>
+                    }
+                  }
+                }
+              } else if (ops.StringOps(response).contains("\"error\"")) {
+                eprintln(s"Google TTS API error: $response")
+              }
+            }
+            jsonTmp.removeAll()
+            b64Tmp.removeAll()
             println()
           } else {
             println(s"Skipping already generated: $line")

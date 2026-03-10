@@ -633,6 +633,7 @@ object Sireum {
           case Some(o: Cli.SireumSetupVscodeOption) =>
             init.deps()
             init.installMill(T)
+            init.installSysMLv2Lsp()
             init.installVSCodium(
               o.vscode,
               path2fileOpt("existing VSCode/VSCodium", o.existingInstall, T),
@@ -911,6 +912,21 @@ object Sireum {
                 reporter.reports(rep.messages)
                 return exitCode
             }
+          case Some(o: Cli.SireumRobotoCaptureOption) =>
+            init.installTesseractWasm()
+            val r = NativeUtil.nonNative[Z](-1, () => cli.Roboto.capture(o))
+            if (r == -1) {
+              eprintln("The tool is not available in native mode")
+            }
+            return r
+          case Some(o: Cli.SireumRobotoRunOption) =>
+            init.basicDeps()
+            init.installTesseractWasm()
+            val r = NativeUtil.nonNative[Z](-1, () => cli.Roboto.run(o))
+            if (r == -1) {
+              eprintln("The tool is not available in native mode")
+            }
+            return r
           case Some(o: Cli.SireumXAnvilOption) =>
             init.basicDeps()
             init.anvilDeps(T)

@@ -452,8 +452,16 @@ object Presentasi_Ext {
       r(entries = entries, cc = ccMap)
     }
 
+    def isPresentasiMarkdown(f: Os.Path): Boolean = {
+      val content = f.read.value
+      val fmEnd = content.indexOf("---", 3)
+      if (fmEnd < 0) return false
+      val fm = content.substring(0, fmEnd)
+      fm.contains("\ndelay:")
+    }
+
     def processFile(f: Os.Path): ISZ[presentasi.Presentation] =
-      if (f.isFile && f.ext.value == "md" && f.name.value != "readme.md")
+      if (f.isFile && f.ext.value == "md" && f.name.value != "readme.md" && isPresentasiMarkdown(f))
         try ISZ(document(f))
         catch {
           case t: Throwable =>

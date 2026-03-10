@@ -921,6 +921,8 @@ object Cli {
     "Mary"
     "Aws"
     "Azure"
+    "Elevenlabs"
+    "Google"
   }
 
   @enum object SireumPresentasiGenEngine {
@@ -949,7 +951,10 @@ object Cli {
     val gender: Option[String],
     val key: Option[String],
     val region: Option[String],
-    val voiceLang: Option[String]
+    val voiceLang: Option[String],
+    val elevenLabsKey: Option[String],
+    val elevenLabsModel: Option[String],
+    val googleKey: Option[String]
   ) extends SireumTopOption
 
   @enum object SireumPresentasiText2speechOutputFormat {
@@ -963,6 +968,8 @@ object Cli {
     "Mary"
     "Aws"
     "Azure"
+    "Elevenlabs"
+    "Google"
   }
 
   @enum object SireumPresentasiText2speechEngine {
@@ -984,7 +991,54 @@ object Cli {
     val gender: Option[String],
     val key: Option[String],
     val region: Option[String],
-    val voiceLang: Option[String]
+    val voiceLang: Option[String],
+    val elevenLabsKey: Option[String],
+    val elevenLabsModel: Option[String],
+    val googleKey: Option[String]
+  ) extends SireumTopOption
+
+  @datatype class SireumRobotoCaptureOption(
+    val help: String,
+    val args: ISZ[String]
+  ) extends SireumTopOption
+
+  @enum object SireumRobotoRunOutputFormat {
+    "Mp3"
+    "Wav"
+  }
+
+  @enum object SireumRobotoRunService {
+    "Mary"
+    "Aws"
+    "Azure"
+    "Elevenlabs"
+    "Google"
+  }
+
+  @enum object SireumRobotoRunEngine {
+    "Neural"
+    "Standard"
+  }
+
+  @datatype class SireumRobotoRunOption(
+    val help: String,
+    val args: ISZ[String],
+    val clean: B,
+    val record: Option[String],
+    val force: B,
+    val lang: Option[String],
+    val outputFormat: SireumRobotoRunOutputFormat.Type,
+    val service: SireumRobotoRunService.Type,
+    val voice: Option[String],
+    val awsPath: Option[String],
+    val engine: SireumRobotoRunEngine.Type,
+    val gender: Option[String],
+    val key: Option[String],
+    val region: Option[String],
+    val voiceLang: Option[String],
+    val elevenLabsKey: Option[String],
+    val elevenLabsModel: Option[String],
+    val googleKey: Option[String]
   ) extends SireumTopOption
 
   @enum object SireumServerServerMessage {
@@ -1226,13 +1280,14 @@ import Cli._
             |proyek                   Build tools
             |slang                    Slang tools
             |presentasi               Presentation tools
+            |roboto                   Demo tools
             |server                   Sireum server
             |setup                    Setup
             |tools                    Utility tools""".render
       )
       return Some(HelpOption())
     }
-    val opt = select("sireum", args, i, ISZ("hamr", "logika", "parser", "proyek", "slang", "presentasi", "server", "setup", "tools", "x"))
+    val opt = select("sireum", args, i, ISZ("hamr", "logika", "parser", "proyek", "slang", "presentasi", "roboto", "server", "setup", "tools", "x"))
     opt match {
       case Some(string"hamr") => return parseSireumHamr(args, i + 1)
       case Some(string"logika") => return parseSireumLogika(args, i + 1)
@@ -1240,6 +1295,7 @@ import Cli._
       case Some(string"proyek") => return parseSireumProyek(args, i + 1)
       case Some(string"slang") => return parseSireumSlang(args, i + 1)
       case Some(string"presentasi") => return parseSireumPresentasi(args, i + 1)
+      case Some(string"roboto") => return parseSireumRoboto(args, i + 1)
       case Some(string"server") => return parseSireumServer(args, i + 1)
       case Some(string"setup") => return parseSireumSetup(args, i + 1)
       case Some(string"tools") => return parseSireumTools(args, i + 1)
@@ -8216,15 +8272,17 @@ import Cli._
       case "mary" => return Some(SireumPresentasiGenService.Mary)
       case "aws" => return Some(SireumPresentasiGenService.Aws)
       case "azure" => return Some(SireumPresentasiGenService.Azure)
+      case "elevenlabs" => return Some(SireumPresentasiGenService.Elevenlabs)
+      case "google" => return Some(SireumPresentasiGenService.Google)
       case s =>
-        eprintln(s"Expecting one of the following: { mary, aws, azure }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { mary, aws, azure, elevenlabs, google }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumPresentasiGenService(args: ISZ[String], i: Z): Option[SireumPresentasiGenService.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { mary, aws, azure }, but none found.")
+      eprintln("Expecting one of the following: { mary, aws, azure, elevenlabs, google }, but none found.")
       return None()
     }
     val r = parseSireumPresentasiGenServiceH(args(i))
@@ -8277,10 +8335,11 @@ import Cli._
           |-f, --output-format      Audio output format (for AWS or Azure) (expects one of
           |                           { mp3, wav }; default: mp3)
           |-s, --service            Text-to-speech service (expects one of { mary, aws,
-          |                           azure }; default: mary)
+          |                           azure, elevenlabs, google }; default: mary)
           |-v, --voice              Voice (defaults to "dfki-spike-hsmm" for MaryTTS,
-          |                           "Amy" for AWS, "en-GB-RyanNeural" for Azure)
-          |                           (expects a string)
+          |                           "Amy" for AWS, "en-GB-RyanNeural" for Azure,
+          |                           "Daniel" for ElevenLabs, "en-GB-Chirp3-HD-Umbriel"
+          |                           for Google) (expects a string)
           |-h, --help               Display this information
           |
           |AWS Options:
@@ -8294,7 +8353,17 @@ import Cli._
           |-k, --key                Azure subscription key (expects a string)
           |-r, --region             Azure region (expects a string; default is
           |                           "centralus")
-          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
+          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")
+          |
+          |ElevenLabs Options:
+          |    --elevenlabs-key     ElevenLabs API key (or ELEVENLABS_API_KEY env var)
+          |                           (expects a string)
+          |    --elevenlabs-model   ElevenLabs model ID (expects a string; default is
+          |                           "eleven_multilingual_v2")
+          |
+          |Google Options:
+          |    --google-key         Google Cloud API key (or GOOGLE_API_KEY env var)
+          |                           (expects a string)""".render
 
     var cc: Z = 0
     var clean: B = false
@@ -8315,6 +8384,9 @@ import Cli._
     var key: Option[String] = None[String]()
     var region: Option[String] = Some("centralus")
     var voiceLang: Option[String] = Some("en-GB")
+    var elevenLabsKey: Option[String] = None[String]()
+    var elevenLabsModel: Option[String] = Some("eleven_multilingual_v2")
+    var googleKey: Option[String] = None[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -8437,6 +8509,24 @@ import Cli._
              case Some(v) => voiceLang = v
              case _ => return None()
            }
+         } else if (arg == "--elevenlabs-key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => elevenLabsKey = v
+             case _ => return None()
+           }
+         } else if (arg == "--elevenlabs-model") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => elevenLabsModel = v
+             case _ => return None()
+           }
+         } else if (arg == "--google-key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => googleKey = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -8446,7 +8536,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, clean, record, slice, slides, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, clean, record, slice, slides, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang, elevenLabsKey, elevenLabsModel, googleKey))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {
@@ -8475,15 +8565,17 @@ import Cli._
       case "mary" => return Some(SireumPresentasiText2speechService.Mary)
       case "aws" => return Some(SireumPresentasiText2speechService.Aws)
       case "azure" => return Some(SireumPresentasiText2speechService.Azure)
+      case "elevenlabs" => return Some(SireumPresentasiText2speechService.Elevenlabs)
+      case "google" => return Some(SireumPresentasiText2speechService.Google)
       case s =>
-        eprintln(s"Expecting one of the following: { mary, aws, azure }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { mary, aws, azure, elevenlabs, google }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumPresentasiText2speechService(args: ISZ[String], i: Z): Option[SireumPresentasiText2speechService.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { mary, aws, azure }, but none found.")
+      eprintln("Expecting one of the following: { mary, aws, azure, elevenlabs, google }, but none found.")
       return None()
     }
     val r = parseSireumPresentasiText2speechServiceH(args(i))
@@ -8524,10 +8616,11 @@ import Cli._
           |-f, --output-format      Audio output format (for AWS or Azure) (expects one of
           |                           { mp3, webm, ogg, wav }; default: mp3)
           |-s, --service            Text-to-speech service (expects one of { mary, aws,
-          |                           azure }; default: mary)
+          |                           azure, elevenlabs, google }; default: mary)
           |-v, --voice              Voice (defaults to "dfki-spike-hsmm" for MaryTTS,
-          |                           "Amy" for AWS, "en-GB-RyanNeural" for Azure)
-          |                           (expects a string)
+          |                           "Amy" for AWS, "en-GB-RyanNeural" for Azure,
+          |                           "Daniel" for ElevenLabs, "en-GB-Chirp3-HD-Umbriel"
+          |                           for Google) (expects a string)
           |-h, --help               Display this information
           |
           |AWS Options:
@@ -8541,7 +8634,17 @@ import Cli._
           |-k, --key                Azure subscription key (expects a string)
           |-r, --region             Azure region (expects a string; default is
           |                           "centralus")
-          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")""".render
+          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")
+          |
+          |ElevenLabs Options:
+          |    --elevenlabs-key     ElevenLabs API key (or ELEVENLABS_API_KEY env var)
+          |                           (expects a string)
+          |    --elevenlabs-model   ElevenLabs model ID (expects a string; default is
+          |                           "eleven_multilingual_v2")
+          |
+          |Google Options:
+          |    --google-key         Google Cloud API key (or GOOGLE_API_KEY env var)
+          |                           (expects a string)""".render
 
     var force: B = false
     var lang: Option[String] = Some("en-US")
@@ -8555,6 +8658,9 @@ import Cli._
     var key: Option[String] = None[String]()
     var region: Option[String] = Some("centralus")
     var voiceLang: Option[String] = Some("en-GB")
+    var elevenLabsKey: Option[String] = None[String]()
+    var elevenLabsModel: Option[String] = Some("eleven_multilingual_v2")
+    var googleKey: Option[String] = None[String]()
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -8635,6 +8741,24 @@ import Cli._
              case Some(v) => voiceLang = v
              case _ => return None()
            }
+         } else if (arg == "--elevenlabs-key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => elevenLabsKey = v
+             case _ => return None()
+           }
+         } else if (arg == "--elevenlabs-model") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => elevenLabsModel = v
+             case _ => return None()
+           }
+         } else if (arg == "--google-key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => googleKey = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -8644,7 +8768,293 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiText2speechOption(help, parseArguments(args, j), force, lang, output, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang))
+    return Some(SireumPresentasiText2speechOption(help, parseArguments(args, j), force, lang, output, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang, elevenLabsKey, elevenLabsModel, googleKey))
+  }
+
+  def parseSireumRoboto(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    if (i >= args.size) {
+      println(
+        st"""Sireum Mr. Roboto
+            |
+            |Available modes:
+            |capture                  Screenshot image capture
+            |run                      Demo script runner""".render
+      )
+      return Some(HelpOption())
+    }
+    val opt = select("roboto", args, i, ISZ("capture", "run"))
+    opt match {
+      case Some(string"capture") => return parseSireumRobotoCapture(args, i + 1)
+      case Some(string"run") => return parseSireumRobotoRun(args, i + 1)
+      case _ => return None()
+    }
+  }
+
+  def parseSireumRobotoCapture(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Mr. Roboto Image Capturer
+          |
+          |Usage: <option>* <output-path>
+          |
+          |Available Options:
+          |-h, --help               Display this information""".render
+
+    val j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumRobotoCaptureOption(help, parseArguments(args, j)))
+  }
+
+  def parseSireumRobotoRunOutputFormatH(arg: String): Option[SireumRobotoRunOutputFormat.Type] = {
+    arg.native match {
+      case "mp3" => return Some(SireumRobotoRunOutputFormat.Mp3)
+      case "wav" => return Some(SireumRobotoRunOutputFormat.Wav)
+      case s =>
+        eprintln(s"Expecting one of the following: { mp3, wav }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumRobotoRunOutputFormat(args: ISZ[String], i: Z): Option[SireumRobotoRunOutputFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mp3, wav }, but none found.")
+      return None()
+    }
+    val r = parseSireumRobotoRunOutputFormatH(args(i))
+    return r
+  }
+
+  def parseSireumRobotoRunServiceH(arg: String): Option[SireumRobotoRunService.Type] = {
+    arg.native match {
+      case "mary" => return Some(SireumRobotoRunService.Mary)
+      case "aws" => return Some(SireumRobotoRunService.Aws)
+      case "azure" => return Some(SireumRobotoRunService.Azure)
+      case "elevenlabs" => return Some(SireumRobotoRunService.Elevenlabs)
+      case "google" => return Some(SireumRobotoRunService.Google)
+      case s =>
+        eprintln(s"Expecting one of the following: { mary, aws, azure, elevenlabs, google }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumRobotoRunService(args: ISZ[String], i: Z): Option[SireumRobotoRunService.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { mary, aws, azure, elevenlabs, google }, but none found.")
+      return None()
+    }
+    val r = parseSireumRobotoRunServiceH(args(i))
+    return r
+  }
+
+  def parseSireumRobotoRunEngineH(arg: String): Option[SireumRobotoRunEngine.Type] = {
+    arg.native match {
+      case "neural" => return Some(SireumRobotoRunEngine.Neural)
+      case "standard" => return Some(SireumRobotoRunEngine.Standard)
+      case s =>
+        eprintln(s"Expecting one of the following: { neural, standard }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumRobotoRunEngine(args: ISZ[String], i: Z): Option[SireumRobotoRunEngine.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { neural, standard }, but none found.")
+      return None()
+    }
+    val r = parseSireumRobotoRunEngineH(args(i))
+    return r
+  }
+
+  def parseSireumRobotoRun(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Sireum Mr. Roboto Script Runner
+          |
+          |Usage: <option>* <path> <arg>*
+          |
+          |Available Options:
+          |    --clean              Remove unused generated audio files
+          |-r, --record             Record screen with audio to the specified output file
+          |                           path (e.g., output.mov) (expects a string)
+          |    --force              Overwrite output file(s)
+          |-l, --lang               Speech language (for AWS or Azure) (expects a string;
+          |                           default is "en-US")
+          |-f, --output-format      Audio output format (for AWS or Azure) (expects one of
+          |                           { mp3, wav }; default: mp3)
+          |-s, --service            Text-to-speech service (expects one of { mary, aws,
+          |                           azure, elevenlabs, google }; default: mary)
+          |-v, --voice              Voice (defaults to "dfki-spike-hsmm" for MaryTTS,
+          |                           "Amy" for AWS, "en-GB-RyanNeural" for Azure,
+          |                           "Daniel" for ElevenLabs, "en-GB-Chirp3-HD-Umbriel"
+          |                           for Google) (expects a string)
+          |-h, --help               Display this information
+          |
+          |AWS Options:
+          |-a, --aws-path           Path to AWS command-line interface (CLI) (expects a
+          |                           path; default is "aws")
+          |-e, --engine             Voice engine (expects one of { neural, standard };
+          |                           default: neural)
+          |
+          |Azure Options:
+          |-g, --gender             Voice gender (expects a string; default is "Male")
+          |-k, --key                Azure subscription key (expects a string)
+          |-r, --region             Azure region (expects a string; default is
+          |                           "centralus")
+          |-d, --voice-lang         Voice language (expects a string; default is "en-GB")
+          |
+          |ElevenLabs Options:
+          |    --elevenlabs-key     ElevenLabs API key (or ELEVENLABS_API_KEY env var)
+          |                           (expects a string)
+          |    --elevenlabs-model   ElevenLabs model ID (expects a string; default is
+          |                           "eleven_multilingual_v2")
+          |
+          |Google Options:
+          |    --google-key         Google Cloud API key (or GOOGLE_API_KEY env var)
+          |                           (expects a string)""".render
+
+    var clean: B = false
+    var record: Option[String] = None[String]()
+    var force: B = false
+    var lang: Option[String] = Some("en-US")
+    var outputFormat: SireumRobotoRunOutputFormat.Type = SireumRobotoRunOutputFormat.Mp3
+    var service: SireumRobotoRunService.Type = SireumRobotoRunService.Mary
+    var voice: Option[String] = None[String]()
+    var awsPath: Option[String] = Some("aws")
+    var engine: SireumRobotoRunEngine.Type = SireumRobotoRunEngine.Neural
+    var gender: Option[String] = Some("Male")
+    var key: Option[String] = None[String]()
+    var region: Option[String] = Some("centralus")
+    var voiceLang: Option[String] = Some("en-GB")
+    var elevenLabsKey: Option[String] = None[String]()
+    var elevenLabsModel: Option[String] = Some("eleven_multilingual_v2")
+    var googleKey: Option[String] = None[String]()
+    var j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else if (arg == "--clean") {
+           val o: Option[B] = { j = j - 1; Some(!clean) }
+           o match {
+             case Some(v) => clean = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--record") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => record = v
+             case _ => return None()
+           }
+         } else if (arg == "--force") {
+           val o: Option[B] = { j = j - 1; Some(!force) }
+           o match {
+             case Some(v) => force = v
+             case _ => return None()
+           }
+         } else if (arg == "-l" || arg == "--lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => lang = v
+             case _ => return None()
+           }
+         } else if (arg == "-f" || arg == "--output-format") {
+           val o: Option[SireumRobotoRunOutputFormat.Type] = parseSireumRobotoRunOutputFormat(args, j + 1)
+           o match {
+             case Some(v) => outputFormat = v
+             case _ => return None()
+           }
+         } else if (arg == "-s" || arg == "--service") {
+           val o: Option[SireumRobotoRunService.Type] = parseSireumRobotoRunService(args, j + 1)
+           o match {
+             case Some(v) => service = v
+             case _ => return None()
+           }
+         } else if (arg == "-v" || arg == "--voice") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voice = v
+             case _ => return None()
+           }
+         } else if (arg == "-a" || arg == "--aws-path") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => awsPath = v
+             case _ => return None()
+           }
+         } else if (arg == "-e" || arg == "--engine") {
+           val o: Option[SireumRobotoRunEngine.Type] = parseSireumRobotoRunEngine(args, j + 1)
+           o match {
+             case Some(v) => engine = v
+             case _ => return None()
+           }
+         } else if (arg == "-g" || arg == "--gender") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => gender = v
+             case _ => return None()
+           }
+         } else if (arg == "-k" || arg == "--key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => key = v
+             case _ => return None()
+           }
+         } else if (arg == "-r" || arg == "--region") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => region = v
+             case _ => return None()
+           }
+         } else if (arg == "-d" || arg == "--voice-lang") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => voiceLang = v
+             case _ => return None()
+           }
+         } else if (arg == "--elevenlabs-key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => elevenLabsKey = v
+             case _ => return None()
+           }
+         } else if (arg == "--elevenlabs-model") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => elevenLabsModel = v
+             case _ => return None()
+           }
+         } else if (arg == "--google-key") {
+           val o: Option[Option[String]] = parseString(args, j + 1)
+           o match {
+             case Some(v) => googleKey = v
+             case _ => return None()
+           }
+         } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+        j = j + 2
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumRobotoRunOption(help, parseArguments(args, j), clean, record, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang, elevenLabsKey, elevenLabsModel, googleKey))
   }
 
   def parseSireumServerServerMessageH(arg: String): Option[SireumServerServerMessage.Type] = {

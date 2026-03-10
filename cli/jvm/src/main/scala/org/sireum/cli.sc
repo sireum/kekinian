@@ -76,11 +76,11 @@ val text2speechTool: Tool = Tool(
         "mp3", "webm", "ogg", "wav")),
       description = "Audio output format (for AWS or Azure)"),
     Opt(name = "service", longKey = "service", shortKey = Some('s'),
-      tpe = Type.Choice(name = "service", sep = None(), elements = ISZ("mary", "aws", "azure")),
+      tpe = Type.Choice(name = "service", sep = None(), elements = ISZ("mary", "aws", "azure", "elevenlabs", "google")),
       description = "Text-to-speech service"),
     Opt(name = "voice", longKey = "voice", shortKey = Some('v'),
       tpe = Type.Str(sep = None(), default = None()),
-      description = "Voice (defaults to \"dfki-spike-hsmm\" for MaryTTS, \"Amy\" for AWS, \"en-GB-RyanNeural\" for Azure)"),
+      description = "Voice (defaults to \"dfki-spike-hsmm\" for MaryTTS, \"Amy\" for AWS, \"en-GB-RyanNeural\" for Azure, \"Daniel\" for ElevenLabs, \"en-GB-Chirp3-HD-Umbriel\" for Google)"),
   ),
   groups = ISZ(
     OptGroup(
@@ -103,6 +103,20 @@ val text2speechTool: Tool = Tool(
           tpe = Type.Str(sep = None(), default = Some("centralus")), description = "Azure region"),
         Opt(name = "voiceLang", longKey = "voice-lang", shortKey = Some('d'),
           tpe = Type.Str(sep = None(), default = Some("en-GB")), description = "Voice language"),
+      )
+    ),
+    OptGroup(
+      name = "ElevenLabs", opts = ISZ(
+        Opt(name = "elevenLabsKey", longKey = "elevenlabs-key", shortKey = None(),
+          tpe = Type.Str(sep = None(), default = None()), description = "ElevenLabs API key (or ELEVENLABS_API_KEY env var)"),
+        Opt(name = "elevenLabsModel", longKey = "elevenlabs-model", shortKey = None(),
+          tpe = Type.Str(sep = None(), default = Some("eleven_multilingual_v2")), description = "ElevenLabs model ID"),
+      )
+    ),
+    OptGroup(
+      name = "Google", opts = ISZ(
+        Opt(name = "googleKey", longKey = "google-key", shortKey = None(),
+          tpe = Type.Str(sep = None(), default = None()), description = "Google Cloud API key (or GOOGLE_API_KEY env var)"),
       )
     )
   )
@@ -144,7 +158,6 @@ val pgenTool: Tool = Tool(
   groups = text2speechTool.groups
 )
 
-
 val presentasiGroup = Group(
   name = "presentasi",
   description = "Presentation tools",
@@ -154,6 +167,46 @@ val presentasiGroup = Group(
   subs = ISZ(pgenTool, text2speechTool)
 )
 
+val robotoRunnerTool = Tool(
+  name = "run",
+  command = "run",
+  description = "Demo script runner",
+  header = "Sireum Mr. Roboto Script Runner",
+  usage = "<option>* <path> <arg>*",
+  usageDescOpt = None(),
+  opts = ISZ[Opt](
+    Opt(name = "clean", longKey = "clean", shortKey = None(),
+      tpe = Type.Flag(default = F), description = "Remove unused generated audio files"),
+    Opt(name = "record", longKey = "record", shortKey = Some('r'),
+      tpe = Type.Str(sep = None(), default = None()),
+      description = "Record screen with audio to the specified output file path (e.g., output.mov)")
+  ) ++ (text2speechTool.opts - text2speechTool.opts(2))(2 ~>
+    Opt(name = "outputFormat", longKey = "output-format", shortKey = Some('f'),
+      tpe = Type.Choice(name = "OutputFormat", sep = None(), elements = ISZ(
+        "mp3", "wav")),
+      description = "Audio output format (for AWS or Azure)")),
+  groups = text2speechTool.groups
+)
+
+val robotoCaptureTool = Tool(
+  name = "capture",
+  command = "capture",
+  description = "Screenshot image capture",
+  header = "Sireum Mr. Roboto Image Capturer",
+  usage = "<option>* <output-path>",
+  usageDescOpt = None(),
+  opts = ISZ[Opt](),
+  groups = ISZ[OptGroup]()
+)
+
+val robotoGroup = Group(
+  name = "roboto",
+  description = "Demo tools",
+  header =
+    st"""Sireum Mr. Roboto""".render,
+  unlisted = F,
+  subs = ISZ(robotoCaptureTool, robotoRunnerTool)
+)
 
 val iveSetup: Tool = Tool(
   name = "ive",
@@ -238,6 +291,7 @@ val main = Group(
     proyek.cli.group,
     lang.cli.group(subs = lang.cli.group.subs :+ transpilers.cli.group),
     presentasiGroup,
+    robotoGroup,
     server.cli.serverTool,
     setup,
     tools.cli.group,

@@ -23,7 +23,8 @@ def usage(): Unit = {
         |       | jar              | fresh               | uber
         |       | tipe             | compile[-js]        | native[-script]
         |       | test             | verify              | test-verify
-        |       | regen-project    | regen-presentasi    | regen-slang
+        |       | regen-project    | regen-presentasi    | regen-roboto
+        |       | regen-slang
         |       | regen-logika     | regen-air           | regen-act
         |       | regen-slang-ll2  | regen-parser        | regen-parser-antlr3
         |       | regen-server     | regen-cliopt        | regen-cli
@@ -268,6 +269,14 @@ def regenPresentasi(): Unit = {
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.presentasi", "-l",
     s"${home / "license.txt"}", "-m", "json", "-o", presentasiPackagePath.string,
     s"${presentasiPackagePath / "Presentation.scala"}")).console, message.Reporter.create)
+}
+
+
+def regenRoboto(): Unit = {
+  val robotoPackagePath = home / "runtime" / "library" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "roboto"
+  Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.roboto", "-l",
+    s"${home / "license.txt"}", "-m", "json", "-o", robotoPackagePath.string,
+    s"${robotoPackagePath / "Script.scala"}")).console, message.Reporter.create)
 }
 
 
@@ -734,6 +743,7 @@ if (Os.cliArgs.isEmpty) {
       case string"regen-logika" => regenLogika()
       case string"regen-project" => regenProject()
       case string"regen-presentasi" => regenPresentasi()
+      case string"regen-roboto" => regenRoboto()
       case string"regen-cliopt" => regenCliOpt()
       case string"regen-air" => regenAir()
       case string"regen-act" => regenAct()
