@@ -47,7 +47,7 @@ for _jar in "${SIREUM_HOME}"/lib/collections-*.jar "${SIREUM_HOME}"/lib/compiler
 done
 JVMCI_OPTS=""
 if [[ -n ${JVMCI_CP} ]]; then
-  JVMCI_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --upgrade-module-path=${JVMCI_CP}"
+  JVMCI_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --sun-misc-unsafe-memory-access=allow --upgrade-module-path=${JVMCI_CP}"
 fi
 if [[ "${SIREUM_NATIVE}" != "false" && -f ${NATIVE} ]]; then
   exec "${NATIVE}" "$@"

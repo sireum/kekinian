@@ -19,7 +19,7 @@ set "JVMCI_CP="
 for %%f in ("%SIREUM_HOME%\lib\compiler-*.jar") do set "JVMCI_CP=%JVMCI_CP%;%%f"
 for %%f in ("%SIREUM_HOME%\lib\truffle-compiler-*.jar") do set "JVMCI_CP=%JVMCI_CP%;%%f"
 set "JVMCI_OPTS="
-if defined JVMCI_CP set "JVMCI_OPTS=-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --upgrade-module-path=%JVMCI_CP%"
+if defined JVMCI_CP set "JVMCI_OPTS=-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --sun-misc-unsafe-memory-access=allow --upgrade-module-path=%JVMCI_CP%"
 "%JAVA%" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JVMCI_OPTS% %JAVA_OPTS% -cp "%SCALA_HOME%\lib\*;%~dp0.sireum-win.jar%JVMCI_CP%" org.sireum.Sireum %*
 exit /B %errorlevel%
 
