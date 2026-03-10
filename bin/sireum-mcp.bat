@@ -45,11 +45,14 @@ JVMCI_CP=""                                                                     
 for _jar in "${SIREUM_HOME}"/lib/compiler-*.jar "${SIREUM_HOME}"/lib/truffle-compiler-*.jar; do                                                                                                                                               #
   [ -f "$_jar" ] && JVMCI_CP="${JVMCI_CP:+${JVMCI_CP}:}${_jar}"                                                                                                                                                                             #
 done                                                                                                                                                                                                                                          #
+JVMCI_OPTS=""                                                                                                                                                                                                                #
+if [[ -n ${JVMCI_CP} ]]; then                                                                                                                                                                                                #
+  JVMCI_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --upgrade-module-path=${JVMCI_CP}"                                                                                                                          #
+fi                                                                                                                                                                                                                           #
 if [[ "${SIREUM_NATIVE}" != "false" && -f ${NATIVE} ]]; then                                                                                                                                                                                 #
   exec "${NATIVE}" --mcp                                                                                                                                                                                                                      #
 else                                                                                                                                                                                                                                          #
-  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}${JVMCI_CP:+:${JVMCI_CP}}" org.sireum.Sireum --mcp  #
-#  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}" org.sireum.Sireum --mcp  #
+  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JVMCI_OPTS} ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}${JVMCI_CP:+:${JVMCI_CP}}" org.sireum.Sireum --mcp  #
 fi                                                                                                                                                                                                                                            #
 :BOF
 setlocal
@@ -71,7 +74,9 @@ copy /Y "%~dp0sireum.jar" "%~dp0.sireum-win.jar" > nul 2>&1
 set "JVMCI_CP="
 for %%f in ("%SIREUM_HOME%\lib\compiler-*.jar") do set "JVMCI_CP=%JVMCI_CP%;%%f"
 for %%f in ("%SIREUM_HOME%\lib\truffle-compiler-*.jar") do set "JVMCI_CP=%JVMCI_CP%;%%f"
-"%JAVA%" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JAVA_OPTS% -cp "%SCALA_HOME%\lib\*;%~dp0.sireum-win.jar%JVMCI_CP%" org.sireum.Sireum --mcp
+set "JVMCI_OPTS="
+if defined JVMCI_CP set "JVMCI_OPTS=-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --upgrade-module-path=%JVMCI_CP%"
+"%JAVA%" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true %JVMCI_OPTS% %JAVA_OPTS% -cp "%SCALA_HOME%\lib\*;%~dp0.sireum-win.jar%JVMCI_CP%" org.sireum.Sireum --mcp
 exit /B %errorlevel%
 
 :native
