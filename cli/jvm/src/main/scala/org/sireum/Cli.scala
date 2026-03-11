@@ -775,6 +775,7 @@ object Cli {
     val junit5: B,
     val packages: ISZ[String],
     val suffixes: ISZ[String],
+    val tests: ISZ[String],
     val ignoreRuntime: B,
     val json: Option[String],
     val name: Option[String],
@@ -7129,6 +7130,8 @@ import Cli._
           |                           (expects a string separated by ",")
           |    --suffixes           Specific test class name suffixes to run (expects a
           |                           string separated by ",")
+          |    --tests              Substring filters for selecting specific test cases
+          |                           (expects a string separated by ",")
           |-h, --help               Display this information
           |
           |Project Options:
@@ -7199,6 +7202,7 @@ import Cli._
     var junit5: B = false
     var packages: ISZ[String] = ISZ[String]()
     var suffixes: ISZ[String] = ISZ[String]()
+    var tests: ISZ[String] = ISZ[String]()
     var ignoreRuntime: B = false
     var json: Option[String] = None[String]()
     var name: Option[String] = None[String]()
@@ -7266,6 +7270,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => suffixes = v
+             case _ => return None()
+           }
+         } else if (arg == "--tests") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => tests = v
              case _ => return None()
            }
          } else if (arg == "--ignore-runtime") {
@@ -7430,7 +7440,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, junit5, packages, suffixes, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
+    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, junit5, packages, suffixes, tests, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
   }
 
   def parseSireumProyekTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
