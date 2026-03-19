@@ -121,25 +121,12 @@ In addition, Sireum includes adaptations of the following artifacts:
 
 | VSCodium Extension | License |
 |  :---  | :---: |
-| [clangd](https://open-vsx.org/extension/llvm-vs-code-extensions/vscode-clangd) | [MIT](https://github.com/clangd/vscode-clangd/blob/master/LICENSE) |
-| [markdownlint](https://open-vsx.org/extension/DavidAnson/vscode-markdownlint) | [MIT](https://github.com/DavidAnson/vscode-markdownlint/blob/main/LICENSE) |
-| [ANTLR4 grammar syntax support](https://open-vsx.org/extension/mike-lischke/vscode-antlr4) | [MIT](https://github.com/mike-lischke/vscode-antlr4/blob/master/License.txt) |
 | [Bash IDE](https://open-vsx.org/extension/mads-hartmann/bash-ide-vscode) | [MIT](https://github.com/bash-lsp/bash-language-server/blob/main/LICENSE) |
-| [Draw.io Integration](https://open-vsx.org/extension/hediet/vscode-drawio) | [GPL3](https://github.com/hediet/vscode-drawio/blob/master/LICENSE.md) |
 | [ESLint](https://open-vsx.org/extension/dbaeumer/vscode-eslint) | [MIT](https://github.com/microsoft/vscode-eslint/blob/main/License.txt) |
-| [Git Graph](https://open-vsx.org/extension/mhutchie/git-graph) | [MIT w/ non-derivative work restrictions](https://github.com/mhutchie/vscode-git-graph/blob/develop/LICENSE) |
-| [HTML CSS](https://open-vsx.org/extension/ecmel/vscode-html-css) | [MIT](https://github.com/ecmel/vscode-html-css/blob/master/LICENSE.md) |
-| [Hugo Utilities](https://open-vsx.org/extension/kofuk/hugo-utils) | [MIT](https://github.com/kofuk/vscode-hugo-utils/blob/master/LICENSE) |
-| [Java](https://open-vsx.org/extension/redhat/java) | [EPL 2.0](https://github.com/redhat-developer/vscode-java) |
-| [Jest](https://open-vsx.org/extension/Orta/vscode-jest) | [MIT](https://github.com/jest-community/vscode-jest/blob/master/LICENSE) |
-| [Langium](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/eclipse-langium/langium/blob/main/LICENSE) |
 | [LaTeX Workshop](https://open-vsx.org/extension/James-Yu/latex-workshop) | [MIT](https://github.com/James-Yu/LaTeX-Workshop/blob/master/LICENSE.txt) |
 | [Prettier - Code Formatter](https://open-vsx.org/extension/esbenp/prettier-vscode) | [MIT](https://github.com/prettier/prettier-vscode/blob/main/LICENSE) |
-| [Python](https://open-vsx.org/extension/ms-python/python) | [MIT](https://github.com/microsoft/vscode-python/blob/main/LICENSE) |
-| [Rust Analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer) | [MIT](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-MIT) & [Apache 2.0](https://github.com/rust-lang/rust-analyzer/blob/master/LICENSE-APACHE) |
-| [Scala Metals](https://open-vsx.org/extension/scalameta/metals) | [Apache 2.0](https://github.com/scalameta/metals/blob/main/LICENSE) |
+| [Scala Syntax](https://open-vsx.org/extension/scala-lang/scala) | [MIT](https://github.com/scala/vscode-scala-syntax/blob/main/LICENSE.md) |
 | [SysIDE CE](https://open-vsx.org/extension/sensmetry/sysml-2ls) | [EPL 2.0](https://gitlab.com/sensmetry/public/sysml-2ls/-/blob/main/LICENSE?ref_type=heads) |
-| [VerilogHDL/SystemVerilog/Bluespec SystemVerilog](https://open-vsx.org/extension/mshr-h/veriloghdl) | [MIT](https://github.com/mshr-h/vscode-verilog-hdl-support/blob/main/LICENSE) |
-| [XML](https://open-vsx.org/extension/redhat/vscode-xml) | [EPL 2.0](https://github.com/redhat-developer/vscode-xml/blob/main/LICENSE) |
-| [YAML](https://open-vsx.org/extension/redhat/vscode-yaml) | [MIT](https://github.com/redhat-developer/vscode-yaml/blob/main/LICENSE) |
-| [Zip Tools](https://open-vsx.org/extension/adamraichu/zip-viewer) | [MIT](https://github.com/AdamRaichu/vscode-zip-viewer/blob/main/LICENSE.md) |
+
+
+

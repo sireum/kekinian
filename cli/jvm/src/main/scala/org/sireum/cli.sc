@@ -220,26 +220,11 @@ val iveSetup: Tool = Tool(
 )
 
 val vscodiumExtensions: ISZ[String] = ISZ(
-  "llvm-vs-code-extensions.vscode-clangd",
-  "mike-lischke.vscode-antlr4",
   "mads-hartmann.bash-ide-vscode",
   "dbaeumer.vscode-eslint",
-  "mhutchie.git-graph",
-  "ecmel.vscode-html-css",
-  "kofuk.hugo-utils",
-  "redhat.java",
-  "langium.langium-vscode",
   "James-Yu.latex-workshop",
-  "jebbs.plantuml",
   "esbenp.prettier-vscode",
-  "ms-python.python",
-  "rust-lang.rust-analyzer",
-  "scalameta.metals",
-  "mshr-h.veriloghdl",
-  "redhat.vscode-xml",
-  "redhat.vscode-yaml",
-  "adamraichu.zip-viewer",
-  "hediet.vscode-drawio"
+  "scala-lang.scala"
 )
 
 val vscodeSetup: Tool = Tool(
