@@ -1512,7 +1512,8 @@ object Proyek {
       names = ops.ISZOps(o.args).drop(1),
       tests = o.tests,
       coverageOpt = o.coverage,
-      isJUnit5 = o.junit5
+      isJUnit5 = o.junit5,
+      parTest = o.parTest
     )
 
     return r

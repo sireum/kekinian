@@ -774,6 +774,7 @@ object Cli {
     val java: ISZ[String],
     val junit5: B,
     val packages: ISZ[String],
+    val parTest: B,
     val suffixes: ISZ[String],
     val tests: ISZ[String],
     val ignoreRuntime: B,
@@ -7128,6 +7129,7 @@ import Cli._
           |    --junit5             Use JUnit5 runner
           |    --packages           Specific fully-qualified test package names to run
           |                           (expects a string separated by ",")
+          |    --par-test           Enable test parallelization
           |    --suffixes           Specific test class name suffixes to run (expects a
           |                           string separated by ",")
           |    --tests              Substring filters for selecting specific test cases
@@ -7201,6 +7203,7 @@ import Cli._
     var java: ISZ[String] = ISZ[String]()
     var junit5: B = false
     var packages: ISZ[String] = ISZ[String]()
+    var parTest: B = false
     var suffixes: ISZ[String] = ISZ[String]()
     var tests: ISZ[String] = ISZ[String]()
     var ignoreRuntime: B = false
@@ -7264,6 +7267,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => packages = v
+             case _ => return None()
+           }
+         } else if (arg == "--par-test") {
+           val o: Option[B] = { j = j - 1; Some(!parTest) }
+           o match {
+             case Some(v) => parTest = v
              case _ => return None()
            }
          } else if (arg == "--suffixes") {
@@ -7440,7 +7449,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, junit5, packages, suffixes, tests, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
+    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, junit5, packages, parTest, suffixes, tests, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
   }
 
   def parseSireumProyekTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -9224,25 +9233,16 @@ import Cli._
           |                           path)
           |    --extensions         List of extensions to be installed (excluding Sireum
           |                           and SysIDE) (expects a string separated by ",";
-          |                           default is "llvm-vs-code-extensions.vscode-clangd,
-          |                           mike-lischke.vscode-antlr4,
-          |                           mads-hartmann.bash-ide-vscode,
-          |                           dbaeumer.vscode-eslint, mhutchie.git-graph,
-          |                           ecmel.vscode-html-css, kofuk.hugo-utils,
-          |                           redhat.java, langium.langium-vscode,
-          |                           James-Yu.latex-workshop, jebbs.plantuml,
-          |                           esbenp.prettier-vscode, ms-python.python,
-          |                           rust-lang.rust-analyzer, scalameta.metals,
-          |                           mshr-h.veriloghdl, redhat.vscode-xml,
-          |                           redhat.vscode-yaml, adamraichu.zip-viewer,
-          |                           hediet.vscode-drawio")
+          |                           default is "mads-hartmann.bash-ide-vscode,
+          |                           dbaeumer.vscode-eslint, James-Yu.latex-workshop,
+          |                           esbenp.prettier-vscode, scala-lang.scala")
           |    --extensions-dir     Custom VSCodium/VSCode extensions directory (expects a
           |                           path)
           |    --vscode-marketplace Use VSCode Marketplace
           |-h, --help               Display this information""".render
 
     var existingInstall: Option[String] = None[String]()
-    var extensions: ISZ[String] = ISZ("llvm-vs-code-extensions.vscode-clangd", "mike-lischke.vscode-antlr4", "mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "mhutchie.git-graph", "ecmel.vscode-html-css", "kofuk.hugo-utils", "redhat.java", "langium.langium-vscode", "James-Yu.latex-workshop", "jebbs.plantuml", "esbenp.prettier-vscode", "ms-python.python", "rust-lang.rust-analyzer", "scalameta.metals", "mshr-h.veriloghdl", "redhat.vscode-xml", "redhat.vscode-yaml", "adamraichu.zip-viewer", "hediet.vscode-drawio")
+    var extensions: ISZ[String] = ISZ("mads-hartmann.bash-ide-vscode", "dbaeumer.vscode-eslint", "James-Yu.latex-workshop", "esbenp.prettier-vscode", "scala-lang.scala")
     var extensionsDir: Option[String] = None[String]()
     var vscode: B = false
     var j = i
