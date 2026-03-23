@@ -107,6 +107,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [wasmtime](https://github.com/bytecodealliance/wasmtime) | [Apache 2.0](https://github.com/bytecodealliance/wasmtime/blob/main/LICENSE) |
 | [wasm-tools](https://github.com/bytecodealliance/wasm-tools) | [Apache 2.0](https://github.com/bytecodealliance/wasm-tools/blob/main/LICENSE) |
 
+| [wasi-sdk](https://github.com/webassembly/wasi-sdk) | [Apache 2.0 w/ LLVM exception](https://github.com/WebAssembly/wasi-sdk/blob/main/LICENSE) |
 
 | IntelliJ/CLion/RustRover Plugin | License |
 |  :---  | :---: |
