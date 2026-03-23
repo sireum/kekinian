@@ -74,6 +74,9 @@ class HamrIntegrationConstraintReporter(val conn: IntegrationConnection,
   }
 
   override def query(pos: Position, title: String, isSat: B, time: Z, forceReport: B, detailElided: B, r: Smt2Query.Result): Unit = {
+    if (isSat) {
+      return
+    }
     super.query(pos, title, isSat, time, forceReport, detailElided, r)
 
     feedbackDirOpt match {

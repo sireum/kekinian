@@ -856,7 +856,7 @@ object HAMR {
           case _ =>
         }
         tasks = tasks :+ (logika.Task.Claim(p._1, conf, c.title, claim, plugins),
-          HAMR.getIntegrationConstraintReporter(T, c, reporter))
+          HAMR.getIntegrationConstraintReporter(o.integrationOnly, c, reporter))
       }
     }
 

@@ -765,7 +765,7 @@ object Sireum {
                   case _ => None()
                 }
                 val rep =
-                  if (T) new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats, F, F, F, F)
+                  if (o.integrationOnly) new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats, F, F, F, F)
                   else new Rep(feedbackDirOpt, o.logPc, o.logRawPc, o.logVc, o.logDetailedInfo, o.stats, T, T, T, T)
                 rep.collectStats = o.stats
                 val exitCode = cli.HAMR.sysmlLogika(o, rep)
