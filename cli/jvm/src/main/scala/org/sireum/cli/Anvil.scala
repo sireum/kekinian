@@ -79,9 +79,9 @@ object Anvil {
             val ids = t.name.ids.map((id: AST.Id) => id.value)
             val tids = AST.Typed.sireumName ++ ids
             if (!th.typeMap.contains(ids) && th.typeMap.contains(tids)) {
-              return AST.Typed.Name(tids, for (ta <- t.typeArgs) yield rec(ta))
+              return AST.Typed.Name(tids, AST.Typed.noRType, for (ta <- t.typeArgs) yield rec(ta))
             } else {
-              return AST.Typed.Name(ids, for (ta <- t.typeArgs) yield rec(ta))
+              return AST.Typed.Name(ids, AST.Typed.noRType, for (ta <- t.typeArgs) yield rec(ta))
             }
           case t: AST.Type.Tuple => return AST.Typed.Tuple(for (ta <- t.args) yield rec(ta))
           case t: AST.Type.Fun => return AST.Typed.Fun(if (t.isPure) AST.Purity.Pure else AST.Purity.Impure, t.isByName, for (ta <- t.args) yield rec(ta), rec(t.ret))
@@ -104,7 +104,7 @@ object Anvil {
           e.targs(0) match {
             case t: AST.Type.Named =>
               def addS(name: ISZ[String], otherName: ISZ[String], it: AST.Typed, et: AST.Typed): Unit = {
-                val t1 = AST.Typed.Name(name, ISZ(it, et))
+                val t1 = AST.Typed.Name(name, AST.Typed.noRType, ISZ(it, et))
                 customArraySizes = customArraySizes + t1 ~> num
               }
 
