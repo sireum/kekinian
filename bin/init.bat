@@ -103,7 +103,7 @@ $nik_full_version = $nik_display_version -replace "\+", "%2B"
 # Default to NIK; set SIREUM_JDK=true to use Liberica JDK instead
 $use_nik = $TRUE
 if ($Env:SIREUM_JDK -eq "true") { $use_nik = $FALSE }
-# Windows ARM64 has no NIK — force JDK
+# Windows ARM64 has no NIK -- force JDK
 if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $use_nik = $FALSE }
 $java_ver_path = "$sireum_bin\win\java\VER"
 
@@ -155,7 +155,7 @@ if ($java_update) {
   "$java_ver_check" | Set-Content "$java_ver_path"
 }
 
-# JVMCI (GraalVM compiler module jars — needed for GraalWasm JIT on JDK; harmless on NIK)
+# JVMCI (GraalVM compiler module jars -- needed for GraalWasm JIT on JDK; harmless on NIK)
 $graal_version = $properties["org.graalvm.compiler%compiler%"]
 if ($graal_version) {
   $lib_dir = "$sireum_home\lib"
