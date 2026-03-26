@@ -119,63 +119,148 @@ fi
 
 
 #
-# Java
+# Java (defaults to Liberica NIK; set SIREUM_JDK=true to use Liberica JDK instead)
 #
 if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
   exit
 fi
-JAVA_NAME="JDK"
-if [[ -z ${JAVA_VERSION} ]]; then
-  JAVA_VERSION=$(getVersion "org.sireum.version.java")
+JAVA_VERSION=$(getVersion "org.sireum.version.java")
+NIK_VERSIONS=$(getVersion "org.sireum.version.nik")
+NIK_JAVA_VERSION="${NIK_VERSIONS%%,*}"
+NIK_VERSION="${NIK_VERSIONS##*,}"
+NIK_DISPLAY_VERSION="${NIK_VERSION}-${NIK_JAVA_VERSION}"
+NIK_FULL_VERSION=$(echo "${NIK_DISPLAY_VERSION}" | sed 's/+/%2B/g')
+USE_NIK=true
+# Windows ARM64 has no NIK at all — force JDK
+if [[ "${PLATFORM}" == "win" ]] && [[ "${PROCESSOR_ARCHITECTURE}" == "ARM64" ]]; then
+  USE_NIK=false
 fi
-if [[ "${PLATFORM}" == "mac" ]]; then
-  if [[ "$(uname -m)" == "arm64" ]]; then
-    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-macos-aarch64-full.tar.gz
-  else
-    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-macos-amd64-full.tar.gz
+# Explicit JDK override
+if [[ "${SIREUM_JDK}" == "true" ]]; then
+  USE_NIK=false
+fi
+if [[ "${USE_NIK}" == "true" ]]; then
+  JAVA_NAME="Liberica NIK"
+  NIK_BASE="https://github.com/bell-sw/LibericaNIK/releases/download/${NIK_FULL_VERSION}"
+  if [[ "${PLATFORM}" == "mac" ]]; then
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-macos-aarch64.tar.gz
+    else
+      JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-macos-amd64.tar.gz
+    fi
+  elif [[ "${PLATFORM}" == "linux/arm" ]]; then
+    # Linux ARM64: NIK Standard (no Full/JavaFX available)
+    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-linux-aarch64.tar.gz
+  elif [[ "${PLATFORM}" == "linux" ]]; then
+    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-linux-amd64.tar.gz
+  elif [[ "${PLATFORM}" == "win" ]]; then
+    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-windows-amd64.zip
   fi
-elif [[ "${PLATFORM}" == "linux/arm" ]]; then
-  JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-linux-aarch64-full.tar.gz
-elif [[ "${PLATFORM}" == "linux" ]]; then
-  JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-linux-amd64-full.tar.gz
-elif [[ "${PLATFORM}" == "win" ]]; then
-  if [[ "${PROCESSOR_ARCHITECTURE}" == "ARM64" ]]; then
-    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-aarch64-full.zip
-  else
-    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-amd64-full.zip
+  JAVA_VER="${NIK_FULL_VERSION}"          # URL-encoded, for VER file matching
+  JAVA_DISPLAY_VER="${NIK_DISPLAY_VERSION}" # human-readable, for messages
+else
+  JAVA_NAME="JDK"
+  JAVA_VER="${JAVA_VERSION}"
+  JAVA_DISPLAY_VER="${JAVA_VERSION}"
+  if [[ "${PLATFORM}" == "mac" ]]; then
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-macos-aarch64-full.tar.gz
+    else
+      JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-macos-amd64-full.tar.gz
+    fi
+  elif [[ "${PLATFORM}" == "linux/arm" ]]; then
+    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-linux-aarch64-full.tar.gz
+  elif [[ "${PLATFORM}" == "linux" ]]; then
+    JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-linux-amd64-full.tar.gz
+  elif [[ "${PLATFORM}" == "win" ]]; then
+    if [[ "${PROCESSOR_ARCHITECTURE}" == "ARM64" ]]; then
+      JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-aarch64-full.zip
+    else
+      JAVA_DROP_URL=https://download.bell-sw.com/java/${JAVA_VERSION}/bellsoft-jdk${JAVA_VERSION}-windows-amd64-full.zip
+    fi
   fi
 fi
 mkdir -p "${SIREUM_HOME}/bin/${PLATFORM}"
 cd "${SIREUM_HOME}/bin/${PLATFORM}"
 JAVA_DROP="${JAVA_DROP_URL##*/}"
-if [[ "${PLATFORM}" == "mac" ]]; then
-  JAVA_DIR="jdk-${JAVA_VERSION%+*}-full.jdk"
+# Detect extracted dir name (NIK uses different naming)
+if [[ "${USE_NIK}" == "true" ]]; then
+  JAVA_DIR=""  # will glob for bellsoft-liberica-vm-* after extraction
 else
-  JAVA_DIR="jdk-${JAVA_VERSION%+*}-full"
+  if [[ "${PLATFORM}" == "mac" ]]; then
+    JAVA_DIR="jdk-${JAVA_VERSION%+*}-full.jdk"
+  else
+    JAVA_DIR="jdk-${JAVA_VERSION%+*}-full"
+  fi
 fi
-grep -q ${JAVA_VERSION} java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDATE=true
+grep -q "${JAVA_VER}" java/VER &> /dev/null && JAVA_UPDATE=false || JAVA_UPDATE=true
 if [[ ! -d "java" ]] || [[ "${JAVA_UPDATE}" = "true" ]]; then
   if [[ ! -f "${SIREUM_CACHE}/${JAVA_DROP}" ]]; then
-      echo "Please wait while downloading ${JAVA_NAME} ${JAVA_VERSION} ..."
+      echo "Please wait while downloading ${JAVA_NAME} ${JAVA_DISPLAY_VER} ..."
       download "${SIREUM_CACHE}/${JAVA_DROP}" ${JAVA_DROP_URL}
   fi
-  echo "Extracting ${JAVA_NAME} ${JAVA_VERSION} ..."
+  echo "Extracting ${JAVA_NAME} ${JAVA_DISPLAY_VER} ..."
   if [[ ${JAVA_DROP} == *.tar.gz ]]; then
     tar xf "${SIREUM_CACHE}/${JAVA_DROP}"
   else
     uncompress "${SIREUM_CACHE}/${JAVA_DROP}"
   fi
   rm -fR java
-  mv "${JAVA_DIR}" java
+  if [[ "${USE_NIK}" == "true" ]]; then
+    # NIK extracts to bellsoft-liberica-vm-* directory (or Contents/Home on macOS)
+    for d in bellsoft-liberica-vm-*; do
+      if [[ -d "$d" ]]; then
+        if [[ "${PLATFORM}" == "mac" ]] && [[ -d "$d/Contents/Home" ]]; then
+          mv "$d/Contents/Home" java
+          rm -fR "$d"
+        else
+          mv "$d" java
+        fi
+        break
+      fi
+    done
+  else
+    if [[ "${PLATFORM}" == "mac" ]]; then
+      # macOS JDK: jdk-VER-full.jdk/Contents/Home
+      if [[ -d "${JAVA_DIR}/Contents/Home" ]]; then
+        mv "${JAVA_DIR}/Contents/Home" java
+        rm -fR "${JAVA_DIR}"
+      else
+        mv "${JAVA_DIR}" java
+      fi
+    else
+      mv "${JAVA_DIR}" java
+    fi
+  fi
   echo
   if [[ -d "java/bin" ]]; then
     chmod +x java/bin/*
     chmod -fR u+w java
-    echo "${JAVA_VERSION}" > java/VER
+    echo "${JAVA_VER}" > java/VER
   else
-    >&2 echo "Could not install ${JAVA_NAME} ${JAVA_VERSION}."
+    >&2 echo "Could not install ${JAVA_NAME} ${JAVA_DISPLAY_VER}."
     exit 1
   fi
+fi
+
+
+#
+# JVMCI (GraalVM compiler module jars — needed for GraalWasm JIT on JDK; harmless on NIK)
+#
+GRAAL_VERSION=$(getVersion "org.graalvm.compiler%compiler%")
+if [[ -n "${GRAAL_VERSION}" ]]; then
+  mkdir -p "${SIREUM_HOME}/lib"
+  MAVEN_BASE="https://repo1.maven.org/maven2"
+  for gjar in "org/graalvm/compiler/compiler" "org/graalvm/truffle/truffle-compiler" \
+              "org/graalvm/sdk/word" "org/graalvm/sdk/collections" \
+              "org/graalvm/sdk/jniutils" "org/graalvm/sdk/nativeimage"; do
+    ARTIFACT="${gjar##*/}"
+    JAR_FILE="${SIREUM_HOME}/lib/${ARTIFACT}-${GRAAL_VERSION}.jar"
+    if [[ ! -f "${JAR_FILE}" ]]; then
+      echo "Downloading ${ARTIFACT}-${GRAAL_VERSION}.jar ..."
+      download "${JAR_FILE}" "${MAVEN_BASE}/${gjar}/${GRAAL_VERSION}/${ARTIFACT}-${GRAAL_VERSION}.jar"
+    fi
+  done
 fi
 
 

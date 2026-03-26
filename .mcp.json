@@ -2,8 +2,8 @@
   "mcpServers": {
     "sireum": {
       "type": "stdio",
-      "command": "bin/sireum-mcp.bat",
-      "args": []
+      "command": "bin/sireum",
+      "args": [ "--mcp" ]
     }
   }
 }

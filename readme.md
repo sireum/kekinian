@@ -93,6 +93,7 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [GraalVM (OpenJDK)](https://github.com/oracle/graal) | [GPL v2 with "Classpath" exception](https://github.com/oracle/graal/blob/master/LICENSE) |
 | [IntelliJ](https://github.com/JetBrains/intellij-community) | [Apache 2.0](https://github.com/JetBrains/intellij-community/blob/master/LICENSE.txt) |
 | [Isabelle](https://isabelle.in.tum.de/) | [BSD3](https://isabelle-dev.sketis.net/source/isabelle/browse/default/COPYRIGHT) |
+| [llvm-mingw](https://github.com/mstorsjo/llvm-mingw) | [ISC](https://github.com/mstorsjo/llvm-mingw/blob/master/LICENSE) |
 | [Mill](https://mill-build.org) | [MIT](https://github.com/com-lihaoyi/mill/blob/main/LICENSE) |
 | [Oracle GraalVM](https://www.oracle.com/java/graalvm/) | [GFTC](https://www.oracle.com/downloads/licenses/graal-free-license.html) |
 | [OSATE2](https://github.com/osate/osate2) | [EPL 2.0](https://github.com/osate/osate2/blob/master/LICENSE) |
@@ -106,7 +107,6 @@ In addition, Sireum includes adaptations of the following artifacts:
 | [Wasmer](https://github.com/wasmerio/wasmer) | [MIT](https://github.com/wasmerio/wasmer/blob/main/LICENSE) |
 | [wasmtime](https://github.com/bytecodealliance/wasmtime) | [Apache 2.0](https://github.com/bytecodealliance/wasmtime/blob/main/LICENSE) |
 | [wasm-tools](https://github.com/bytecodealliance/wasm-tools) | [Apache 2.0](https://github.com/bytecodealliance/wasm-tools/blob/main/LICENSE) |
-
 | [wasi-sdk](https://github.com/webassembly/wasi-sdk) | [Apache 2.0 w/ LLVM exception](https://github.com/WebAssembly/wasi-sdk/blob/main/LICENSE) |
 
 | IntelliJ/CLion/RustRover Plugin | License |

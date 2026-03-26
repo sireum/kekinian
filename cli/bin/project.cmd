@@ -31,7 +31,8 @@ val cliJvm = moduleJvmPub(
   baseDir = homeDir,
   jvmDeps = ISZ(server),
   jvmIvyDeps = ISZ(
-    "io.modelcontextprotocol.sdk:mcp:",
+    "io.modelcontextprotocol.sdk:mcp-core:",
+    "io.modelcontextprotocol.sdk:mcp-json-jackson2:",
     "org.slf4j:slf4j-nop:"
   ),
   pubOpt = pub(

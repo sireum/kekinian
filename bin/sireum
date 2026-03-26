@@ -49,8 +49,27 @@ JVMCI_OPTS=""
 if [[ -n ${JVMCI_CP} ]]; then
   JVMCI_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --sun-misc-unsafe-memory-access=allow --upgrade-module-path=${JVMCI_CP}"
 fi
+SIREUM_BASE_CP="${SCALA_HOME}/lib/*:${SIREUM_JAR}"
+SIREUM_CP="${SIREUM_BASE_CP}${JVMCI_CP:+:${JVMCI_CP}}"
+SIREUM_BASE_OPTS="--enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -Djava.net.useSystemProxies=true ${JAVA_OPTS}"
+SIREUM_JAVA_OPTS="${SIREUM_BASE_OPTS} ${JVMCI_OPTS}"
+AOT_CACHE="${SIREUM_HOME}/bin/.aot/sireum.aot"
+AOT_JAR_HASH="${SIREUM_HOME}/bin/.aot/sireum.jar.sha"
 if [[ "${SIREUM_NATIVE}" != "false" && -f ${NATIVE} ]]; then
   exec "${NATIVE}" "$@"
 else
-  exec "${JAVA}" --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED -Djava.net.useSystemProxies=true ${JVMCI_OPTS} ${JAVA_OPTS} -cp "${SCALA_HOME}/lib/*:${SIREUM_JAR}${JVMCI_CP:+:${JVMCI_CP}}" org.sireum.Sireum "$@"
+  if [[ "${SIREUM_NO_AOT}" != "true" ]]; then
+    CUR_HASH=$(shasum -a 256 "${SIREUM_JAR}" 2>/dev/null | cut -d' ' -f1)
+    OLD_HASH=""
+    [[ -f "${AOT_JAR_HASH}" ]] && OLD_HASH=$(cat "${AOT_JAR_HASH}")
+    if [[ ! -f "${AOT_CACHE}" ]] || [[ "${CUR_HASH}" != "${OLD_HASH}" ]]; then
+      mkdir -p "${SIREUM_HOME}/bin/.aot"
+      "${JAVA}" -XX:AOTCacheOutput="${AOT_CACHE}" ${SIREUM_BASE_OPTS} -cp "${SIREUM_BASE_CP}" org.sireum.Sireum --version > "${SIREUM_HOME}/bin/.aot/train.log" 2>&1
+      echo "${CUR_HASH}" > "${AOT_JAR_HASH}"
+    fi
+  fi
+  if [[ -f "${AOT_CACHE}" ]]; then
+    exec "${JAVA}" -XX:AOTCache="${AOT_CACHE}" -Xlog:aot=off ${SIREUM_BASE_OPTS} -cp "${SIREUM_BASE_CP}" org.sireum.Sireum "$@"
+  fi
+  exec "${JAVA}" ${SIREUM_JAVA_OPTS} -cp "${SIREUM_CP}" org.sireum.Sireum "$@"
 fi

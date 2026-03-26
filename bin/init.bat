@@ -94,35 +94,90 @@ if ($Env:SIREUM_PROVIDED_JAVA) {
   Exit
 }
 $java_version = $properties["org.sireum.version.java"]
+$nik_versions = $properties["org.sireum.version.nik"]
+$nik_parts = $nik_versions.Split(',')
+$nik_java_version = $nik_parts[0]
+$nik_version = $nik_parts[1]
+$nik_display_version = "$nik_version-$nik_java_version"
+$nik_full_version = $nik_display_version -replace "\+", "%2B"
+# Default to NIK; set SIREUM_JDK=true to use Liberica JDK instead
+$use_nik = $TRUE
+if ($Env:SIREUM_JDK -eq "true") { $use_nik = $FALSE }
+# Windows ARM64 has no NIK — force JDK
+if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $use_nik = $FALSE }
 $java_ver_path = "$sireum_bin\win\java\VER"
-$java_update = $TRUE
-if (Test-Path "$java_ver_path") {
-  $java_ver = Get-Content "$java_ver_path"
-  if ($java_ver -Eq $java_version) {
-    $java_update = $FALSE
-  }
-}
-if ($java_update) {
+
+if ($use_nik) {
+  $java_name = "Liberica NIK"
+  $java_ver_check = $nik_full_version
+  $java_display_ver = $nik_display_version
+  $nik_base = "https://github.com/bell-sw/LibericaNIK/releases/download/$nik_full_version"
+  $java_url = "$nik_base/bellsoft-liberica-vm-full-openjdk$nik_java_version-$nik_version-windows-amd64.zip"
+  $java_drop = "$cache_dir\bellsoft-liberica-vm-full-openjdk$nik_java_version-$nik_version-windows-amd64.zip"
+} else {
+  $java_name = "JDK"
+  $java_ver_check = $java_version
+  $java_display_ver = $java_version
   if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
     $arch = "aarch64"
   } else {
     $arch = "amd64"
   }
+  $java_url = "https://download.bell-sw.com/java/$java_version/bellsoft-jdk$java_version-windows-$arch-full.zip"
   $java_drop = "$cache_dir\bellsoft-jdk$java_version-windows-$arch-full.zip"
+}
+
+$java_update = $TRUE
+if (Test-Path "$java_ver_path") {
+  $java_ver = Get-Content "$java_ver_path"
+  if ($java_ver -Eq $java_ver_check) {
+    $java_update = $FALSE
+  }
+}
+if ($java_update) {
   if (!(Test-Path "$java_drop")) {
-    "Please wait while downloading JDK $java_version ... "
-    $java_url = "https://download.bell-sw.com/java/$java_version/bellsoft-jdk$java_version-windows-$arch-full.zip"
+    "Please wait while downloading $java_name $java_display_ver ... "
     Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
   }
-  "Extracting JDK $java_version ... "
+  "Extracting $java_name $java_display_ver ... "
   Expand-Archive "$java_drop" -DestinationPath "$sireum_bin\win"
   ""
   if (Test-Path "$sireum_bin\win\java") {
     Remove-Item -Path "$sireum_bin\win\java" -Recurse -Force
   }
-  $jver = $java_version -replace "\+.*"
-  Move "$sireum_bin\win\jdk-$jver-full" "$sireum_bin\win\java"
-  "$java_version" | Set-Content "$java_ver_path"
+  if ($use_nik) {
+    $nik_dir = Get-ChildItem "$sireum_bin\win" -Directory | Where-Object { $_.Name -like "bellsoft-liberica-vm-*" } | Select-Object -First 1
+    if ($nik_dir) { Move $nik_dir.FullName "$sireum_bin\win\java" }
+  } else {
+    $jver = $java_version -replace "\+.*"
+    Move "$sireum_bin\win\jdk-$jver-full" "$sireum_bin\win\java"
+  }
+  "$java_ver_check" | Set-Content "$java_ver_path"
+}
+
+# JVMCI (GraalVM compiler module jars — needed for GraalWasm JIT on JDK; harmless on NIK)
+$graal_version = $properties["org.graalvm.compiler%compiler%"]
+if ($graal_version) {
+  $lib_dir = "$sireum_home\lib"
+  New-Item -Type directory -Path "$lib_dir" -Force | Out-Null
+  $maven_base = "https://repo1.maven.org/maven2"
+  $graal_jars = @(
+    @("org/graalvm/compiler", "compiler"),
+    @("org/graalvm/truffle", "truffle-compiler"),
+    @("org/graalvm/sdk", "word"),
+    @("org/graalvm/sdk", "collections"),
+    @("org/graalvm/sdk", "jniutils"),
+    @("org/graalvm/sdk", "nativeimage")
+  )
+  foreach ($gjar in $graal_jars) {
+    $group_path = $gjar[0]
+    $artifact = $gjar[1]
+    $jar_file = "$lib_dir\$artifact-$graal_version.jar"
+    if (!(Test-Path "$jar_file")) {
+      "Downloading $artifact-$graal_version.jar ..."
+      Invoke-WebRequest -Uri "$maven_base/$group_path/$artifact/$graal_version/$artifact-$graal_version.jar" -OutFile "$jar_file"
+    }
+  }
 }
 
 if ($Env:SIREUM_NO_SETUP) {

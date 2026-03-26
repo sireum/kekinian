@@ -29,7 +29,7 @@ import io.modelcontextprotocol.server.McpServer
 import io.modelcontextprotocol.server.McpServerFeatures
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider
 import io.modelcontextprotocol.spec.McpSchema
-import io.modelcontextprotocol.json.McpJsonMapper
+import io.modelcontextprotocol.json.McpJsonDefaults
 
 import java.io.{FileOutputStream, FilterInputStream, PrintWriter, StringWriter}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
@@ -126,7 +126,7 @@ object SireumMcpServer {
       .callHandler((_, request) => handleTerminalToggle(request.arguments()))
       .build())
 
-    val jsonMapper = McpJsonMapper.getDefault
+    val jsonMapper = McpJsonDefaults.getMapper()
     val transport = new StdioServerTransportProvider(jsonMapper)
     val server = McpServer.sync(transport)
       .serverInfo("sireum", SireumApi.version.value)
