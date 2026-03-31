@@ -113,7 +113,7 @@
 - **Bootstrap recovery**: If `sireum.jar` is broken, delete it + run `bin/init.sh` (downloads from GitHub). Always back up before modifying jar-affecting code.
 
 ### Environment Variables
-- Set `SIREUM_NATIVE=false` to skip the native binary and run via `java -jar sireum.jar` instead. Supported in `bin/sireum`, `bin/sireum.bat`, and `bin/sireum-mcp.bat`.
+- Set `SIREUM_NATIVE=false` to skip the native binary and run via `java -jar sireum.jar` instead. Supported in `bin/sireum` a d `bin/sireum.bat`.
 
 ### Output Directory
 - Artifacts go to `<dir>/out/<name>/` (`<name>` defaults to dir name). Supply `name` option to control. `bin/build.cmd` uses `name=sireum-proyek`.
