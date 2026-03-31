@@ -149,10 +149,11 @@ if [[ "${USE_NIK}" == "true" ]]; then
       JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-macos-amd64.tar.gz
     fi
   elif [[ "${PLATFORM}" == "linux/arm" ]]; then
-    # Linux ARM64: NIK Standard (no Full/JavaFX available)
-    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-linux-aarch64.tar.gz
+    # Linux ARM64: musl variant for static native-image (no Full/JavaFX available)
+    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-linux-aarch64-musl.tar.gz
   elif [[ "${PLATFORM}" == "linux" ]]; then
-    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-linux-amd64.tar.gz
+    # Linux AMD64: musl variant for static native-image (no Full/JavaFX available)
+    JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-linux-x64-musl.tar.gz
   elif [[ "${PLATFORM}" == "win" ]]; then
     JAVA_DROP_URL=${NIK_BASE}/bellsoft-liberica-vm-full-openjdk${NIK_JAVA_VERSION}-${NIK_VERSION}-windows-amd64.zip
   fi
