@@ -94,65 +94,37 @@ if ($Env:SIREUM_PROVIDED_JAVA) {
   Exit
 }
 $java_version = $properties["org.sireum.version.java"]
-$nik_versions = $properties["org.sireum.version.nik"]
-$nik_parts = $nik_versions.Split(',')
-$nik_java_version = $nik_parts[0]
-$nik_version = $nik_parts[1]
-$nik_display_version = "$nik_version-$nik_java_version"
-$nik_full_version = $nik_display_version -replace "\+", "%2B"
-# Default to NIK; set SIREUM_JDK=true to use Liberica JDK instead
-$use_nik = $TRUE
-if ($Env:SIREUM_JDK -eq "true") { $use_nik = $FALSE }
-# Windows ARM64 has no NIK -- force JDK
-if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $use_nik = $FALSE }
 $java_ver_path = "$sireum_bin\win\java\VER"
 
-if ($use_nik) {
-  $java_name = "Liberica NIK"
-  $java_ver_check = $nik_full_version
-  $java_display_ver = $nik_display_version
-  $nik_base = "https://github.com/bell-sw/LibericaNIK/releases/download/$nik_full_version"
-  $java_url = "$nik_base/bellsoft-liberica-vm-full-openjdk$nik_java_version-$nik_version-windows-amd64.zip"
-  $java_drop = "$cache_dir\bellsoft-liberica-vm-full-openjdk$nik_java_version-$nik_version-windows-amd64.zip"
+if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+  $arch = "aarch64"
 } else {
-  $java_name = "JDK"
-  $java_ver_check = $java_version
-  $java_display_ver = $java_version
-  if ($Env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
-    $arch = "aarch64"
-  } else {
-    $arch = "amd64"
-  }
-  $java_url = "https://download.bell-sw.com/java/$java_version/bellsoft-jdk$java_version-windows-$arch-full.zip"
-  $java_drop = "$cache_dir\bellsoft-jdk$java_version-windows-$arch-full.zip"
+  $arch = "amd64"
 }
+$java_url = "https://download.bell-sw.com/java/$java_version/bellsoft-jdk$java_version-windows-$arch-full.zip"
+$java_drop = "$cache_dir\bellsoft-jdk$java_version-windows-$arch-full.zip"
 
 $java_update = $TRUE
 if (Test-Path "$java_ver_path") {
   $java_ver = Get-Content "$java_ver_path"
-  if ($java_ver -Eq $java_ver_check) {
+  if ($java_ver -Eq $java_version) {
     $java_update = $FALSE
   }
 }
 if ($java_update) {
   if (!(Test-Path "$java_drop")) {
-    "Please wait while downloading $java_name $java_display_ver ... "
+    "Please wait while downloading JDK $java_version ... "
     Invoke-WebRequest -Uri "$java_url" -OutFile "$java_drop"
   }
-  "Extracting $java_name $java_display_ver ... "
+  "Extracting JDK $java_version ... "
   Expand-Archive "$java_drop" -DestinationPath "$sireum_bin\win"
   ""
   if (Test-Path "$sireum_bin\win\java") {
     Remove-Item -Path "$sireum_bin\win\java" -Recurse -Force
   }
-  if ($use_nik) {
-    $nik_dir = Get-ChildItem "$sireum_bin\win" -Directory | Where-Object { $_.Name -like "bellsoft-liberica-vm-*" } | Select-Object -First 1
-    if ($nik_dir) { Move $nik_dir.FullName "$sireum_bin\win\java" }
-  } else {
-    $jver = $java_version -replace "\+.*"
-    Move "$sireum_bin\win\jdk-$jver-full" "$sireum_bin\win\java"
-  }
-  "$java_ver_check" | Set-Content "$java_ver_path"
+  $jver = $java_version -replace "\+.*"
+  Move "$sireum_bin\win\jdk-$jver-full" "$sireum_bin\win\java"
+  "$java_version" | Set-Content "$java_ver_path"
 }
 
 # JVMCI (GraalVM compiler module jars -- needed for GraalWasm JIT on JDK; harmless on NIK)
