@@ -431,6 +431,12 @@ object Roboto_Ext {
               val timeout: Z = if (opts.nonEmpty) parseZ(opts(0), "timeoutMs").getOrElse(10000) else 10000
               org.sireum.Some(WaitForText(arg, timeout))
 
+            case "hidecursor" =>
+              org.sireum.Some(HideCursor())
+
+            case "showcursor" =>
+              org.sireum.Some(ShowCursor())
+
             case _ =>
               reporter.error(getPosOpt(node), kind,
                 s"Unknown command in '$actionName': $cmd")
@@ -570,6 +576,78 @@ object Roboto_Ext {
       case a: ScreenCapture => screenCapture(a)
       case a: ClickText => clickText(a)
       case a: WaitForText => waitForText(a)
+      case _: HideCursor => hideCursor()
+      case _: ShowCursor => showCursor()
+    }
+  }
+
+  // Holds a long-running helper process whose only job is to keep the
+  // macOS OS cursor hidden via CoreGraphics CGDisplayHideCursor. We balance
+  // the hide with CGDisplayShowCursor when stdin closes (which happens
+  // when ShowCursor or the JVM shutdown hook destroys the process).
+  @volatile private var cursorHideProc: java.lang.Process = null
+  private val isMac: Boolean =
+    System.getProperty("os.name", "").toLowerCase.contains("mac")
+  // Register once: if the JVM exits while the cursor is still hidden
+  // (script aborted, Ctrl-C, etc.) make sure we still restore it.
+  Runtime.getRuntime.addShutdownHook(new Thread(() => {
+    val p = cursorHideProc
+    if (p != null) {
+      try p.getOutputStream.close() catch { case _: Throwable => }
+      try p.waitFor(1, java.util.concurrent.TimeUnit.SECONDS) catch { case _: Throwable => }
+      try p.destroyForcibly() catch { case _: Throwable => }
+      cursorHideProc = null
+    }
+  }, "roboto-cursor-restore"))
+
+  // Stop compositing the cursor overlay onto recorded frames and, on
+  // macOS, hide the OS cursor itself by running a tiny Swift helper that
+  // calls CGDisplayHideCursor + waits on stdin. The previous workaround
+  // parked the OS pointer in a screen corner — but every corner triggered
+  // either the macOS menu bar or the dock. CGDisplayHideCursor truly hides
+  // the cursor system-wide for the duration. Falls back to the corner-park
+  // workaround on non-macOS platforms.
+  private def hideCursor(): Unit = {
+    drawCursor = false
+    if (isMac) {
+      val swiftSrc =
+        """import CoreGraphics
+          |import Foundation
+          |CGDisplayHideCursor(CGMainDisplayID())
+          |let _ = FileHandle.standardInput.readDataToEndOfFile()
+          |CGDisplayShowCursor(CGMainDisplayID())
+          |""".stripMargin
+      try {
+        val pb = new java.lang.ProcessBuilder("swift", "-")
+        pb.redirectErrorStream(true)
+        val p = pb.start()
+        val os = p.getOutputStream
+        os.write(swiftSrc.getBytes("UTF-8"))
+        os.flush()
+        cursorHideProc = p
+        return
+      } catch {
+        case _: Throwable => // swift not available — fall through to park
+      }
+    }
+    val ss = Toolkit.getDefaultToolkit.getScreenSize
+    robot.mouseMove(ss.width - 1, ss.height / 2)
+  }
+
+  // Re-enable the cursor overlay. On macOS, close the helper's stdin so it
+  // calls CGDisplayShowCursor and exits cleanly.
+  private def showCursor(): Unit = {
+    drawCursor = true
+    val p = cursorHideProc
+    if (p != null) {
+      try {
+        p.getOutputStream.close()
+        p.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+      } catch {
+        case _: Throwable =>
+      }
+      try p.destroyForcibly() catch { case _: Throwable => }
+      cursorHideProc = null
     }
   }
 
@@ -685,6 +763,10 @@ object Roboto_Ext {
   @volatile private var recordedFrameCount: Long = 0
   @volatile private var recordingStartMs: Long = 0
   @volatile private var recordingEndMs: Long = 0
+  // Toggled by HideCursor / ShowCursor commands. When false, the capture
+  // loop skips compositing the cursor overlay (and a HideCursor parks the
+  // OS pointer offscreen at the same time).
+  @volatile private var drawCursor: Boolean = true
 
   // Cursor image (22x32 PNG, base64-embedded) composited onto each captured frame
   private val cursorImage: BufferedImage = {
@@ -858,12 +940,13 @@ object Roboto_Ext {
             // Capture screen
             val screen = captureRobot.createScreenCapture(rect)
 
-            // Composite cursor at current mouse position
+            // Composite cursor at current mouse position (unless hidden).
             val g2 = screen.createGraphics()
             try {
-              // Always composite cursor
-              val mousePos = java.awt.MouseInfo.getPointerInfo.getLocation
-              g2.drawImage(cursorImage, mousePos.x - 2, mousePos.y - 5, null)
+              if (drawCursor) {
+                val mousePos = java.awt.MouseInfo.getPointerInfo.getLocation
+                g2.drawImage(cursorImage, mousePos.x - 2, mousePos.y - 5, null)
+              }
 
               // Composite sonar if active
               val sonar = activeSonar
