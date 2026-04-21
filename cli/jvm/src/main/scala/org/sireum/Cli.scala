@@ -940,7 +940,6 @@ object Cli {
     val record: B,
     val slice: ISZ[String],
     val slides: B,
-    val srt: B,
     val videoFps: Z,
     val videoHeight: Z,
     val force: B,
@@ -8342,7 +8341,6 @@ import Cli._
           |    --slice              Slide indices to keep (expects a string separated by
           |                           ",")
           |    --slides             Generate markdown slides
-          |    --srt                Generate .srt instead of .vtt subtitle file
           |    --video-fps          Animated video frames-per-second when generating
           |                           markdown slides (expects an integer; min is 5;
           |                           default is 5)
@@ -8389,7 +8387,6 @@ import Cli._
     var record: B = false
     var slice: ISZ[String] = ISZ[String]()
     var slides: B = false
-    var srt: B = false
     var videoFps: Z = 5
     var videoHeight: Z = 1080
     var force: B = false
@@ -8442,12 +8439,6 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!slides) }
            o match {
              case Some(v) => slides = v
-             case _ => return None()
-           }
-         } else if (arg == "--srt") {
-           val o: Option[B] = { j = j - 1; Some(!srt) }
-           o match {
-             case Some(v) => srt = v
              case _ => return None()
            }
          } else if (arg == "--video-fps") {
@@ -8555,7 +8546,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, clean, record, slice, slides, srt, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang, elevenLabsKey, elevenLabsModel, googleKey))
+    return Some(SireumPresentasiGenOption(help, parseArguments(args, j), cc, clean, record, slice, slides, videoFps, videoHeight, force, lang, outputFormat, service, voice, awsPath, engine, gender, key, region, voiceLang, elevenLabsKey, elevenLabsModel, googleKey))
   }
 
   def parseSireumPresentasiText2speechOutputFormatH(arg: String): Option[SireumPresentasiText2speechOutputFormat.Type] = {

@@ -142,8 +142,6 @@ val pgenTool: Tool = Tool(
       tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
     Opt(name = "slides", longKey = "slides", shortKey = None(),
       tpe = Type.Flag(default = F), description = "Generate markdown slides"),
-    Opt(name = "srt", longKey = "srt", shortKey = None(),
-      tpe = Type.Flag(default = F), description = "Generate .srt instead of .vtt subtitle file"),
     Opt(name = "videoFps", longKey = "video-fps", shortKey = None(),
       tpe = Type.Num(sep = None(), default = 5, min = Some(5), max = None()),
       description = "Animated video frames-per-second when generating markdown slides"),
