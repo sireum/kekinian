@@ -388,6 +388,27 @@ object Roboto_Ext {
                 org.sireum.None()
               }
 
+            case "mousewheel" =>
+              // `mouseWheel: notches` (instant) or `mouseWheel: notches, durationMs`
+              // (paced one-tick-per-(duration/|notches|)-ms).
+              val parts = arg.split(",").map(_.trim)
+              if (parts.length == 1) {
+                parseZ(parts(0), "notches") match {
+                  case org.sireum.Some(n) => org.sireum.Some(MouseWheel(n, org.sireum.Z(0)))
+                  case _ => org.sireum.None()
+                }
+              } else if (parts.length == 2) {
+                (parseZ(parts(0), "notches"), parseZ(parts(1), "durationMs")) match {
+                  case (org.sireum.Some(n), org.sireum.Some(d)) =>
+                    org.sireum.Some(MouseWheel(n, d))
+                  case _ => org.sireum.None()
+                }
+              } else {
+                reporter.error(getPosOpt(node), kind,
+                  s"mouseWheel expects notches[,durationMs] in '$actionName': $arg")
+                org.sireum.None()
+              }
+
             case "clickimage" =>
               val similarity: F64 = if (opts.nonEmpty) parseF64(opts(0), "similarity").getOrElse(org.sireum.F64(0.9)) else org.sireum.F64(0.9)
               val xOffset: Z = if (opts.length > 1) parseZ(opts(1), "xOffset").getOrElse(0) else 0
@@ -565,6 +586,7 @@ object Roboto_Ext {
       case a: MouseClick => mouseClick(a)
       case a: MouseDoubleClick => mouseDoubleClick(a)
       case a: MouseDrag => mouseDrag(a)
+      case a: MouseWheel => mouseWheel(a)
       case a: ClickImage => clickImage(a)
       case a: WaitForImage => waitForImage(a)
       case a: Wait => robot.delay(a.ms.toInt)
@@ -1136,6 +1158,24 @@ object Roboto_Ext {
     robot.mouseMove(a.toX.toInt, a.toY.toInt)
     robot.delay(50)
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
+  }
+
+  // Rotate the scroll wheel by `a.notches` ticks.  durationMs > 0 paces
+  // the ticks (one per durationMs / |notches| milliseconds) for a smooth
+  // visual scroll; durationMs == 0 dispatches all ticks at once.
+  private def mouseWheel(a: MouseWheel): Unit = {
+    val total = a.notches.toInt
+    if (total == 0) return
+    val direction = if (total < 0) -1 else 1
+    val absTotal = math.abs(total)
+    val durationMs = a.durationMs.toInt.max(0)
+    val perTick = if (durationMs > 0) durationMs / absTotal else 0
+    var i = 0
+    while (i < absTotal) {
+      robot.mouseWheel(direction)
+      if (perTick > 0) robot.delay(perTick)
+      i += 1
+    }
   }
 
   // -- Image Actions --
