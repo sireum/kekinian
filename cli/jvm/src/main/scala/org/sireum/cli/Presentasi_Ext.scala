@@ -24,51 +24,10 @@
  */
 package org.sireum.cli
 
-import org.sireum.$internal.###
 import org.sireum._
 import org.sireum.U64._
 
 object Presentasi_Ext {
-
-  ###("true" == System.getenv("PROYEK_JFX") || scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess) {
-
-    def initJavaFX(): Unit = NativeUtil.nonNative((), { () => presentasi.PresentasiJFX.initJavaFX() })
-
-    def getSoundDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), { () =>
-      val r = Z(presentasi.PresentasiJFX.getSoundDuration(uri.value))
-      if (r < 0) None[Z]() else Some(r)
-    })
-
-    def getVideoDuration(uri: String): Option[Z] = NativeUtil.nonNative(None[Z](), { () =>
-      val r = Z(presentasi.PresentasiJFX.getVideoDuration(uri.value))
-      if (r < 0) None[Z]() else Some(r)
-    })
-
-    def checkImage(uri: String): B = NativeUtil.nonNative(F, { () =>
-      B(presentasi.PresentasiJFX.checkImage(uri.value))
-    })
-
-    def shutdown(): Unit = NativeUtil.nonNative((), { () => presentasi.PresentasiJFX.shutdown() })
-  }
-
-  ###(!("true" == System.getenv("PROYEK_JFX") || scala.util.Try(Class.forName("javafx.stage.Stage", false, getClass.getClassLoader)).isSuccess)) {
-    def err(): Nothing = {
-      System.err.println("JavaFX is not available under this setup")
-      System.err.flush()
-      System.exit(-1)
-      throw new RuntimeException("")
-    }
-
-    def initJavaFX(): Unit = err()
-
-    def getSoundDuration(uri: String): Option[Z] = err()
-
-    def getVideoDuration(uri: String): Option[Z] = err()
-
-    def checkImage(uri: String): B = err()
-
-    def shutdown(): Unit = err()
-  }
 
   def pcm2wav(path: Os.Path, srate: Z): Unit = {
     val rate = srate.toInt

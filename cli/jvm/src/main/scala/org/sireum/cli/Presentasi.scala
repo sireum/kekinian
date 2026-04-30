@@ -61,6 +61,58 @@ object Presentasi {
   val NO_FFMPEG: Z = -5
   val kind: String = "Presentasi"
 
+  // ffprobe-based media-info helpers — replace prior JavaFX MediaPlayer
+  // probes that lived in PresentasiJFX. ffprobe is a hard dep of the
+  // offline `.cmd` assembly path, so no new tooling requirement.
+  def getMediaDurationMillis(uri: String): Option[Z] = {
+    val r = Os.proc(ISZ[String]("ffprobe", "-v", "error",
+      "-show_entries", "format=duration",
+      "-of", "default=noprint_wrappers=1:nokey=1",
+      uriToPathString(uri))).run()
+    if (!r.ok) {
+      return None()
+    }
+    val s = ops.StringOps(r.out).trim
+    R(s) match {
+      case Some(seconds) =>
+        // Match prior Math.ceil(seconds * 1000) behavior: ceil to whole
+        // ms so timeline arithmetic never undershoots.
+        val ms: R = seconds * conversions.Z.toR(z"1000")
+        val msTrunc: Z = conversions.R.toZ(ms)
+        val msCeil: Z = if (conversions.Z.toR(msTrunc) < ms) msTrunc + 1 else msTrunc
+        return Some(msCeil)
+      case _ => return None()
+    }
+  }
+
+  def getSoundDuration(uri: String): Option[Z] = {
+    return getMediaDurationMillis(uri)
+  }
+
+  def getVideoDuration(uri: String): Option[Z] = {
+    return getMediaDurationMillis(uri)
+  }
+
+  def checkImage(uri: String): B = {
+    return Os.proc(ISZ[String]("ffprobe", "-v", "error", uriToPathString(uri))).run().ok
+  }
+
+  // file:/// URIs come from Os.Path.toUri; ffprobe wants a plain path on
+  // the filesystem (or a "file:" URL — but plain path avoids URL-decode
+  // surprises with spaces).
+  def uriToPathString(uri: String): String = {
+    val s = ops.StringOps(uri)
+    if (s.startsWith("file:")) {
+      val rest = s.substring(5, uri.size)
+      val r = ops.StringOps(rest)
+      if (r.startsWith("///")) {
+        return r.substring(2, rest.size)
+      }
+      return rest
+    }
+    return uri
+  }
+
   def printHelp(help: String): Z = {
     println(help)
     println()
@@ -134,25 +186,10 @@ object Presentasi {
           |import javafx.stage.Stage;
           |import javafx.util.Duration;
           |
-          |import java.awt.GraphicsConfiguration;
-          |import java.awt.GraphicsEnvironment;
-          |import java.io.File;
-          |import java.io.FileWriter;
           |import java.net.URL;
-          |import java.util.ArrayList;
           |import java.util.HashMap;
           |import java.util.LinkedList;
           |import java.util.List;
-          |import java.util.concurrent.TimeUnit;
-          |import java.util.concurrent.Executors;
-          |import java.util.concurrent.ScheduledExecutorService;
-          |import java.util.stream.Collectors;
-          |
-          |import org.monte.media.av.Format;
-          |import org.monte.media.av.codec.video.VideoFormatKeys;
-          |import org.monte.media.math.Rational;
-          |import org.monte.media.screenrecorder.ScreenRecorder;
-          |import org.monte.media.screenrecorder.MouseConfigs;
           |
           |public class $name extends Application {
           |
@@ -319,8 +356,7 @@ object Presentasi {
           |    private boolean fullScreen = true;
           |    private double width = -1;
           |    private double height = -1;
-          |    private boolean record = false;
-          | 
+          |
           |    public static String getResourceUri(final String path) {
           |        try {
           |            final URL url = Presentasi.class.getResource(path);
@@ -342,9 +378,7 @@ object Presentasi {
           |            for (String arg : getParameters().getRaw()) {
           |                try {
           |                    int i = arg.indexOf('x');
-          |                    if ("-r".equals(arg)) {
-          |                       record = true;
-          |                    } else if (i >= 0) {
+          |                    if (i >= 0) {
           |                        width = Integer.parseInt(arg.substring(0, i));
           |                        height = Integer.parseInt(arg.substring(i + 1));
           |                        fullScreen = false;
@@ -388,11 +422,6 @@ object Presentasi {
           |            System.out.println("done");
           |            System.out.flush();
           |        }
-          |        
-          |        final GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-          |
-          |        final File dir = new File(new File(new File("out"), "presentasi"), this.getClass().getSimpleName());
-          |        if (record) dir.mkdirs();
           |
           |        final Thread thread = new Thread(() -> {
           |            while (Presentasi.this.stage == null) Presentasi.sleep(100);
@@ -416,50 +445,6 @@ object Presentasi {
           |                while (i < size && medias.get(i) instanceof Sound) i++;
           |                if (i < size) start = start - medias.get(i).getTimeline();
           |            }
-          |            final ArrayList<String> vtt = new ArrayList<>();
-          |            final ArrayList<String> sounds = new ArrayList<>();
-          |            vtt.add("WEBVTT");
-          |            final int[] vttIndex = new int[] { 1 };
-          |            final long[] soundBeginTime = new long[] { 0 };
-          |            ScreenRecorder recorderTemp = null;
-          |
-          |            try {
-          |                final int fps = 30;
-          |                final int bitDepth = 24;
-          |                final Format fileFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.FILE,
-          |                        VideoFormatKeys.MimeTypeKey, VideoFormatKeys.MIME_AVI);
-          |                final Format screenFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
-          |                        VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE,
-          |                        VideoFormatKeys.CompressorNameKey, VideoFormatKeys.COMPRESSOR_NAME_AVI_TECHSMITH_SCREEN_CAPTURE,
-          |                        VideoFormatKeys.DepthKey, bitDepth,
-          |                        VideoFormatKeys.FrameRateKey, Rational.valueOf(fps),
-          |                        VideoFormatKeys.QualityKey, 1.0f,
-          |                        VideoFormatKeys.KeyFrameIntervalKey, fps / 2);
-          |                final Format mouseFormat = new Format(VideoFormatKeys.MediaTypeKey, VideoFormatKeys.MediaType.VIDEO,
-          |                        VideoFormatKeys.EncodingKey, MouseConfigs.ENCODING_BLACK_CURSOR,
-          |                        VideoFormatKeys.FrameRateKey, Rational.valueOf(fps));
-          |    
-          |                recorderTemp = new ScreenRecorder(gc, null,
-          |                        fileFormat, screenFormat, mouseFormat,
-          |                        null, dir);
-          |            } catch (final Throwable t) {
-          |                t.printStackTrace();
-          |                System.exit(1);
-          |            }
-          |
-          |            final ScreenRecorder recorder = recorderTemp;
-          |            final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-          |            stage.setOnShown(event -> scheduler.schedule(() -> {
-          |                if (record) {
-          |                    try {
-          |                        recorder.start();
-          |                    } catch (final Throwable t) {
-          |                        t.printStackTrace();
-          |                        System.exit(1);
-          |                    }
-          |                }
-          |                soundBeginTime[0] = System.currentTimeMillis();
-          |            }, 1, TimeUnit.SECONDS));
           |            while (i < size) {
           |                final Media media = medias.get(i);
           |                while (System.currentTimeMillis() - start <= media.getTimeline()) Presentasi.sleep(TIMELINE_GRANULARITY);
@@ -467,17 +452,6 @@ object Presentasi {
           |                    final Sound sound = ((Sound) media);
           |                    final MediaPlayer player = sound.mediaPlayer;
           |                    player.setVolume(TEXT_VOLUME);
-          |                    player.setOnPlaying(() -> {
-          |                        final long soundBegin = System.currentTimeMillis() - soundBeginTime[0];
-          |                        final long soundEnd = soundBegin + sound.duration;
-          |                        sounds.add(soundBegin + "," + soundEnd + "," + sound.uri + "," + 0 + "," + 0);
-          |                        if (!sound.text.isEmpty()) {
-          |                            vtt.add("");
-          |                            vtt.add("" + vttIndex[0]++);
-          |                            vtt.add(formatCcTime(soundBegin) + " --> " + formatCcTime(soundEnd));
-          |                            vtt.add(sound.text);
-          |                        }
-          |                    });
           |                    player.setOnEndOfMedia(() -> player.dispose());
           |                    player.play();
           |                } else if (media instanceof Image) {
@@ -507,13 +481,6 @@ object Presentasi {
           |                    if (video.endMillis > 0.0) player.setStopTime(Duration.millis(video.endMillis));
           |                    player.setVolume(1.0);
           |                    player.setMute(video.muted);
-          |                    player.setOnPlaying(() -> {
-          |                        if (!video.muted) {
-          |                            final long soundBegin = System.currentTimeMillis() - soundBeginTime[0];
-          |                            final long soundEnd = soundBegin + video.duration;
-          |                            sounds.add(soundBegin + "," + soundEnd + "," + video.uri + "," + video.startMillis + "," + video.endMillis);
-          |                        }
-          |                    });
           |                    player.setOnEndOfMedia(() -> player.dispose());
           |                    Platform.runLater(() -> {
           |                        player.play();
@@ -527,31 +494,6 @@ object Presentasi {
           |                i++;
           |            }
           |            while (System.currentTimeMillis() - start <= end) Presentasi.sleep(TIMELINE_GRANULARITY);
-          |            if (record) {
-          |                try {
-          |                    recorder.stop();
-          |                    File vttFile = new File(dir, this.getClass().getSimpleName() + ".vtt");
-          |                    if (vttFile.exists()) vttFile.delete();
-          |                    FileWriter fw = new FileWriter(vttFile);
-          |                    fw.write(vtt.stream().collect(Collectors.joining(System.lineSeparator())));
-          |                    fw.flush();
-          |                    fw.close();
-          |                    File csvFile = new File(dir, this.getClass().getSimpleName() + ".csv");
-          |                    if (csvFile.exists()) csvFile.delete();
-          |                    fw = new FileWriter(csvFile);
-          |                    fw.write(sounds.stream().collect(Collectors.joining(System.lineSeparator())));
-          |                    fw.flush();
-          |                    fw.close();
-          |                    System.out.println("Wrote " + recorder.getCreatedMovieFiles().getFirst().getCanonicalPath());
-          |                    System.out.println("Wrote " + vttFile.getCanonicalPath());
-          |                    System.out.println("Wrote " + csvFile.getCanonicalPath());
-          |                    System.out.flush();
-          |                } catch (final Throwable t) {
-          |                    t.printStackTrace();
-          |                    System.exit(1);
-          |                }
-          |            }
-          |            scheduler.shutdown();
           |            Platform.exit();
           |        });
           |        thread.setDaemon(true);
@@ -566,12 +508,6 @@ object Presentasi {
           |        }
           |    }
           |
-          |    public static String formatCcTime(final Long millis) {
-          |        return String.format("%02d:%02d:%02d.%03d", TimeUnit.MILLISECONDS.toHours(millis),
-          |                TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
-          |                TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1), millis % 1000);
-          |    }
-          |
           |    @Override
           |    public void start(final Stage primaryStage) {
           |        primaryStage.setFullScreenExitHint("");
@@ -582,6 +518,346 @@ object Presentasi {
           |        this.stage = primaryStage;
           |    }
           |
+          |}"""
+
+    @strictpure def presentasiSwingTemplate(name: String, granularity: Z, vseekDelay: Z, textVolume: F64, end: Z, medias: ISZ[ST]): ST =
+      st"""// Auto-generated by Sireum Presentasi (Swing + VLCJ preview).
+          |// Parallel to ${name}.java; uses VLCJ for media playback so HEVC/AV1
+          |// inputs work out of the box.  Requires libvlc on the host
+          |// (e.g. `brew install --cask vlc` on macOS); the Maven coord
+          |// `uk.co.caprica:vlcj` provides the Java bindings.
+          |import java.awt.Color;
+          |import java.awt.Graphics;
+          |import java.awt.GraphicsDevice;
+          |import java.awt.GraphicsEnvironment;
+          |import java.awt.Rectangle;
+          |import java.awt.image.BufferedImage;
+          |import java.net.URL;
+          |import java.util.LinkedList;
+          |import javax.imageio.ImageIO;
+          |import javax.swing.JComponent;
+          |import javax.swing.JFrame;
+          |import javax.swing.SwingUtilities;
+          |
+          |import uk.co.caprica.vlcj.player.base.MediaPlayer;
+          |import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
+          |import uk.co.caprica.vlcj.player.component.AudioPlayerComponent;
+          |import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent;
+          |import uk.co.caprica.vlcj.player.component.callback.FilledCallbackImagePainter;
+          |
+          |public class ${name} {
+          |
+          |    public final static long TIMELINE_GRANULARITY = $granularity;
+          |    public final static long VSEEK_DELAY = $vseekDelay;
+          |    public final static double TEXT_VOLUME = $textVolume;
+          |
+          |    public interface Media {
+          |        String getUri();
+          |        long getTimeline();
+          |    }
+          |
+          |    public final static class Image implements Media {
+          |        public final String uri;
+          |        public final BufferedImage image;
+          |        private final long timeline;
+          |
+          |        public Image(final String path, final long timeline) {
+          |            this.uri = getResourceUri(path);
+          |            this.timeline = timeline;
+          |            BufferedImage img = null;
+          |            try {
+          |                img = ImageIO.read(java.net.URI.create(this.uri).toURL());
+          |            } catch (final Throwable t) {
+          |                t.printStackTrace();
+          |                System.err.println("Could not load: " + path);
+          |                System.err.flush();
+          |                System.exit(-1);
+          |            }
+          |            this.image = img;
+          |        }
+          |
+          |        public String getUri() { return this.uri; }
+          |        public long getTimeline() { return this.timeline; }
+          |    }
+          |
+          |    public final static class Sound implements Media {
+          |        public final String uri;
+          |        public final AudioPlayerComponent player;
+          |        private final long timeline;
+          |        private final String text;
+          |
+          |        public Sound(final String path, final long timeline, final String text) {
+          |            this.uri = getResourceFilePath(path);
+          |            this.timeline = timeline;
+          |            this.text = text;
+          |            this.player = new AudioPlayerComponent();
+          |        }
+          |
+          |        public String getUri() { return this.uri; }
+          |        public long getTimeline() { return this.timeline; }
+          |        public String getText() { return this.text; }
+          |    }
+          |
+          |    public final static class Video implements Media {
+          |        public final String uri;
+          |        public final CallbackMediaPlayerComponent component;
+          |        public final boolean muted;
+          |        public final double rate;
+          |        public final double startMillis;
+          |        public final double endMillis;
+          |        private final long timeline;
+          |
+          |        public Video(final String path, final long timeline, final boolean muted, final double rate, final double startMs, final double endMs) {
+          |            this.uri = getResourceFilePath(path);
+          |            this.timeline = timeline;
+          |            this.rate = rate;
+          |            this.startMillis = startMs;
+          |            this.endMillis = endMs;
+          |            this.muted = muted;
+          |            // FilledCallbackImagePainter scales the video to fill the
+          |            // surface bounds.  The default (FixedCallbackImagePainter)
+          |            // draws at natural size and centers, which leaves pillarbox
+          |            // bars when the surface dimensions don't exactly match the
+          |            // video buffer (e.g. when the JFrame's content pane is slightly
+          |            // narrower than 1920 due to macOS window-border insets).
+          |            this.component = new CallbackMediaPlayerComponent(
+          |                null, null, null, true,
+          |                new FilledCallbackImagePainter(),
+          |                null, null, null);
+          |        }
+          |
+          |        public String getUri() { return this.uri; }
+          |        public long getTimeline() { return this.timeline; }
+          |    }
+          |
+          |    public final static class ImagePanel extends JComponent {
+          |        private final java.awt.Image image;
+          |
+          |        public ImagePanel(final java.awt.Image image) {
+          |            this.image = image;
+          |            setBackground(Color.BLACK);
+          |            setOpaque(true);
+          |        }
+          |
+          |        @Override
+          |        protected void paintComponent(final Graphics g) {
+          |            super.paintComponent(g);
+          |            g.setColor(Color.BLACK);
+          |            g.fillRect(0, 0, getWidth(), getHeight());
+          |            if (image == null) return;
+          |            final int w = getWidth();
+          |            final int h = getHeight();
+          |            final int iw = image.getWidth(this);
+          |            final int ih = image.getHeight(this);
+          |            if (iw <= 0 || ih <= 0) return;
+          |            final double scale = Math.min((double) w / iw, (double) h / ih);
+          |            final int dw = (int) (iw * scale);
+          |            final int dh = (int) (ih * scale);
+          |            final int dx = (w - dw) / 2;
+          |            final int dy = (h - dh) / 2;
+          |            g.drawImage(image, dx, dy, dw, dh, this);
+          |        }
+          |    }
+          |
+          |    private final LinkedList<Media> medias = new LinkedList<>();
+          |    private JFrame frame = null;
+          |    private long startTime = 0;
+          |    private int slideNo = 0;
+          |    private boolean fullScreen = true;
+          |    private int width = -1;
+          |    private int height = -1;
+          |
+          |    public static String getResourceUri(final String path) {
+          |        try {
+          |            final URL url = ${name}.class.getResource(path);
+          |            if (url != null) {
+          |                return url.toString();
+          |            }
+          |            throw new RuntimeException("Could not load " + path);
+          |        } catch (final Throwable t) {
+          |            t.printStackTrace();
+          |        }
+          |        System.exit(-1);
+          |        return null;
+          |    }
+          |
+          |    // VLCJ's MediaPlayer.play() expects a real filesystem path or a
+          |    // protocol it understands — Java's class.getResource() URL is
+          |    // either file:/... (proyek-run, classpath dir) or jar:file:...!/...
+          |    // (packaged jar) and the latter VLC cannot open.  Resolve to an
+          |    // absolute file path: file: URLs are converted directly; jar:
+          |    // resources are extracted once to a stable temp file.
+          |    public static String getResourceFilePath(final String path) {
+          |        try {
+          |            final URL url = ${name}.class.getResource(path);
+          |            if (url == null) throw new RuntimeException("Could not load " + path);
+          |            if ("file".equals(url.getProtocol())) {
+          |                return new java.io.File(url.toURI()).getAbsolutePath();
+          |            }
+          |            // jar: or other protocol — extract to a stable temp file.
+          |            final java.io.File tmp = new java.io.File(System.getProperty("java.io.tmpdir"),
+          |                "presentasi-${name}" + path.replace('/', '_').replace('\\', '_'));
+          |            if (!tmp.isFile() || tmp.length() == 0) {
+          |                try (final java.io.InputStream in = ${name}.class.getResourceAsStream(path)) {
+          |                    if (in == null) throw new RuntimeException("Could not load " + path);
+          |                    java.nio.file.Files.copy(in, tmp.toPath(),
+          |                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+          |                }
+          |                tmp.deleteOnExit();
+          |            }
+          |            return tmp.getAbsolutePath();
+          |        } catch (final Throwable t) {
+          |            t.printStackTrace();
+          |        }
+          |        System.exit(-1);
+          |        return null;
+          |    }
+          |
+          |    public static void sleep(final long millis) {
+          |        try {
+          |            Thread.sleep(millis);
+          |        } catch (final Throwable t) {
+          |            // skip
+          |        }
+          |    }
+          |
+          |    public void run(final String[] args) {
+          |        for (final String arg : args) {
+          |            try {
+          |                final int x = arg.indexOf('x');
+          |                if (x >= 0) {
+          |                    width = Integer.parseInt(arg.substring(0, x));
+          |                    height = Integer.parseInt(arg.substring(x + 1));
+          |                    fullScreen = false;
+          |                } else if (arg.charAt(0) == '#') {
+          |                    slideNo = Integer.parseInt(arg.substring(1));
+          |                    startTime = 0;
+          |                } else {
+          |                    startTime = Long.parseLong(arg);
+          |                    slideNo = 0;
+          |                }
+          |            } catch (final Throwable t) {
+          |                System.err.println("Invalid argument " + arg);
+          |                System.err.flush();
+          |                System.exit(-1);
+          |            }
+          |        }
+          |
+          |        ${(medias, "\n")}
+          |
+          |        final long endMs = ${end}L;
+          |
+          |        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+          |        final GraphicsDevice device = ge.getDefaultScreenDevice();
+          |        if (width == -1 || height == -1) {
+          |            final Rectangle bounds = device.getDefaultConfiguration().getBounds();
+          |            width = bounds.width;
+          |            height = bounds.height;
+          |        }
+          |
+          |        final ${name} self = this;
+          |        SwingUtilities.invokeLater(() -> {
+          |            self.frame = new JFrame();
+          |            self.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+          |            self.frame.setSize(width, height);
+          |            self.frame.getContentPane().setBackground(Color.BLACK);
+          |            if (fullScreen) {
+          |                // Maximised borderless instead of exclusive fullscreen
+          |                // (device.setFullScreenWindow) — exclusive mode on
+          |                // macOS captures all input and blocks Cmd-Tab.  This
+          |                // looks identical but lets the user switch apps.
+          |                self.frame.setUndecorated(true);
+          |                final java.awt.Rectangle r = device.getDefaultConfiguration().getBounds();
+          |                self.frame.setBounds(r);
+          |                self.frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+          |            } else {
+          |                self.frame.setLocationRelativeTo(null);
+          |            }
+          |            self.frame.setVisible(true);
+          |        });
+          |
+          |        final Thread thread = new Thread(() -> {
+          |            while (self.frame == null) sleep(100);
+          |            final int size = medias.size();
+          |            long start = System.currentTimeMillis();
+          |            int i = 0;
+          |            if (slideNo > 0) {
+          |                int j = 0;
+          |                while (i < size && j < slideNo) {
+          |                    if (!(medias.get(i) instanceof Sound)) j = j + 1;
+          |                    i++;
+          |                }
+          |                while (i < size && medias.get(i) instanceof Sound) i++;
+          |                if (i < size) start = start - medias.get(i).getTimeline();
+          |            } else if (startTime > 0) {
+          |                while (i < size && medias.get(i).getTimeline() < startTime) i++;
+          |                while (i < size && medias.get(i) instanceof Sound) i++;
+          |                if (i < size) start = start - medias.get(i).getTimeline();
+          |            }
+          |            while (i < size) {
+          |                final Media media = medias.get(i);
+          |                while (System.currentTimeMillis() - start <= media.getTimeline()) sleep(TIMELINE_GRANULARITY);
+          |                if (media instanceof Sound) {
+          |                    final Sound sound = (Sound) media;
+          |                    final MediaPlayer player = sound.player.mediaPlayer();
+          |                    player.audio().setVolume((int) Math.round(TEXT_VOLUME * 100));
+          |                    player.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+          |                        @Override
+          |                        public void finished(final MediaPlayer mp) {
+          |                            SwingUtilities.invokeLater(() -> sound.player.release());
+          |                        }
+          |                    });
+          |                    player.media().play(sound.uri);
+          |                } else if (media instanceof Image) {
+          |                    final Image graphic = (Image) media;
+          |                    SwingUtilities.invokeLater(() -> {
+          |                        final ImagePanel panel = new ImagePanel(graphic.image);
+          |                        self.frame.setContentPane(panel);
+          |                        self.frame.revalidate();
+          |                        self.frame.repaint();
+          |                    });
+          |                } else if (media instanceof Video) {
+          |                    final Video video = (Video) media;
+          |                    final MediaPlayer player = video.component.mediaPlayer();
+          |                    player.controls().setRate((float) video.rate);
+          |                    player.audio().setMute(video.muted);
+          |                    player.audio().setVolume(100);
+          |                    player.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+          |                        @Override
+          |                        public void timeChanged(final MediaPlayer mp, final long newTime) {
+          |                            if (video.endMillis > 0 && newTime >= video.endMillis) {
+          |                                mp.controls().stop();
+          |                            }
+          |                        }
+          |                        @Override
+          |                        public void finished(final MediaPlayer mp) {
+          |                            SwingUtilities.invokeLater(() -> video.component.release());
+          |                        }
+          |                    });
+          |                    SwingUtilities.invokeLater(() -> {
+          |                        self.frame.setContentPane(video.component);
+          |                        self.frame.revalidate();
+          |                        self.frame.repaint();
+          |                        player.media().play(video.uri);
+          |                        if (video.startMillis > 0) {
+          |                            sleep(VSEEK_DELAY);
+          |                            player.controls().setTime((long) video.startMillis);
+          |                        }
+          |                    });
+          |                }
+          |                i++;
+          |            }
+          |            while (System.currentTimeMillis() - start <= endMs) sleep(TIMELINE_GRANULARITY);
+          |            System.exit(0);
+          |        });
+          |        thread.setDaemon(false);
+          |        thread.start();
+          |    }
+          |
+          |    public static void main(final String[] args) {
+          |        final ${name} app = new ${name}();
+          |        app.run(args);
+          |    }
           |}"""
 
     @strictpure def imgSegTemplate(timeline: Z, name: String): ST =
@@ -650,6 +926,32 @@ object Presentasi {
           |val vtt = outDir / "$name.vtt"
           |val mp4Subtitled = outDir / "$name-srt.mp4"
           |val vcodec: String = if (Os.isMac) "hevc_videotoolbox" else "libx265"
+          |// Encoding preset selected via the first CLI arg (default = balanced
+          |// direct-download; "youtube" = high-bitrate source for YouTube to
+          |// re-encode from; "small" = tighter for lightweight self-hosting).
+          |// hevc_videotoolbox needs explicit b:v + maxrate + bufsize to actually
+          |// cap output; libx265 honours CRF directly.
+          |val preset: String = if (Os.cliArgs.size > 0) Os.cliArgs(0) else "default"
+          |println(s"Encoding preset: $$preset")
+          |val vcodecArgs: ISZ[String] = if (preset == "youtube") {
+          |  if (Os.isMac) {
+          |    ISZ[String]("-b:v", "25M", "-maxrate", "30M", "-bufsize", "60M")
+          |  } else {
+          |    ISZ[String]("-crf", "21", "-preset", "medium")
+          |  }
+          |} else if (preset == "small") {
+          |  if (Os.isMac) {
+          |    ISZ[String]("-b:v", "5M", "-maxrate", "6M", "-bufsize", "12M")
+          |  } else {
+          |    ISZ[String]("-crf", "27", "-preset", "medium")
+          |  }
+          |} else {
+          |  if (Os.isMac) {
+          |    ISZ[String]("-b:v", "8M", "-maxrate", "10M", "-bufsize", "20M")
+          |  } else {
+          |    ISZ[String]("-crf", "25", "-preset", "medium")
+          |  }
+          |}
           |
           |def ffSilence(out: Os.Path, ms: Z): Unit = {
           |  Os.proc(ISZ("ffmpeg", "-y", "-f", "lavfi", "-fflags", "+genpts",
@@ -672,25 +974,31 @@ object Presentasi {
           |}
           |val vf: String = s"scale=$$videoWidth:$$videoHeight:force_original_aspect_ratio=decrease,pad=$$videoWidth:$$videoHeight:-1:-1:color=black,fps=$$videoFps"
           |def ffImageClip(img: Os.Path, out: Os.Path, ms: Z): Unit = {
-          |  Os.proc(ISZ("ffmpeg", "-y", "-loop", "1", "-framerate", videoFps.string,
+          |  Os.proc(ISZ[String]("ffmpeg", "-y", "-loop", "1", "-framerate", videoFps.string,
           |    "-i", img.string, "-t", s"$${ms}ms", "-vf", vf,
-          |    "-c:v", vcodec, "-pix_fmt", "yuv420p", "-g", "30", "-an",
+          |    "-c:v", vcodec) ++ vcodecArgs ++ ISZ[String]("-pix_fmt", "yuv420p", "-g", "30", "-an",
           |    "-f", "mpegts", out.string)).runCheck()
           |}
-          |def ffVideoClip(in: Os.Path, out: Os.Path, startMs: F64, endMs: F64, rate: F64, displayMs: Z): Unit = {
-          |  val srcDur: F64 = if (endMs > 0d) endMs - startMs else 0d
-          |  val playedMs: Z = if (rate > 0d && srcDur > 0d)
-          |    conversions.R.toZ(conversions.F64.toR(srcDur) / conversions.F64.toR(rate))
-          |  else conversions.R.toZ(conversions.F64.toR(srcDur))
+          |def ffVideoClip(in: Os.Path, out: Os.Path, startMs: F64, endMs: F64, rate: F64, dur: Z, displayMs: Z): Unit = {
+          |  // When endMs <= 0 we play to end-of-file; use bake-in dur (ffprobe-measured at gen time)
+          |  // as the natural source duration so padding math works out correctly.  Earlier versions
+          |  // computed srcDur as 0 in this case which made tpad freeze the last frame for displayMs,
+          |  // doubling the demo segment in the assembled video.
+          |  val startMsZ: Z = conversions.R.toZ(conversions.F64.toR(startMs))
+          |  val srcDurMs: Z = if (endMs > 0d) conversions.R.toZ(conversions.F64.toR(endMs)) - startMsZ
+          |                    else dur - startMsZ
+          |  val playedMs: Z = if (rate != 1d && rate > 0d)
+          |                      srcDurMs * 1000000 / conversions.R.toZ(conversions.F64.toR(rate * 1000000d))
+          |                    else srcDurMs
           |  val padMs: Z = if (displayMs > playedMs) displayMs - playedMs else 0
           |  val rateFilter: String = if (rate != 1d) s",setpts=PTS/$$rate" else ""
           |  val padFilter: String = if (padMs > 0) s",tpad=stop_mode=clone:stop_duration=$${padMs}ms" else ""
           |  val filter = s"$$vf$$rateFilter$$padFilter"
-          |  val t: ISZ[String] = if (srcDur > 0d) ISZ[String]("-t", s"$${srcDur}ms") else ISZ[String]()
-          |  Os.proc(ISZ[String]("ffmpeg", "-y", "-ss", s"$${startMs}ms") ++ t ++
-          |    ISZ[String]("-i", in.string, "-vf", filter,
-          |      "-c:v", vcodec, "-pix_fmt", "yuv420p", "-g", "30", "-an",
-          |      "-f", "mpegts", out.string)).runCheck()
+          |  Os.proc(ISZ[String]("ffmpeg", "-y", "-ss", s"$${startMs}ms",
+          |    "-t", s"$${srcDurMs}ms",
+          |    "-i", in.string, "-vf", filter,
+          |    "-c:v", vcodec) ++ vcodecArgs ++ ISZ[String]("-pix_fmt", "yuv420p", "-g", "30", "-an",
+          |    "-f", "mpegts", out.string)).runCheck()
           |}
           |
           |// === Build .wav: sounds + extracted video audio + silence gaps ===
@@ -755,7 +1063,7 @@ object Presentasi {
           |  videoParts = videoParts :+ part
           |  v match {
           |    case img: ImgSeg => ffImageClip(imageDir / img.name, part, displayMs)
-          |    case vid: VidSeg => ffVideoClip(videoDir / vid.name, part, vid.startMs, vid.endMs, vid.rate, displayMs)
+          |    case vid: VidSeg => ffVideoClip(videoDir / vid.name, part, vid.startMs, vid.endMs, vid.rate, vid.dur, displayMs)
           |    case _ =>
           |  }
           |}
@@ -763,14 +1071,194 @@ object Presentasi {
           |videoList.writeOver(st"$${(for (p <- videoParts) yield st"file '$$p'", "\n")}".render)
           |Os.proc(ISZ("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", videoList.string,
           |  "-i", wav.string,
-          |  "-c:v", "copy", "-c:a", "aac", "-q:a", "2", "-b:a", "192k",
+          |  "-c:v", "copy", "-tag:v", "hvc1", "-c:a", "aac", "-q:a", "2", "-b:a", "192k",
           |  "-movflags", "+faststart", mp4.string)).console.runCheck()
           |println()
           |
+          |// === Merge embedded video subtitles with the master narration SRT ===
+          |//
+          |// The master Presentasi.srt covers slide-by-slide narration only.  Any
+          |// VidSeg whose source mp4 ships with an embedded subtitle track (e.g. a
+          |// recorded demo with mov_text captions) gets its entries extracted, time-
+          |// shifted to the master timeline, and appended.  Result: Presentasi-srt.mp4
+          |// has subtitles end-to-end including during demo segments.
+          |def srtPad2(n: Z): String = {
+          |  if (n < 10) {
+          |    return s"0$$n"
+          |  } else {
+          |    return s"$$n"
+          |  }
+          |}
+          |def srtPad3(n: Z): String = {
+          |  if (n < 10) {
+          |    return s"00$$n"
+          |  } else if (n < 100) {
+          |    return s"0$$n"
+          |  } else {
+          |    return s"$$n"
+          |  }
+          |}
+          |def srtFormatTs(ms: Z): String = {
+          |  val total: Z = if (ms < 0) z"0" else ms
+          |  val h: Z = total / 3600000
+          |  val rem1: Z = total % 3600000
+          |  val m: Z = rem1 / 60000
+          |  val rem2: Z = rem1 % 60000
+          |  val sec: Z = rem2 / 1000
+          |  val msPart: Z = rem2 % 1000
+          |  return s"$${srtPad2(h)}:$${srtPad2(m)}:$${srtPad2(sec)},$${srtPad3(msPart)}"
+          |}
+          |def srtParseTs(raw: String): Z = {
+          |  val sOps = ops.StringOps(raw)
+          |  val trimmed = sOps.trim
+          |  val parts: ISZ[String] = ops.StringOps(trimmed).split((c: C) => c == ':')
+          |  if (parts.size < 3) {
+          |    return z"0"
+          |  }
+          |  val h: Z = Z(parts(0)).getOrElse(z"0")
+          |  val m: Z = Z(parts(1)).getOrElse(z"0")
+          |  // Tolerate either ',' or '.' as the seconds/ms separator.
+          |  val secParts: ISZ[String] = ops.StringOps(parts(2)).split(
+          |    (c: C) => c == '.' || c == ',')
+          |  val sec: Z = Z(secParts(0)).getOrElse(z"0")
+          |  val ms: Z = if (secParts.size > 1) Z(secParts(1)).getOrElse(z"0") else z"0"
+          |  return h * 3600000 + m * 60000 + sec * 1000 + ms
+          |}
+          |def srtParse(content: String): ISZ[(Z, Z, String)] = {
+          |  // Normalize line endings, then split into blocks separated by blank lines
+          |  // by replacing the "\\n\\n" separator with a single sentinel char and
+          |  // splitting on that.  StringOps.split takes a (C => B) predicate so we
+          |  // can't split on a multi-char delimiter directly.
+          |  val n1 = ops.StringOps(content).replaceAllLiterally("\r\n", "\n")
+          |  val n2 = ops.StringOps(n1).replaceAllLiterally("\r", "\n")
+          |  // StringOps.split takes a single-char predicate; replace the multi-char
+          |  // blank-line separator with a unique control char so we can split on it.
+          |  val n3 = ops.StringOps(n2).replaceAllLiterally("\n\n", "")
+          |  val blocks: ISZ[String] = ops.StringOps(n3).split((c: C) => c == '')
+          |  var entries = ISZ[(Z, Z, String)]()
+          |  for (blk <- blocks) {
+          |    val rawLines: ISZ[String] = ops.StringOps(blk).split((c: C) => c == '\n')
+          |    val lines: ISZ[String] =
+          |      for (rl <- rawLines if ops.StringOps(rl).trim.size > 0) yield rl
+          |    if (lines.size >= 2) {
+          |      // Locate the timestamp line (first line containing " --> ")
+          |      var arrowIdx: Z = -1
+          |      for (i <- 0 until lines.size) {
+          |        if (arrowIdx < 0 && ops.StringOps(lines(i)).stringIndexOf(" --> ") >= 0) {
+          |          arrowIdx = i
+          |        }
+          |      }
+          |      if (arrowIdx >= 0 && arrowIdx + 1 < lines.size) {
+          |        val ts = lines(arrowIdx)
+          |        val arrowPos: Z = ops.StringOps(ts).stringIndexOf(" --> ")
+          |        if (arrowPos > 0) {
+          |          val startMs: Z = srtParseTs(ops.StringOps(ts).substring(0, arrowPos))
+          |          val endMs: Z = srtParseTs(
+          |            ops.StringOps(ts).substring(arrowPos + 5, ts.size))
+          |          val bodyLines: ISZ[String] =
+          |            for (i <- arrowIdx + 1 until lines.size) yield lines(i)
+          |          val body = st"$${(bodyLines, "\n")}".render
+          |          entries = entries :+ ((startMs, endMs, body))
+          |        }
+          |      }
+          |    }
+          |  }
+          |  return entries
+          |}
+          |def srtEmit(entries: ISZ[(Z, Z, String)]): String = {
+          |  // Insertion-sort by start time (entries are short, performance fine).
+          |  var sorted = ISZ[(Z, Z, String)]()
+          |  for (e <- entries) {
+          |    var insertAt: Z = sorted.size
+          |    var i: Z = 0
+          |    while (i < sorted.size && insertAt == sorted.size) {
+          |      if (sorted(i)._1 > e._1) {
+          |        insertAt = i
+          |      }
+          |      i = i + 1
+          |    }
+          |    if (insertAt == sorted.size) {
+          |      sorted = sorted :+ e
+          |    } else {
+          |      val before: ISZ[(Z, Z, String)] = ops.ISZOps(sorted).slice(0, insertAt)
+          |      val after: ISZ[(Z, Z, String)] = ops.ISZOps(sorted).slice(insertAt, sorted.size)
+          |      sorted = before :+ e
+          |      for (a <- after) {
+          |        sorted = sorted :+ a
+          |      }
+          |    }
+          |  }
+          |  val blocks: ISZ[String] =
+          |    for (i <- 0 until sorted.size) yield srtBlock(i + 1, sorted(i))
+          |  return st"$${(blocks, "\n")}".render
+          |}
+          |@strictpure def srtBlock(idx: Z, e: (Z, Z, String)): String =
+          |  s"$$idx\n$${srtFormatTs(e._1)} --> $${srtFormatTs(e._2)}\n$${e._3}\n"
+          |def extractVideoSubs(videoPath: Os.Path, segStartMs: F64, segEndMs: F64,
+          |                     rate: F64, masterTimeline: Z): ISZ[(Z, Z, String)] = {
+          |  val tempSrt = tempDir / s"sub-$${videoPath.name}.srt"
+          |  if (tempSrt.exists) {
+          |    tempSrt.removeAll()
+          |  }
+          |  val r = Os.proc(ISZ[String]("ffmpeg", "-y", "-loglevel", "error", "-i", videoPath.string,
+          |    "-map", "0:s:0", "-c:s", "srt", tempSrt.string)).run()
+          |  if (!r.ok || !tempSrt.exists) {
+          |    return ISZ[(Z, Z, String)]()
+          |  }
+          |  val raw = srtParse(tempSrt.read)
+          |  val startMsInt: Z = conversions.R.toZ(conversions.F64.toR(segStartMs))
+          |  val endMsInt: Z = if (segEndMs > 0d) conversions.R.toZ(conversions.F64.toR(segEndMs)) else z"-1"
+          |  val effRate: F64 = if (rate <= 0d) 1d else rate
+          |  var shifted = ISZ[(Z, Z, String)]()
+          |  for (e <- raw) {
+          |    val s = e._1
+          |    val en = e._2
+          |    val inRange: B = s >= startMsInt && (endMsInt < z"0" || en <= endMsInt)
+          |    if (inRange) {
+          |      val sShift: Z = shiftMs(s, startMsInt, masterTimeline, effRate)
+          |      val eShift: Z = shiftMs(en, startMsInt, masterTimeline, effRate)
+          |      shifted = shifted :+ ((sShift, eShift, e._3))
+          |    }
+          |  }
+          |  return shifted
+          |}
+          |// F64 → Z (truncated) via the R intermediary; R has toZ but no toF64,
+          |// hence the asymmetry in the conversion API.
+          |@strictpure def f64ToZ(d: F64): Z = conversions.R.toZ(conversions.F64.toR(d))
+          |// Map a source-relative timestamp into the master timeline, accounting
+          |// for clip start offset and playback rate.  Math is done in Z by scaling
+          |// by 1_000_000 so we don't lose fractional rate values like 0.5 or 1.5.
+          |@strictpure def shiftMs(srcMs: Z, segStartMs: Z, masterTimeline: Z, rate: F64): Z =
+          |  masterTimeline + (srcMs - segStartMs) * 1000000 / f64ToZ(rate * 1000000d)
+          |
+          |val srtMerged = outDir / "$name-merged.srt"
+          |val srtForMux: Os.Path = if (srt.exists) {
+          |  var entries = srtParse(srt.read)
+          |  for (seg <- segs) {
+          |    seg match {
+          |      case v: VidSeg =>
+          |        val videoPath = videoDir / v.name
+          |        if (videoPath.exists) {
+          |          val vidSubs = extractVideoSubs(videoPath, v.startMs, v.endMs, v.rate, v.timeline)
+          |          if (vidSubs.size > 0) {
+          |            println(s"  + $${vidSubs.size} subtitle entries from $${v.name}")
+          |            entries = entries ++ vidSubs
+          |          }
+          |        }
+          |      case _ =>
+          |    }
+          |  }
+          |  srtMerged.writeOver(srtEmit(entries))
+          |  println(s"Wrote merged $$srtMerged ($${entries.size} entries)")
+          |  srtMerged
+          |} else {
+          |  srt
+          |}
+          |
           |// === Mux subtitles into .mp4 ===
-          |if (srt.exists) {
+          |if (srtForMux.exists) {
           |  println(s"Generating $$mp4Subtitled ...")
-          |  Os.proc(ISZ("ffmpeg", "-y", "-i", mp4.string, "-i", srt.string,
+          |  Os.proc(ISZ("ffmpeg", "-y", "-i", mp4.string, "-i", srtForMux.string,
           |    "-c", "copy", "-c:a", "copy", "-c:s", "mov_text",
           |    "-metadata:s:s:0", "language=eng", mp4Subtitled.string)).runCheck()
           |  println()
@@ -957,7 +1445,7 @@ object Presentasi {
           ))
           temp.removeAll()
           println(s"Loading $p ...")
-          val durOpt = Ext.getSoundDuration(p.toUri)
+          val durOpt = getSoundDuration(p.toUri)
           println()
           generatedAudioFiles = generatedAudioFiles - p
           durOpt match {
@@ -1032,7 +1520,7 @@ object Presentasi {
                         println(s"Wrote $target")
                         println()
                       }
-                      Ext.getSoundDuration(apath.toUri) match {
+                      getSoundDuration(apath.toUri) match {
                         case Some(dur) =>
                           if (currSound.text != "") {
                             storeSound()
@@ -1104,7 +1592,7 @@ object Presentasi {
         entry match {
           case entry: Presentation.Slide =>
             val (uri, target) = processTarget(image, entry)
-            val ok = Ext.checkImage(uri)
+            val ok = checkImage(uri)
             println()
             if (ok) {
               val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
@@ -1126,7 +1614,7 @@ object Presentasi {
             }
           case entry: Presentation.Video =>
             val (uri, target) = processTarget(video, entry)
-            val durOpt = Ext.getVideoDuration(uri)
+            val durOpt = getVideoDuration(uri)
             println()
             durOpt match {
               case Some(dur) =>
@@ -1254,7 +1742,11 @@ object Presentasi {
         0
       }
 
-      f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
+      if (o.swing) {
+        f.writeOver(presentasiSwingTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
+      } else {
+        f.writeOver(presentasiTemplate(spec.name, spec.granularity, spec.vseekDelay, spec.textVolume, end, mediaSTs).render)
+      }
       println(s"Wrote $f")
       if (o.record) {
         srtFile.writeOver(st"${(ccSrt, "\n\n")}".render)
@@ -1654,15 +2146,7 @@ object Presentasi {
 
   @ext("Presentasi_Ext") object Ext {
 
-    def checkImage(uri: String): B = $
-
-    def getSoundDuration(uri: String): Option[Z] = $
-
-    def getVideoDuration(uri: String): Option[Z] = $
-
     def pcm2wav(path: Os.Path, srate: Z): Unit = $
-
-    def shutdown(): Unit = $
 
     def parseMarkdowns(args: ISZ[String], path: Os.Path, reporter: message.Reporter): ISZ[presentasi.Presentation] = $
 

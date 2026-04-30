@@ -114,6 +114,7 @@ object Roboto_Ext {
     var scriptName = "Roboto"
     var defaultCharDelayMs: Z = 50
     var defaultActionDelayMs: Z = 2000
+    var defaultSpeakGapMs: Z = 300
     var vars = scala.collection.mutable.LinkedHashMap[Predef.String, Predef.String]()
     var substs = scala.collection.mutable.LinkedHashMap[Predef.String, Predef.String]()
     val osName = System.getProperty("os.name").toLowerCase
@@ -143,6 +144,12 @@ object Roboto_Ext {
                     case org.sireum.Some(n) => defaultActionDelayMs = n
                     case _ => reporter.error(getPosOpt(yamlChild), kind,
                       s"Could not parse defaultActionDelayMs: ${yamlChild.getValues.get(0)}")
+                  }
+                case "defaultSpeakGapMs" if yamlChild.getValues.size == 1 =>
+                  Z(yamlChild.getValues.get(0)) match {
+                    case org.sireum.Some(n) => defaultSpeakGapMs = n
+                    case _ => reporter.error(getPosOpt(yamlChild), kind,
+                      s"Could not parse defaultSpeakGapMs: ${yamlChild.getValues.get(0)}")
                   }
                 case key if key == "vars" || key.startsWith("vars") =>
                   val varKey = key.substring("vars".length)
@@ -510,13 +517,35 @@ object Roboto_Ext {
 
     if (reporter.hasError) return org.sireum.None()
 
-    org.sireum.Some(Script(scriptName, defaultCharDelayMs, defaultActionDelayMs, actions))
+    // Inject Wait(defaultSpeakGapMs) between consecutive Speak commands
+    // within the same action, so the gap appears only between speaks
+    // (not after every speak that's followed by some non-speak action).
+    if (defaultSpeakGapMs > 0) {
+      var transformed = ISZ[Action]()
+      for (action <- actions.elements) {
+        val cmds = action.commands.elements
+        var newCmds = ISZ[Command]()
+        for (i <- cmds.indices) {
+          newCmds = newCmds :+ cmds(i)
+          if (i + 1 < cmds.length) {
+            (cmds(i), cmds(i + 1)) match {
+              case (_: Speak, _: Speak) => newCmds = newCmds :+ Wait(defaultSpeakGapMs)
+              case _ =>
+            }
+          }
+        }
+        transformed = transformed :+ Action(action.name, newCmds)
+      }
+      actions = transformed
+    }
+
+    org.sireum.Some(Script(scriptName, defaultCharDelayMs, defaultActionDelayMs, defaultSpeakGapMs, actions))
   }
 
   def run(script: Script, audioDir: Os.Path, audioExt: String, recordPath: Option[String]): Z = {
     currentAudioDir = audioDir.value.value
     currentAudioExt = audioExt.value
-    println(s"Running script: ${script.name}")
+    println(s"Running script: ${script.name} (speak gap: ${script.defaultSpeakGapMs}ms)")
 
     // Prime the Tesseract OCR server if the script uses text-based commands.
     // This triggers WASM loading + JIT compilation during the countdown so
@@ -776,6 +805,22 @@ object Roboto_Ext {
 
   private val recordingFps = 30
   @volatile private var recording = false
+  // SRT entry buffer — populated by speak() while recording; flushed to
+  // <output>.srt and muxed into the mp4 by stopRecording().  Each entry
+  // carries (startMs, endMs, text) all relative to recordingStartMs.
+  private final class SrtEntry(val startMs: Long, val endMs: Long, val text: scala.Predef.String)
+  @volatile private var srtEntries: java.util.List[SrtEntry] = null
+
+  private def formatSrtTimestamp(ms: Long): scala.Predef.String = {
+    val total = if (ms < 0) 0L else ms
+    val h = total / 3600000L
+    val rem1 = total % 3600000L
+    val m = rem1 / 60000L
+    val rem2 = rem1 % 60000L
+    val s = rem2 / 1000L
+    val msPart = rem2 % 1000L
+    f"$h%02d:$m%02d:$s%02d,$msPart%03d"
+  }
   private var ffmpegProcess: Process = _
   private var videoTmpFile: java.io.File = _
   private var captureThread: Thread = _
@@ -944,6 +989,7 @@ object Roboto_Ext {
 
       // Capture thread
       recording = true
+      srtEntries = java.util.Collections.synchronizedList(new java.util.ArrayList[SrtEntry]())
       val frameIntervalMs = 1000 / recordingFps
       val out = proc.getOutputStream
       val captureRobot = new java.awt.Robot()
@@ -1066,15 +1112,61 @@ object Roboto_Ext {
         val itsScale = if (declaredDuration > 0 && actualDuration > 0) actualDuration / declaredDuration else 1.0
         println(f"    [record] frames=$recordedFrameCount, declared=${declaredDuration}%.1fs, actual=${actualDuration}%.1fs, itsscale=$itsScale%.4f")
 
+        // Write SRT alongside the recorded mp4 and prepare to mux it as a
+        // mov_text subtitle track.  Subtitle timestamps are wall-clock ms
+        // (relative to recordingStartMs), independent of the video itsscale
+        // — they line up with the audio track which is also wall-clock.
+        val srtFile: java.io.File = {
+          val buf = srtEntries
+          if (buf != null && !buf.isEmpty) {
+            val basePath = outputPath
+            val dotIdx = basePath.lastIndexOf('.')
+            val srtPath = if (dotIdx > basePath.lastIndexOf(java.io.File.separatorChar))
+              basePath.substring(0, dotIdx) + ".srt"
+            else basePath + ".srt"
+            val f = new java.io.File(srtPath)
+            try {
+              val w = new java.io.PrintWriter(f, "UTF-8")
+              try {
+                val it = buf.iterator
+                var idx = 0
+                while (it.hasNext) {
+                  idx += 1
+                  val e = it.next()
+                  val startMs = if (e.startMs < 0) 0L else e.startMs
+                  val endMs = if (e.endMs <= startMs) startMs + 1L else e.endMs
+                  w.println(idx)
+                  w.println(s"${formatSrtTimestamp(startMs)} --> ${formatSrtTimestamp(endMs)}")
+                  w.println(e.text)
+                  w.println()
+                }
+              } finally w.close()
+              println(s"    [record] Wrote SRT subtitles to ${f.getAbsolutePath}")
+              f
+            } catch {
+              case t: Throwable =>
+                System.err.println(s"    [record] Failed to write SRT: ${t.getMessage}")
+                null
+            }
+          } else null
+        }
+
         val cmd = new java.util.ArrayList[Predef.String]()
         cmd.add("ffmpeg"); cmd.add("-y")
         cmd.add("-itsscale"); cmd.add(f"$itsScale%.6f")
         cmd.add("-i"); cmd.add(videoTmp.getAbsolutePath)
         cmd.add("-i"); cmd.add(wavFile.getAbsolutePath)
+        if (srtFile != null && srtFile.exists() && srtFile.length() > 0) {
+          cmd.add("-i"); cmd.add(srtFile.getAbsolutePath)
+        }
         cmd.add("-c:v"); cmd.add("copy")
         cmd.add("-c:a"); cmd.add("aac")
         cmd.add("-q:a"); cmd.add("2")
         cmd.add("-b:a"); cmd.add("192k")
+        if (srtFile != null && srtFile.exists() && srtFile.length() > 0) {
+          cmd.add("-c:s"); cmd.add("mov_text")
+          cmd.add("-metadata:s:s:0"); cmd.add("language=eng")
+        }
         cmd.add("-movflags"); cmd.add("+faststart")
         cmd.add(target.getAbsolutePath)
         println(s"    [record] Muxing audio into ${target.getAbsolutePath} ...")
@@ -1398,32 +1490,16 @@ object Roboto_Ext {
   }
 
   // -- Speech --
+  //
+  // Uses javax.sound.sampled.Clip for in-process WAV playback — pure JDK,
+  // no JavaFX, no native subprocess.  Source TTS audio that landed as MP3
+  // is converted to a WAV companion in Roboto.scala (gen-time ffmpeg) so
+  // this path always feeds Clip a WAV file.
 
   private var currentAudioDir: scala.Predef.String = ""
-  private var currentAudioExt: scala.Predef.String = "mp3"
-  private var jfxInitialized: scala.Boolean = false
-  private var speakPlayer: scala.Option[AnyRef] = scala.None // javafx.scene.media.MediaPlayer
+  private var currentAudioExt: scala.Predef.String = "wav"
+  private var speakClip: scala.Option[javax.sound.sampled.Clip] = scala.None
   private var speakLatch: scala.Option[java.util.concurrent.CountDownLatch] = scala.None
-
-  private def ensureJfx(): Unit = {
-    if (!jfxInitialized) {
-      try {
-        // Initialize JavaFX toolkit
-        val platformClass = Class.forName("javafx.application.Platform")
-        val startupMethod = platformClass.getMethod("startup", classOf[Runnable])
-        startupMethod.invoke(null, new Runnable { def run(): Unit = {} })
-      } catch {
-        case _: Throwable =>
-          try {
-            // Already initialized, set implicit exit to false
-            val platformClass = Class.forName("javafx.application.Platform")
-            val setImplicitExit = platformClass.getMethod("setImplicitExit", classOf[scala.Boolean])
-            setImplicitExit.invoke(null, java.lang.Boolean.FALSE)
-          } catch { case _: Throwable => }
-      }
-      jfxInitialized = true
-    }
-  }
 
   private def waitForSpeech(): Unit = {
     speakLatch match {
@@ -1432,51 +1508,57 @@ object Roboto_Ext {
         speakLatch = scala.None
       case _ =>
     }
-    speakPlayer.foreach { p =>
-      val disposeMethod = p.getClass.getMethod("dispose")
-      disposeMethod.invoke(p)
+    speakClip.foreach { clip =>
+      if (clip.isRunning) clip.stop()
+      clip.close()
     }
-    speakPlayer = scala.None
+    speakClip = scala.None
   }
 
   private def speak(a: Speak): Unit = {
     waitForSpeech()
-    ensureJfx()
     val text = a.text.value
-    val audioPath = findAudioFile(text)
-    audioPath match {
+    findAudioFile(text) match {
       case scala.Some(path) =>
         println(s"    [speak] Playing: $text")
-        val file = new java.io.File(path)
-        val uri = file.toURI.toString
         val latch = new java.util.concurrent.CountDownLatch(1)
-        // Create Media and MediaPlayer via reflection
-        val mediaClass = Class.forName("javafx.scene.media.Media")
-        val playerClass = Class.forName("javafx.scene.media.MediaPlayer")
-        val media = mediaClass.getConstructor(classOf[Predef.String]).newInstance(uri)
-        val player = playerClass.getConstructor(mediaClass).newInstance(media)
-        // Set onEndOfMedia callback
-        val setOnEndMethod = playerClass.getMethod("setOnEndOfMedia", classOf[Runnable])
-        setOnEndMethod.invoke(player, new Runnable { def run(): Unit = latch.countDown() })
-        // Set onError callback
-        val setOnErrorMethod = playerClass.getMethod("setOnError", classOf[Runnable])
-        setOnErrorMethod.invoke(player, new Runnable { def run(): Unit = {
-          System.err.println(s"    [error] JavaFX MediaPlayer error for: $text")
-          latch.countDown()
-        }})
-        // Play on JavaFX thread
-        val platformClass = Class.forName("javafx.application.Platform")
-        val runLaterMethod = platformClass.getMethod("runLater", classOf[Runnable])
-        val playMethod = playerClass.getMethod("play")
-        runLaterMethod.invoke(null, new Runnable { def run(): Unit = playMethod.invoke(player) })
-        speakPlayer = scala.Some(player)
-        if (a.async.value) {
-          speakLatch = scala.Some(latch)
-        } else {
-          latch.await()
-          val disposeMethod = playerClass.getMethod("dispose")
-          disposeMethod.invoke(player)
-          speakPlayer = scala.None
+        // Capture SRT-entry timing only when recording is active.  Snapshot
+        // the recording flag + start time at speak invocation; the line
+        // listener appends (startMs, endMs, text) on STOP so async speak
+        // also gets accurate end-time without needing the script thread.
+        val recordingActive = recording
+        val captureBuf = srtEntries
+        val srtStartMs: Long = if (recordingActive && recordingStartMs > 0)
+          System.currentTimeMillis() - recordingStartMs else -1L
+        try {
+          val audioStream = javax.sound.sampled.AudioSystem.getAudioInputStream(new java.io.File(path))
+          val clip = javax.sound.sampled.AudioSystem.getClip()
+          clip.open(audioStream)
+          clip.addLineListener(new javax.sound.sampled.LineListener {
+            def update(event: javax.sound.sampled.LineEvent): Unit = {
+              if (event.getType == javax.sound.sampled.LineEvent.Type.STOP) {
+                if (captureBuf != null && srtStartMs >= 0L) {
+                  val srtEndMs = System.currentTimeMillis() - recordingStartMs
+                  captureBuf.add(new SrtEntry(srtStartMs, srtEndMs, text))
+                }
+                latch.countDown()
+              }
+            }
+          })
+          clip.start()
+          speakClip = scala.Some(clip)
+          if (a.async.value) {
+            speakLatch = scala.Some(latch)
+          } else {
+            latch.await()
+            clip.close()
+            speakClip = scala.None
+          }
+        } catch {
+          case t: Throwable =>
+            System.err.println(s"    [error] Audio playback failed for: $text — ${t.getMessage}")
+            latch.countDown()
+            speakClip = scala.None
         }
       case _ =>
         System.err.println(s"    [error] No audio found for: $text")

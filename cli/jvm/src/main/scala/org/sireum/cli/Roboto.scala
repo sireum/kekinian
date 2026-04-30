@@ -150,9 +150,11 @@ object Roboto {
     if (speakTexts.nonEmpty) {
       println(s"Generating speech audio (${speakTexts.size} entries)...")
 
-      // Track existing generated audio files for clean
+      // Track existing generated audio files for clean.  Also include WAV
+      // companions so the cleanup pass below removes them alongside the
+      // MP3 sources they were derived from.
       var generatedAudioFiles = HashSSet.empty[Os.Path]
-      for (p <- audioDir.list if p.ext == ext) {
+      for (p <- audioDir.list if p.ext == ext || (ext == string"mp3" && p.ext == string"wav")) {
         generatedAudioFiles = generatedAudioFiles + p
       }
 
@@ -197,6 +199,22 @@ object Roboto {
         } else {
           println(s"  Cached: $text")
         }
+
+        // Roboto's speak() uses javax.sound.sampled, which only handles
+        // WAV/AIFF/AU natively.  When TTS produced an MP3, materialize a
+        // WAV companion next to it via ffmpeg (already a hard dep) so the
+        // playback path stays JDK-only.
+        if (ext == string"mp3" && audioFile.exists) {
+          val wavFile = audioDir / s"$sub-$fp.wav"
+          generatedAudioFiles = generatedAudioFiles - wavFile
+          if (!wavFile.exists) {
+            val r = Os.proc(ISZ[String]("ffmpeg", "-y", "-i", audioFile.string,
+              "-loglevel", "quiet", wavFile.string)).run()
+            if (!r.ok) {
+              eprintln(s"  Failed to convert audio to WAV for: $text")
+            }
+          }
+        }
       }
 
       if (o.clean) {
@@ -207,6 +225,9 @@ object Roboto {
       }
     }
 
-    return Ext.run(script, audioDir, ext, o.record)
+    // Roboto playback always reads WAV (javax.sound.sampled compatibility);
+    // MP3 source files stay around for storage efficiency, but the player
+    // path consumes the WAV companion that gets generated above.
+    return Ext.run(script, audioDir, "wav", o.record)
   }
 }

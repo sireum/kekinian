@@ -825,11 +825,7 @@ object Sireum {
           case Some(o: Cli.SireumPresentasiGenOption) =>
             init.basicDeps()
             init.installMaryTTS()
-            val r = NativeUtil.nonNative[Z](-1, () => try cli.Presentasi.gen(o, reporter) finally cli.Presentasi.Ext.shutdown())
-            if (r == -1) {
-              eprintln("The tool is not available in native mode")
-            }
-            return r
+            return cli.Presentasi.gen(o, reporter)
           case Some(o: Cli.SireumProyekExportOption) =>
             init.basicDeps()
             init.installMill(T)

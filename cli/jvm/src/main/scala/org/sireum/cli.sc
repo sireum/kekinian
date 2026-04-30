@@ -142,6 +142,8 @@ val pgenTool: Tool = Tool(
       tpe = Type.Str(sep = Some(','), default = None()), description = "Slide indices to keep"),
     Opt(name = "slides", longKey = "slides", shortKey = None(),
       tpe = Type.Flag(default = F), description = "Generate markdown slides"),
+    Opt(name = "swing", longKey = "swing", shortKey = None(),
+      tpe = Type.Flag(default = F), description = "Generate Swing app instead of JavaFX"),
     Opt(name = "videoFps", longKey = "video-fps", shortKey = None(),
       tpe = Type.Num(sep = None(), default = 5, min = Some(5), max = None()),
       description = "Animated video frames-per-second when generating markdown slides"),
