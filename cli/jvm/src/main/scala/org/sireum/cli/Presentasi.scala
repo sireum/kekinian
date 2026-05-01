@@ -1709,7 +1709,13 @@ object Presentasi {
             n = n + 1
           case media: Sound =>
             val mediaUri = media.filepath.toUri
-            val ccText = spec.cc.get(media.text).getOrElse(media.text)
+            val ccText0 = spec.cc.get(media.text).getOrElse(media.text)
+            // Inline "..." in speech text is a TTS pause hint; subtitles
+            // read more cleanly with a period instead of a literal ellipsis.
+            // " ... " (with surrounding spaces) collapses to ". " so the
+            // following word starts a new sentence; trailing "..." → ".".
+            val ccText1 = ops.StringOps(ccText0).replaceAllLiterally(" ... ", ". ")
+            val ccText = ops.StringOps(ccText1).replaceAllLiterally("...", ".")
             mediaSTs = mediaSTs :+ soundTemplate(ops.StringOps(mediaUri).substring(audioDirUriSize, mediaUri.size),
               media.timeline, i, previousTimelineOpt, ccText)
             val t = media.timeline + spec.vseekDelay
