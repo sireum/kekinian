@@ -117,6 +117,14 @@ object Roboto_Ext {
     var defaultSpeakGapMs: Z = 300
     var vars = scala.collection.mutable.LinkedHashMap[Predef.String, Predef.String]()
     var substs = scala.collection.mutable.LinkedHashMap[Predef.String, Predef.String]()
+    // Closed-caption / display substitutions, parallel to `subst:` but
+    // applied to the SRT subtitle text instead of the TTS input.
+    // Mirrors presentasi.md's `cc:` front-matter section so a script
+    // can spell `$sireumV$` once in the markdown and have the audio
+    // pronounce "Seereeum V" (subst) while the subtitle reads
+    // "Sireum V" (cc).  If a key has no cc entry the SRT falls back
+    // to the subst value (avoiding a literal `$key$` leak).
+    var ccs = scala.collection.mutable.LinkedHashMap[Predef.String, Predef.String]()
     val osName = System.getProperty("os.name").toLowerCase
     val osKey = if (osName.contains("mac")) "Mac"
       else if (osName.contains("win")) "Win"
@@ -172,6 +180,14 @@ object Roboto_Ext {
                         s"Expecting <key>: <value> pair but found: $v")
                     }
                   }
+                case "cc" =>
+                  for (v <- yamlChild.getValues.toArray) {
+                    splitKeyValuePair(v.toString) match {
+                      case Array(k, value) => ccs(k) = value
+                      case _ => reporter.error(getPosOpt(yamlChild), kind,
+                        s"Expecting <key>: <value> pair but found: $v")
+                    }
+                  }
                 case key =>
                   reporter.error(getPosOpt(yamlChild), kind,
                     s"Unknown frontmatter key: $key")
@@ -222,6 +238,30 @@ object Roboto_Ext {
       for ((k, v) <- substs) {
         r = r.replace(s"$$$k$$", v)
       }
+      r
+    }
+
+    // Apply CC substitutions for SRT subtitle display.  Falls back to
+    // the subst value if a key isn't in cc, so subtitles never leak
+    // a literal `$key$`.  When neither cc nor subst has the key, the
+    // marker is left as-is (likely a typo — Roboto already emits an
+    // unknown-key warning elsewhere).  Ellipses (ASCII `...` and
+    // Unicode `…`) are collapsed to a single period for cleaner
+    // subtitles — the TTS phonetic text often uses `...` to insert
+    // pauses, but they read awkwardly on screen.
+    def substCc(text: Predef.String): Predef.String = {
+      var r = text
+      // Apply cc first; remaining keys fall back to substs.
+      for ((k, v) <- ccs) {
+        r = r.replace(s"$$$k$$", v)
+      }
+      for ((k, v) <- substs) {
+        if (!ccs.contains(k)) {
+          r = r.replace(s"$$$k$$", v)
+        }
+      }
+      r = r.replace("...", ".")
+      r = r.replace("…", ".")
       r
     }
 
@@ -440,7 +480,11 @@ object Roboto_Ext {
 
             case "speak" =>
               val async = opts.exists(_.toLowerCase == "async")
-              org.sireum.Some(Speak(substSpeak(arg), org.sireum.B(async)))
+              // `text` (post-subst) drives TTS + audio-cache lookup;
+              // `displayText` (post-cc-subst) becomes the SRT caption
+              // so viewers read "Sireum V" instead of "Seereeum V"
+              // and don't see literal `$key$` markers.
+              org.sireum.Some(Speak(substSpeak(arg), substCc(arg), org.sireum.B(async)))
 
             case "waitforspeech" =>
               org.sireum.Some(WaitForSpeech())
@@ -464,6 +508,37 @@ object Roboto_Ext {
 
             case "showcursor" =>
               org.sireum.Some(ShowCursor())
+
+            case "showbackground" =>
+              val imgPath = new java.io.File(dir, arg).getCanonicalPath
+              org.sireum.Some(ShowBackground(imgPath))
+
+            case "hidebackground" =>
+              org.sireum.Some(HideBackground())
+
+            case "lowerbackground" =>
+              org.sireum.Some(LowerBackground())
+
+            case "spawn" =>
+              // Options: `wait` (synchronous) and `timeoutMs=N`
+              // (force-terminate after N ms when waiting).
+              // The boolean `wait` flag is filtered out before
+              // parseZ runs on the remaining options to avoid
+              // "Invalid timeoutMs value: wait" errors.  `opts` is
+              // Array[Predef.String] (Java String) here, so the
+              // predicate uses Predef.String explicitly to avoid
+              // collision with the imported Sireum String.
+              val isWaitFlag: Predef.String => Boolean = { o =>
+                val s = o.toLowerCase
+                s == "wait" || s == "await"
+              }
+              val await: Boolean = opts.exists(isWaitFlag)
+              val timeout: Z = opts
+                .filterNot(isWaitFlag)
+                .map(o => parseZ(o, "timeoutMs"))
+                .collectFirst { case org.sireum.Some(z) => z }
+                .getOrElse(z"0")
+              org.sireum.Some(Spawn(arg, org.sireum.B(await), timeout))
 
             case _ =>
               reporter.error(getPosOpt(node), kind,
@@ -629,6 +704,10 @@ object Roboto_Ext {
       case a: WaitForText => waitForText(a)
       case _: HideCursor => hideCursor()
       case _: ShowCursor => showCursor()
+      case a: ShowBackground => showBackground(a)
+      case _: LowerBackground => lowerBackground()
+      case _: HideBackground => hideBackground()
+      case a: Spawn => spawnProcess(a)
     }
   }
 
@@ -637,6 +716,11 @@ object Roboto_Ext {
   // the hide with CGDisplayShowCursor when stdin closes (which happens
   // when ShowCursor or the JVM shutdown hook destroys the process).
   @volatile private var cursorHideProc: java.lang.Process = null
+
+  // Holds the borderless image window installed by ShowBackground.
+  // Disposed by HideBackground or by the JVM shutdown hook below if
+  // the script exits with a background still up.
+  @volatile private var backgroundWindow: java.awt.Window = null
   private val isMac: Boolean =
     System.getProperty("os.name", "").toLowerCase.contains("mac")
   // Register once: if the JVM exits while the cursor is still hidden
@@ -650,6 +734,21 @@ object Roboto_Ext {
       cursorHideProc = null
     }
   }, "roboto-cursor-restore"))
+
+  // Symmetric shutdown hook for the background image window — dispose
+  // it on script exit so the user isn't left with an undismissable
+  // borderless image stuck on the screen.
+  Runtime.getRuntime.addShutdownHook(new Thread(() => {
+    val w = backgroundWindow
+    if (w != null) {
+      try {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable {
+          def run(): Unit = w.dispose()
+        })
+      } catch { case _: Throwable => }
+      backgroundWindow = null
+    }
+  }, "roboto-background-restore"))
 
   // Stop compositing the cursor overlay onto recorded frames and, on
   // macOS, hide the OS cursor itself by running a tiny Swift helper that
@@ -744,6 +843,152 @@ object Roboto_Ext {
       }
     })
     robot.delay(durationMs + 200)
+  }
+
+  // -- Background image (presentation slide behind app windows) --
+
+  private def showBackground(a: ShowBackground): Unit = {
+    val pathStr = a.imagePath.value
+    val imageFile = new java.io.File(pathStr)
+    if (!imageFile.exists()) {
+      println(s"    [showBackground] image not found: $pathStr")
+      return
+    }
+    val image: java.awt.image.BufferedImage =
+      try javax.imageio.ImageIO.read(imageFile)
+      catch { case _: Throwable => null }
+    if (image == null) {
+      println(s"    [showBackground] cannot decode image: $pathStr")
+      return
+    }
+    // Replace any existing background.
+    hideBackground()
+    val screenSize = Toolkit.getDefaultToolkit.getScreenSize
+    println(s"    [showBackground] $pathStr  screen ${screenSize.width}x${screenSize.height}  image ${image.getWidth}x${image.getHeight}")
+    javax.swing.SwingUtilities.invokeAndWait(new Runnable {
+      def run(): Unit = {
+        // JFrame (undecorated) instead of JWindow: JWindow on macOS
+        // can be treated as a transient popup and not appear in
+        // Mission Control / normal z-order.  An undecorated JFrame
+        // is a real top-level window, behaves predictably with
+        // toBack() and is z-ordered normally with other apps.
+        val frame = new javax.swing.JFrame()
+        frame.setUndecorated(true)
+        frame.setBackground(java.awt.Color.BLACK)
+        val scaled = image.getScaledInstance(
+          screenSize.width, screenSize.height, java.awt.Image.SCALE_SMOOTH)
+        val label = new javax.swing.JLabel(new javax.swing.ImageIcon(scaled))
+        label.setOpaque(true)
+        label.setBackground(java.awt.Color.BLACK)
+        frame.setContentPane(label)
+        frame.setSize(screenSize)
+        frame.setLocation(0, 0)
+        // Allow focus + activate-on-show so the JVM becomes the
+        // active macOS app for the duration of the speech.  This
+        // matters for z-order: an inactive app's windows rank by
+        // most-recent-activation against other inactive apps'
+        // windows.  After LowerBackground drops the alwaysOnTop
+        // level, we still want the slide to sit ABOVE the
+        // launching terminal / IDE; the JVM having been the active
+        // app most recently puts its windows ahead in the
+        // normal-level z-order.  Once the iOS Simulator (or any
+        // other app) activates, its windows naturally rise above
+        // the slide.
+        frame.setAlwaysOnTop(true)
+        frame.setVisible(true)
+        frame.toFront()
+        frame.requestFocus()
+        backgroundWindow = frame
+      }
+    })
+    // Activate the JVM as a foreground app so subsequent
+    // `simctl launch` / `open -a` activations of OTHER apps push
+    // the slide naturally below them, while the JVM's window
+    // ordering still beats the originating terminal.  Uses macOS's
+    // `osascript` to flip frontmost-process so we don't depend on
+    // the deprecated com.apple.eawt API.
+    if (isMac) {
+      try {
+        val pid = ProcessHandle.current().pid()
+        new java.lang.ProcessBuilder("osascript", "-e",
+          s"""tell application "System Events" to set frontmost of (first process whose unix id is $pid) to true"""
+        ).start().waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+      } catch { case _: Throwable => /* best-effort */ }
+    }
+    javax.swing.SwingUtilities.invokeAndWait(new Runnable {
+      def run(): Unit = {
+        // no-op: just yields to the EDT so the activate-app
+        // transition above settles before tick continues.
+      }
+    })
+  }
+
+  private def hideBackground(): Unit = {
+    val w = backgroundWindow
+    if (w == null) return
+    println("    [hideBackground]")
+    try {
+      javax.swing.SwingUtilities.invokeAndWait(new Runnable {
+        def run(): Unit = w.dispose()
+      })
+    } catch { case _: Throwable => }
+    backgroundWindow = null
+  }
+
+  private def lowerBackground(): Unit = {
+    val w = backgroundWindow
+    if (w == null) return
+    println("    [lowerBackground]")
+    try {
+      javax.swing.SwingUtilities.invokeAndWait(new Runnable {
+        def run(): Unit = {
+          // Drop the always-on-top level so app windows (Simulator,
+          // etc.) can rise above the slide when they activate.
+          w match {
+            case f: javax.swing.JFrame => f.setAlwaysOnTop(false)
+            case _ => // any non-JFrame window: ignore
+          }
+          w.toBack()
+        }
+      })
+    } catch { case _: Throwable => }
+  }
+
+  // -- Process spawning (sibling subprocess via the host shell) --
+
+  private val isWin: Boolean =
+    System.getProperty("os.name", "").toLowerCase.startsWith("windows")
+
+  private def spawnProcess(a: Spawn): Unit = {
+    val cmd = a.command
+    println(s"    [spawn]${if (a.await.value) "(wait)" else ""} $cmd")
+    // Wrap in the host shell so the markdown can carry a shell-style
+    // command line without manual tokenisation / quoting concerns.
+    // Windows: cmd /c.  Unix-likes: sh -c.
+    val shellArgs: ISZ[org.sireum.String] =
+      if (isWin) ISZ(org.sireum.String("cmd"), org.sireum.String("/c"), cmd)
+      else ISZ(org.sireum.String("sh"), org.sireum.String("-c"), cmd)
+    val baseProc = Os.proc(shellArgs).console
+    if (!a.await.value) {
+      // Fire-and-forget: spawn on a background thread so the script
+      // can continue immediately.  The thread is daemon so a script
+      // exit doesn't wait on a long-running launched process.
+      val t = new Thread(new Runnable {
+        def run(): Unit = {
+          try baseProc.run() catch { case _: Throwable => }
+        }
+      }, "roboto-spawn-async")
+      t.setDaemon(true)
+      t.start()
+      return
+    }
+    val proc =
+      if (a.timeoutMs > z"0") baseProc.timeout(a.timeoutMs)
+      else baseProc
+    val r = proc.run()
+    if (!r.ok) {
+      println(s"    [spawn] exit ${r.exitCode}")
+    }
   }
 
   // -- Keyboard Actions --
@@ -1518,14 +1763,18 @@ object Roboto_Ext {
   private def speak(a: Speak): Unit = {
     waitForSpeech()
     val text = a.text.value
+    val displayText = a.displayText.value
     findAudioFile(text) match {
       case scala.Some(path) =>
-        println(s"    [speak] Playing: $text")
+        println(s"    [speak] Playing: $displayText")
         val latch = new java.util.concurrent.CountDownLatch(1)
         // Capture SRT-entry timing only when recording is active.  Snapshot
         // the recording flag + start time at speak invocation; the line
-        // listener appends (startMs, endMs, text) on STOP so async speak
-        // also gets accurate end-time without needing the script thread.
+        // listener appends (startMs, endMs, displayText) on STOP so async
+        // speak also gets accurate end-time without needing the script
+        // thread.  SRT uses the pre-substitution displayText so closed
+        // captions show the natural spelling (e.g. "Sireum V") rather
+        // than the phonetic TTS variant ("Seereeum V").
         val recordingActive = recording
         val captureBuf = srtEntries
         val srtStartMs: Long = if (recordingActive && recordingStartMs > 0)
@@ -1539,7 +1788,7 @@ object Roboto_Ext {
               if (event.getType == javax.sound.sampled.LineEvent.Type.STOP) {
                 if (captureBuf != null && srtStartMs >= 0L) {
                   val srtEndMs = System.currentTimeMillis() - recordingStartMs
-                  captureBuf.add(new SrtEntry(srtStartMs, srtEndMs, text))
+                  captureBuf.add(new SrtEntry(srtStartMs, srtEndMs, displayText))
                 }
                 latch.countDown()
               }
