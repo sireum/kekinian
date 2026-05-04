@@ -362,6 +362,7 @@ object HAMR {
                maxArraySize: Z,
                runTranspiler: B,
                //
+               //verusAttributeSyntax: B,
                sel4OutputDirectory: Option[String],
                sel4AuxCodeDirs: ISZ[String],
                workspaceRootDir: Option[String],
@@ -400,6 +401,7 @@ object HAMR {
       maxArraySize = maxArraySize,
       runTranspiler = runTranspiler,
       //
+      verusAttributeSyntax = F,
       sel4OutputDir = sel4OutputDirectory,
       sel4AuxCodeDirs = sel4AuxCodeDirs,
       workspaceRootDir = workspaceRootDir,
@@ -918,6 +920,7 @@ object HAMR {
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
       //
+      verusAttributeSyntax = o.verusAttributeSyntax,
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
       workspaceRootDir = o.workspaceRootDir,
@@ -958,6 +961,7 @@ object HAMR {
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
       //
+      verusAttributeSyntax = o.verusAttributeSyntax,
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
       workspaceRootDir = o.workspaceRootDir,
@@ -1018,7 +1022,7 @@ object HAMR {
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
 
-    assert(LongKeys.allKeys.size == 31, s"Expecting 31 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
+    assert(LongKeys.allKeys.size == 32, s"Expecting 31 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
 
     var userModifiedKeys: ISZ[String] = ISZ()
@@ -1117,6 +1121,11 @@ object HAMR {
           i = i + 1
         }
         // camkes group options
+        else if (k == LongKeys.CAmkES_Microkit_verusAttributeSyntax) {
+          ret = ret(verusAttributeSyntax = fileOptions.verusAttributeSyntax)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_verusAttributeSyntax
+          i = i + 1
+        }
         else if (k == LongKeys.CAmkES_Microkit_sel4OutputDir) {
           ret = ret(sel4OutputDir = fileOptions.sel4OutputDir)
           userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4OutputDir
@@ -1265,6 +1274,9 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.runTranspiler) {
       ret = ret :+ ("--run-transpiler", None())
     }
+    if (o.verusAttributeSyntax) {
+      ret = ret :+ ("--verus-attribute-syntax", None())
+    }
     if (o.sel4OutputDir.nonEmpty) {
       ret = ret :+ ("--sel4-output-dir", Some(st"${(o.sel4OutputDir, Os.pathSep)}".render))
     }
@@ -1368,6 +1380,9 @@ object SireumHamrCodegenOptionUtil {
     }
     if (o.runTranspiler) {
       ret = ret :+ ("--run-transpiler", None())
+    }
+    if (o.verusAttributeSyntax) {
+      ret = ret :+ ("--verus-attribute-syntax", None())
     }
     if (o.sel4OutputDir.nonEmpty) {
       ret = ret :+ ("--sel4-output-dir", Some(st"${(o.sel4OutputDir, Os.pathSep)}".render))

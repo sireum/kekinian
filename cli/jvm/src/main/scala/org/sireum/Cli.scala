@@ -82,6 +82,7 @@ object Cli {
     val maxStringSize: Z,
     val maxArraySize: Z,
     val runTranspiler: B,
+    val verusAttributeSyntax: B,
     val sel4OutputDir: Option[String],
     val sel4AuxCodeDirs: ISZ[String],
     val workspaceRootDir: Option[String],
@@ -163,6 +164,7 @@ object Cli {
     val maxStringSize: Z,
     val maxArraySize: Z,
     val runTranspiler: B,
+    val verusAttributeSyntax: B,
     val sel4OutputDir: Option[String],
     val sel4AuxCodeDirs: ISZ[String],
     val workspaceRootDir: Option[String],
@@ -1442,6 +1444,10 @@ import Cli._
           |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
           |CAmkES/Microkit Options:
+          |    --verus-attribute-syntax
+          |                          Use Verus attribute syntax (#[verus_spec],
+          |                           #[verus_verify]) instead of the verus! macro for
+          |                           exec functions
           |    --sel4-output-dir    Output directory for the generated CAmkES/Microkit
           |                           project files (expects a path)
           |    --sel4-aux-code-dirs Directories containing C files to be included in
@@ -1492,6 +1498,7 @@ import Cli._
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
     var runTranspiler: B = false
+    var verusAttributeSyntax: B = false
     var sel4OutputDir: Option[String] = None[String]()
     var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
     var workspaceRootDir: Option[String] = None[String]()
@@ -1624,6 +1631,12 @@ import Cli._
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
+         } else if (arg == "--verus-attribute-syntax") {
+           val o: Option[B] = { j = j - 1; Some(!verusAttributeSyntax) }
+           o match {
+             case Some(v) => verusAttributeSyntax = v
+             case _ => return None()
+           }
          } else if (arg == "--sel4-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -1693,7 +1706,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -2002,6 +2015,10 @@ import Cli._
           |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
           |CAmkES/Microkit Options:
+          |    --verus-attribute-syntax
+          |                          Use Verus attribute syntax (#[verus_spec],
+          |                           #[verus_verify]) instead of the verus! macro for
+          |                           exec functions
           |    --sel4-output-dir    Output directory for the generated CAmkES/Microkit
           |                           project files (expects a path)
           |    --sel4-aux-code-dirs Directories containing C files to be included in
@@ -2054,6 +2071,7 @@ import Cli._
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
     var runTranspiler: B = false
+    var verusAttributeSyntax: B = false
     var sel4OutputDir: Option[String] = None[String]()
     var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
     var workspaceRootDir: Option[String] = None[String]()
@@ -2198,6 +2216,12 @@ import Cli._
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
+         } else if (arg == "--verus-attribute-syntax") {
+           val o: Option[B] = { j = j - 1; Some(!verusAttributeSyntax) }
+           o match {
+             case Some(v) => verusAttributeSyntax = v
+             case _ => return None()
+           }
          } else if (arg == "--sel4-output-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -2267,7 +2291,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {
