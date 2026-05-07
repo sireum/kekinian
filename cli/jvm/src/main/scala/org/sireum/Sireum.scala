@@ -659,6 +659,8 @@ object Sireum {
               case Either.Right(code) => return code
               case _ => return 0
             }
+          case Some(o: Cli.SireumSlangMigrateOption) =>
+            return cli.SlangMigrate.run(o, message.Reporter.create)
           case Some(o: Cli.SireumSlangRunOption) =>
             if (!o.eval) {
               init.basicDeps()

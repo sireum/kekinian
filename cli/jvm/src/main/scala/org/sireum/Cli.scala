@@ -820,6 +820,11 @@ object Cli {
     val versions: ISZ[String]
   ) extends SireumTopOption
 
+  @datatype class SireumSlangMigrateOption(
+    val help: String,
+    val args: ISZ[String]
+  ) extends SireumTopOption
+
   @enum object SireumSlangRefactorMode {
     "EnumSymbol"
     "InsertVal"
@@ -7596,6 +7601,7 @@ import Cli._
         st"""The Sireum Language (Slang) Tools
             |
             |Available modes:
+            |migrate                  Pretty print Scala-based Slang to LL(2)
             |refactor                 Refactor script
             |run                      Script runner
             |template                 Insert Slang template
@@ -7604,8 +7610,9 @@ import Cli._
       )
       return Some(HelpOption())
     }
-    val opt = select("slang", args, i, ISZ("refactor", "run", "template", "tipe", "transpilers"))
+    val opt = select("slang", args, i, ISZ("migrate", "refactor", "run", "template", "tipe", "transpilers"))
     opt match {
+      case Some(string"migrate") => return parseSireumSlangMigrate(args, i + 1)
       case Some(string"refactor") => return parseSireumSlangRefactor(args, i + 1)
       case Some(string"run") => return parseSireumSlangRun(args, i + 1)
       case Some(string"template") => return parseSireumSlangTemplate(args, i + 1)
@@ -7613,6 +7620,35 @@ import Cli._
       case Some(string"transpilers") => return parseSireumSlangTranspilers(args, i + 1)
       case _ => return None()
     }
+  }
+
+  def parseSireumSlangMigrate(args: ISZ[String], i: Z): Option[SireumTopOption] = {
+    val help =
+      st"""Slang Migrator
+          |
+          |Usage: <option>* [<slang-file>]
+          |
+          |Available Options:
+          |-h, --help               Display this information""".render
+
+    val j = i
+    var isOption = T
+    while (j < args.size && isOption) {
+      val arg = args(j)
+      if (ops.StringOps(arg).first == '-') {
+        if (args(j) == "-h" || args(j) == "--help") {
+          println(help)
+          return Some(HelpOption())
+        } else {
+          eprintln(s"Unrecognized option '$arg'.")
+          return None()
+        }
+
+      } else {
+        isOption = F
+      }
+    }
+    return Some(SireumSlangMigrateOption(help, parseArguments(args, j)))
   }
 
   def parseSireumSlangRefactorModeH(arg: String): Option[SireumSlangRefactorMode.Type] = {
