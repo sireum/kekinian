@@ -35,7 +35,7 @@ import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumS
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.reporting.CodegenReporting
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
-import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption}
+import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption, CodegenScheduling}
 import org.sireum.hamr.codegen.common.util._
 import org.sireum.hamr.codegen.microkit.plugins.MicrokitPlugins
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
@@ -401,6 +401,7 @@ object HAMR {
       maxArraySize = maxArraySize,
       runTranspiler = runTranspiler,
       //
+      scheduling = Cli.SireumHamrCodegenScheduling.Domain,
       verusAttributeSyntax = F,
       sel4OutputDir = sel4OutputDirectory,
       sel4AuxCodeDirs = sel4AuxCodeDirs,
@@ -920,6 +921,7 @@ object HAMR {
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
       //
+      scheduling = Cli.SireumHamrCodegenScheduling.byName(o.scheduling.name).get,
       verusAttributeSyntax = o.verusAttributeSyntax,
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
@@ -961,6 +963,7 @@ object HAMR {
       maxArraySize = o.maxArraySize,
       runTranspiler = o.runTranspiler,
       //
+      scheduling = CodegenScheduling.byName(o.scheduling.name).get,
       verusAttributeSyntax = o.verusAttributeSyntax,
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
@@ -1022,7 +1025,7 @@ object HAMR {
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
 
-    assert(LongKeys.allKeys.size == 32, s"Expecting 31 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
+    assert(LongKeys.allKeys.size == 33, s"Expecting 33 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
 
     var userModifiedKeys: ISZ[String] = ISZ()
@@ -1121,6 +1124,11 @@ object HAMR {
           i = i + 1
         }
         // camkes group options
+        else if (k == LongKeys.CAmkES_Microkit_scheduling) {
+          ret = ret(scheduling = fileOptions.scheduling)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_scheduling
+          i = i + 2
+        }
         else if (k == LongKeys.CAmkES_Microkit_verusAttributeSyntax) {
           ret = ret(verusAttributeSyntax = fileOptions.verusAttributeSyntax)
           userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_verusAttributeSyntax
@@ -1274,6 +1282,9 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.runTranspiler) {
       ret = ret :+ ("--run-transpiler", None())
     }
+    if (includeDefaults || o.scheduling.name != "Domain") {
+      ret = ret :+ ("--scheduling", Some(o.scheduling.name))
+                      }
     if (o.verusAttributeSyntax) {
       ret = ret :+ ("--verus-attribute-syntax", None())
     }
@@ -1381,6 +1392,9 @@ object SireumHamrCodegenOptionUtil {
     if (o.runTranspiler) {
       ret = ret :+ ("--run-transpiler", None())
     }
+    if (includeDefaults || o.scheduling.name != "Domain") {
+      ret = ret :+ ("--scheduling", Some(o.scheduling.name))
+                      }
     if (o.verusAttributeSyntax) {
       ret = ret :+ ("--verus-attribute-syntax", None())
     }

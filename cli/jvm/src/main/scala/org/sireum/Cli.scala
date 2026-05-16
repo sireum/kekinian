@@ -50,6 +50,11 @@ object Cli {
     "Ros2"
   }
 
+  @enum object SireumHamrCodegenScheduling {
+    "Domain"
+    "UserLand"
+  }
+
   @enum object SireumHamrCodegenNodesCodeLanguage {
     "Python"
     "Cpp"
@@ -82,6 +87,7 @@ object Cli {
     val maxStringSize: Z,
     val maxArraySize: Z,
     val runTranspiler: B,
+    val scheduling: SireumHamrCodegenScheduling.Type,
     val verusAttributeSyntax: B,
     val sel4OutputDir: Option[String],
     val sel4AuxCodeDirs: ISZ[String],
@@ -130,6 +136,11 @@ object Cli {
     "Ros2"
   }
 
+  @enum object SireumHamrSysmlCodegenScheduling {
+    "Domain"
+    "UserLand"
+  }
+
   @enum object SireumHamrSysmlCodegenNodesCodeLanguage {
     "Python"
     "Cpp"
@@ -164,6 +175,7 @@ object Cli {
     val maxStringSize: Z,
     val maxArraySize: Z,
     val runTranspiler: B,
+    val scheduling: SireumHamrSysmlCodegenScheduling.Type,
     val verusAttributeSyntax: B,
     val sel4OutputDir: Option[String],
     val sel4AuxCodeDirs: ISZ[String],
@@ -1360,6 +1372,25 @@ import Cli._
     return r
   }
 
+  def parseSireumHamrCodegenSchedulingH(arg: String): Option[SireumHamrCodegenScheduling.Type] = {
+    arg.native match {
+      case "Domain" => return Some(SireumHamrCodegenScheduling.Domain)
+      case "UserLand" => return Some(SireumHamrCodegenScheduling.UserLand)
+      case s =>
+        eprintln(s"Expecting one of the following: { Domain, UserLand }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrCodegenScheduling(args: ISZ[String], i: Z): Option[SireumHamrCodegenScheduling.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { Domain, UserLand }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrCodegenSchedulingH(args(i))
+    return r
+  }
+
   def parseSireumHamrCodegenNodesCodeLanguageH(arg: String): Option[SireumHamrCodegenNodesCodeLanguage.Type] = {
     arg.native match {
       case "Python" => return Some(SireumHamrCodegenNodesCodeLanguage.Python)
@@ -1444,6 +1475,8 @@ import Cli._
           |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
           |CAmkES/Microkit Options:
+          |    --scheduling         Scheduling type (expects one of { Domain, UserLand };
+          |                           default: Domain)
           |    --verus-attribute-syntax
           |                          Use Verus attribute syntax (#[verus_spec],
           |                           #[verus_verify]) instead of the verus! macro for
@@ -1498,6 +1531,7 @@ import Cli._
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
     var runTranspiler: B = false
+    var scheduling: SireumHamrCodegenScheduling.Type = SireumHamrCodegenScheduling.Domain
     var verusAttributeSyntax: B = false
     var sel4OutputDir: Option[String] = None[String]()
     var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
@@ -1631,6 +1665,12 @@ import Cli._
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
+         } else if (arg == "--scheduling") {
+           val o: Option[SireumHamrCodegenScheduling.Type] = parseSireumHamrCodegenScheduling(args, j + 1)
+           o match {
+             case Some(v) => scheduling = v
+             case _ => return None()
+           }
          } else if (arg == "--verus-attribute-syntax") {
            val o: Option[B] = { j = j - 1; Some(!verusAttributeSyntax) }
            o match {
@@ -1706,7 +1746,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1926,6 +1966,25 @@ import Cli._
     return r
   }
 
+  def parseSireumHamrSysmlCodegenSchedulingH(arg: String): Option[SireumHamrSysmlCodegenScheduling.Type] = {
+    arg.native match {
+      case "Domain" => return Some(SireumHamrSysmlCodegenScheduling.Domain)
+      case "UserLand" => return Some(SireumHamrSysmlCodegenScheduling.UserLand)
+      case s =>
+        eprintln(s"Expecting one of the following: { Domain, UserLand }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlCodegenScheduling(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenScheduling.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { Domain, UserLand }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlCodegenSchedulingH(args(i))
+    return r
+  }
+
   def parseSireumHamrSysmlCodegenNodesCodeLanguageH(arg: String): Option[SireumHamrSysmlCodegenNodesCodeLanguage.Type] = {
     arg.native match {
       case "Python" => return Some(SireumHamrSysmlCodegenNodesCodeLanguage.Python)
@@ -2015,6 +2074,8 @@ import Cli._
           |-t, --run-transpiler     Run Transpiler during HAMR Codegen
           |
           |CAmkES/Microkit Options:
+          |    --scheduling         Scheduling type (expects one of { Domain, UserLand };
+          |                           default: Domain)
           |    --verus-attribute-syntax
           |                          Use Verus attribute syntax (#[verus_spec],
           |                           #[verus_verify]) instead of the verus! macro for
@@ -2071,6 +2132,7 @@ import Cli._
     var maxStringSize: Z = 100
     var maxArraySize: Z = 100
     var runTranspiler: B = false
+    var scheduling: SireumHamrSysmlCodegenScheduling.Type = SireumHamrSysmlCodegenScheduling.Domain
     var verusAttributeSyntax: B = false
     var sel4OutputDir: Option[String] = None[String]()
     var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
@@ -2216,6 +2278,12 @@ import Cli._
              case Some(v) => runTranspiler = v
              case _ => return None()
            }
+         } else if (arg == "--scheduling") {
+           val o: Option[SireumHamrSysmlCodegenScheduling.Type] = parseSireumHamrSysmlCodegenScheduling(args, j + 1)
+           o match {
+             case Some(v) => scheduling = v
+             case _ => return None()
+           }
          } else if (arg == "--verus-attribute-syntax") {
            val o: Option[B] = { j = j - 1; Some(!verusAttributeSyntax) }
            o match {
@@ -2291,7 +2359,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {
