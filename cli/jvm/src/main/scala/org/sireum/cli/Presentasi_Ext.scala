@@ -214,6 +214,30 @@ object Presentasi_Ext {
         else Array()
       }
 
+      // Split a property line on commas that are not inside double quotes, so a
+      // quoted free-text value (e.g. a chapter title with commas) stays intact.
+      def splitProps(line: Predef.String): Array[Predef.String] = {
+        val result = scala.collection.mutable.ArrayBuffer[Predef.String]()
+        val sb = new java.lang.StringBuilder
+        var inQuote = false
+        var i = 0
+        while (i < line.length) {
+          val c = line.charAt(i)
+          if (c == '"') { inQuote = !inQuote; sb.append(c) }
+          else if (c == ',' && !inQuote) { result += sb.toString; sb.setLength(0) }
+          else sb.append(c)
+          i += 1
+        }
+        result += sb.toString
+        result.toArray
+      }
+
+      def stripQuotes(s: Predef.String): Predef.String = {
+        val t = s.trim
+        if (t.length >= 2 && t.charAt(0) == '"' && t.charAt(t.length - 1) == '"') t.substring(1, t.length - 1)
+        else t
+      }
+
       val d = parser.parse(fContent).asInstanceOf[Document]
       //printTree("", d)
       var child = d.getFirstChild
@@ -341,8 +365,9 @@ object Presentasi_Ext {
               var start: F64 = 0d
               var end: F64 = 0d
               var useVideoDuration: B = false
-              for (property <- code.split(',')) {
-                property.split('=') match {
+              var chapterOpt: Option[String] = None()
+              for (property <- splitProps(code)) {
+                property.split("=", 2) match {
                   case Array(key, value) =>
                     val v = value.trim
                     key.trim match {
@@ -370,6 +395,10 @@ object Presentasi_Ext {
                         if (v == "T" || v == "true") useVideoDuration = T
                         else if (v == "F" || v == "false") useVideoDuration = F
                         else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid useVideoDuration property value in '$headingText': $v")
+                      case "chapter" =>
+                        val title = stripQuotes(v)
+                        if (title.nonEmpty) chapterOpt = Some(String(title))
+                        else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Empty chapter title in '$headingText'")
                       case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid video $media code key in '$headingText': $key")
                     }
                   case Array("") =>
@@ -380,16 +409,21 @@ object Presentasi_Ext {
               val ccText = substText(ccs, text :+ "")
               for ((voicet, cct) <- voiceText.zip(ccText) if voicet.nonEmpty && !voicet.contains('[')) ccMap = ccMap + voicet ~> cct
               entries = entries :+ presentasi.Presentation.VideoEntry(media, delay, volume, rate, start, end,
-                useVideoDuration, if (text.nonEmpty) Some(voiceText.mkString("\r\n")) else None())
+                useVideoDuration, if (text.nonEmpty) Some(voiceText.mkString("\r\n")) else None(), chapterOpt)
             } else {
               var delay: Z = 0
-              for (property <- code.split(',')) {
-                property.split('=') match {
+              var chapterOpt: Option[String] = None()
+              for (property <- splitProps(code)) {
+                property.split("=", 2) match {
                   case Array(key, value) => key.trim match {
                     case "delay" => Z(value.trim) match {
                       case Some(n) => delay = n
                       case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid delay property value in '$headingText': $value")
                     }
+                    case "chapter" =>
+                      val title = stripQuotes(value)
+                      if (title.nonEmpty) chapterOpt = Some(String(title))
+                      else reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Empty chapter title in '$headingText'")
                     case _ => reporter.error(getPosOpt(codeNode), Presentasi.kind, s"Invalid image $media code key in '$headingText': $key")
                   }
                   case Array("") =>
@@ -399,7 +433,7 @@ object Presentasi_Ext {
               val voiceText = substText(substs, text :+ "")
               val ccText = substText(ccs, text :+ "")
               for ((voicet, cct) <- voiceText.zip(ccText) if voicet.nonEmpty && !voicet.startsWith("[")) ccMap = ccMap + voicet ~> cct
-              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, voiceText.mkString("\r\n"))
+              entries = entries :+ presentasi.Presentation.SlideEntry(media, delay, voiceText.mkString("\r\n"), chapterOpt)
             }
           case _ =>
             if (!child.isInstanceOf[HtmlBlock]) {

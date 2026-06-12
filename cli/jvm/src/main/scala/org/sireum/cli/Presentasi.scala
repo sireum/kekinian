@@ -887,7 +887,7 @@ object Presentasi {
       st"""SndSeg($timeline, $dur, "${ops.StringOps(name).escapeST}")"""
 
     @strictpure def assembleCmdTemplate(name: String, end: Z, videoWidth: Z, videoHeight: Z, videoFps: Z,
-                                        audioServiceName: String, audioVoiceSeg: ST, segs: ISZ[ST]): ST =
+                                        audioServiceName: String, audioVoiceSeg: ST, segs: ISZ[ST], chapterSeg: ST): ST =
       st"""::/*#! 2> /dev/null                                   #
           |@ 2>/dev/null # 2>nul & echo off & goto BOF           #
           |if [ -z "$${SIREUM_HOME}" ]; then                      #
@@ -1097,7 +1097,7 @@ object Presentasi {
           |  "-c:v", "copy", "-tag:v", "hvc1", "-c:a", "aac", "-q:a", "2", "-b:a", "192k",
           |  "-movflags", "+faststart", mp4.string)).console.runCheck()
           |println()
-          |
+          |$chapterSeg
           |// === Merge embedded video subtitles with the master narration SRT ===
           |//
           |// The master Presentasi.srt covers slide-by-slide narration only.  Any
@@ -1279,14 +1279,17 @@ object Presentasi {
           |}
           |
           |// === Mux subtitles into .mp4 ===
-          |if (srtForMux.exists) {
+          |// ffmpeg cannot open an empty .srt (it has no entries to demux), so a
+          |// caption-less presentation would otherwise abort here. Only mux when the
+          |// subtitle file actually has content.
+          |if (srtForMux.exists && ops.StringOps(srtForMux.read).trim.size > 0) {
           |  println(s"Generating $$mp4Subtitled ...")
           |  Os.proc(ISZ("ffmpeg", "-y", "-i", mp4.string, "-i", srtForMux.string,
           |    "-c", "copy", "-c:a", "copy", "-c:s", "mov_text",
           |    "-metadata:s:s:0", "language=eng", mp4Subtitled.string)).runCheck()
           |  println()
           |} else {
-          |  println(s"No .srt found; skipping subtitled mp4")
+          |  println(s"No subtitles found; skipping subtitled mp4")
           |}"""
 
     val path: Os.Path = o.args match {
@@ -1582,6 +1585,9 @@ object Presentasi {
       }
       slides.mkdirAll()
       var medias = ISZ[Media]()
+      // Chapter markers: (timelineMs, title) collected in entry order; each marks
+      // the start of a section in the recorded .mp4 (embedded as ffmpeg chapters).
+      var chapters = ISZ[(Z, String)]()
       var curr: Z = 0
       var first = T
       var transcript = ISZ[ST]()
@@ -1620,6 +1626,10 @@ object Presentasi {
             if (ok) {
               val gap: Z = if (entry.delay == 0) if (first) 0 else spec.delay else entry.delay
               medias = medias :+ Image(target.name, curr + gap)
+              entry.chapterOpt match {
+                case Some(title) => chapters = chapters :+ ((curr + gap, title))
+                case _ =>
+              }
               val (sounds, last) = processText(entry.text, curr)
               var p = Os.path(entry.path)
               if (hasCWebP && o.slides && p.ext == "png") {
@@ -1672,6 +1682,10 @@ object Presentasi {
                   1.0
                 }
                 medias = medias :+ Video(target, dur, curr + gap, start, end, entry.textOpt.nonEmpty, volume, rate)
+                entry.chapterOpt match {
+                  case Some(title) => chapters = chapters :+ ((curr + gap, title))
+                  case _ =>
+                }
                 val newCurr = curr + gap + (
                   if (end == 0.0) conversions.R.toZ(durR / conversions.F64.toR(rate)) + 1
                   else conversions.R.toZ(conversions.F64.toR(end - start) / conversions.F64.toR(rate)) + 1)
@@ -1807,9 +1821,52 @@ object Presentasi {
             case snd: Sound => cmdSegs = cmdSegs :+ sndSegTemplate(snd.timeline, snd.duration, snd.filepath.name)
           }
         }
+        // FFMETADATA requires '=', ';', '#', '\' and newline in values to be
+        // backslash-escaped.
+        def ffMetaEscape(s: String): String = {
+          var parts = ISZ[ST]()
+          for (c <- conversions.String.toCis(s)) {
+            if (c == '=' || c == ';' || c == '#' || c == '\\' || c == '\n') {
+              parts = parts :+ st"\\$c"
+            } else {
+              parts = parts :+ st"$c"
+            }
+          }
+          return st"${(parts, "")}".render
+        }
+        // Chapters partition the timeline: each runs from its mark to the next
+        // mark (or the presentation end for the last). Emitted as a precomputed
+        // ffmpeg FFMETADATA block the generated .cmd writes out and muxes in.
+        val chapterSeg: ST = if (chapters.isEmpty) {
+          st""
+        } else {
+          var metaLines = ISZ[ST](st";FFMETADATA1")
+          for (i <- chapters.indices) {
+            val (startMs, title) = chapters(i)
+            val endMs: Z = if (i + 1 < chapters.size) chapters(i + 1)._1 else end
+            metaLines = metaLines :+
+              st"""[CHAPTER]
+                  |TIMEBASE=1/1000
+                  |START=$startMs
+                  |END=$endMs
+                  |title=${ffMetaEscape(title)}"""
+          }
+          val metaContent = st"${(metaLines, "\n")}".render
+          st"""
+              |// === Embed chapter markers ===
+              |println("Adding chapter markers ...")
+              |val chaptersMeta = tempDir / "chapters.txt"
+              |chaptersMeta.writeOver("${ops.StringOps(metaContent).escapeST}")
+              |val mp4Chapters = tempDir / "${ops.StringOps(spec.name).escapeST}-chapters.mp4"
+              |Os.proc(ISZ("ffmpeg", "-y", "-i", mp4.string, "-i", chaptersMeta.string,
+              |  "-map_metadata", "1", "-map_chapters", "1", "-c", "copy",
+              |  "-movflags", "+faststart", mp4Chapters.string)).runCheck()
+              |mp4Chapters.moveOverTo(mp4)
+              |println()"""
+        }
         val cmdFile = source / s"${spec.name}.cmd"
         cmdFile.writeOver(assembleCmdTemplate(spec.name, end, 1920, 1080, 30,
-          audioServiceName, audioVoiceSeg, cmdSegs).render)
+          audioServiceName, audioVoiceSeg, cmdSegs, chapterSeg).render)
         cmdFile.chmod("+x")
         println(s"Wrote $cmdFile")
       }
