@@ -476,17 +476,25 @@ object Presentasi {
           |                    mediaView.setFitHeight(height);
           |                    final MediaPlayer player = mediaView.getMediaPlayer();
           |                    player.setStartTime(Duration.millis(video.startMillis));
-          |                    player.setRate(video.rate);
-          |                    player.setOnEndOfMedia(() -> player.dispose());
           |                    if (video.endMillis > 0.0) player.setStopTime(Duration.millis(video.endMillis));
           |                    player.setVolume(1.0);
           |                    player.setMute(video.muted);
           |                    player.setOnEndOfMedia(() -> player.dispose());
+          |                    // Apply the playback rate on the JavaFX Application
+          |                    // Thread right before play(); a rate set off the FX
+          |                    // thread is dropped, which is why rate had no effect.
           |                    Platform.runLater(() -> {
+          |                        player.setRate(video.rate);
           |                        player.play();
-          |                        if (video.startMillis > 0) {
-          |                            Presentasi.sleep(VSEEK_DELAY);
-          |                        }
+          |                    });
+          |                    // Wait on this (timeline) thread -- not the FX thread --
+          |                    // so the start frame can actually paint before the view
+          |                    // is revealed; otherwise the clip's first frame flashes
+          |                    // for an instant before the slice start is shown.
+          |                    if (video.startMillis > 0) {
+          |                        Presentasi.sleep(VSEEK_DELAY);
+          |                    }
+          |                    Platform.runLater(() -> {
           |                        stage.getScene().setRoot(root);
           |                        stage.show();
           |                    });
@@ -819,10 +827,15 @@ object Presentasi {
           |                } else if (media instanceof Video) {
           |                    final Video video = (Video) media;
           |                    final MediaPlayer player = video.component.mediaPlayer();
-          |                    player.controls().setRate((float) video.rate);
           |                    player.audio().setMute(video.muted);
           |                    player.audio().setVolume(100);
           |                    player.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+          |                        @Override
+          |                        public void playing(final MediaPlayer mp) {
+          |                            // libvlc ignores a rate set before playback
+          |                            // starts, so apply it once the player is playing.
+          |                            mp.controls().setRate((float) video.rate);
+          |                        }
           |                        @Override
           |                        public void timeChanged(final MediaPlayer mp, final long newTime) {
           |                            if (video.endMillis > 0 && newTime >= video.endMillis) {
@@ -838,10 +851,14 @@ object Presentasi {
           |                        self.frame.setContentPane(video.component);
           |                        self.frame.revalidate();
           |                        self.frame.repaint();
-          |                        player.media().play(video.uri);
+          |                        // Begin playback at the slice start via a media
+          |                        // option so the clip's first frame never flashes
+          |                        // before the slice start (replaces play-from-0 then
+          |                        // seek-after-sleep, which showed the lead-in frames).
           |                        if (video.startMillis > 0) {
-          |                            sleep(VSEEK_DELAY);
-          |                            player.controls().setTime((long) video.startMillis);
+          |                            player.media().play(video.uri, ":start-time=" + (video.startMillis / 1000.0));
+          |                        } else {
+          |                            player.media().play(video.uri);
           |                        }
           |                    });
           |                }
@@ -991,7 +1008,13 @@ object Presentasi {
           |                      srcDurMs * 1000000 / conversions.R.toZ(conversions.F64.toR(rate * 1000000d))
           |                    else srcDurMs
           |  val padMs: Z = if (displayMs > playedMs) displayMs - playedMs else 0
-          |  val rateFilter: String = if (rate != 1d) s",setpts=PTS/$$rate" else ""
+          |  // The setpts rate change yields a variable-frame-rate stream; a
+          |  // following tpad cannot compute its clone stop_duration on it and
+          |  // silently emits no padding (the freeze is dropped, so a narrated
+          |  // sped/slowed video slice ends early and the next slice starts over
+          |  // the still-playing narration).  Re-sampling to constant frame rate
+          |  // with fps after setpts restores tpad's padding.
+          |  val rateFilter: String = if (rate != 1d) s",setpts=PTS/$$rate,fps=$$videoFps" else ""
           |  val padFilter: String = if (padMs > 0) s",tpad=stop_mode=clone:stop_duration=$${padMs}ms" else ""
           |  val filter = s"$$vf$$rateFilter$$padFilter"
           |  Os.proc(ISZ[String]("ffmpeg", "-y", "-ss", s"$${startMs}ms",
