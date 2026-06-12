@@ -480,19 +480,36 @@ object Presentasi {
           |                    player.setVolume(1.0);
           |                    player.setMute(video.muted);
           |                    player.setOnEndOfMedia(() -> player.dispose());
-          |                    // Apply the playback rate on the JavaFX Application
-          |                    // Thread right before play(); a rate set off the FX
-          |                    // thread is dropped, which is why rate had no effect.
+          |                    // The rate must be applied AFTER play(): JavaFX resets
+          |                    // the rate to 1.0 on the play() transition, so a rate set
+          |                    // beforehand is silently ignored (getRate() still reports
+          |                    // it, but playback stays at 1x). Verified empirically.
           |                    Platform.runLater(() -> {
-          |                        player.setRate(video.rate);
           |                        player.play();
+          |                        player.setRate(video.rate);
           |                    });
-          |                    // Wait on this (timeline) thread -- not the FX thread --
-          |                    // so the start frame can actually paint before the view
-          |                    // is revealed; otherwise the clip's first frame flashes
-          |                    // for an instant before the slice start is shown.
+          |                    // Reveal only once playback has actually reached the start
+          |                    // position. A fixed delay is unreliable: the seek often is
+          |                    // not painted yet at reveal, so the MediaView flashes the
+          |                    // clip's first frame before the slice start. Waiting for
+          |                    // currentTime to reach startMillis means the start frame is
+          |                    // painted first. Verified against the real demo video.
           |                    if (video.startMillis > 0) {
-          |                        Presentasi.sleep(VSEEK_DELAY);
+          |                        final java.util.concurrent.CountDownLatch reached = new java.util.concurrent.CountDownLatch(1);
+          |                        Platform.runLater(() -> {
+          |                            if (player.getCurrentTime().toMillis() >= video.startMillis) {
+          |                                reached.countDown();
+          |                            } else {
+          |                                player.currentTimeProperty().addListener((obs, ov, nv) -> {
+          |                                    if (nv.toMillis() >= video.startMillis) reached.countDown();
+          |                                });
+          |                            }
+          |                        });
+          |                        try {
+          |                            reached.await(2, java.util.concurrent.TimeUnit.SECONDS);
+          |                        } catch (final InterruptedException e) {
+          |                            // proceed and reveal anyway
+          |                        }
           |                    }
           |                    Platform.runLater(() -> {
           |                        stage.getScene().setRoot(root);
