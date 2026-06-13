@@ -1006,36 +1006,35 @@ object Presentasi {
           |  Os.proc(ISZ("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", filelist.string,
           |    "-c:a", "copy", out.string)).runCheck()
           |}
-          |val vf: String = s"scale=$$videoWidth:$$videoHeight:force_original_aspect_ratio=decrease,pad=$$videoWidth:$$videoHeight:-1:-1:color=black,fps=$$videoFps"
+          |val vf: String = s"scale=$$videoWidth:$$videoHeight:force_original_aspect_ratio=decrease,pad=$$videoWidth:$$videoHeight:-1:-1:color=black"
           |def ffImageClip(img: Os.Path, out: Os.Path, ms: Z): Unit = {
           |  Os.proc(ISZ[String]("ffmpeg", "-y", "-loop", "1", "-framerate", videoFps.string,
-          |    "-i", img.string, "-t", s"$${ms}ms", "-vf", vf,
+          |    "-i", img.string, "-t", s"$${ms}ms", "-vf", s"$$vf,fps=$$videoFps",
           |    "-c:v", vcodec) ++ vcodecArgs ++ ISZ[String]("-pix_fmt", "yuv420p", "-g", "30", "-an",
           |    "-f", "mpegts", out.string)).runCheck()
           |}
           |def ffVideoClip(in: Os.Path, out: Os.Path, startMs: F64, endMs: F64, rate: F64, dur: Z, displayMs: Z): Unit = {
-          |  // When endMs <= 0 we play to end-of-file; use bake-in dur (ffprobe-measured at gen time)
-          |  // as the natural source duration so padding math works out correctly.  Earlier versions
-          |  // computed srcDur as 0 in this case which made tpad freeze the last frame for displayMs,
-          |  // doubling the demo segment in the assembled video.
+          |  // JavaFX leaves the last rendered video frame visible until the next
+          |  // visual media item arrives.  Offline assembly has to synthesize the
+          |  // same timeline slot explicitly: trim overlong clips, or clone-pad
+          |  // short clips after the source slice ends.
           |  val startMsZ: Z = conversions.R.toZ(conversions.F64.toR(startMs))
           |  val srcDurMs: Z = if (endMs > 0d) conversions.R.toZ(conversions.F64.toR(endMs)) - startMsZ
           |                    else dur - startMsZ
+          |  val rateScale: Z = conversions.R.toZ(conversions.F64.toR(rate * 1000000d))
           |  val playedMs: Z = if (rate != 1d && rate > 0d)
-          |                      srcDurMs * 1000000 / conversions.R.toZ(conversions.F64.toR(rate * 1000000d))
+          |                      srcDurMs * 1000000 / rateScale
           |                    else srcDurMs
           |  val padMs: Z = if (displayMs > playedMs) displayMs - playedMs else 0
-          |  // The setpts rate change yields a variable-frame-rate stream; a
-          |  // following tpad cannot compute its clone stop_duration on it and
-          |  // silently emits no padding (the freeze is dropped, so a narrated
-          |  // sped/slowed video slice ends early and the next slice starts over
-          |  // the still-playing narration).  Re-sampling to constant frame rate
-          |  // with fps after setpts restores tpad's padding.
-          |  val rateFilter: String = if (rate != 1d) s",setpts=PTS/$$rate,fps=$$videoFps" else ""
+          |  val neededSrcDurMs: Z = if (rate != 1d && rate > 0d) displayMs * rateScale / 1000000 + 1 else displayMs
+          |  val clipSrcDurMs: Z = if (neededSrcDurMs > 0 && neededSrcDurMs < srcDurMs) neededSrcDurMs else srcDurMs
+          |  val rateFilter: String = if (rate != 1d) s",setpts=(PTS-STARTPTS)/$$rate" else ",setpts=PTS-STARTPTS"
+          |  val fpsFilter: String = s",fps=$$videoFps"
           |  val padFilter: String = if (padMs > 0) s",tpad=stop_mode=clone:stop_duration=$${padMs}ms" else ""
-          |  val filter = s"$$vf$$rateFilter$$padFilter"
+          |  val trimFilter: String = s",trim=duration=$${displayMs}ms,setpts=PTS-STARTPTS"
+          |  val filter = s"$$vf$$rateFilter$$fpsFilter$$padFilter$$trimFilter"
           |  Os.proc(ISZ[String]("ffmpeg", "-y", "-ss", s"$${startMs}ms",
-          |    "-t", s"$${srcDurMs}ms",
+          |    "-t", s"$${clipSrcDurMs}ms",
           |    "-i", in.string, "-vf", filter,
           |    "-c:v", vcodec) ++ vcodecArgs ++ ISZ[String]("-pix_fmt", "yuv420p", "-g", "30", "-an",
           |    "-f", "mpegts", out.string)).runCheck()
