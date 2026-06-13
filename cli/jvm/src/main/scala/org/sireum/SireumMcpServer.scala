@@ -95,12 +95,8 @@ object SireumMcpServer {
       if (info == null) {
         halt(s"Invalid info for $toolName")
       }
-      val inputSchema = buildInputSchema(info)
-      val tool = McpSchema.Tool.builder()
-        .name(toolName)
-        .description(buildDescription(root, info))
-        .inputSchema(inputSchema)
-        .build()
+      val inputSchema = buildInputSchemaJson(info)
+      val tool = buildTool(toolName, buildDescription(root, info), inputSchema)
 
       toolSpecs.add(McpServerFeatures.SyncToolSpecification.builder()
         .tool(tool)
@@ -114,13 +110,10 @@ object SireumMcpServer {
     openProp.put("type", "boolean")
     openProp.put("description", "true to open the output terminal, false to close it")
     terminalProps.put("open", openProp)
-    val terminalSchema = new McpSchema.JsonSchema("object", terminalProps,
-      java.util.Collections.emptyList[JString](), java.lang.Boolean.FALSE, null, null)
-    val terminalTool = McpSchema.Tool.builder()
-      .name("sireum_mcp_terminal")
-      .description("Toggle the MCP output terminal window that shows real-time command output")
-      .inputSchema(terminalSchema)
-      .build()
+    val terminalSchema = buildJsonSchema(terminalProps)
+    val terminalTool = buildTool("sireum_mcp_terminal",
+      "Toggle the MCP output terminal window that shows real-time command output",
+      terminalSchema)
     toolSpecs.add(McpServerFeatures.SyncToolSpecification.builder()
       .tool(terminalTool)
       .callHandler((_, request) => handleTerminalToggle(request.arguments()))
@@ -348,7 +341,25 @@ object SireumMcpServer {
     null
   }
 
-  private def buildInputSchema(info: ToolInfo): McpSchema.JsonSchema = {
+  @scala.annotation.nowarn("cat=deprecation")
+  private def buildTool(name: JString, description: JString, inputSchema: JString): McpSchema.Tool = {
+    return McpSchema.Tool.builder()
+      .name(name)
+      .description(description)
+      .inputSchema(McpJsonDefaults.getMapper(), inputSchema)
+      .build()
+  }
+
+  private def buildJsonSchema(properties: java.util.LinkedHashMap[JString, AnyRef]): JString = {
+    val schema = new java.util.LinkedHashMap[JString, AnyRef]()
+    schema.put("type", "object")
+    schema.put("properties", properties)
+    schema.put("required", java.util.Collections.emptyList[JString]())
+    schema.put("additionalProperties", java.lang.Boolean.FALSE)
+    return mapper.writeValueAsString(schema)
+  }
+
+  private def buildInputSchemaJson(info: ToolInfo): JString = {
     val properties = new java.util.LinkedHashMap[JString, AnyRef]()
 
     for (opt <- info.opts) {
@@ -450,8 +461,7 @@ object SireumMcpServer {
       }
     }
 
-    new McpSchema.JsonSchema("object", properties, java.util.Collections.emptyList[JString](),
-      java.lang.Boolean.FALSE, null, null)
+    return buildJsonSchema(properties)
   }
 
   private def buildCliArgs(info: ToolInfo, arguments: JMap[JString, AnyRef]): java.util.ArrayList[JString] = {
