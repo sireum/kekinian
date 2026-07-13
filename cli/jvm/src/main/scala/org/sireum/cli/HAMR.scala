@@ -405,6 +405,7 @@ object HAMR {
       verusAttributeSyntax = F,
       sel4OutputDir = sel4OutputDirectory,
       sel4AuxCodeDirs = sel4AuxCodeDirs,
+      sel4AuxCodeSymlink = F,
       workspaceRootDir = workspaceRootDir,
       //
       strictAadlMode = F,
@@ -925,6 +926,7 @@ object HAMR {
       verusAttributeSyntax = o.verusAttributeSyntax,
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
+      sel4AuxCodeSymlink = o.sel4AuxCodeSymlink,
       workspaceRootDir = o.workspaceRootDir,
       //
       strictAadlMode = o.strictAadlMode,
@@ -967,6 +969,7 @@ object HAMR {
       verusAttributeSyntax = o.verusAttributeSyntax,
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
+      sel4AuxCodeSymlink = o.sel4AuxCodeSymlink,
       workspaceRootDir = o.workspaceRootDir,
       //
       strictAadlMode = o.strictAadlMode,
@@ -1142,6 +1145,10 @@ object HAMR {
           ret = ret(sel4AuxCodeDirs = fileOptions.sel4AuxCodeDirs)
           userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeDirs
           i = i + 2
+        } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink) {
+          ret = ret(sel4AuxCodeSymlink = fileOptions.sel4AuxCodeSymlink)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink
+          i = i + 1
         } else if (k == ShortKeys.CAmkES_Microkit_workspaceRootDir || k == LongKeys.CAmkES_Microkit_workspaceRootDir) {
           ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
           userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_workspaceRootDir
@@ -1294,6 +1301,9 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.sel4AuxCodeDirs.nonEmpty) {
       ret = ret :+ ("--sel4-aux-code-dirs", Some(st"${(o.sel4AuxCodeDirs, Os.pathSep)}".render))
     }
+    if (o.sel4AuxCodeSymlink) {
+      ret = ret :+ ("--sel4-aux-code-symlink", None())
+    }
     if (o.workspaceRootDir.nonEmpty) {
       ret = ret :+ ("--workspace-root-dir", Some(st"${(o.workspaceRootDir, Os.pathSep)}".render))
     }
@@ -1403,6 +1413,9 @@ object SireumHamrCodegenOptionUtil {
     }
     if (o.sel4AuxCodeDirs.nonEmpty) {
       ret = ret :+ ("--sel4-aux-code-dirs", Some(st"${(o.sel4AuxCodeDirs, Os.pathSep)}".render))
+    }
+    if (o.sel4AuxCodeSymlink) {
+      ret = ret :+ ("--sel4-aux-code-symlink", None())
     }
     if (o.workspaceRootDir.nonEmpty) {
       ret = ret :+ ("--workspace-root-dir", Some(st"${(o.workspaceRootDir, Os.pathSep)}".render))
