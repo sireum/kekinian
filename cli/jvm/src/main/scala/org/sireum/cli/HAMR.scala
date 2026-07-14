@@ -1028,7 +1028,7 @@ object HAMR {
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
 
-    assert(LongKeys.allKeys.size == 33, s"Expecting 33 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
+    assert(LongKeys.allKeys.size == 34, s"Expecting 34 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
 
     var userModifiedKeys: ISZ[String] = ISZ()
