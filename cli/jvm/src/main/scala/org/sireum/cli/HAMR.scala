@@ -1027,173 +1027,7 @@ object HAMR {
   def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
-
-    assert(LongKeys.allKeys.size == 34, s"Expecting 34 long keys but found ${LongKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
-    assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}") // will need to update the if/elses below to reflect added/removed options
-
-    var userModifiedKeys: ISZ[String] = ISZ()
-    // TODO: for now the file options (if set) takes precedence over any cli options (expect line and system-name)
-    var ret = o
-    var i = 0
-    while (i < fileOpts.size) {
-      val k = fileOpts(i)
-      if ((ops.StringOps(k).startsWith("--") && LongKeys.allKeys.contains(k)) ||
-        (ops.StringOps(k).startsWith("-") && ShortKeys.allKeys.contains(k))) {
-        if (k == LongKeys.sourcepath) {
-          ret = ret(sourcepath = fileOptions.sourcepath)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.sourcepath
-          i = i + 2
-        } else if (k == LongKeys.line) {
-          return Either.Right("Cannot set 'line' in file options")
-        } else if (k == LongKeys.system) {
-          return Either.Right("Cannot set 'system-name' in file options")
-        }
-        // common tool options
-        else if (k == ShortKeys.verbose || k == LongKeys.verbose) {
-          ret = ret(verbose = fileOptions.verbose)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.verbose
-          i = i + 1
-        } else if (k == ShortKeys.runtimeMonitoring || k == LongKeys.runtimeMonitoring) {
-          ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.runtimeMonitoring
-          i = i + 1
-        } else if (k == ShortKeys.platform || k == LongKeys.platform) {
-          ret = ret(platform = fileOptions.platform)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.platform
-          i = i + 2
-        } else if (k == ShortKeys.outputDir || k == LongKeys.outputDir) {
-          ret = ret(outputDir = fileOptions.outputDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.outputDir
-          i = i + 2
-        } else if (k == LongKeys.parseableMessages) {
-          ret = ret(parseableMessages = fileOptions.parseableMessages)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.parseableMessages
-          i = i + 1
-        }
-        // slang group options
-        else if (k == LongKeys.Slang_slangOutputDir) {
-          ret = ret(slangOutputDir = fileOptions.slangOutputDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_slangOutputDir
-          i = i + 2
-        } else if (k == ShortKeys.Slang_packageName || k == LongKeys.Slang_packageName) {
-          ret = ret(packageName = fileOptions.packageName)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_packageName
-          i = i + 2
-        } else if (k == LongKeys.Slang_noProyekIve) {
-          ret = ret(noProyekIve = fileOptions.noProyekIve)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_noProyekIve
-          i = i + 1
-        } else if (k == LongKeys.Slang_noEmbedArt) {
-          ret = ret(noEmbedArt = fileOptions.noEmbedArt)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_noEmbedArt
-          i = i + 1
-        } else if (k == LongKeys.Slang_devicesAsThreads) {
-          ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_devicesAsThreads
-          i = i + 1
-        } else if (k == LongKeys.Slang_genSbtMill) {
-          ret = ret(genSbtMill = fileOptions.genSbtMill)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_genSbtMill
-          i = i + 1
-        }
-        // transpiler group options
-        else if (k == LongKeys.Transpiler_slangAuxCodeDirs) {
-          ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_slangAuxCodeDirs
-          i = i + 2
-        } else if (k == LongKeys.Transpiler_slangOutputCDir) {
-          ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_slangOutputCDir
-          i = i + 2
-        } else if (k == ShortKeys.Transpiler_excludeComponentImpl || k == LongKeys.Transpiler_excludeComponentImpl) {
-          ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_excludeComponentImpl
-          i = i + 1
-        } else if (k == ShortKeys.Transpiler_bitWidth || k == LongKeys.Transpiler_bitWidth) {
-          ret = ret(bitWidth = fileOptions.bitWidth)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_bitWidth
-          i = i + 2
-        } else if (k == ShortKeys.Transpiler_maxStringSize || k == LongKeys.Transpiler_maxStringSize) {
-          ret = ret(maxStringSize = fileOptions.maxStringSize)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_maxStringSize
-          i = i + 2
-        } else if (k == ShortKeys.Transpiler_maxArraySize || k == LongKeys.Transpiler_maxArraySize) {
-          ret = ret(maxArraySize = fileOptions.maxArraySize)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_maxArraySize
-          i = i + 2
-        } else if (k == ShortKeys.Transpiler_runTranspiler || k == LongKeys.Transpiler_runTranspiler) {
-          ret = ret(runTranspiler = fileOptions.runTranspiler)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_runTranspiler
-          i = i + 1
-        }
-        // camkes group options
-        else if (k == LongKeys.CAmkES_Microkit_scheduling) {
-          ret = ret(scheduling = fileOptions.scheduling)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_scheduling
-          i = i + 2
-        }
-        else if (k == LongKeys.CAmkES_Microkit_verusAttributeSyntax) {
-          ret = ret(verusAttributeSyntax = fileOptions.verusAttributeSyntax)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_verusAttributeSyntax
-          i = i + 1
-        }
-        else if (k == LongKeys.CAmkES_Microkit_sel4OutputDir) {
-          ret = ret(sel4OutputDir = fileOptions.sel4OutputDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4OutputDir
-          i = i + 2
-        } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeDirs) {
-          ret = ret(sel4AuxCodeDirs = fileOptions.sel4AuxCodeDirs)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeDirs
-          i = i + 2
-        } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink) {
-          ret = ret(sel4AuxCodeSymlink = fileOptions.sel4AuxCodeSymlink)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink
-          i = i + 1
-        } else if (k == ShortKeys.CAmkES_Microkit_workspaceRootDir || k == LongKeys.CAmkES_Microkit_workspaceRootDir) {
-          ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_workspaceRootDir
-          i = i + 2
-        }
-        // ros2 group options
-        else if (k == LongKeys.ROS2_strictAadlMode) {
-          ret = ret(strictAadlMode = fileOptions.strictAadlMode)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_strictAadlMode
-          i = i + 1
-        } else if (k == LongKeys.ROS2_invertTopicBinding) {
-          ret = ret(invertTopicBinding = fileOptions.invertTopicBinding)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_invertTopicBinding
-          i = i + 1
-        }
-        else if (k == LongKeys.ROS2_ros2OutputWorkspaceDir) {
-          ret = ret(ros2OutputWorkspaceDir = fileOptions.ros2OutputWorkspaceDir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2OutputWorkspaceDir
-          i = i + 2
-        } else if (k == LongKeys.ROS2_ros2Dir) {
-          ret = ret(ros2Dir = fileOptions.ros2Dir)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2Dir
-          i = i + 2
-        } else if (k == LongKeys.ROS2_ros2NodesLanguage) {
-          ret = ret(ros2NodesLanguage = fileOptions.ros2NodesLanguage)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2NodesLanguage
-          i = i + 2
-        } else if (k == LongKeys.ROS2_ros2LaunchLanguage) {
-          ret = ret(ros2LaunchLanguage = fileOptions.ros2LaunchLanguage)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2LaunchLanguage
-          i = i + 2
-        }
-        // experimental group options
-        else if (k == ShortKeys.Experimental_experimentalOptions || k == LongKeys.Experimental_experimentalOptions) {
-          ret = ret(experimentalOptions = fileOptions.experimentalOptions)
-          userModifiedKeys = userModifiedKeys :+ LongKeys.Experimental_experimentalOptions
-          i = i + 2
-        } else {
-          return Either.Right(s"'$k' is not a valid option key")
-        }
-      } else {
-        return Either.Right(s"Invalid option '${fileOpts(i)}'. File options can only set codegen options, not arguments")
-      }
-    }
-    return Either.Left((ret, userModifiedKeys))
+    return SireumHamrSysmlCodegenOptionUtil.mergeOptionsM(o, fileOptions, fileOpts)
   }
 
   def sysmlConfig(o: Cli.SireumHamrSysmlConfigOption): Z = {
@@ -1243,7 +1077,7 @@ object SireumHamrSysmlCodegenOptionUtil {
     }
     if (includeDefaults || o.platform.name != "JVM") {
       ret = ret :+ ("--platform", Some(o.platform.name))
-                      }
+    }
     if (o.outputDir.nonEmpty) {
       ret = ret :+ ("--output-dir", Some(st"${(o.outputDir, Os.pathSep)}".render))
     }
@@ -1291,7 +1125,7 @@ object SireumHamrSysmlCodegenOptionUtil {
     }
     if (includeDefaults || o.scheduling.name != "Domain") {
       ret = ret :+ ("--scheduling", Some(o.scheduling.name))
-                      }
+    }
     if (o.verusAttributeSyntax) {
       ret = ret :+ ("--verus-attribute-syntax", None())
     }
@@ -1318,10 +1152,10 @@ object SireumHamrSysmlCodegenOptionUtil {
     }
     if (includeDefaults || o.ros2NodesLanguage.name != "Python") {
       ret = ret :+ ("--ros2-nodes-language", Some(o.ros2NodesLanguage.name))
-                      }
+    }
     if (includeDefaults || o.ros2LaunchLanguage.name != "Python") {
       ret = ret :+ ("--ros2-launch-language", Some(o.ros2LaunchLanguage.name))
-                      }
+    }
     if (o.invertTopicBinding) {
       ret = ret :+ ("--invert-topic-binding", None())
     }
@@ -1329,6 +1163,165 @@ object SireumHamrSysmlCodegenOptionUtil {
       ret = ret :+ ("--experimental-options", Some(st"${(o.experimentalOptions, ";")}".render))
     }
     return ret
+  }
+
+  // Merges the file-based options fileOptions (whose split representation is fileOpts) into o,
+  // giving file options precedence. Returns the merged options along with the long keys of the
+  // options that were set in fileOpts, or an error message if fileOpts contains non-option
+  // arguments or options that cannot be set via file options.
+  def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
+                    fileOptions: Cli.SireumHamrSysmlCodegenOption,
+                    fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
+    assert(LongKeys.allKeys.size == 34, s"Expecting 34 long keys but found ${LongKeys.allKeys.size}")
+    assert(ShortKeys.allKeys.size == 15, s"Expecting 15 short keys but found ${ShortKeys.allKeys.size}")
+
+    var userModifiedKeys: ISZ[String] = ISZ()
+    var ret = o
+    var i = 0
+    while (i < fileOpts.size) {
+      val k = fileOpts(i)
+      if ((ops.StringOps(k).startsWith("--") && LongKeys.allKeys.contains(k)) ||
+        (ops.StringOps(k).startsWith("-") && ShortKeys.allKeys.contains(k))) {
+        if (k == LongKeys.sourcepath) {
+          ret = ret(sourcepath = fileOptions.sourcepath)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.sourcepath
+          i = i + 2
+        } else if (k == LongKeys.line) {
+          return Either.Right("Cannot set 'line' in file options")
+        } else if (k == LongKeys.system) {
+          return Either.Right("Cannot set 'system-name' in file options")
+        } else if (k == ShortKeys.verbose || k == LongKeys.verbose) {
+          ret = ret(verbose = fileOptions.verbose)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.verbose
+          i = i + 1
+        } else if (k == ShortKeys.runtimeMonitoring || k == LongKeys.runtimeMonitoring) {
+          ret = ret(runtimeMonitoring = fileOptions.runtimeMonitoring)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.runtimeMonitoring
+          i = i + 1
+        } else if (k == ShortKeys.platform || k == LongKeys.platform) {
+          ret = ret(platform = fileOptions.platform)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.platform
+          i = i + 2
+        } else if (k == ShortKeys.outputDir || k == LongKeys.outputDir) {
+          ret = ret(outputDir = fileOptions.outputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.outputDir
+          i = i + 2
+        } else if (k == LongKeys.parseableMessages) {
+          ret = ret(parseableMessages = fileOptions.parseableMessages)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.parseableMessages
+          i = i + 1
+        } else if (k == LongKeys.Slang_slangOutputDir) {
+          ret = ret(slangOutputDir = fileOptions.slangOutputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_slangOutputDir
+          i = i + 2
+        } else if (k == ShortKeys.Slang_packageName || k == LongKeys.Slang_packageName) {
+          ret = ret(packageName = fileOptions.packageName)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_packageName
+          i = i + 2
+        } else if (k == LongKeys.Slang_noProyekIve) {
+          ret = ret(noProyekIve = fileOptions.noProyekIve)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_noProyekIve
+          i = i + 1
+        } else if (k == LongKeys.Slang_noEmbedArt) {
+          ret = ret(noEmbedArt = fileOptions.noEmbedArt)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_noEmbedArt
+          i = i + 1
+        } else if (k == LongKeys.Slang_devicesAsThreads) {
+          ret = ret(devicesAsThreads = fileOptions.devicesAsThreads)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_devicesAsThreads
+          i = i + 1
+        } else if (k == LongKeys.Slang_genSbtMill) {
+          ret = ret(genSbtMill = fileOptions.genSbtMill)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Slang_genSbtMill
+          i = i + 1
+        } else if (k == LongKeys.Transpiler_slangAuxCodeDirs) {
+          ret = ret(slangAuxCodeDirs = fileOptions.slangAuxCodeDirs)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_slangAuxCodeDirs
+          i = i + 2
+        } else if (k == LongKeys.Transpiler_slangOutputCDir) {
+          ret = ret(slangOutputCDir = fileOptions.slangOutputCDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_slangOutputCDir
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_excludeComponentImpl || k == LongKeys.Transpiler_excludeComponentImpl) {
+          ret = ret(excludeComponentImpl = fileOptions.excludeComponentImpl)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_excludeComponentImpl
+          i = i + 1
+        } else if (k == ShortKeys.Transpiler_bitWidth || k == LongKeys.Transpiler_bitWidth) {
+          ret = ret(bitWidth = fileOptions.bitWidth)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_bitWidth
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_maxStringSize || k == LongKeys.Transpiler_maxStringSize) {
+          ret = ret(maxStringSize = fileOptions.maxStringSize)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_maxStringSize
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_maxArraySize || k == LongKeys.Transpiler_maxArraySize) {
+          ret = ret(maxArraySize = fileOptions.maxArraySize)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_maxArraySize
+          i = i + 2
+        } else if (k == ShortKeys.Transpiler_runTranspiler || k == LongKeys.Transpiler_runTranspiler) {
+          ret = ret(runTranspiler = fileOptions.runTranspiler)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Transpiler_runTranspiler
+          i = i + 1
+        } else if (k == LongKeys.CAmkES_Microkit_scheduling) {
+          ret = ret(scheduling = fileOptions.scheduling)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_scheduling
+          i = i + 2
+        } else if (k == LongKeys.CAmkES_Microkit_verusAttributeSyntax) {
+          ret = ret(verusAttributeSyntax = fileOptions.verusAttributeSyntax)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_verusAttributeSyntax
+          i = i + 1
+        } else if (k == LongKeys.CAmkES_Microkit_sel4OutputDir) {
+          ret = ret(sel4OutputDir = fileOptions.sel4OutputDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4OutputDir
+          i = i + 2
+        } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeDirs) {
+          ret = ret(sel4AuxCodeDirs = fileOptions.sel4AuxCodeDirs)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeDirs
+          i = i + 2
+        } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink) {
+          ret = ret(sel4AuxCodeSymlink = fileOptions.sel4AuxCodeSymlink)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink
+          i = i + 1
+        } else if (k == ShortKeys.CAmkES_Microkit_workspaceRootDir || k == LongKeys.CAmkES_Microkit_workspaceRootDir) {
+          ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_workspaceRootDir
+          i = i + 2
+        } else if (k == LongKeys.ROS2_strictAadlMode) {
+          ret = ret(strictAadlMode = fileOptions.strictAadlMode)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_strictAadlMode
+          i = i + 1
+        } else if (k == LongKeys.ROS2_ros2OutputWorkspaceDir) {
+          ret = ret(ros2OutputWorkspaceDir = fileOptions.ros2OutputWorkspaceDir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2OutputWorkspaceDir
+          i = i + 2
+        } else if (k == ShortKeys.ROS2_ros2Dir || k == LongKeys.ROS2_ros2Dir) {
+          ret = ret(ros2Dir = fileOptions.ros2Dir)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2Dir
+          i = i + 2
+        } else if (k == ShortKeys.ROS2_ros2NodesLanguage || k == LongKeys.ROS2_ros2NodesLanguage) {
+          ret = ret(ros2NodesLanguage = fileOptions.ros2NodesLanguage)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2NodesLanguage
+          i = i + 2
+        } else if (k == ShortKeys.ROS2_ros2LaunchLanguage || k == LongKeys.ROS2_ros2LaunchLanguage) {
+          ret = ret(ros2LaunchLanguage = fileOptions.ros2LaunchLanguage)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2LaunchLanguage
+          i = i + 2
+        } else if (k == LongKeys.ROS2_invertTopicBinding) {
+          ret = ret(invertTopicBinding = fileOptions.invertTopicBinding)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_invertTopicBinding
+          i = i + 1
+        } else if (k == ShortKeys.Experimental_experimentalOptions || k == LongKeys.Experimental_experimentalOptions) {
+          ret = ret(experimentalOptions = fileOptions.experimentalOptions)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.Experimental_experimentalOptions
+          i = i + 2
+        } else {
+          return Either.Right(s"'$k' is not a valid option key")
+        }
+      } else {
+        return Either.Right(s"Invalid option '${fileOpts(i)}'. File options can only set codegen options, not arguments")
+      }
+    }
+    return Either.Left((ret, userModifiedKeys))
   }
 }
 // END SireumHamrSysmlCodegenOption
@@ -1356,7 +1349,7 @@ object SireumHamrCodegenOptionUtil {
     }
     if (includeDefaults || o.platform.name != "JVM") {
       ret = ret :+ ("--platform", Some(o.platform.name))
-                      }
+    }
     if (o.outputDir.nonEmpty) {
       ret = ret :+ ("--output-dir", Some(st"${(o.outputDir, Os.pathSep)}".render))
     }
@@ -1404,7 +1397,7 @@ object SireumHamrCodegenOptionUtil {
     }
     if (includeDefaults || o.scheduling.name != "Domain") {
       ret = ret :+ ("--scheduling", Some(o.scheduling.name))
-                      }
+    }
     if (o.verusAttributeSyntax) {
       ret = ret :+ ("--verus-attribute-syntax", None())
     }
@@ -1431,10 +1424,10 @@ object SireumHamrCodegenOptionUtil {
     }
     if (includeDefaults || o.ros2NodesLanguage.name != "Python") {
       ret = ret :+ ("--ros2-nodes-language", Some(o.ros2NodesLanguage.name))
-                      }
+    }
     if (includeDefaults || o.ros2LaunchLanguage.name != "Python") {
       ret = ret :+ ("--ros2-launch-language", Some(o.ros2LaunchLanguage.name))
-                      }
+    }
     if (o.invertTopicBinding) {
       ret = ret :+ ("--invert-topic-binding", None())
     }
@@ -1443,6 +1436,7 @@ object SireumHamrCodegenOptionUtil {
     }
     return ret
   }
+
 }
 // END SireumHamrCodegenOption
 
