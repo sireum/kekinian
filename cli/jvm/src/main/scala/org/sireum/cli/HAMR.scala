@@ -1173,7 +1173,7 @@ object SireumHamrSysmlCodegenOptionUtil {
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
     assert(LongKeys.allKeys.size == 34, s"Expecting 34 long keys but found ${LongKeys.allKeys.size}")
-    assert(ShortKeys.allKeys.size == 15, s"Expecting 15 short keys but found ${ShortKeys.allKeys.size}")
+    assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}")
 
     var userModifiedKeys: ISZ[String] = ISZ()
     var ret = o
@@ -1294,15 +1294,15 @@ object SireumHamrSysmlCodegenOptionUtil {
           ret = ret(ros2OutputWorkspaceDir = fileOptions.ros2OutputWorkspaceDir)
           userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2OutputWorkspaceDir
           i = i + 2
-        } else if (k == ShortKeys.ROS2_ros2Dir || k == LongKeys.ROS2_ros2Dir) {
+        } else if (k == LongKeys.ROS2_ros2Dir) {
           ret = ret(ros2Dir = fileOptions.ros2Dir)
           userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2Dir
           i = i + 2
-        } else if (k == ShortKeys.ROS2_ros2NodesLanguage || k == LongKeys.ROS2_ros2NodesLanguage) {
+        } else if (k == LongKeys.ROS2_ros2NodesLanguage) {
           ret = ret(ros2NodesLanguage = fileOptions.ros2NodesLanguage)
           userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2NodesLanguage
           i = i + 2
-        } else if (k == ShortKeys.ROS2_ros2LaunchLanguage || k == LongKeys.ROS2_ros2LaunchLanguage) {
+        } else if (k == LongKeys.ROS2_ros2LaunchLanguage) {
           ret = ret(ros2LaunchLanguage = fileOptions.ros2LaunchLanguage)
           userModifiedKeys = userModifiedKeys :+ LongKeys.ROS2_ros2LaunchLanguage
           i = i + 2
