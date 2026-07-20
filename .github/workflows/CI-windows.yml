@@ -28,7 +28,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Sireum\bin\win\java
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v4
@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Sireum\bin\win\osate
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
       - name: Test
         shell: cmd
         run: |
@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Sireum\bin\win\java
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v4
@@ -136,7 +136,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Sireum\bin\win\java
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-java
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
         uses: actions/cache@v4
@@ -154,7 +154,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Sireum\bin\win\osate
-          key: ${{ runner.os }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
       - name: Test
         shell: cmd
         run: |
