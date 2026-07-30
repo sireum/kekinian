@@ -56,8 +56,8 @@ object Cli {
   }
 
   @enum object SireumHamrCodegenNodesCodeLanguage {
-    "Python"
     "Cpp"
+    "Python"
   }
 
   @enum object SireumHamrCodegenLaunchCodeLanguage {
@@ -143,8 +143,8 @@ object Cli {
   }
 
   @enum object SireumHamrSysmlCodegenNodesCodeLanguage {
-    "Python"
     "Cpp"
+    "Python"
   }
 
   @enum object SireumHamrSysmlCodegenLaunchCodeLanguage {
@@ -1395,17 +1395,17 @@ import Cli._
 
   def parseSireumHamrCodegenNodesCodeLanguageH(arg: String): Option[SireumHamrCodegenNodesCodeLanguage.Type] = {
     arg.native match {
-      case "Python" => return Some(SireumHamrCodegenNodesCodeLanguage.Python)
       case "Cpp" => return Some(SireumHamrCodegenNodesCodeLanguage.Cpp)
+      case "Python" => return Some(SireumHamrCodegenNodesCodeLanguage.Python)
       case s =>
-        eprintln(s"Expecting one of the following: { Python, Cpp }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { Cpp, Python }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumHamrCodegenNodesCodeLanguage(args: ISZ[String], i: Z): Option[SireumHamrCodegenNodesCodeLanguage.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { Python, Cpp }, but none found.")
+      eprintln("Expecting one of the following: { Cpp, Python }, but none found.")
       return None()
     }
     val r = parseSireumHamrCodegenNodesCodeLanguageH(args(i))
@@ -1504,7 +1504,7 @@ import Cli._
           |                           version (../ros/humble) (expects a path)
           |    --ros2-nodes-language
           |                          The programming language for the generated node files
-          |                           (expects one of { Python, Cpp }; default: Python)
+          |                           (expects one of { Cpp, Python }; default: Cpp)
           |    --ros2-launch-language
           |                          The programming language for the launch file (expects
           |                           one of { Python, Xml }; default: Python)
@@ -1545,7 +1545,7 @@ import Cli._
     var strictAadlMode: B = false
     var ros2OutputWorkspaceDir: Option[String] = None[String]()
     var ros2Dir: Option[String] = None[String]()
-    var ros2NodesLanguage: SireumHamrCodegenNodesCodeLanguage.Type = SireumHamrCodegenNodesCodeLanguage.Python
+    var ros2NodesLanguage: SireumHamrCodegenNodesCodeLanguage.Type = SireumHamrCodegenNodesCodeLanguage.Cpp
     var ros2LaunchLanguage: SireumHamrCodegenLaunchCodeLanguage.Type = SireumHamrCodegenLaunchCodeLanguage.Python
     var invertTopicBinding: B = false
     var experimentalOptions: ISZ[String] = ISZ[String]()
@@ -1999,17 +1999,17 @@ import Cli._
 
   def parseSireumHamrSysmlCodegenNodesCodeLanguageH(arg: String): Option[SireumHamrSysmlCodegenNodesCodeLanguage.Type] = {
     arg.native match {
-      case "Python" => return Some(SireumHamrSysmlCodegenNodesCodeLanguage.Python)
       case "Cpp" => return Some(SireumHamrSysmlCodegenNodesCodeLanguage.Cpp)
+      case "Python" => return Some(SireumHamrSysmlCodegenNodesCodeLanguage.Python)
       case s =>
-        eprintln(s"Expecting one of the following: { Python, Cpp }, but found '$s'.")
+        eprintln(s"Expecting one of the following: { Cpp, Python }, but found '$s'.")
         return None()
     }
   }
 
   def parseSireumHamrSysmlCodegenNodesCodeLanguage(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenNodesCodeLanguage.Type] = {
     if (i >= args.size) {
-      eprintln("Expecting one of the following: { Python, Cpp }, but none found.")
+      eprintln("Expecting one of the following: { Cpp, Python }, but none found.")
       return None()
     }
     val r = parseSireumHamrSysmlCodegenNodesCodeLanguageH(args(i))
@@ -2113,7 +2113,7 @@ import Cli._
           |                           version (../ros/humble) (expects a path)
           |    --ros2-nodes-language
           |                          The programming language for the generated node files
-          |                           (expects one of { Python, Cpp }; default: Python)
+          |                           (expects one of { Cpp, Python }; default: Cpp)
           |    --ros2-launch-language
           |                          The programming language for the launch file (expects
           |                           one of { Python, Xml }; default: Python)
@@ -2156,7 +2156,7 @@ import Cli._
     var strictAadlMode: B = false
     var ros2OutputWorkspaceDir: Option[String] = None[String]()
     var ros2Dir: Option[String] = None[String]()
-    var ros2NodesLanguage: SireumHamrSysmlCodegenNodesCodeLanguage.Type = SireumHamrSysmlCodegenNodesCodeLanguage.Python
+    var ros2NodesLanguage: SireumHamrSysmlCodegenNodesCodeLanguage.Type = SireumHamrSysmlCodegenNodesCodeLanguage.Cpp
     var ros2LaunchLanguage: SireumHamrSysmlCodegenLaunchCodeLanguage.Type = SireumHamrSysmlCodegenLaunchCodeLanguage.Python
     var invertTopicBinding: B = false
     var experimentalOptions: ISZ[String] = ISZ[String]()
