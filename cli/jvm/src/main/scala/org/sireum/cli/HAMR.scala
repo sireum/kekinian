@@ -152,7 +152,7 @@ object HAMR {
       case ISZ(cand) =>
         val p = Os.path(cand)
         if (p.exists && p.isFile && p.ext == "sysml") {
-          mergeOptionsU2(o, LibUtil.mineOptions(p.read)) match {
+          mergeOptionsU3(o, LibUtil.mineOptions(p.read), Some(p.toUri)) match {
             case Some(mo) => tipeOpts = tipeOpts(sourcepath = mo.sourcepath)
             case _ =>
           }
@@ -994,12 +994,22 @@ object HAMR {
   def mergeOptionsU1(o: Cli.SireumHamrSysmlCodegenOption, fileUri: String, fileOptionMap: FileOptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
     fileOptionMap.get(Some(fileUri)) match {
       case Some(optionMap) =>
-        return mergeOptionsU2(o, optionMap)
+        return mergeOptionsU3(o, optionMap, Some(fileUri))
       case _ => return Some(o)
     }
   }
 
   def mergeOptionsU2(o: Cli.SireumHamrSysmlCodegenOption, optionMap: LibUtil.OptionMap): Option[Cli.SireumHamrSysmlCodegenOption] = {
+    return mergeOptionsU3(o, optionMap, None())
+  }
+
+  // fileUriOpt is the file the options were mined from.  When present, relative paths in the file
+  // options are resolved against that file's directory rather than the process' working directory
+  // -- a directive travels with its model, so a path written next to the model must mean the same
+  // thing no matter where sireum was invoked from.  Paths given on the command line keep their
+  // usual working-directory interpretation.
+  def mergeOptionsU3(o: Cli.SireumHamrSysmlCodegenOption, optionMap: LibUtil.OptionMap,
+                     fileUriOpt: Option[String]): Option[Cli.SireumHamrSysmlCodegenOption] = {
     if(optionMap.contains(toolName)) {
         for (options <- optionMap.get(toolName).get) {
           val str = ops.StringOps(ops.StringOps(ops.StringOps(ops.StringOps(options).replaceAllChars('␣', ' ')).replaceAllLiterally("  ", " ")).replaceAllLiterally("\t", " ")).split(c => c == ' ')
@@ -1008,7 +1018,8 @@ object HAMR {
             case Some(fileOptions: Cli.SireumHamrSysmlCodegenOption) =>
               if (fileOptions.platform == o.platform) {
                 mergeOptionsM(o, fileOptions, str) match {
-                  case Either.Left((opt, _)) => return Some(opt)
+                  case Either.Left((opt, fileSetKeys)) =>
+                    return Some(resolveFileOptionPaths(opt, fileUriOpt, fileSetKeys))
                   case Either.Right(msg) =>
                     eprintln(msg)
                     return None()
@@ -1021,6 +1032,44 @@ object HAMR {
         }
     }
     return Some(o)
+  }
+
+  // Rewrites the path-valued options that fileSetKeys says came from the model file so that
+  // relative entries are anchored at that file's directory.  Absolute entries are left alone, as
+  // are options the command line supplied.
+  def resolveFileOptionPaths(o: Cli.SireumHamrSysmlCodegenOption, fileUriOpt: Option[String],
+                             fileSetKeys: ISZ[String]): Cli.SireumHamrSysmlCodegenOption = {
+    if (fileUriOpt.isEmpty) {
+      return o
+    }
+    val base = Os.Path.fromUri(fileUriOpt.get).up
+    val keys = HashSet.empty[String] ++ fileSetKeys
+
+    // not @strictpure: isAbs and canon both touch the filesystem
+    def anchor(p: String): String = {
+      return if (p == "" || Os.path(p).isAbs) p else (base / p).canon.string
+    }
+
+    def anchorOpt(k: String, po: Option[String]): Option[String] = {
+      return if (keys.contains(k) && po.nonEmpty) Some(anchor(po.get)) else po
+    }
+
+    def anchorSeq(k: String, ps: ISZ[String]): ISZ[String] = {
+      return if (keys.contains(k)) for (p <- ps) yield anchor(p) else ps
+    }
+
+    return o(
+      sourcepath = anchorSeq(LongKeys.sourcepath, o.sourcepath),
+      outputDir = anchorOpt(LongKeys.outputDir, o.outputDir),
+      slangOutputDir = anchorOpt(LongKeys.Slang_slangOutputDir, o.slangOutputDir),
+      slangAuxCodeDirs = anchorSeq(LongKeys.Transpiler_slangAuxCodeDirs, o.slangAuxCodeDirs),
+      slangOutputCDir = anchorOpt(LongKeys.Transpiler_slangOutputCDir, o.slangOutputCDir),
+      sel4OutputDir = anchorOpt(LongKeys.CAmkES_Microkit_sel4OutputDir, o.sel4OutputDir),
+      sel4AuxCodeDirs = anchorSeq(LongKeys.CAmkES_Microkit_sel4AuxCodeDirs, o.sel4AuxCodeDirs),
+      workspaceRootDir = anchorOpt(LongKeys.CAmkES_Microkit_workspaceRootDir, o.workspaceRootDir),
+      ros2OutputWorkspaceDir = anchorOpt(LongKeys.ROS2_ros2OutputWorkspaceDir, o.ros2OutputWorkspaceDir),
+      ros2Dir = anchorOpt(LongKeys.ROS2_ros2Dir, o.ros2Dir)
+    )
   }
 
   // Note: this method is also used by sireum forms (insert url)
