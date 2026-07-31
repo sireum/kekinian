@@ -524,7 +524,50 @@ object Sireum {
     (r.exitCode, r.out, r.err)
   }
 
+  def proyekTestSagaReportError(args: ISZ[String]): Option[String] = {
+    val offset: Z =
+      if (args.nonEmpty && args(0) == string"--test-cli") 1
+      else 0
+    if (args.size < offset + 2 || args(offset) != string"proyek" || args(offset + 1) != string"test") {
+      return None()
+    }
+    var count: Z = 0
+    var junit5: B = F
+    var i: Z = offset + 2
+    while (i < args.size) {
+      val arg = args(i)
+      if (arg == string"--saga-report") {
+        count = count + 1
+        if (i + 1 >= args.size) {
+          return Some("--saga-report requires a path")
+        }
+        val value = args(i + 1)
+        if (value == string"" || ops.StringOps(value).first == c"-") {
+          return Some("--saga-report requires a path")
+        }
+        i = i + 1
+      } else if (arg == string"--junit5") {
+        junit5 = T
+      }
+      i = i + 1
+    }
+    if (count > 1) {
+      return Some("--saga-report may be supplied exactly once")
+    }
+    if (count == 1 && junit5) {
+      return Some("--saga-report is only supported by the ScalaTest backend and cannot be combined with --junit5")
+    }
+    return None()
+  }
+
   def run(args: ISZ[String], reporter: message.Reporter = message.Reporter.create): Z = {
+    proyekTestSagaReportError(args) match {
+      case Some(error) =>
+        eprintln(error)
+        return -1
+      case _ =>
+    }
+
     def printAdditionalHelp(): Unit = {
       println(
         s"""

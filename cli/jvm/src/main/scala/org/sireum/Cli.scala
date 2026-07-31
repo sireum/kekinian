@@ -791,6 +791,7 @@ object Cli {
     val junit5: B,
     val packages: ISZ[String],
     val parTest: B,
+    val sagaReport: Option[String],
     val suffixes: ISZ[String],
     val tests: ISZ[String],
     val ignoreRuntime: B,
@@ -7249,6 +7250,8 @@ import Cli._
           |    --packages           Specific fully-qualified test package names to run
           |                           (expects a string separated by ",")
           |    --par-test           Enable test parallelization
+          |    --saga-report        Write a neutral gate report from ScalaTest JUnit XML
+          |                           (incompatible with --junit5) (expects a path)
           |    --suffixes           Specific test class name suffixes to run (expects a
           |                           string separated by ",")
           |    --tests              Substring filters for selecting specific test cases
@@ -7323,6 +7326,7 @@ import Cli._
     var junit5: B = false
     var packages: ISZ[String] = ISZ[String]()
     var parTest: B = false
+    var sagaReport: Option[String] = None[String]()
     var suffixes: ISZ[String] = ISZ[String]()
     var tests: ISZ[String] = ISZ[String]()
     var ignoreRuntime: B = false
@@ -7392,6 +7396,12 @@ import Cli._
            val o: Option[B] = { j = j - 1; Some(!parTest) }
            o match {
              case Some(v) => parTest = v
+             case _ => return None()
+           }
+         } else if (arg == "--saga-report") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => sagaReport = v
              case _ => return None()
            }
          } else if (arg == "--suffixes") {
@@ -7568,7 +7578,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, junit5, packages, parTest, suffixes, tests, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
+    return Some(SireumProyekTestOption(help, parseArguments(args, j), classes, coverage, java, junit5, packages, parTest, sagaReport, suffixes, tests, ignoreRuntime, json, name, outputDirName, project, slice, symlink, versions, javac, fresh, par, recompile, scalac, sha3, skipCompile, cache, docs, sources, proxyHost, proxyNonHosts, proxyPort, proxyProtocol, proxyUser, proxyPassword, repositories))
   }
 
   def parseSireumProyekTipe(args: ISZ[String], i: Z): Option[SireumTopOption] = {

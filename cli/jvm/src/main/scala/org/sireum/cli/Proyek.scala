@@ -1449,6 +1449,29 @@ object Proyek {
   }
 
   def test(o: Cli.SireumProyekTestOption): Z = {
+    o.sagaReport match {
+      case Some(reportPath) =>
+        if (o.junit5) {
+          eprintln("--saga-report is only supported by the ScalaTest backend and cannot be combined with --junit5")
+          return proyek.SagaReport.InvalidTarget
+        }
+        val selectionValidation = proyek.Test.validateSagaReportSelection(
+          o.classes,
+          o.suffixes,
+          o.packages,
+          ops.ISZOps(o.args).drop(1))
+        if (selectionValidation._1 != 0) {
+          eprintln(selectionValidation._2)
+          return selectionValidation._1
+        }
+        val validation = proyek.SagaReport.validateTarget(reportPath)
+        if (validation._1 != 0) {
+          eprintln(validation._2)
+          return validation._1
+        }
+      case _ =>
+    }
+
     val (help, code, path, prj, versions) = check(o.json, o.project, Some(1), None(), o.args, o.versions, o.slice)
     if (help) {
       println(o.help)
@@ -1512,6 +1535,7 @@ object Proyek {
       names = ops.ISZOps(o.args).drop(1),
       tests = o.tests,
       coverageOpt = o.coverage,
+      sagaReportOpt = o.sagaReport,
       isJUnit5 = o.junit5,
       parTest = o.parTest
     )
