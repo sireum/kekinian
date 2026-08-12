@@ -42,7 +42,7 @@ fi
 export PROYEK_JFX=${JAVA_HOME}/lib/javafx.properties
 NATIVE="${SIREUM_HOME}/bin/${PLATFORM}/sireum"
 JVMCI_CP=""
-for _jar in "${SIREUM_HOME}"/lib/collections-*.jar "${SIREUM_HOME}"/lib/compiler-*.jar "${SIREUM_HOME}"/lib/jniutils-*.jar "${SIREUM_HOME}"/lib/nativeimage-*.jar "${SIREUM_HOME}"/lib/truffle-compiler-*.jar "${SIREUM_HOME}"/lib/word-*.jar; do
+for _jar in "${SIREUM_HOME}"/lib/collections-*.jar "${SIREUM_HOME}"/lib/compiler-*.jar "${SIREUM_HOME}"/lib/jniutils-*.jar "${SIREUM_HOME}"/lib/nativeimage-*.jar "${SIREUM_HOME}"/lib/options-*.jar "${SIREUM_HOME}"/lib/truffle-compiler-*.jar "${SIREUM_HOME}"/lib/word-*.jar; do
   [ -f "$_jar" ] && JVMCI_CP="${JVMCI_CP:+${JVMCI_CP}:}${_jar}"
 done
 JVMCI_OPTS=""
@@ -68,7 +68,7 @@ else
       echo "${CUR_HASH}" > "${AOT_JAR_HASH}"
     fi
   fi
-  if [[ -f "${AOT_CACHE}" ]]; then
+  if [[ "${SIREUM_NO_AOT}" != "true" && -f "${AOT_CACHE}" ]]; then
     exec "${JAVA}" -XX:AOTCache="${AOT_CACHE}" -Xlog:aot=off ${SIREUM_BASE_OPTS} -cp "${SIREUM_BASE_CP}" org.sireum.Sireum "$@"
   fi
   exec "${JAVA}" ${SIREUM_JAVA_OPTS} -cp "${SIREUM_CP}" org.sireum.Sireum "$@"

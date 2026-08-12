@@ -186,7 +186,8 @@ GRAAL_VERSION=$(getVersion "org.graalvm.compiler%compiler%")
 if [[ -n "${GRAAL_VERSION}" ]]; then
   mkdir -p "${SIREUM_HOME}/lib"
   MAVEN_BASE="https://repo1.maven.org/maven2"
-  for gjar in "org/graalvm/compiler/compiler" "org/graalvm/truffle/truffle-compiler" \
+  for gjar in "org/graalvm/compiler/compiler" "org/graalvm/compiler/options" \
+              "org/graalvm/truffle/truffle-compiler" \
               "org/graalvm/sdk/word" "org/graalvm/sdk/collections" \
               "org/graalvm/sdk/jniutils" "org/graalvm/sdk/nativeimage"; do
     ARTIFACT="${gjar##*/}"

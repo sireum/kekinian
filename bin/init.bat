@@ -135,6 +135,7 @@ if ($graal_version) {
   $maven_base = "https://repo1.maven.org/maven2"
   $graal_jars = @(
     @("org/graalvm/compiler", "compiler"),
+    @("org/graalvm/compiler", "options"),
     @("org/graalvm/truffle", "truffle-compiler"),
     @("org/graalvm/sdk", "word"),
     @("org/graalvm/sdk", "collections"),
