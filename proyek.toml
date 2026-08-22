@@ -1,0 +1,174 @@
+# SPDX-License-Identifier: BlueOak-1.0.0
+[workspace]
+name = "kekinian"
+out = "out"
+
+[repositories]
+maven = ["https://repo1.maven.org/maven2"]
+
+# These are the JVM-source closure needed by V's compiler.  They retain a
+# `kekinian-` prefix so this workspace can be composed with V, whose Slang
+# runtime already owns the unqualified `library` module id.
+[versions]
+"org.sireum::scalac-plugin:" = "4.20260224.4919e12"
+"org.scala-lang:scala-library:" = "2.13.18"
+"org.scala-lang.modules::scala-parallel-collections:" = "1.2.0"
+"org.scala-lang.modules::scala-java8-compat:" = "1.0.2"
+"org.scalatest::scalatest::" = "3.2.20"
+"org.scalatestplus::junit-5-10:" = "3.2.19.0"
+"org.junit.platform:junit-platform-launcher:" = "1.11.4"
+"com.zaxxer:nuprocess:" = "3.0.0"
+"com.lihaoyi::os-lib:" = "0.11.8"
+"org.kohsuke:github-api:" = "1.330"
+"org.ow2.asm:asm-tree:" = "9.9.1"
+"org.ow2.asm:asm-util:" = "9.9.1"
+"org.antlr:antlr-runtime:" = "3.5.3"
+"org.antlr:antlr4-runtime:" = "4.13.2"
+"org.sireum:automaton:" = "4.20220102.836f80d"
+"org.scalameta::scalafmt-cli:" = "3.10.2"
+"org.apache.commons:commons-compress:" = "1.28.0"
+"it.unimi.dsi:fastutil-core:" = "8.5.18"
+"org.commonmark:commonmark-ext-yaml-front-matter:" = "0.29.0"
+"org.graalvm.compiler:compiler:" = "25.1.3"
+"org.graalvm.polyglot:polyglot:" = "25.1.3"
+"org.graalvm.wasm:wasm-language:" = "25.1.3"
+"org.graalvm.truffle:truffle-runtime:" = "25.1.3"
+"com.dylibso.chicory:runtime:" = "1.7.5"
+"com.dylibso.chicory:wasi:" = "1.7.5"
+"com.dylibso.chicory:compiler:" = "1.7.5"
+"org.scalameta::scalameta::" = "4.14.2"
+
+[[module]]
+id = "kekinian-macros"
+kind = "scala"
+sources = [
+  "runtime/macros/shared/src/main/java",
+  "runtime/macros/shared/src/main/scala",
+]
+ivy-deps = [
+  "org.scala-lang:scala-library:",
+  "org.scala-lang.modules::scala-parallel-collections:",
+  "org.scala-lang.modules::scala-java8-compat:",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-test"
+kind = "scala"
+deps = ["kekinian-macros"]
+sources = [
+  "runtime/test/shared/src/main/scala",
+]
+ivy-deps = [
+  "org.scalatest::scalatest::",
+  "org.scalatestplus::junit-5-10:",
+  "org.junit.platform:junit-platform-launcher:",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-library-shared"
+kind = "scala"
+deps = ["kekinian-test"]
+sources = [
+  "runtime/library/shared/src/main/java",
+  "runtime/library/shared/src/main/scala",
+]
+resources = ["runtime/library/shared/src/main/resources"]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-library"
+kind = "scala"
+deps = ["kekinian-library-shared"]
+sources = [
+  "runtime/library/jvm/src/main/java",
+  "runtime/library/jvm/src/main/scala",
+]
+ivy-deps = [
+  "com.zaxxer:nuprocess:",
+  "com.lihaoyi::os-lib:",
+  "org.kohsuke:github-api:",
+  "org.ow2.asm:asm-tree:",
+  "org.ow2.asm:asm-util:",
+  "org.antlr:antlr-runtime:",
+  "org.antlr:antlr4-runtime:",
+  "org.sireum:automaton:",
+  "org.scalameta::scalafmt-cli:",
+  "org.apache.commons:commons-compress:",
+  "it.unimi.dsi:fastutil-core:",
+  "org.commonmark:commonmark-ext-yaml-front-matter:",
+  "org.graalvm.compiler:compiler:",
+  "org.graalvm.polyglot:polyglot:",
+  "org.graalvm.wasm:wasm-language:",
+  "org.graalvm.truffle:truffle-runtime:",
+  "com.dylibso.chicory:runtime:",
+  "com.dylibso.chicory:wasi:",
+  "com.dylibso.chicory:compiler:",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-slang-ast"
+kind = "scala"
+deps = ["kekinian-library-shared"]
+sources = [
+  "slang/ast/shared/src/main/scala",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-slang-parser-shared"
+kind = "scala"
+deps = ["kekinian-slang-ast"]
+sources = [
+  "slang/parser/shared/src/main/scala",
+]
+resources = ["slang/parser/shared/src/main/resources"]
+ivy-deps = ["org.scalameta::scalameta::"]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-slang-tipe"
+kind = "scala"
+deps = ["kekinian-slang-ast"]
+sources = [
+  "slang/tipe/shared/src/main/scala",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-slang-frontend"
+kind = "scala"
+deps = ["kekinian-slang-parser-shared", "kekinian-slang-tipe"]
+sources = [
+  "slang/frontend/shared/src/main/scala",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
+
+[[module]]
+id = "kekinian-alir"
+kind = "scala"
+deps = ["kekinian-slang-tipe"]
+sources = [
+  "alir/shared/src/main/scala",
+]
+
+[module.scala]
+javac-options = ["--release", "25", "-encoding", "utf8", "-proc:none"]
