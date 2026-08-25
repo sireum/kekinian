@@ -135,7 +135,7 @@ object Presentasi_Ext {
 
   def parseMarkdowns(args: ISZ[String], path: Os.Path, reporter: message.Reporter): ISZ[presentasi.Presentation] = {
     val argsKey = st"${(args, "")}".render.value
-    val parser = org.commonmark.parser.Parser.builder().
+    val parserCommonMark = org.commonmark.parser.Parser.builder().
       extensions(java.util.List.of(org.commonmark.ext.front.matter.YamlFrontMatterExtension.create)).build()
     var audioSubst = HashSMap.empty[String, String]
     var substs = HashSMap.empty[String, String]
@@ -238,7 +238,7 @@ object Presentasi_Ext {
         else t
       }
 
-      val d = parser.parse(fContent).asInstanceOf[Document]
+      val d = parserCommonMark.parse(fContent).asInstanceOf[Document]
       //printTree("", d)
       var child = d.getFirstChild
       child match {
