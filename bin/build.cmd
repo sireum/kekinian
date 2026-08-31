@@ -243,7 +243,8 @@ def verifyLogikaExamples(): Unit = {
 }
 
 def verifyRuntime(): Unit = {
-  proc"$sireum proyek logika$proxyOpt --all --par --par-branch --slice library-shared --timeout 5 --sat $home".console.echo.runCheck()
+  proc"$sireum proyek logika$proxyOpt --all --par --par-branch --slice library-shared --timeout 5 --sat $home".
+    env(ISZ("JAVA_OPTS" ~> s"-Xss2M ${Os.env("JAVA_OPTS").getOrElse("")}")).console.echo.runCheck()
   println()
 }
 
