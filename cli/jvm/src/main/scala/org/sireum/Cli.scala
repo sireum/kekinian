@@ -790,7 +790,7 @@ object Cli {
     val java: ISZ[String],
     val junit5: B,
     val packages: ISZ[String],
-    val parTest: B,
+    val parTest: Option[Z],
     val sagaReport: Option[String],
     val suffixes: ISZ[String],
     val tests: ISZ[String],
@@ -7249,7 +7249,9 @@ import Cli._
           |    --junit5             Use JUnit5 runner
           |    --packages           Specific fully-qualified test package names to run
           |                           (expects a string separated by ",")
-          |    --par-test           Enable test parallelization
+          |    --par-test           Enable test parallelization; omit worker count to use
+          |                           all processors (accepts an optional integer; min is
+          |                           1; default is 0)
           |    --saga-report        Write a neutral gate report from ScalaTest JUnit XML
           |                           (incompatible with --junit5) (expects a path)
           |    --suffixes           Specific test class name suffixes to run (expects a
@@ -7325,7 +7327,7 @@ import Cli._
     var java: ISZ[String] = ISZ[String]()
     var junit5: B = false
     var packages: ISZ[String] = ISZ[String]()
-    var parTest: B = false
+    var parTest: Option[Z] = None()
     var sagaReport: Option[String] = None[String]()
     var suffixes: ISZ[String] = ISZ[String]()
     var tests: ISZ[String] = ISZ[String]()
@@ -7393,7 +7395,10 @@ import Cli._
              case _ => return None()
            }
          } else if (arg == "--par-test") {
-           val o: Option[B] = { j = j - 1; Some(!parTest) }
+           val o: Option[Option[Z]] = parseNumFlag(args, j + 1, Some(1), None()) match {
+             case o@Some(None()) => j = j - 1; Some(Some(0))
+             case o => o
+           }
            o match {
              case Some(v) => parTest = v
              case _ => return None()
