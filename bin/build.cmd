@@ -296,10 +296,13 @@ def regenSlang(): Unit = {
     "immutable,mutable", "-o", astPackagePath.string, s"${astPackagePath / "AST.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", "-o", astPackagePath.string, "-n", "CoreExp", s"${astPackagePath / "CoreExp.scala"}",
+    "immutable,mutable", "-o", astPackagePath.string, "-n", "CoreExp", "--opaque", "RType,Exp.UnaryOp.Type",
+    s"${astPackagePath / "CoreExp.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", "-o", astPackagePath.string, "-n", "IR", s"${astPackagePath / "IR.scala"}",
+    "immutable,mutable", "-o", astPackagePath.string, "-n", "IR",
+    "--opaque", "RType,RType.Var,Pattern,lang.ast.Pattern,lang.ast.Exp.UnaryOp.Type",
+    s"${astPackagePath / "IR.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
     s"${home / "license.txt"}", "-m", "json,msgpack", "-o", tipePath.string,
@@ -330,6 +333,7 @@ def regenLogika(): Unit = {
   val logikaPackagePath = home / "logika" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "logika"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-e", "Composite",
     "-m", "immutable,mutable", "-n", "State", "-o", logikaPackagePath.string,
+    "--opaque", "AST.Typed,AST.Typed.Name,AST.Typed.Fun",
     s"${logikaPackagePath / "State.scala"}")).console, message.Reporter.create)
 }
 
@@ -352,7 +356,7 @@ def regenAir(): Unit = {
 
 
 def regenAct(): Unit = {
-  val actPackagePath = home / "hamr" / "codegen" / "act" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "act" / "ast"
+  val actPackagePath = home / "hamr" / "codegen" / "jvm" / "src" / "main" / "scala" / "org" / "sireum" / "hamr" / "codegen" / "act" / "ast"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", actPackagePath.string, s"${actPackagePath / "ActAst.scala"}")).console,
     message.Reporter.create)
@@ -440,6 +444,7 @@ def regenAnvil(): Unit = {
   val anvilPackagePath = home / "anvil" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "anvil"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", anvilPackagePath.string, "-n", "AnvilIR",
+    "--opaque", "AST.Typed,Typed,Typed.Name,Typed.Fun,RType,RType.Var,Pattern,lang.ast.Pattern,lang.ast.Exp.UnaryOp.Type",
     s"${anvilPackagePath / "Intrinsic.scala"}",
     s"${astPackagePath / "IR.scala"}"
   )).console, message.Reporter.create)

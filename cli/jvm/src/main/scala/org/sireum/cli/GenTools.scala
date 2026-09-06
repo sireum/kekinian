@@ -379,13 +379,15 @@ object GenTools {
             T
           )
       }
-      val dest = destDir / s"$name.scala"
-      TransformerGenJvm.run(isImmutable, isReversed, lOpt, sources, Some(name), o.exclude, reporter) match {
+      val ext: String = if (o.ll2) "slang" else "scala"
+      val dest = destDir / s"$name.$ext"
+      TransformerGenJvm.runWithDialect(isImmutable, isReversed, lOpt, sources, Some(name), o.exclude, reporter, o.ll2, o.opaqueTypes) match {
         case Some(out) =>
           dest.writeOver(out)
           println(s"Wrote $dest")
         case _ =>
           reporter.printMessages()
+          return -1
       }
     }
     return 0
