@@ -444,8 +444,16 @@ object SlangTipe {
           }
           stopTime()
 
-        case Some(_) => eprintln(s"File '${slangFile._1}' does not contain a Slang program")
+        case Some(_) =>
+          eprintln(s"File '${slangFile._1}' does not contain a Slang program")
+          return Either.right(InvalidSlangFiles)
         case _ =>
+          if (o.parseableMessages) {
+            Os.printParseableMessages(reporter)
+          } else {
+            reporter.printMessages()
+          }
+          return Either.right(InvalidSlangFiles)
       }
     }
 
