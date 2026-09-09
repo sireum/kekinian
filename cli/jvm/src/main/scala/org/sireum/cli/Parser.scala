@@ -28,6 +28,7 @@ package org.sireum.cli
 
 import org.sireum._
 import org.sireum.SireumApi._
+import org.sireum.lang.{ast => AST}
 
 object Parser {
 
@@ -73,7 +74,7 @@ object Parser {
       case Some(n) => n
       case _ => ops.StringOps(ops.StringOps(src.name).substring(0, src.name.size - (src.ext.size + 1))).firstToUpper
     }
-    val dest = destDir / s"${name}Parser.scala"
+    val dest = destDir / s"${name}Parser.${if (o.ll2) "slang" else "scala"}"
     val packageOpt: Option[ST] =
       if (o.packageName.isEmpty) None() else Some(
         st"""package ${(o.packageName, ".")}
@@ -104,9 +105,24 @@ object Parser {
       else parser.ParserGenerator().gen(licenseOpt, fileInfo, packageOpt, name,  ast, o.memoize, o.predictive, o.backtracking, reporter)
     parserOpt match {
       case Some(out) =>
-        dest.writeOver(out.render)
-        println(s"Wrote $dest")
-        return 0
+        if (!o.ll2) {
+          dest.writeOver(out.render)
+          println(s"Wrote $dest")
+          return 0
+        }
+        val pOpt = lang.parser.Parser.parseTopUnit[AST.TopUnit](out.render, F, F, None(), reporter)
+        pOpt match {
+          case Some(program: AST.TopUnit.Program) if !reporter.hasIssue =>
+            val content = st"""$licenseOpt
+                               |$fileInfo
+                               |${AST.SlangLl2PrettyPrinter.prettyPrint(program)}""".render
+            dest.writeOver(content)
+            println(s"Wrote $dest")
+            return 0
+          case _ =>
+            reporter.printMessages()
+            return INVALID_GRAMMAR
+        }
       case _ =>
         reporter.printMessages()
         if (isLLk) {
