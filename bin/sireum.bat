@@ -34,7 +34,10 @@ set "AOT_JAR_HASH=%AOT_DIR%\sireum.jar.sha"
 if "%SIREUM_NO_AOT%"=="true" goto no_aot
 if not exist "%AOT_DIR%" mkdir "%AOT_DIR%"
 set "CUR_HASH="
-for /f "tokens=1" %%h in ('certutil -hashfile "%~dp0sireum.jar" SHA256 2^>nul ^| findstr /r "^[0-9a-f]"') do set "CUR_HASH=%%h"
+rem findstr character ranges are collation-based, so [0-9a-f] also matches the trailing
+rem "CertUtil: ..." status line, which as the last match would win; anchor the whole line
+rem and keep the first match so only the hash itself can be picked up
+for /f "tokens=1" %%h in ('certutil -hashfile "%~dp0sireum.jar" SHA256 2^>nul ^| findstr /r "^[0-9a-f][0-9a-f]*$"') do if not defined CUR_HASH set "CUR_HASH=%%h"
 set "OLD_HASH="
 if exist "%AOT_JAR_HASH%" set /p OLD_HASH=<"%AOT_JAR_HASH%"
 if not exist "%AOT_CACHE%" goto aot_train
