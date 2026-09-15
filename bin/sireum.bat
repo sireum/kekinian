@@ -44,10 +44,11 @@ goto aot_run
 "%JAVA%" -XX:AOTCacheOutput="%AOT_CACHE%" %SIREUM_BASE_OPTS% -cp "%SIREUM_BASE_CP%" org.sireum.Sireum --version > "%AOT_DIR%\train.log" 2>&1
 echo %CUR_HASH%> "%AOT_JAR_HASH%"
 :aot_run
-if exist "%AOT_CACHE%" (
-  "%JAVA%" -XX:AOTCache="%AOT_CACHE%" -Xlog:aot=off %SIREUM_BASE_OPTS% -cp "%SIREUM_BASE_CP%" org.sireum.Sireum %*
-  exit /B %errorlevel%
-)
+rem goto rather than an "if exist (...)" block: cmd expands %errorlevel% when it parses a
+rem block, so inside one it would hold the value from before java ran and mask every failure
+if not exist "%AOT_CACHE%" goto no_aot
+"%JAVA%" -XX:AOTCache="%AOT_CACHE%" -Xlog:aot=off %SIREUM_BASE_OPTS% -cp "%SIREUM_BASE_CP%" org.sireum.Sireum %*
+exit /B %errorlevel%
 :no_aot
 "%JAVA%" %SIREUM_BASE_OPTS% %JVMCI_OPTS% -cp "%SIREUM_CP%" org.sireum.Sireum %*
 exit /B %errorlevel%
