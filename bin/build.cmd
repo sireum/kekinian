@@ -296,12 +296,12 @@ def regenSlang(): Unit = {
     "immutable,mutable", "-o", astPackagePath.string, s"${astPackagePath / "AST.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
-    "immutable,mutable", "-o", astPackagePath.string, "-n", "CoreExp", "--opaque", "RType,Exp.UnaryOp.Type",
+    "immutable,mutable", "-o", astPackagePath.string, "-n", "CoreExp", "--opaque", "RType,Exp.UnaryOp.Type,Exp.UnaryTemporalOp.Type,Exp.BinaryTemporalOp.Type",
     s"${astPackagePath / "CoreExp.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", astPackagePath.string, "-n", "IR",
-    "--opaque", "RType,RType.Var,Pattern,lang.ast.Pattern,lang.ast.Exp.UnaryOp.Type",
+    "--opaque", "RType,RType.Var,Pattern,lang.ast.Pattern,lang.ast.Exp.UnaryOp.Type,lang.ast.Exp.UnaryTemporalOp.Type,lang.ast.Exp.BinaryTemporalOp.Type",
     s"${astPackagePath / "IR.scala"}",
     s"${astPackagePath / "Typed.scala"}")).console, message.Reporter.create)
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "sergen", "-p", "org.sireum.lang.tipe", "-l",
@@ -444,7 +444,7 @@ def regenAnvil(): Unit = {
   val anvilPackagePath = home / "anvil" / "shared" / "src" / "main" / "scala" / "org" / "sireum" / "anvil"
   Sireum.procCheck(Os.proc(ISZ(sireum.string, "tools", "trafo", "-l", s"${home / "license.txt"}", "-m",
     "immutable,mutable", "-o", anvilPackagePath.string, "-n", "AnvilIR",
-    "--opaque", "AST.Typed,Typed,Typed.Name,Typed.Fun,RType,RType.Var,Pattern,lang.ast.Pattern,lang.ast.Exp.UnaryOp.Type",
+    "--opaque", "AST.Typed,Typed,Typed.Name,Typed.Fun,RType,RType.Var,Pattern,lang.ast.Pattern,lang.ast.Exp.UnaryOp.Type,lang.ast.Exp.UnaryTemporalOp.Type,lang.ast.Exp.BinaryTemporalOp.Type",
     s"${anvilPackagePath / "Intrinsic.scala"}",
     s"${astPackagePath / "IR.scala"}"
   )).console, message.Reporter.create)
