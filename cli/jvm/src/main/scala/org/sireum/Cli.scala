@@ -388,6 +388,7 @@ object Cli {
     val predictive: B,
     val license: Option[String],
     val outputDir: Option[String],
+    val ll2: B,
     val packageName: ISZ[String]
   ) extends SireumTopOption
 
@@ -1253,10 +1254,12 @@ object Cli {
     val help: String,
     val args: ISZ[String],
     val exclude: ISZ[String],
+    val opaqueTypes: ISZ[String],
     val license: Option[String],
     val modes: ISZ[SireumToolsTrafoTransformerMode.Type],
     val name: Option[String],
-    val outputDir: Option[String]
+    val outputDir: Option[String],
+    val ll2: B
   ) extends SireumTopOption
 
   @datatype class SireumXAnvilOption(
@@ -3797,6 +3800,7 @@ import Cli._
           |                           (expects a path)
           |-o, --output-dir         Output directory for the generated transformer Slang
           |                           files (expects a path; default is ".")
+          |    --ll2                Generate LL(2) Slang output
           |-p, --package            Package name for the generated parser/lexer (expects a
           |                           string separated by ".")
           |-h, --help               Display this information""".render
@@ -3808,6 +3812,7 @@ import Cli._
     var predictive: B = true
     var license: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
+    var ll2: B = false
     var packageName: ISZ[String] = ISZ[String]()
     var j = i
     var isOption = T
@@ -3859,6 +3864,12 @@ import Cli._
              case Some(v) => outputDir = v
              case _ => return None()
            }
+         } else if (arg == "--ll2") {
+           val o: Option[B] = { j = j - 1; Some(!ll2) }
+           o match {
+             case Some(v) => ll2 = v
+             case _ => return None()
+           }
          } else if (arg == "-p" || arg == "--package") {
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, '.')
            o match {
@@ -3874,7 +3885,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, backtracking, predictive, license, outputDir, packageName))
+    return Some(SireumParserGenOption(help, parseArguments(args, j), memoize, mode, name, backtracking, predictive, license, outputDir, ll2, packageName))
   }
 
   def parseSireumProyek(args: ISZ[String], i: Z): Option[SireumTopOption] = {
@@ -10497,6 +10508,9 @@ import Cli._
           |-e, --exclude            Exclude generating top-level transform for the
           |                           specified type identifiers (expects a string
           |                           separated by ",")
+          |    --opaque             Preserve unresolved field types with these exact
+          |                           source names without traversing them (expects a
+          |                           string separated by ",")
           |-l, --license            License file to be inserted in the file header
           |                           (expects a path)
           |-m, --modes              Transformer mode (expects one or more of { immutable,
@@ -10505,13 +10519,16 @@ import Cli._
           |                           "Transformer" or "MTransformer") (expects a string)
           |-o, --output-dir         Output directory for the generated transformer Slang
           |                           files (expects a path; default is ".")
+          |    --ll2                Generate LL(2) Slang output
           |-h, --help               Display this information""".render
 
     var exclude: ISZ[String] = ISZ[String]()
+    var opaqueTypes: ISZ[String] = ISZ[String]()
     var license: Option[String] = None[String]()
     var modes: ISZ[SireumToolsTrafoTransformerMode.Type] = ISZ(SireumToolsTrafoTransformerMode.Immutable)
     var name: Option[String] = None[String]()
     var outputDir: Option[String] = Some(".")
+    var ll2: B = false
     var j = i
     var isOption = T
     while (j < args.size && isOption) {
@@ -10524,6 +10541,12 @@ import Cli._
            val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
            o match {
              case Some(v) => exclude = v
+             case _ => return None()
+           }
+         } else if (arg == "--opaque") {
+           val o: Option[ISZ[String]] = parseStrings(args, j + 1, ',')
+           o match {
+             case Some(v) => opaqueTypes = v
              case _ => return None()
            }
          } else if (arg == "-l" || arg == "--license") {
@@ -10550,6 +10573,12 @@ import Cli._
              case Some(v) => outputDir = v
              case _ => return None()
            }
+         } else if (arg == "--ll2") {
+           val o: Option[B] = { j = j - 1; Some(!ll2) }
+           o match {
+             case Some(v) => ll2 = v
+             case _ => return None()
+           }
          } else {
           eprintln(s"Unrecognized option '$arg'.")
           return None()
@@ -10559,7 +10588,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumToolsTrafoOption(help, parseArguments(args, j), exclude, license, modes, name, outputDir))
+    return Some(SireumToolsTrafoOption(help, parseArguments(args, j), exclude, opaqueTypes, license, modes, name, outputDir, ll2))
   }
 
   def parseSireumX(args: ISZ[String], i: Z): Option[SireumTopOption] = {
