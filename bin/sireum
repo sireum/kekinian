@@ -51,13 +51,26 @@ if [[ -n ${JVMCI_CP} ]]; then
 fi
 SIREUM_BASE_CP="${SCALA_HOME}/lib/*:${SIREUM_JAR}"
 SIREUM_CP="${SIREUM_BASE_CP}${JVMCI_CP:+:${JVMCI_CP}}"
-SIREUM_BASE_OPTS="--enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -Djava.net.useSystemProxies=true ${JAVA_OPTS}"
-SIREUM_JAVA_OPTS="${SIREUM_BASE_OPTS} ${JVMCI_OPTS}"
 AOT_CACHE="${SIREUM_HOME}/bin/.aot/sireum.aot"
 AOT_JAR_HASH="${SIREUM_HOME}/bin/.aot/sireum.jar.sha"
 if [[ "${SIREUM_NATIVE}" != "false" && -f ${NATIVE} ]]; then
   exec "${NATIVE}" "$@"
 else
+  SIREUM_JFX_MEDIA="--enable-native-access=javafx.media"
+  SIREUM_JFX_GRAPHICS="--enable-native-access=javafx.graphics"
+  if [[ -n ${SIREUM_PROVIDED_JAVA} ]]; then
+    SIREUM_JFX_MEDIA=""
+    SIREUM_JFX_GRAPHICS=""
+    SIREUM_JAVA_MODULES=$("${JAVA}" --list-modules)
+    for SIREUM_JAVA_MODULE in ${SIREUM_JAVA_MODULES}; do
+      case "${SIREUM_JAVA_MODULE%@*}" in
+        javafx.media) SIREUM_JFX_MEDIA="--enable-native-access=javafx.media" ;;
+        javafx.graphics) SIREUM_JFX_GRAPHICS="--enable-native-access=javafx.graphics" ;;
+      esac
+    done
+  fi
+  SIREUM_BASE_OPTS="${SIREUM_JFX_MEDIA} ${SIREUM_JFX_GRAPHICS} --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -Djava.net.useSystemProxies=true ${JAVA_OPTS}"
+  SIREUM_JAVA_OPTS="${SIREUM_BASE_OPTS} ${JVMCI_OPTS}"
   if [[ "${SIREUM_NO_AOT}" != "true" ]]; then
     CUR_HASH=$(shasum -a 256 "${SIREUM_JAR}" 2>/dev/null | cut -d' ' -f1)
     OLD_HASH=""
