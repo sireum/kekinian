@@ -25,25 +25,25 @@ jobs:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\win\java
           key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\scala
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
       - name: Cache OSATE
         id: cache-osate
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\win\osate
           key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
@@ -76,31 +76,31 @@ jobs:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\win\java
           key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\scala
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
       - name: Configure Pagefile
-        uses: al-cheb/configure-pagefile-action@v1.4
+        uses: al-cheb/configure-pagefile-action@v1.5
         with:
           minimum-size: 8GB
           maximum-size: 16GB
           disk-root: "C:"
       - name: Cache Graal
         id: cache-graal
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\win\graal
           key: ${{ runner.os }}-${{ hashFiles('Sireum\bin\install\graal.cmd') }}-graal
@@ -133,25 +133,25 @@ jobs:
           submodules: recursive
       - name: Cache Java
         id: cache-java
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\win\java
           key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\versions.properties') }}-java
       - name: Cache Scala
         id: cache-scala
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\scala
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-scala
       - name: Cache Coursier
         id: cache-coursier
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\cache\coursier
           key: ${{ runner.os }}-${{ hashFiles('Sireum\versions.properties') }}-coursier
       - name: Cache OSATE
         id: cache-osate
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Sireum\bin\win\osate
           key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum\hamr\codegen\jvm\src\main\resources\phantom_versions.properties') }}-osate
