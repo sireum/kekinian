@@ -490,3 +490,32 @@ jobs:
           export SIREUM_HOME=~/Applications/Sireum
           "${SIREUM_HOME}/bin/install/fmide.cmd"
 
+  update-dev-release:
+    # Runs once every build job has uploaded its dev assets.  The release object is reused for
+    # each dev build, so GitHub's "released" date stays at its creation; record the build here.
+    needs: [build-linux-amd64, build-macos-arm64, build-windows-amd64]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: Sireum
+      - name: Update the dev release's title and notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd "$GITHUB_WORKSPACE/Sireum"
+          date=$(date -u +%F)
+          kekinian=$(git rev-parse HEAD)
+          cat > "$RUNNER_TEMP/notes.md" <<NOTES
+          Sireum IVE and CLI development builds for supported platforms
+
+          Built **${date}** from kekinian [\`${kekinian:0:8}\`](https://github.com/sireum/kekinian/tree/${kekinian}).
+
+          To install, follow the [latest development version](https://sireum.org/getting-started/#latest-dev-bin) instructions.
+
+          This release is replaced by each new development build; the date above, not the "released" date GitHub shows, is when its assets were built.
+          NOTES
+          gh release edit dev --repo "$GITHUB_REPOSITORY" --title "Development Build (${date})" --notes-file "$RUNNER_TEMP/notes.md"
