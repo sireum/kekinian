@@ -27,7 +27,17 @@ set "JVMCI_OPTS="
 if defined JVMCI_CP set "JVMCI_OPTS=-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --sun-misc-unsafe-memory-access=allow --upgrade-module-path=%JVMCI_CP%"
 set "SIREUM_BASE_CP=%SCALA_HOME%\lib\*;%~dp0.sireum-win.jar"
 set "SIREUM_CP=%SIREUM_BASE_CP%%JVMCI_CP%"
-set "SIREUM_BASE_OPTS=--enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -Djava.net.useSystemProxies=true %JAVA_OPTS%"
+set "SIREUM_JFX_MEDIA=--enable-native-access=javafx.media"
+set "SIREUM_JFX_GRAPHICS=--enable-native-access=javafx.graphics"
+if defined SIREUM_PROVIDED_JAVA (
+  set "SIREUM_JFX_MEDIA="
+  set "SIREUM_JFX_GRAPHICS="
+  for /f "tokens=1 delims=@" %%m in ('""%JAVA%" --list-modules"') do (
+    if "%%m"=="javafx.media" set "SIREUM_JFX_MEDIA=--enable-native-access=javafx.media"
+    if "%%m"=="javafx.graphics" set "SIREUM_JFX_GRAPHICS=--enable-native-access=javafx.graphics"
+  )
+)
+set "SIREUM_BASE_OPTS=%SIREUM_JFX_MEDIA% %SIREUM_JFX_GRAPHICS% --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -Djava.net.useSystemProxies=true %JAVA_OPTS%"
 set "AOT_DIR=%SIREUM_HOME%\bin\.aot"
 set "AOT_CACHE=%AOT_DIR%\sireum.aot"
 set "AOT_JAR_HASH=%AOT_DIR%\sireum.jar.sha"
