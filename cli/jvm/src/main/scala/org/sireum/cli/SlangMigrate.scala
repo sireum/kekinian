@@ -45,14 +45,24 @@ object SlangMigrate {
         val isWorksheet = path.ext == "sc"
         val pathString = path.string
         val name = ops.StringOps(path.name).substring(0, path.name.size - path.ext.size - 1)
-        lang.parser.Parser.parseTopUnit[AST.TopUnit.Program](content, isWorksheet, F, Some(pathString), reporter) match {
-          case Some(program) =>
-            val newContent = lang.ast.SlangLl2PrettyPrinter.prettyPrint(program)
+        val fileReporter = message.Reporter.create
+        lang.parser.Parser.parseTopUnit[AST.TopUnit.Program](content, isWorksheet, F, Some(pathString), fileReporter) match {
+          case Some(program) if !fileReporter.hasError =>
+            val newContent = lang.ast.SlangLl2PrettyPrinter.prettyPrint(program).render
             val p = path.up / s"$name.slang"
-            p.writeOver(newContent.render)
-            println(s"Wrote $p")
+            val target: Option[AST.TopUnit.Program] = lang.parser.SlangLl2Parser.parse(Some(p.string), newContent, fileReporter) match {
+              case Some(tree) => lang.ast.SlangLl2AstBuilder.build(Some(p.string), tree, fileReporter)
+              case _ => None[AST.TopUnit.Program]()
+            }
+            if (target.nonEmpty && !fileReporter.hasError) {
+              p.writeOver(newContent)
+              println(s"Wrote $p")
+            } else if (!fileReporter.hasError) {
+              fileReporter.error(None(), "Slang Migrator", s"Could not parse migrated output for $path")
+            }
           case _ =>
         }
+        reporter.reports(fileReporter.messages)
       }
     }
     reporter.printMessages()

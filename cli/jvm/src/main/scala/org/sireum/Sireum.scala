@@ -286,9 +286,7 @@ object Sireum {
     val p = new java.util.Properties
     p.load(new java.io.StringReader(
       org.sireum.$internal.RC
-        .text(Vector("../../../../../../..")) { (p, _) =>
-          p == Vector("versions.properties")
-        }
+        .text(Vector("../../../../../../../versions.properties")) { (_, _) => T }
         .head
         ._2))
     var r = Map.empty[String, String]
