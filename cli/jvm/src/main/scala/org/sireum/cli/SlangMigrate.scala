@@ -31,6 +31,42 @@ import org.sireum.lang.{ast => AST}
 
 object SlangMigrate {
 
+  @record class Interpolators(val source: ISZ[Z]) extends AST.MTransformer {
+    override def postExpStringInterpolate(o: AST.Exp.StringInterpolate): MOption[AST.Exp] = {
+      if (o.prefix != "s" && o.prefix != "st" && o.prefix != "proc") {
+        return MNone()
+      }
+      if (o.prefix != "s" && o.posOpt.nonEmpty) {
+        val quote = o.posOpt.get.offset + o.prefix.size
+        if (quote + 2 < source.size && source(quote) == 34 &&
+            source(quote + 1) == 34 && source(quote + 2) == 34) {
+          return MNone()
+        }
+      }
+      val literals = Buffer.create[AST.Exp.LitString]()
+      for (literal <- o.lits) {
+        literals.append(literal(value = lang.ast.SlangLl2AstBuilder.unescapeString(literal.value)))
+      }
+      return MSome(o(lits = literals.toIS))
+    }
+  }
+
+  def normalizeInterpolators(program: AST.TopUnit.Program, content: String): AST.TopUnit.Program = {
+    // Scala source positions count UTF-16 code units.
+    val units = Buffer.create[Z]()
+    for (c <- conversions.String.toCis(content)) {
+      val code = c.toZ
+      if (code <= 65535) {
+        units.append(code)
+      } else {
+        units.append(55296 + (code - 65536) / 1024)
+        units.append(56320 + (code - 65536) % 1024)
+      }
+    }
+    return Interpolators(units.toIS).transformTopUnit(program).getOrElse(program)
+      .asInstanceOf[AST.TopUnit.Program]
+  }
+
   def run(o: Cli.SireumSlangMigrateOption, reporter: message.Reporter): Z = {
     if (o.args.isEmpty) {
       println(o.help)
@@ -48,7 +84,7 @@ object SlangMigrate {
         val fileReporter = message.Reporter.create
         lang.parser.Parser.parseTopUnit[AST.TopUnit.Program](content, isWorksheet, F, Some(pathString), fileReporter) match {
           case Some(program) if !fileReporter.hasError =>
-            val newContent = lang.ast.SlangLl2PrettyPrinter.prettyPrint(program).render
+            val newContent = lang.ast.SlangLl2PrettyPrinter.prettyPrint(normalizeInterpolators(program, content)).render
             val p = path.up / s"$name.slang"
             val target: Option[AST.TopUnit.Program] = lang.parser.SlangLl2Parser.parse(Some(p.string), newContent, fileReporter) match {
               case Some(tree) => lang.ast.SlangLl2AstBuilder.build(Some(p.string), tree, fileReporter)

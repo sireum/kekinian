@@ -30,6 +30,40 @@ import org.sireum.test._
 import java.nio.file.Files
 
 class SlangMigrateTest extends TestSuite {
+  "migration preserves interpolator escapes and raw multiline templates" in {
+    val root = Os.path(Files.createTempDirectory("slang-migrate-escapes-").toString)
+    try {
+      val triple = "\"" * 3
+      val source = "// #Sireum\n// \uD83D\uDE00 Unicode precedes source-positioned interpolators.\nimport org.sireum._\n" +
+        "def message(n: Z): String = { return s\"pid=$n\\nscope=session\\t\\\"quoted\\\"\\\\tail$$\" }\n" +
+        "def template(n: Z): ST = { return st\"pid=$n\\nscope=session\\t\\\"quoted\\\"\\\\tail$$\" }\n" +
+        "def multiline(n: Z): String = { return s" + triple + "pid=$n\\nscope=session" + triple + " }\n" +
+        "def raw(n: Z): ST = { return st" + triple + "pid=$n\\nscope=session" + triple + " }\n" +
+        "def literal(n: Z): String = { return s\"pid=$n\\\\nscope=session\" }\n"
+      val path = root / "escapes.sc"
+      path.writeOver(String(source))
+      val reporter = message.Reporter.create
+      assert(SlangMigrate.run(Cli.SireumSlangMigrateOption("", ISZ(path.string)), reporter) == 0)
+      assert(!reporter.hasError)
+      val output = root / "escapes.slang"
+      val tree = lang.parser.SlangLl2Parser.parse(Some(output.string), output.read, reporter).get
+      val program = lang.ast.SlangLl2AstBuilder.build(Some(output.string), tree, reporter).get
+      assert(!reporter.hasError)
+      val methods = program.body.stmts.elements.collect { case method: lang.ast.Stmt.Method => method }
+      val expected = scala.Seq("\nscope=session\t\"quoted\"\\tail$", "\nscope=session\t\"quoted\"\\tail$",
+        "\nscope=session", "\\nscope=session", "\\nscope=session")
+      for ((method, suffix) <- methods.zip(expected)) {
+        val expression = method.bodyOpt.get.stmts(0).asInstanceOf[lang.ast.Stmt.Return].expOpt.get
+          .asInstanceOf[lang.ast.Exp.StringInterpolate]
+        assert(expression.lits.map(_.value) == ISZ(String("pid="), String(suffix)))
+        assert(expression.args.size == 1)
+      }
+      assert(methods.size == expected.size)
+    } finally {
+      root.removeAll()
+    }
+  }
+
   "invalid sources preserve existing output and do not block valid files" in {
     val root = Os.path(Files.createTempDirectory("slang-migrate-").toString)
     try {
