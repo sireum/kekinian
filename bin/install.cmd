@@ -28,9 +28,9 @@ elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then                       
     ARCH=amd64                                                                                                                                                                              #
   fi                                                                                                                                                                                        #
 fi                                                                                                                                                                                          #
-rm -fR $DIR ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                   #
+rm -fR "$DIR" ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                 #
 rm -f ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ~/Downloads/org.sireum.m2-$SIREUM_V.zip                                                                                         #
-mkdir -p $PDIR ~/Downloads                                                                                                                                                                  #
+mkdir -p "$PDIR" ~/Downloads                                                                                                                                                                #
 echo "Please wait while downloading https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-$DISTRO-$OS-$ARCH.tar.xz to $HOME/Downloads ..."                                  #
 curl -JLso ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz https://github.com/sireum/kekinian/releases/download/$SIREUM_V/sireum-$DISTRO-$OS-$ARCH.tar.xz                             #
 echo ""                                                                                                                                                                                     #
