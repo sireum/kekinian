@@ -24,8 +24,16 @@ jobs:
           git fetch --tags
       - name: Setup APE binfmt
         run: |
-          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
-          sudo chmod +x /usr/bin/ape
+          # The APE loader of the Cosmopolitan version Sireum pins, from sireum/rolling's ape
+          # release and checked against its SHA256SUMS.  A version with no loader there fails here:
+          # upload ape-<arch>-<version>.elf for it (from that version's cosmocc zip).
+          COSMOS_VER=$(sed -n 's/^org\.sireum\.version\.cosmos=//p' "$GITHUB_WORKSPACE/Sireum/versions.properties")
+          APE="ape-$(uname -m)-${COSMOS_VER}.elf"
+          ROLLING=https://github.com/sireum/rolling/releases/download/ape
+          curl -fsSL --retry 3 --connect-timeout 20 -o "/tmp/$APE" "$ROLLING/$APE"
+          curl -fsSL --retry 3 --connect-timeout 20 -o /tmp/ape.sha256 "$ROLLING/SHA256SUMS"
+          (cd /tmp && grep " $APE\$" ape.sha256 | sha256sum -c -)
+          sudo install -m 755 "/tmp/$APE" /usr/bin/ape
           sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
           sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Build Jar & m2
@@ -465,8 +473,16 @@ jobs:
     steps:
       - name: Setup APE binfmt
         run: |
-          sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
-          sudo chmod +x /usr/bin/ape
+          # The APE loader of the Cosmopolitan version Sireum pins, from sireum/rolling's ape
+          # release and checked against its SHA256SUMS.  A version with no loader there fails here:
+          # upload ape-<arch>-<version>.elf for it (from that version's cosmocc zip).
+          COSMOS_VER=$(sed -n 's/^org\.sireum\.version\.cosmos=//p' "$GITHUB_WORKSPACE/Sireum/versions.properties")
+          APE="ape-$(uname -m)-${COSMOS_VER}.elf"
+          ROLLING=https://github.com/sireum/rolling/releases/download/ape
+          curl -fsSL --retry 3 --connect-timeout 20 -o "/tmp/$APE" "$ROLLING/$APE"
+          curl -fsSL --retry 3 --connect-timeout 20 -o /tmp/ape.sha256 "$ROLLING/SHA256SUMS"
+          (cd /tmp && grep " $APE\$" ape.sha256 | sha256sum -c -)
+          sudo install -m 755 "/tmp/$APE" /usr/bin/ape
           sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
           sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register" || true
       - name: Test CodeIVE
