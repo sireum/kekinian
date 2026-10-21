@@ -37,10 +37,14 @@ echo ""                                                                         
 echo "Please wait while downloading https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.m2.zip to $HOME/Downloads ..."                                                #
 curl -JLso ~/Downloads/org.sireum.m2-$SIREUM_V.zip https://github.com/sireum/kekinian/releases/download/$SIREUM_V/org.sireum.m2.zip                                                         #
 echo ""                                                                                                                                                                                     #
-cd "$PDIR"                                                                                                                                                                                  #
+STAGE=$(mktemp -d "$PDIR/.sireum-install.XXXXXX")                                                                                                                                           #
+cd "$STAGE"                                                                                                                                                                                 #
 echo "Extracting sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz ..."                                                                                                                             #
 tar xf ~/Downloads/sireum-$DISTRO-$OS-$ARCH-$SIREUM_V.tar.xz                                                                                                                                #
 echo ""                                                                                                                                                                                     #
+mv "$STAGE/Sireum" "$DIR"                                                                                                                                                                   #
+cd "$PDIR"                                                                                                                                                                                  #
+rmdir "$STAGE"                                                                                                                                                                              #
 cd ~                                                                                                                                                                                        #
 echo "Extracting org.sireum.m2-$SIREUM_V.zip ..."                                                                                                                                           #
 if [ "$OS" = "mac" ]; then                                                                                                                                                                  #
@@ -55,20 +59,20 @@ if [ "$DISTRO" = "cli" ]; then                                                  
 fi                                                                                                                                                                                          #
 if [ "$OS" = "linux" ]; then                                                                                                                                                                #
   if [ "$ARCH" = "arm64" ]; then                                                                                                                                                            #
-    echo "CodeIVE can be launched as follow: $DIR/bin/linux/arm/vscodium/bin/codeive"                                                                                                       #
+    echo "CodeIVE can be launched as follow: \"$DIR/bin/linux/arm/vscodium/bin/codeive\""                                                                                                   #
     if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
-      echo "IVE can be launched as follow: $DIR/bin/linux/arm/idea/bin/IVE.sh"                                                                                                              #
+      echo "IVE can be launched as follow: \"$DIR/bin/linux/arm/idea/bin/IVE.sh\""                                                                                                          #
     fi                                                                                                                                                                                      #
   else                                                                                                                                                                                      #
-    echo "CodeIVE can be launched as follow: $DIR/bin/linux/vscodium/bin/codeive"                                                                                                           #
+    echo "CodeIVE can be launched as follow: \"$DIR/bin/linux/vscodium/bin/codeive\""                                                                                                       #
     if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
-      echo "IVE can be launched as follow: $DIR/bin/linux/idea/bin/IVE.sh"                                                                                                                  #
+      echo "IVE can be launched as follow: \"$DIR/bin/linux/idea/bin/IVE.sh\""                                                                                                              #
     fi                                                                                                                                                                                      #
   fi                                                                                                                                                                                        #
 else                                                                                                                                                                                        #
-    echo "CodeIVE can be launched as follow: open $DIR/bin/mac/vscodium/CodeIVE.app"                                                                                                        #
+    echo "CodeIVE can be launched as follow: open \"$DIR/bin/mac/vscodium/CodeIVE.app\""                                                                                                    #
     if [ "$DISTRO" = "ive" ]; then                                                                                                                                                          #
-      echo "IVE can be launched as follow: open $DIR/bin/mac/idea/IVE.app"                                                                                                                  #
+      echo "IVE can be launched as follow: open \"$DIR/bin/mac/idea/IVE.app\""                                                                                                              #
     fi                                                                                                                                                                                      #
 fi                                                                                                                                                                                          #
 exit 0                                                                                                                                                                                      #
@@ -98,18 +102,23 @@ echo.
 echo Please wait while downloading https://github.com/sireum/rolling/releases/download/misc/7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com to %USERPROFILE%\Downloads ...
 curl -JLso "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" https://github.com/sireum/rolling/releases/download/misc/7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com || goto :error
 echo.
-cd /d "%PDIR%"
+rmdir /s/q "%PDIR%.sireum-install" 2> nul
+md "%PDIR%.sireum-install" || goto :error
+cd /d "%PDIR%.sireum-install"
 echo Extracting sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z ...
 "%USERPROFILE%\Downloads\7zz-%P7ZZ_V%-cosmo-%COSMOCC_V%.com" x "%USERPROFILE%\Downloads\sireum-%DISTRO%-win-%ARCH%-%SIREUM_V%.7z" >nul || goto :error
 echo.
+move "%PDIR%.sireum-install\Sireum" "%DIR%" >nul || goto :error
+cd /d "%PDIR%"
+rmdir /s/q "%PDIR%.sireum-install"
 cd /d "%USERPROFILE%"
 echo Extracting org.sireum.m2-%SIREUM_V%.zip ...
 tar xf "%USERPROFILE%\Downloads\org.sireum.m2-%SIREUM_V%.zip" || goto :error
 echo.
 echo Sireum is installed at %DIR%
 if "%DISTRO%" == "cli" exit /b 0
-echo CodeIVE can be launched as follow: %DIR%\bin\win\vscodium\CodeIVE.exe
-if "%DISTRO%" == "ive" echo IVE can be launched as follow: %DIR%\bin\win\idea\bin\IVE.exe
+echo CodeIVE can be launched as follow: "%DIR%\bin\win\vscodium\CodeIVE.exe"
+if "%DISTRO%" == "ive" echo IVE can be launched as follow: "%DIR%\bin\win\idea\bin\IVE.exe"
 goto :EOF
 :error
 exit /b %errorlevel%
