@@ -476,7 +476,10 @@ jobs:
           # The APE loader of the Cosmopolitan version Sireum pins, from sireum/rolling's ape
           # release and checked against its SHA256SUMS.  A version with no loader there fails here:
           # upload ape-<arch>-<version>.elf for it (from that version's cosmocc zip).
-          COSMOS_VER=$(sed -n 's/^org\.sireum\.version\.cosmos=//p' "$GITHUB_WORKSPACE/Sireum/versions.properties")
+          # This job does not check kekinian out (it tests the released install), so the version comes
+          # from versions.properties at the commit being released
+          COSMOS_VER=$(curl -fsSL --retry 3 https://raw.githubusercontent.com/sireum/kekinian/${{ github.sha }}/versions.properties | sed -n 's/^org\.sireum\.version\.cosmos=//p')
+          [ -n "$COSMOS_VER" ]
           APE="ape-$(uname -m)-${COSMOS_VER}.elf"
           ROLLING=https://github.com/sireum/rolling/releases/download/ape
           curl -fsSL --retry 3 --connect-timeout 20 -o "/tmp/$APE" "$ROLLING/$APE"
