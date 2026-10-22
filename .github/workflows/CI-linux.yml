@@ -117,7 +117,9 @@ jobs:
           # which go under bin/linux/arm); caching bin/linux/arm/osate cached nothing, so
           # every run downloaded it again, for up to 40 minutes without output
           path: Sireum/bin/linux/osate
-          key: ${{ runner.os }}-${{ hashFiles('Sireum/hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
+          # the architecture is in the key because the path is the same as amd64's: with the same
+          # key the two jobs would share one cache entry, and arm64 would restore amd64's OSATE
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Sireum/hamr/codegen/jvm/src/main/resources/phantom_versions.properties') }}-osate
       - name: Setup APE binfmt
         run: |
           # The APE loader of the Cosmopolitan version Sireum pins, from sireum/rolling's ape
