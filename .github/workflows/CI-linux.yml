@@ -62,7 +62,9 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/Sireum/cache/coursier
           cd $GITHUB_WORKSPACE/Sireum
-          .ci/build.sh && .ci/build.sh test-verify
+          # stopped, with a dump of every Java thread, after 20 minutes without output
+          # rather than at GitHub's six-hour limit -- see .ci/watchdog.sh
+          .ci/watchdog.sh 20 bash -c '.ci/build.sh && .ci/build.sh test-verify'
       - name: Cache Graal
         id: cache-graal
         uses: actions/cache@v5
@@ -131,7 +133,9 @@ jobs:
         run: |
           export COURSIER_CACHE=$GITHUB_WORKSPACE/Sireum/cache/coursier
           cd $GITHUB_WORKSPACE/Sireum
-          .ci/build.sh && .ci/build.sh test-verify
+          # stopped, with a dump of every Java thread, after 20 minutes without output
+          # rather than at GitHub's six-hour limit -- see .ci/watchdog.sh
+          .ci/watchdog.sh 20 bash -c '.ci/build.sh && .ci/build.sh test-verify'
       - name: Cache Graal
         id: cache-graal
         uses: actions/cache@v5
