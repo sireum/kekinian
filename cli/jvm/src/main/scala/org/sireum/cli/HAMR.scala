@@ -406,6 +406,7 @@ object HAMR {
       sel4OutputDir = sel4OutputDirectory,
       sel4AuxCodeDirs = sel4AuxCodeDirs,
       sel4AuxCodeSymlink = F,
+      systemTesting = F,
       workspaceRootDir = workspaceRootDir,
       //
       strictAadlMode = F,
@@ -927,6 +928,7 @@ object HAMR {
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
       sel4AuxCodeSymlink = o.sel4AuxCodeSymlink,
+      systemTesting = o.systemTesting,
       workspaceRootDir = o.workspaceRootDir,
       //
       strictAadlMode = o.strictAadlMode,
@@ -970,6 +972,7 @@ object HAMR {
       sel4OutputDir = o.sel4OutputDir,
       sel4AuxCodeDirs = o.sel4AuxCodeDirs,
       sel4AuxCodeSymlink = o.sel4AuxCodeSymlink,
+      systemTesting = o.systemTesting,
       workspaceRootDir = o.workspaceRootDir,
       //
       strictAadlMode = o.strictAadlMode,
@@ -1187,6 +1190,9 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.sel4AuxCodeSymlink) {
       ret = ret :+ ("--sel4-aux-code-symlink", None())
     }
+    if (o.systemTesting) {
+      ret = ret :+ ("--system-testing", None())
+    }
     if (o.workspaceRootDir.nonEmpty) {
       ret = ret :+ ("--workspace-root-dir", Some(st"${(o.workspaceRootDir, Os.pathSep)}".render))
     }
@@ -1199,7 +1205,7 @@ object SireumHamrSysmlCodegenOptionUtil {
     if (o.ros2Dir.nonEmpty) {
       ret = ret :+ ("--ros2-dir", Some(st"${(o.ros2Dir, Os.pathSep)}".render))
     }
-    if (includeDefaults || o.ros2NodesLanguage.name != "Python") {
+    if (includeDefaults || o.ros2NodesLanguage.name != "Cpp") {
       ret = ret :+ ("--ros2-nodes-language", Some(o.ros2NodesLanguage.name))
     }
     if (includeDefaults || o.ros2LaunchLanguage.name != "Python") {
@@ -1221,7 +1227,7 @@ object SireumHamrSysmlCodegenOptionUtil {
   def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
-    assert(LongKeys.allKeys.size == 34, s"Expecting 34 long keys but found ${LongKeys.allKeys.size}")
+    assert(LongKeys.allKeys.size == 35, s"Expecting 35 long keys but found ${LongKeys.allKeys.size}")
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}")
 
     var userModifiedKeys: ISZ[String] = ISZ()
@@ -1330,6 +1336,10 @@ object SireumHamrSysmlCodegenOptionUtil {
         } else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink) {
           ret = ret(sel4AuxCodeSymlink = fileOptions.sel4AuxCodeSymlink)
           userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink
+          i = i + 1
+        } else if (k == LongKeys.CAmkES_Microkit_systemTesting) {
+          ret = ret(systemTesting = fileOptions.systemTesting)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.CAmkES_Microkit_systemTesting
           i = i + 1
         } else if (k == ShortKeys.CAmkES_Microkit_workspaceRootDir || k == LongKeys.CAmkES_Microkit_workspaceRootDir) {
           ret = ret(workspaceRootDir = fileOptions.workspaceRootDir)
@@ -1459,6 +1469,9 @@ object SireumHamrCodegenOptionUtil {
     if (o.sel4AuxCodeSymlink) {
       ret = ret :+ ("--sel4-aux-code-symlink", None())
     }
+    if (o.systemTesting) {
+      ret = ret :+ ("--system-testing", None())
+    }
     if (o.workspaceRootDir.nonEmpty) {
       ret = ret :+ ("--workspace-root-dir", Some(st"${(o.workspaceRootDir, Os.pathSep)}".render))
     }
@@ -1471,7 +1484,7 @@ object SireumHamrCodegenOptionUtil {
     if (o.ros2Dir.nonEmpty) {
       ret = ret :+ ("--ros2-dir", Some(st"${(o.ros2Dir, Os.pathSep)}".render))
     }
-    if (includeDefaults || o.ros2NodesLanguage.name != "Python") {
+    if (includeDefaults || o.ros2NodesLanguage.name != "Cpp") {
       ret = ret :+ ("--ros2-nodes-language", Some(o.ros2NodesLanguage.name))
     }
     if (includeDefaults || o.ros2LaunchLanguage.name != "Python") {

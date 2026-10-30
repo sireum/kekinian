@@ -2,7 +2,7 @@
 // @formatter:off
 
 /*
- Copyright (c) 2017-2026,Robby, Kansas State University
+ Copyright (c) 2017-2026, Robby, Kansas State University
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,7 @@ object Cli {
     val sel4OutputDir: Option[String],
     val sel4AuxCodeDirs: ISZ[String],
     val sel4AuxCodeSymlink: B,
+    val systemTesting: B,
     val workspaceRootDir: Option[String],
     val strictAadlMode: B,
     val ros2OutputWorkspaceDir: Option[String],
@@ -181,6 +182,7 @@ object Cli {
     val sel4OutputDir: Option[String],
     val sel4AuxCodeDirs: ISZ[String],
     val sel4AuxCodeSymlink: B,
+    val systemTesting: B,
     val workspaceRootDir: Option[String],
     val strictAadlMode: B,
     val ros2OutputWorkspaceDir: Option[String],
@@ -1494,6 +1496,9 @@ import Cli._
           |    --sel4-aux-code-symlink
           |                          Symlink the aux code directories into the Microkit
           |                           build rather than copying their C files
+          |    --system-testing     Generate the Microkit system-testing variant (test
+          |                           scheduler and test controller; UserLand scheduling
+          |                           only)
           |-r, --workspace-root-dir    
           |                          Root directory containing the architectural model
           |                           project (expects a path)
@@ -1545,6 +1550,7 @@ import Cli._
     var sel4OutputDir: Option[String] = None[String]()
     var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
     var sel4AuxCodeSymlink: B = false
+    var systemTesting: B = false
     var workspaceRootDir: Option[String] = None[String]()
     var strictAadlMode: B = false
     var ros2OutputWorkspaceDir: Option[String] = None[String]()
@@ -1705,6 +1711,12 @@ import Cli._
              case Some(v) => sel4AuxCodeSymlink = v
              case _ => return None()
            }
+         } else if (arg == "--system-testing") {
+           val o: Option[B] = { j = j - 1; Some(!systemTesting) }
+           o match {
+             case Some(v) => systemTesting = v
+             case _ => return None()
+           }
          } else if (arg == "-r" || arg == "--workspace-root-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -1762,7 +1774,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, systemTesting, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -2103,6 +2115,9 @@ import Cli._
           |    --sel4-aux-code-symlink
           |                          Symlink the aux code directories into the Microkit
           |                           build rather than copying their C files
+          |    --system-testing     Generate the Microkit system-testing variant (test
+          |                           scheduler and test controller; UserLand scheduling
+          |                           only)
           |-r, --workspace-root-dir    
           |                          Root directory containing the architectural model
           |                           project (expects a path)
@@ -2156,6 +2171,7 @@ import Cli._
     var sel4OutputDir: Option[String] = None[String]()
     var sel4AuxCodeDirs: ISZ[String] = ISZ[String]()
     var sel4AuxCodeSymlink: B = false
+    var systemTesting: B = false
     var workspaceRootDir: Option[String] = None[String]()
     var strictAadlMode: B = false
     var ros2OutputWorkspaceDir: Option[String] = None[String]()
@@ -2328,6 +2344,12 @@ import Cli._
              case Some(v) => sel4AuxCodeSymlink = v
              case _ => return None()
            }
+         } else if (arg == "--system-testing") {
+           val o: Option[B] = { j = j - 1; Some(!systemTesting) }
+           o match {
+             case Some(v) => systemTesting = v
+             case _ => return None()
+           }
          } else if (arg == "-r" || arg == "--workspace-root-dir") {
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
@@ -2385,7 +2407,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, systemTesting, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {
