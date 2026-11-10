@@ -822,9 +822,10 @@ object Sireum {
             cli.HAMR.sysmlRun(o, reporter) match {
               case Either.Right(code) => return code
               case Either.Left((_, _, _, _, hasError)) =>
-                if (!hasError) {
-                  println("Well-formed!")
+                if (hasError) {
+                  return -1
                 }
+                println("Well-formed!")
                 return 0
             }
           case Some(o: Cli.SireumHamrSysmlTranslatorOption) =>
