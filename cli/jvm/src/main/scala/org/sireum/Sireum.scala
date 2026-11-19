@@ -790,7 +790,7 @@ object Sireum {
             if (!NativeUtil.isNative) {
               init.deps()
             }
-            return cli.HAMR.codeGenS(o, reporter)
+            return cli.HAMR.codeGenSK(o, Some(cli.HAMR.explicitOptionKeys(args)), reporter)
           case Some(o: Cli.SireumHamrPhantomOption) =>
             init.basicDeps()
             return cli.Phantom.run(o)

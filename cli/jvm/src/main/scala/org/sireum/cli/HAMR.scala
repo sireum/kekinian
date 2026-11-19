@@ -111,6 +111,13 @@ object HAMR {
 
   // sysml interface
   def codeGenS(o: Cli.SireumHamrSysmlCodegenOption, reporter: Reporter): Z = {
+    return codeGenSK(o, None(), reporter)
+  }
+
+  // cmdLineKeysOpt: the long keys of the options the user supplied (see explicitOptionKeys), used to
+  // warn when the model's //@ HAMR: directive overrides one.  When None, an option counts as
+  // supplied only if its value differs from the default.
+  def codeGenSK(o: Cli.SireumHamrSysmlCodegenOption, cmdLineKeysOpt: Option[ISZ[String]], reporter: Reporter): Z = {
     if (o.args.isEmpty && o.sourcepath.isEmpty) {
       println(o.help)
       return 0
@@ -163,6 +170,7 @@ object HAMR {
       case x if x.size > 1 =>
         eprintln(s"Only a single file argument is allowed")
         return INVALID_OPTIONS
+      case _ => // no file argument: the system is selected by --system-name
     }
 
     val results: Either[(sysmlTypeHierarchy, ISZ[ModelUtil.ModelElements], ISZ[FrontEnd.Input], Store, B), Z] = sysmlRun(tipeOpts, reporter)
@@ -223,6 +231,38 @@ object HAMR {
                 return -1
               }
             }
+          }
+
+          // A misplaced directive is otherwise ignored without a word, and so is a command-line
+          // option the directive replaces; both leave codegen running with options the user did
+          // not expect (e.g., output written relative to the working directory).  Only the file
+          // the options were merged from is checked: other files' directives do not configure
+          // this system.
+          val mergeUriOpt: Option[String] =
+            if (o.system.nonEmpty) {
+              val systemPos = modelElement.symbolTable.rootSystem.component.identifier.pos
+              if (systemPos.nonEmpty) systemPos.get.uriOpt else None()
+            } else {
+              Some(Os.path(o.args(0)).toUri)
+            }
+          for (input <- inputs if mergeUriOpt.nonEmpty && input.fileUri == mergeUriOpt) {
+            for (d <- ignoredDirectives(input.content)) {
+              val (line, column, offset, length) = d
+              reporter.warn(
+                Some(message.FlatPos(uriOpt = input.fileUri,
+                  beginLine32 = conversions.Z.toU32(line), beginColumn32 = conversions.Z.toU32(column),
+                  endLine32 = conversions.Z.toU32(line), endColumn32 = conversions.Z.toU32(column + length - 1), // inclusive
+                  offset32 = conversions.Z.toU32(offset), length32 = conversions.Z.toU32(length))),
+                org.sireum.hamr.codegen.common.CommonUtil.optionWarningKind,
+                st"This //@ $toolName: directive is ignored, so none of its options apply: directives must start at column 0 in the file's first block of // comment lines (e.g., the top of the file, before 'package'), must not follow a //@ line ending in '\\' (which continues that line) or a //@ line without ':'".render)
+            }
+          }
+          val cmdLineKeys: ISZ[String] = cmdLineKeysOpt match {
+            case Some(keys) => keys
+            case _ => for (e <- SireumHamrSysmlCodegenOptionUtil.optionsToStringH(o, F)) yield e._1
+          }
+          for (w <- fileOverrideWarnings(o, mergedOptions, cmdLineKeys)) {
+            reporter.warn(None(), org.sireum.hamr.codegen.common.CommonUtil.optionWarningKind, w)
           }
 
           val dummyToolReport = CodegenReporting.emptyToolReport
@@ -1073,6 +1113,198 @@ object HAMR {
       ros2OutputWorkspaceDir = anchorOpt(LongKeys.ROS2_ros2OutputWorkspaceDir, o.ros2OutputWorkspaceDir),
       ros2Dir = anchorOpt(LongKeys.ROS2_ros2Dir, o.ros2Dir)
     )
+  }
+
+  // The `//@ HAMR:` directives in fileContent whose options LibUtil.mineOptions does not read, each
+  // as (line, column, offset, length) of the directive text (1-based line and column).  This
+  // simulates mineOptionsWithPrefix("//", _), which reads `//@` lines only at column 0 inside the
+  // file's first block of `//` comment lines (blank lines allowed), treats the `//@` line after one
+  // ending in `\` as its continuation whatever that line says, and stops at a `//@` line without a
+  // `:`.  So a directive is ignored without a word when it is indented (e.g., inside the package
+  // body), comes after code, is swallowed as another directive's continuation, or follows a
+  // malformed `//@` line.  The simulation runs on physical lines (split at '\n', a trailing '\r'
+  // dropped), not on cisLineStream: that merges and drops blank lines, which the mining skips
+  // anyway, but which would make the reported line numbers wrong.
+  def ignoredDirectives(fileContent: String): ISZ[(Z, Z, Z, Z)] = {
+    val cis = conversions.String.toCis(fileContent)
+    val commentPrefix = conversions.String.toCis("//")
+    val optPrefix = conversions.String.toCis("//@")
+    var r = ISZ[(Z, Z, Z, Z)]()
+    var phase: Z = 0 // 0: before the first comment block, 1: inside it, 2: after it
+    var key: String = "" // the directive the next `//@` line continues; "" when none
+    var stopped = F // a `//@` line without a `:` ended the mining
+    var lineNo: Z = 0
+    var start: Z = 0
+    while (start <= cis.size) {
+      var end = start
+      while (end < cis.size && cis(end) != '\n') {
+        end = end + 1
+      }
+      val lineEnd: Z = if (end > start && cis(end - 1) == '\r') end - 1 else end
+      val line = ops.ISZOps(cis).slice(start, lineEnd)
+      lineNo = lineNo + 1
+
+      val isComment = ops.StringOps.startsWith(line, commentPrefix)
+      val trimmed: ISZ[C] = conversions.String.toCis(ops.StringOps.trim(line))
+      if (phase == 0 && isComment) {
+        phase = 1
+      } else if (phase == 1 && !isComment && trimmed.size != 0) {
+        phase = 2
+      }
+
+      // does the mining read this line as part of a HAMR directive?
+      var readAsTool = F
+      if (phase == 1 && !stopped && ops.StringOps.startsWith(line, optPrefix)) {
+        val continues = line(line.size - 1) == '\\'
+        if (key.size == 0) {
+          val i = ops.StringOps.indexOfFrom(line, ':', optPrefix.size)
+          if (i < 0) {
+            stopped = T
+          } else {
+            val k = ops.StringOps(ops.StringOps.substring(line, optPrefix.size, i)).trim
+            readAsTool = k == toolName
+            key = if (continues) k else ""
+          }
+        } else {
+          readAsTool = key == toolName
+          if (!continues) {
+            key = ""
+          }
+        }
+      }
+
+      if (!readAsTool && ops.StringOps.startsWith(trimmed, optPrefix)) {
+        val i = ops.StringOps.indexOfFrom(trimmed, ':', optPrefix.size)
+        if (i >= 0 && ops.StringOps(ops.StringOps.substring(trimmed, optPrefix.size, i)).trim == toolName) {
+          var indent: Z = 0
+          while (line(indent) != '/') {
+            indent = indent + 1
+          }
+          r = r :+ ((lineNo, indent + 1, start + indent, lineEnd - start - indent))
+        }
+      }
+      start = end + 1
+    }
+    return r
+  }
+
+  // The long keys of the codegen options in args (what Sireum.run received, e.g.,
+  // ISZ("hamr", "sysml", "codegen", "-o", "out", "m.sysml")), short keys mapped to their long form,
+  // each once.  Every option takes one value except the flags below (the options mergeOptionsM
+  // advances past with `i + 1`), so a value spelled like a key (e.g., `--package-name -o`) is
+  // skipped rather than counted.  Non-option tokens (the subcommand words, the model file) are
+  // skipped one at a time.
+  def explicitOptionKeys(args: ISZ[String]): ISZ[String] = {
+    val flags = HashSet.empty[String] ++ ISZ[String](
+      LongKeys.verbose, LongKeys.runtimeMonitoring, LongKeys.parseableMessages,
+      LongKeys.Slang_noProyekIve, LongKeys.Slang_noEmbedArt, LongKeys.Slang_devicesAsThreads,
+      LongKeys.Slang_genSbtMill, LongKeys.Transpiler_excludeComponentImpl, LongKeys.Transpiler_runTranspiler,
+      LongKeys.CAmkES_Microkit_verusAttributeSyntax, LongKeys.CAmkES_Microkit_sel4AuxCodeSymlink,
+      LongKeys.CAmkES_Microkit_systemTesting, LongKeys.ROS2_strictAadlMode, LongKeys.ROS2_invertTopicBinding)
+    val shortToLong = HashMap.empty[String, String] ++ ISZ[(String, String)](
+      (ShortKeys.verbose, LongKeys.verbose),
+      (ShortKeys.runtimeMonitoring, LongKeys.runtimeMonitoring),
+      (ShortKeys.platform, LongKeys.platform),
+      (ShortKeys.outputDir, LongKeys.outputDir),
+      (ShortKeys.Slang_packageName, LongKeys.Slang_packageName),
+      (ShortKeys.Transpiler_excludeComponentImpl, LongKeys.Transpiler_excludeComponentImpl),
+      (ShortKeys.Transpiler_bitWidth, LongKeys.Transpiler_bitWidth),
+      (ShortKeys.Transpiler_maxStringSize, LongKeys.Transpiler_maxStringSize),
+      (ShortKeys.Transpiler_maxArraySize, LongKeys.Transpiler_maxArraySize),
+      (ShortKeys.Transpiler_runTranspiler, LongKeys.Transpiler_runTranspiler),
+      (ShortKeys.CAmkES_Microkit_workspaceRootDir, LongKeys.CAmkES_Microkit_workspaceRootDir),
+      (ShortKeys.Experimental_experimentalOptions, LongKeys.Experimental_experimentalOptions))
+    var r = ISZ[String]()
+    var i: Z = 0
+    while (i < args.size) {
+      val k: String = shortToLong.get(args(i)).getOrElse(args(i))
+      if (LongKeys.allKeys.contains(k)) {
+        if (!ops.ISZOps(r).contains(k)) {
+          r = r :+ k
+        }
+        i = i + (if (flags.contains(k)) 1 else 2)
+      } else {
+        i = i + 1
+      }
+    }
+    return r
+  }
+
+  // Describes each option given on the command line (cmdLineKeys, long form) whose effective value
+  // the model file's `//@ HAMR:` directive replaced in merged (file options take precedence, see
+  // mergeOptionsM).  Path options are compared by the folders they resolve to -- the command line's
+  // against the working directory, the directive's as resolveFileOptionPaths left it -- each side
+  // canonicalized, so the same folder written two ways is not reported.  Directory options are
+  // compared whole; only the list options (sourcepath, aux-code dirs) are compared per entry.
+  // Other options are compared by optionsToStringH(_, F), which omits a value equal to its
+  // default, so an omitted entry means "the default" on either side.
+  def fileOverrideWarnings(cmdLine: Cli.SireumHamrSysmlCodegenOption,
+                           merged: Cli.SireumHamrSysmlCodegenOption,
+                           cmdLineKeys: ISZ[String]): ISZ[String] = {
+    // not @strictpure: canon touches the filesystem
+    def canon(p: String): String = {
+      return Os.path(p).canon.string
+    }
+
+    @strictpure def quoted(raw: String, resolved: String): String =
+      if (raw == resolved) st"'$raw'".render else st"'$raw' ($resolved)".render
+
+    @strictpure def warning(k: String, cmdDesc: String, fileDesc: String): String =
+      st"The model's //@ $toolName: directive overrides the command-line $k $cmdDesc with $fileDesc".render
+
+    def dirOpt(k: String, c: Option[String], m: Option[String]): Option[String] = {
+      val cc: Option[String] = if (c.isEmpty) None() else Some(canon(c.get))
+      val mc: Option[String] = if (m.isEmpty) None() else Some(canon(m.get))
+      if (cc == mc) {
+        return None()
+      }
+      val cd: String = if (c.isEmpty) "(unset)" else quoted(c.get, cc.get)
+      val md: String = if (m.isEmpty) "(unset)" else quoted(m.get, mc.get)
+      return Some(warning(k, cd, md))
+    }
+
+    def dirList(k: String, c: ISZ[String], m: ISZ[String]): Option[String] = {
+      val cc: ISZ[String] = for (p <- c) yield canon(p)
+      val mc: ISZ[String] = for (p <- m) yield canon(p)
+      if (cc == mc) {
+        return None()
+      }
+      return Some(warning(k, quoted(st"${(c, Os.pathSep)}".render, st"${(cc, Os.pathSep)}".render),
+        quoted(st"${(m, Os.pathSep)}".render, st"${(mc, Os.pathSep)}".render)))
+    }
+
+    var cmdMap = HashMap.empty[String, Option[String]]
+    for (e <- SireumHamrSysmlCodegenOptionUtil.optionsToStringH(cmdLine, F)) {
+      cmdMap = cmdMap + e._1 ~> e._2
+    }
+    var mergedMap = HashMap.empty[String, Option[String]]
+    for (e <- SireumHamrSysmlCodegenOptionUtil.optionsToStringH(merged, F)) {
+      mergedMap = mergedMap + e._1 ~> e._2
+    }
+
+    @strictpure def describe(v: Option[Option[String]]): String =
+      if (v.isEmpty) "(its default)" else if (v.get.isEmpty) "(set)" else st"'${v.get.get}'".render
+
+    var r = ISZ[String]()
+    for (k <- cmdLineKeys) {
+      val w: Option[String] =
+        if (k == LongKeys.sourcepath) dirList(k, cmdLine.sourcepath, merged.sourcepath)
+        else if (k == LongKeys.Transpiler_slangAuxCodeDirs) dirList(k, cmdLine.slangAuxCodeDirs, merged.slangAuxCodeDirs)
+        else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeDirs) dirList(k, cmdLine.sel4AuxCodeDirs, merged.sel4AuxCodeDirs)
+        else if (k == LongKeys.outputDir) dirOpt(k, cmdLine.outputDir, merged.outputDir)
+        else if (k == LongKeys.Slang_slangOutputDir) dirOpt(k, cmdLine.slangOutputDir, merged.slangOutputDir)
+        else if (k == LongKeys.Transpiler_slangOutputCDir) dirOpt(k, cmdLine.slangOutputCDir, merged.slangOutputCDir)
+        else if (k == LongKeys.CAmkES_Microkit_sel4OutputDir) dirOpt(k, cmdLine.sel4OutputDir, merged.sel4OutputDir)
+        else if (k == LongKeys.CAmkES_Microkit_workspaceRootDir) dirOpt(k, cmdLine.workspaceRootDir, merged.workspaceRootDir)
+        else if (k == LongKeys.ROS2_ros2OutputWorkspaceDir) dirOpt(k, cmdLine.ros2OutputWorkspaceDir, merged.ros2OutputWorkspaceDir)
+        else if (k == LongKeys.ROS2_ros2Dir) dirOpt(k, cmdLine.ros2Dir, merged.ros2Dir)
+        else if (cmdMap.get(k) == mergedMap.get(k)) None()
+        else Some(warning(k, describe(cmdMap.get(k)), describe(mergedMap.get(k))))
+      if (w.nonEmpty) {
+        r = r :+ w.get
+      }
+    }
+    return r
   }
 
   // Note: this method is also used by sireum forms (insert url)
