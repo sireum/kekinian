@@ -50,6 +50,11 @@ object Cli {
     "Ros2"
   }
 
+  @enum object SireumHamrCodegenAirOutputFormat {
+    "Json"
+    "Msgpack"
+  }
+
   @enum object SireumHamrCodegenScheduling {
     "Domain"
     "UserLand"
@@ -73,6 +78,8 @@ object Cli {
     val runtimeMonitoring: B,
     val platform: SireumHamrCodegenHamrPlatform.Type,
     val outputDir: Option[String],
+    val airOutput: Option[String],
+    val airOutputFormat: SireumHamrCodegenAirOutputFormat.Type,
     val parseableMessages: B,
     val slangOutputDir: Option[String],
     val packageName: Option[String],
@@ -138,6 +145,11 @@ object Cli {
     "Ros2"
   }
 
+  @enum object SireumHamrSysmlCodegenAirOutputFormat {
+    "Json"
+    "Msgpack"
+  }
+
   @enum object SireumHamrSysmlCodegenScheduling {
     "Domain"
     "UserLand"
@@ -163,6 +175,8 @@ object Cli {
     val runtimeMonitoring: B,
     val platform: SireumHamrSysmlCodegenHamrPlatform.Type,
     val outputDir: Option[String],
+    val airOutput: Option[String],
+    val airOutputFormat: SireumHamrSysmlCodegenAirOutputFormat.Type,
     val parseableMessages: B,
     val slangOutputDir: Option[String],
     val packageName: Option[String],
@@ -1380,6 +1394,25 @@ import Cli._
     return r
   }
 
+  def parseSireumHamrCodegenAirOutputFormatH(arg: String): Option[SireumHamrCodegenAirOutputFormat.Type] = {
+    arg.native match {
+      case "json" => return Some(SireumHamrCodegenAirOutputFormat.Json)
+      case "msgpack" => return Some(SireumHamrCodegenAirOutputFormat.Msgpack)
+      case s =>
+        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrCodegenAirOutputFormat(args: ISZ[String], i: Z): Option[SireumHamrCodegenAirOutputFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrCodegenAirOutputFormatH(args(i))
+    return r
+  }
+
   def parseSireumHamrCodegenSchedulingH(arg: String): Option[SireumHamrCodegenScheduling.Type] = {
     arg.native match {
       case "Domain" => return Some(SireumHamrCodegenScheduling.Domain)
@@ -1453,6 +1486,12 @@ import Cli._
           |                           MacOS, seL4, seL4_Only, seL4_TB, Microkit, ros2 };
           |                           default: JVM)
           |-o, --output-dir         Default output directory (expects a path)
+          |    --air-output         Write the AIR model codegen receives to this file,
+          |                           overwriting it, before any checks run (expects a
+          |                           path)
+          |    --air-output-format  Format of the air-output file (msgpack is written as
+          |                           Base64 text, as hamr codegen --msgpack reads it)
+          |                           (expects one of { json, msgpack }; default: json)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
           |
@@ -1531,6 +1570,8 @@ import Cli._
     var runtimeMonitoring: B = false
     var platform: SireumHamrCodegenHamrPlatform.Type = SireumHamrCodegenHamrPlatform.JVM
     var outputDir: Option[String] = None[String]()
+    var airOutput: Option[String] = None[String]()
+    var airOutputFormat: SireumHamrCodegenAirOutputFormat.Type = SireumHamrCodegenAirOutputFormat.Json
     var parseableMessages: B = false
     var slangOutputDir: Option[String] = None[String]()
     var packageName: Option[String] = Some("base")
@@ -1595,6 +1636,18 @@ import Cli._
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "--air-output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => airOutput = v
+             case _ => return None()
+           }
+         } else if (arg == "--air-output-format") {
+           val o: Option[SireumHamrCodegenAirOutputFormat.Type] = parseSireumHamrCodegenAirOutputFormat(args, j + 1)
+           o match {
+             case Some(v) => airOutputFormat = v
              case _ => return None()
            }
          } else if (arg == "--parseable-messages") {
@@ -1774,7 +1827,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, systemTesting, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrCodegenOption(help, parseArguments(args, j), msgpack, verbose, runtimeMonitoring, platform, outputDir, airOutput, airOutputFormat, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, systemTesting, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrPhantomPhantomModeH(arg: String): Option[SireumHamrPhantomPhantomMode.Type] = {
@@ -1994,6 +2047,25 @@ import Cli._
     return r
   }
 
+  def parseSireumHamrSysmlCodegenAirOutputFormatH(arg: String): Option[SireumHamrSysmlCodegenAirOutputFormat.Type] = {
+    arg.native match {
+      case "json" => return Some(SireumHamrSysmlCodegenAirOutputFormat.Json)
+      case "msgpack" => return Some(SireumHamrSysmlCodegenAirOutputFormat.Msgpack)
+      case s =>
+        eprintln(s"Expecting one of the following: { json, msgpack }, but found '$s'.")
+        return None()
+    }
+  }
+
+  def parseSireumHamrSysmlCodegenAirOutputFormat(args: ISZ[String], i: Z): Option[SireumHamrSysmlCodegenAirOutputFormat.Type] = {
+    if (i >= args.size) {
+      eprintln("Expecting one of the following: { json, msgpack }, but none found.")
+      return None()
+    }
+    val r = parseSireumHamrSysmlCodegenAirOutputFormatH(args(i))
+    return r
+  }
+
   def parseSireumHamrSysmlCodegenSchedulingH(arg: String): Option[SireumHamrSysmlCodegenScheduling.Type] = {
     arg.native match {
       case "Domain" => return Some(SireumHamrSysmlCodegenScheduling.Domain)
@@ -2072,6 +2144,12 @@ import Cli._
           |                           MacOS, seL4, seL4_Only, seL4_TB, Microkit, ros2 };
           |                           default: JVM)
           |-o, --output-dir         Default output directory (expects a path)
+          |    --air-output         Write the AIR model codegen receives to this file,
+          |                           overwriting it, before any checks run (expects a
+          |                           path)
+          |    --air-output-format  Format of the air-output file (msgpack is written as
+          |                           Base64 text, as hamr codegen --msgpack reads it)
+          |                           (expects one of { json, msgpack }; default: json)
           |    --parseable-messages Print parseable file messages
           |-h, --help               Display this information
           |
@@ -2152,6 +2230,8 @@ import Cli._
     var runtimeMonitoring: B = false
     var platform: SireumHamrSysmlCodegenHamrPlatform.Type = SireumHamrSysmlCodegenHamrPlatform.JVM
     var outputDir: Option[String] = None[String]()
+    var airOutput: Option[String] = None[String]()
+    var airOutputFormat: SireumHamrSysmlCodegenAirOutputFormat.Type = SireumHamrSysmlCodegenAirOutputFormat.Json
     var parseableMessages: B = false
     var slangOutputDir: Option[String] = None[String]()
     var packageName: Option[String] = Some("base")
@@ -2228,6 +2308,18 @@ import Cli._
            val o: Option[Option[String]] = parsePath(args, j + 1)
            o match {
              case Some(v) => outputDir = v
+             case _ => return None()
+           }
+         } else if (arg == "--air-output") {
+           val o: Option[Option[String]] = parsePath(args, j + 1)
+           o match {
+             case Some(v) => airOutput = v
+             case _ => return None()
+           }
+         } else if (arg == "--air-output-format") {
+           val o: Option[SireumHamrSysmlCodegenAirOutputFormat.Type] = parseSireumHamrSysmlCodegenAirOutputFormat(args, j + 1)
+           o match {
+             case Some(v) => airOutputFormat = v
              case _ => return None()
            }
          } else if (arg == "--parseable-messages") {
@@ -2407,7 +2499,7 @@ import Cli._
         isOption = F
       }
     }
-    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, systemTesting, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
+    return Some(SireumHamrSysmlCodegenOption(help, parseArguments(args, j), sourcepath, line, system, verbose, runtimeMonitoring, platform, outputDir, airOutput, airOutputFormat, parseableMessages, slangOutputDir, packageName, noProyekIve, noEmbedArt, devicesAsThreads, genSbtMill, slangAuxCodeDirs, slangOutputCDir, excludeComponentImpl, bitWidth, maxStringSize, maxArraySize, runTranspiler, scheduling, verusAttributeSyntax, sel4OutputDir, sel4AuxCodeDirs, sel4AuxCodeSymlink, systemTesting, workspaceRootDir, strictAadlMode, ros2OutputWorkspaceDir, ros2Dir, ros2NodesLanguage, ros2LaunchLanguage, invertTopicBinding, experimentalOptions))
   }
 
   def parseSireumHamrSysmlConfigThemeH(arg: String): Option[SireumHamrSysmlConfigTheme.Type] = {

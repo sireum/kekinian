@@ -35,7 +35,7 @@ import org.sireum.hamr.codegen.common.containers.{SireumProyekIveOption, SireumS
 import org.sireum.hamr.codegen.common.plugin.Plugin
 import org.sireum.hamr.codegen.common.reporting.CodegenReporting
 import org.sireum.hamr.sysml.{FrontEnd, LongKeys, ShortKeys}
-import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption, CodegenScheduling}
+import org.sireum.hamr.codegen.common.util.HamrCli.{CodegenAirOutputFormat, CodegenHamrPlatform, CodegenLaunchCodeLanguage, CodegenNodesCodeLanguage, CodegenOption, CodegenScheduling}
 import org.sireum.hamr.codegen.common.util._
 import org.sireum.hamr.codegen.microkit.plugins.MicrokitPlugins
 import org.sireum.hamr.ir.{Aadl, JSON => irJSON, MsgPack => irMsgPack}
@@ -273,13 +273,6 @@ object HAMR {
           codeGenReporterS(modelElement.model, convertSysmlOptions(mergedOptions), localStore, reporter)
 
           if (!reporter.hasError) {
-            mergedOptions.workspaceRootDir match {
-              case Some(p) if Os.path(p).exists =>
-                val sout = Os.path(p) / ".slang" / st"${(modelElement.model.components(0).identifier.name, "_")}.json".render
-                sout.writeOver(irJSON.fromAadl(modelElement.model, F))
-                println(s"Wrote: $sout")
-              case _ =>
-            }
             reporter.info(None(), "codegen", "Code generation successful!")
           } else {
             reporter.info(None(), "codegen", "Code generation failed")
@@ -424,6 +417,8 @@ object HAMR {
       runtimeMonitoring = runtimeMonitoring,
       platform = platform,
       outputDir = outputDir,
+      airOutput = None(),
+      airOutputFormat = Cli.SireumHamrCodegenAirOutputFormat.Json,
       parseableMessages = F,
       //
       slangOutputDir = slangOutputDir,
@@ -947,6 +942,8 @@ object HAMR {
       runtimeMonitoring = o.runtimeMonitoring,
       platform = Cli.SireumHamrCodegenHamrPlatform.byName(o.platform.name).get,
       outputDir = o.outputDir,
+      airOutput = o.airOutput,
+      airOutputFormat = Cli.SireumHamrCodegenAirOutputFormat.byName(o.airOutputFormat.name).get,
       parseableMessages = o.parseableMessages,
       slangOutputDir = o.slangOutputDir,
       packageName = o.packageName,
@@ -990,6 +987,8 @@ object HAMR {
       runtimeMonitoring = o.runtimeMonitoring,
       platform = CodegenHamrPlatform.byName(o.platform.name).get,
       outputDir = o.outputDir,
+      airOutput = o.airOutput,
+      airOutputFormat = CodegenAirOutputFormat.byName(o.airOutputFormat.name).get,
       parseableMessages = o.parseableMessages,
       //
       slangOutputDir = o.slangOutputDir,
@@ -1104,6 +1103,7 @@ object HAMR {
     return o(
       sourcepath = anchorSeq(LongKeys.sourcepath, o.sourcepath),
       outputDir = anchorOpt(LongKeys.outputDir, o.outputDir),
+      airOutput = anchorOpt(LongKeys.airOutput, o.airOutput),
       slangOutputDir = anchorOpt(LongKeys.Slang_slangOutputDir, o.slangOutputDir),
       slangAuxCodeDirs = anchorSeq(LongKeys.Transpiler_slangAuxCodeDirs, o.slangAuxCodeDirs),
       slangOutputCDir = anchorOpt(LongKeys.Transpiler_slangOutputCDir, o.slangOutputCDir),
@@ -1232,10 +1232,11 @@ object HAMR {
 
   // Describes each option given on the command line (cmdLineKeys, long form) whose effective value
   // the model file's `//@ HAMR:` directive replaced in merged (file options take precedence, see
-  // mergeOptionsM).  Path options are compared by the folders they resolve to -- the command line's
+  // mergeOptionsM).  Path options are compared by the paths they resolve to -- the command line's
   // against the working directory, the directive's as resolveFileOptionPaths left it -- each side
-  // canonicalized, so the same folder written two ways is not reported.  Directory options are
-  // compared whole; only the list options (sourcepath, aux-code dirs) are compared per entry.
+  // canonicalized, so the same folder or file written two ways is not reported.  Directory options
+  // and the air-output file are compared whole; only the list options (sourcepath, aux-code dirs)
+  // are compared per entry.
   // Other options are compared by optionsToStringH(_, F), which omits a value equal to its
   // default, so an omitted entry means "the default" on either side.
   def fileOverrideWarnings(cmdLine: Cli.SireumHamrSysmlCodegenOption,
@@ -1292,6 +1293,7 @@ object HAMR {
         else if (k == LongKeys.Transpiler_slangAuxCodeDirs) dirList(k, cmdLine.slangAuxCodeDirs, merged.slangAuxCodeDirs)
         else if (k == LongKeys.CAmkES_Microkit_sel4AuxCodeDirs) dirList(k, cmdLine.sel4AuxCodeDirs, merged.sel4AuxCodeDirs)
         else if (k == LongKeys.outputDir) dirOpt(k, cmdLine.outputDir, merged.outputDir)
+        else if (k == LongKeys.airOutput) dirOpt(k, cmdLine.airOutput, merged.airOutput)
         else if (k == LongKeys.Slang_slangOutputDir) dirOpt(k, cmdLine.slangOutputDir, merged.slangOutputDir)
         else if (k == LongKeys.Transpiler_slangOutputCDir) dirOpt(k, cmdLine.slangOutputCDir, merged.slangOutputCDir)
         else if (k == LongKeys.CAmkES_Microkit_sel4OutputDir) dirOpt(k, cmdLine.sel4OutputDir, merged.sel4OutputDir)
@@ -1360,10 +1362,33 @@ object SireumHamrSysmlCodegenOptionUtil {
       ret = ret :+ ("--runtime-monitoring", None())
     }
     if (includeDefaults || o.platform.name != "JVM") {
-      ret = ret :+ ("--platform", Some(o.platform.name))
+      val v: String = o.platform.name match {
+        case "JVM" => "JVM"
+        case "Linux" => "Linux"
+        case "Cygwin" => "Cygwin"
+        case "MacOS" => "MacOS"
+        case "SeL4" => "seL4"
+        case "SeL4_Only" => "seL4_Only"
+        case "SeL4_TB" => "seL4_TB"
+        case "Microkit" => "Microkit"
+        case "Ros2" => "ros2"
+        case n => halt(s"Unexpected platform value $n")
+      }
+      ret = ret :+ ("--platform", Some(v))
     }
     if (o.outputDir.nonEmpty) {
       ret = ret :+ ("--output-dir", Some(st"${(o.outputDir, Os.pathSep)}".render))
+    }
+    if (o.airOutput.nonEmpty) {
+      ret = ret :+ ("--air-output", Some(st"${(o.airOutput, Os.pathSep)}".render))
+    }
+    if (includeDefaults || o.airOutputFormat.name != "Json") {
+      val v: String = o.airOutputFormat.name match {
+        case "Json" => "json"
+        case "Msgpack" => "msgpack"
+        case n => halt(s"Unexpected air-output-format value $n")
+      }
+      ret = ret :+ ("--air-output-format", Some(v))
     }
     if (o.parseableMessages) {
       ret = ret :+ ("--parseable-messages", None())
@@ -1408,7 +1433,12 @@ object SireumHamrSysmlCodegenOptionUtil {
       ret = ret :+ ("--run-transpiler", None())
     }
     if (includeDefaults || o.scheduling.name != "Domain") {
-      ret = ret :+ ("--scheduling", Some(o.scheduling.name))
+      val v: String = o.scheduling.name match {
+        case "Domain" => "Domain"
+        case "UserLand" => "UserLand"
+        case n => halt(s"Unexpected scheduling value $n")
+      }
+      ret = ret :+ ("--scheduling", Some(v))
     }
     if (o.verusAttributeSyntax) {
       ret = ret :+ ("--verus-attribute-syntax", None())
@@ -1438,10 +1468,20 @@ object SireumHamrSysmlCodegenOptionUtil {
       ret = ret :+ ("--ros2-dir", Some(st"${(o.ros2Dir, Os.pathSep)}".render))
     }
     if (includeDefaults || o.ros2NodesLanguage.name != "Cpp") {
-      ret = ret :+ ("--ros2-nodes-language", Some(o.ros2NodesLanguage.name))
+      val v: String = o.ros2NodesLanguage.name match {
+        case "Cpp" => "Cpp"
+        case "Python" => "Python"
+        case n => halt(s"Unexpected ros2-nodes-language value $n")
+      }
+      ret = ret :+ ("--ros2-nodes-language", Some(v))
     }
     if (includeDefaults || o.ros2LaunchLanguage.name != "Python") {
-      ret = ret :+ ("--ros2-launch-language", Some(o.ros2LaunchLanguage.name))
+      val v: String = o.ros2LaunchLanguage.name match {
+        case "Python" => "Python"
+        case "Xml" => "Xml"
+        case n => halt(s"Unexpected ros2-launch-language value $n")
+      }
+      ret = ret :+ ("--ros2-launch-language", Some(v))
     }
     if (o.invertTopicBinding) {
       ret = ret :+ ("--invert-topic-binding", None())
@@ -1459,7 +1499,7 @@ object SireumHamrSysmlCodegenOptionUtil {
   def mergeOptionsM(o: Cli.SireumHamrSysmlCodegenOption,
                     fileOptions: Cli.SireumHamrSysmlCodegenOption,
                     fileOpts: ISZ[String]): Either[(Cli.SireumHamrSysmlCodegenOption, ISZ[String]), String] = {
-    assert(LongKeys.allKeys.size == 35, s"Expecting 35 long keys but found ${LongKeys.allKeys.size}")
+    assert(LongKeys.allKeys.size == 37, s"Expecting 37 long keys but found ${LongKeys.allKeys.size}")
     assert(ShortKeys.allKeys.size == 12, s"Expecting 12 short keys but found ${ShortKeys.allKeys.size}")
 
     var userModifiedKeys: ISZ[String] = ISZ()
@@ -1492,6 +1532,14 @@ object SireumHamrSysmlCodegenOptionUtil {
         } else if (k == ShortKeys.outputDir || k == LongKeys.outputDir) {
           ret = ret(outputDir = fileOptions.outputDir)
           userModifiedKeys = userModifiedKeys :+ LongKeys.outputDir
+          i = i + 2
+        } else if (k == LongKeys.airOutput) {
+          ret = ret(airOutput = fileOptions.airOutput)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.airOutput
+          i = i + 2
+        } else if (k == LongKeys.airOutputFormat) {
+          ret = ret(airOutputFormat = fileOptions.airOutputFormat)
+          userModifiedKeys = userModifiedKeys :+ LongKeys.airOutputFormat
           i = i + 2
         } else if (k == LongKeys.parseableMessages) {
           ret = ret(parseableMessages = fileOptions.parseableMessages)
@@ -1639,10 +1687,33 @@ object SireumHamrCodegenOptionUtil {
       ret = ret :+ ("--runtime-monitoring", None())
     }
     if (includeDefaults || o.platform.name != "JVM") {
-      ret = ret :+ ("--platform", Some(o.platform.name))
+      val v: String = o.platform.name match {
+        case "JVM" => "JVM"
+        case "Linux" => "Linux"
+        case "Cygwin" => "Cygwin"
+        case "MacOS" => "MacOS"
+        case "SeL4" => "seL4"
+        case "SeL4_Only" => "seL4_Only"
+        case "SeL4_TB" => "seL4_TB"
+        case "Microkit" => "Microkit"
+        case "Ros2" => "ros2"
+        case n => halt(s"Unexpected platform value $n")
+      }
+      ret = ret :+ ("--platform", Some(v))
     }
     if (o.outputDir.nonEmpty) {
       ret = ret :+ ("--output-dir", Some(st"${(o.outputDir, Os.pathSep)}".render))
+    }
+    if (o.airOutput.nonEmpty) {
+      ret = ret :+ ("--air-output", Some(st"${(o.airOutput, Os.pathSep)}".render))
+    }
+    if (includeDefaults || o.airOutputFormat.name != "Json") {
+      val v: String = o.airOutputFormat.name match {
+        case "Json" => "json"
+        case "Msgpack" => "msgpack"
+        case n => halt(s"Unexpected air-output-format value $n")
+      }
+      ret = ret :+ ("--air-output-format", Some(v))
     }
     if (o.parseableMessages) {
       ret = ret :+ ("--parseable-messages", None())
@@ -1687,7 +1758,12 @@ object SireumHamrCodegenOptionUtil {
       ret = ret :+ ("--run-transpiler", None())
     }
     if (includeDefaults || o.scheduling.name != "Domain") {
-      ret = ret :+ ("--scheduling", Some(o.scheduling.name))
+      val v: String = o.scheduling.name match {
+        case "Domain" => "Domain"
+        case "UserLand" => "UserLand"
+        case n => halt(s"Unexpected scheduling value $n")
+      }
+      ret = ret :+ ("--scheduling", Some(v))
     }
     if (o.verusAttributeSyntax) {
       ret = ret :+ ("--verus-attribute-syntax", None())
@@ -1717,10 +1793,20 @@ object SireumHamrCodegenOptionUtil {
       ret = ret :+ ("--ros2-dir", Some(st"${(o.ros2Dir, Os.pathSep)}".render))
     }
     if (includeDefaults || o.ros2NodesLanguage.name != "Cpp") {
-      ret = ret :+ ("--ros2-nodes-language", Some(o.ros2NodesLanguage.name))
+      val v: String = o.ros2NodesLanguage.name match {
+        case "Cpp" => "Cpp"
+        case "Python" => "Python"
+        case n => halt(s"Unexpected ros2-nodes-language value $n")
+      }
+      ret = ret :+ ("--ros2-nodes-language", Some(v))
     }
     if (includeDefaults || o.ros2LaunchLanguage.name != "Python") {
-      ret = ret :+ ("--ros2-launch-language", Some(o.ros2LaunchLanguage.name))
+      val v: String = o.ros2LaunchLanguage.name match {
+        case "Python" => "Python"
+        case "Xml" => "Xml"
+        case n => halt(s"Unexpected ros2-launch-language value $n")
+      }
+      ret = ret :+ ("--ros2-launch-language", Some(v))
     }
     if (o.invertTopicBinding) {
       ret = ret :+ ("--invert-topic-binding", None())
